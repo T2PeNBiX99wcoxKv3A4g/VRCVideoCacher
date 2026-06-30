@@ -112,6 +112,10 @@
           <TargetPath>libopenvr_api.so</TargetPath>
         </None>
         <EmbeddedResource Include="manifest.vrmanifest" />
+        <None Remove="yt-dlp-stub_linux" />
+        <EmbeddedResource Include="yt-dlp-stub_linux">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
