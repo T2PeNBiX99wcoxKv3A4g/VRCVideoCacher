@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Globalization;
+using System.Runtime.Versioning;
+using Microsoft.Win32;
 using Serilog;
 using ValveKeyValue;
 
@@ -12,7 +14,9 @@ public class FileTools
     private static readonly string? BackupPathVrc;
     private static readonly string? YtdlPathReso;
     private static readonly string? BackupPathReso;
-    private static readonly ImmutableList<string> SteamPaths = [".var/app/com.valvesoftware.Steam", ".steam/steam", ".local/share/Steam"];
+
+    private static readonly ImmutableList<string> SteamPaths =
+        [".var/app/com.valvesoftware.Steam", ".steam/steam", ".local/share/Steam"];
 
     static FileTools()
     {
@@ -34,6 +38,7 @@ public class FileTools
                 resoPath = $@"{path}\steamapps\common\Resonite";
             }
         }
+
         if (!string.IsNullOrEmpty(resoPath))
         {
             YtdlPathReso = $@"{resoPath}\RuntimeData\yt-dlp.exe";
@@ -47,13 +52,14 @@ public class FileTools
         }
         else if (OperatingSystem.IsLinux())
         {
-            var compatPath = GetCompatPath("438100") ?? throw new Exception("Unable to find VRChat compat data");
+            var compatPath = GetCompatPath("438100") ?? throw new("Unable to find VRChat compat data");
             localLowPath = Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow");
         }
         else
         {
             throw new NotImplementedException("Unknown platform");
         }
+
         var vrcPath = Path.Join(localLowPath, "VRChat/VRChat/Tools/yt-dlp.exe");
         if (!File.Exists(vrcPath))
         {
@@ -66,6 +72,23 @@ public class FileTools
         }
     }
 
+    [SupportedOSPlatform("windows")]
+    private static string? GetSteamInstallPathWindows()
+    {
+        if (!OperatingSystem.IsWindows())
+            return null;
+
+        string?[] registryPaths =
+        [
+            @"HKEY_CURRENT_USER\Software\Valve\Steam",
+            @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam",
+            @"HKEY_LOCAL_MACHINE\SOFTWARE\Valve\Steam"
+        ];
+
+        return registryPaths.Select(registryPath => Registry.GetValue(registryPath ?? "", "InstallPath", null) as string)
+            .FirstOrDefault(installPath => !string.IsNullOrWhiteSpace(installPath) && Directory.Exists(installPath));
+    }
+
     private static string? GetResonitePath()
     {
         const string appid = "2519830";
@@ -74,10 +97,19 @@ public class FileTools
             Log.Warning("GetResonitePath is currently only supported on Windows");
             return null;
         }
-        const string libraryFolders = @"C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf";
+
+        var steamPath = GetSteamInstallPathWindows();
+        if (string.IsNullOrEmpty(steamPath))
+        {
+            Log.Warning("GetResonitePath: Unable to find Steam install path from registry");
+            return null;
+        }
+
+        var libraryFolders = Path.Join(steamPath, "steamapps", "libraryfolders.vdf");
         if (!Path.Exists(libraryFolders))
         {
-            Log.Warning("GetResonitePath: Steam libraryfolders.vdf not found at expected location: {Path}", libraryFolders);
+            Log.Warning("GetResonitePath: Steam libraryfolders.vdf not found at expected location: {Path}",
+                libraryFolders);
             return null;
         }
 
@@ -85,10 +117,10 @@ public class FileTools
         {
             var stream = File.OpenRead(libraryFolders);
             KVObject data = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
-            foreach (var folder in data)
+            foreach (var (_, folder) in data)
             {
-                var apps = (IEnumerable<KVObject>)folder["apps"];
-                if (apps.Any(app => app.Name == appid))
+                var apps = folder["apps"];
+                if (apps.Any(app => app.Key == appid))
                 {
                     return folder["path"].ToString(CultureInfo.InvariantCulture);
                 }
@@ -126,13 +158,13 @@ public class FileTools
             Log.Debug("Checking Steam libraryfolders.vdf at {Path}", libraryFolders);
             var stream = File.OpenRead(libraryFolders);
             KVObject data = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
-            foreach (var folder in data)
+            foreach (var (_, folder) in data)
             {
                 // var label = folder["label"]?.ToString(CultureInfo.InvariantCulture);
                 // var name = string.IsNullOrEmpty(label) ? folder.Name : label;
                 // See https://github.com/ValveResourceFormat/ValveKeyValue/issues/30#issuecomment-1581924891
-                var apps = (IEnumerable<KVObject>)folder["apps"];
-                if (apps.Any(app => app.Name == appid))
+                var apps = folder["apps"];
+                if (apps.Any(app => app.Key == appid))
                     libraryPaths.Add(folder["path"].ToString(CultureInfo.InvariantCulture));
             }
         }
@@ -194,6 +226,7 @@ public class FileTools
             Log.Error("YT-DLP directory does not exist, Game may not be installed. {Path}", ytdlPath);
             return;
         }
+
         if (File.Exists(ytdlPath))
         {
             var hash = Program.ComputeBinaryContentHash(File.ReadAllBytes(ytdlPath));
@@ -202,14 +235,17 @@ public class FileTools
                 Log.Information("YT-DLP is already patched.");
                 return;
             }
+
             if (File.Exists(backupPath))
             {
                 File.SetAttributes(backupPath, FileAttributes.Normal);
                 File.Delete(backupPath);
             }
+
             File.Move(ytdlPath, backupPath);
             Log.Information("Backed up YT-DLP.");
         }
+
         using var stream = Program.GetYtDlpStub();
         using var fileStream = File.Create(ytdlPath);
         stream.CopyTo(fileStream);
@@ -233,6 +269,7 @@ public class FileTools
             File.SetAttributes(ytdlPath, FileAttributes.Normal);
             File.Delete(ytdlPath);
         }
+
         File.Move(backupPath, ytdlPath);
         var attr = File.GetAttributes(ytdlPath);
         attr &= ~FileAttributes.ReadOnly;
