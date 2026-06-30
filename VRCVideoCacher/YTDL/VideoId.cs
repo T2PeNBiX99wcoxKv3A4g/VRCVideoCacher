@@ -158,6 +158,7 @@ public class VideoId
 
         var (output, error, exitCode) = await RunYtdlpAsync(args, url);
 
+        // ReSharper disable once InvertIf
         if (exitCode != 0)
         {
             if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
