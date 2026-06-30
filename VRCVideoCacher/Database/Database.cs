@@ -3,7 +3,7 @@ using VRCVideoCacher.Database.Models;
 
 namespace VRCVideoCacher.Database;
 
-public class Database : DbContext
+public class Database(DbContextOptions<Database> options) : DbContext(options)
 {
     internal static readonly string CacheDir = Path.Join(Program.DataPath, "MetadataCache");
     internal static readonly string DbPath = Path.Join(CacheDir, "database.db");
@@ -12,7 +12,6 @@ public class Database : DbContext
     public DbSet<VideoInfoCache> VideoInfoCache { get; set; }
 
     // Required for PooledDbContextFactory
-    public Database(DbContextOptions<Database> options) : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
