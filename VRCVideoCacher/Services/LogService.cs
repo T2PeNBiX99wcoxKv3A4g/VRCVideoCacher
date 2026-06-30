@@ -66,17 +66,22 @@ public class UiLogSink : ILogEventSink
         if (logEvent.Level >= LogEventLevel.Error)
             Dispatcher.UIThread.Post(() =>
             {
-                if (ConfigManager.Config.DisableErrorPopups) return;
-                App.MainWindow?.Show();
-                _currentPopup?.Close();
-                _currentPopup = null;
                 var source = logEvent.Properties.TryGetValue("SourceContext", out var sourceContext)
                     ? sourceContext.ToString()
                     : "Unknown";
+                var title = $"Error from {source}";
                 var message = logEvent.RenderMessage();
+
+                NotificationService.ShowNotification(title, message);
+
+                if (ConfigManager.Config.DisableErrorPopups) return;
+
+                App.MainWindow?.Show();
+                _currentPopup?.Close();
+                _currentPopup = null;
                 _currentPopup = new(message)
                 {
-                    Title = $"Error from {source}"
+                    Title = title
                 };
                 _ = _currentPopup.ShowDialog(App.MainWindow!);
             });
