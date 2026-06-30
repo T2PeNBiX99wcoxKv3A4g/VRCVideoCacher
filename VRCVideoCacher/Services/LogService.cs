@@ -72,8 +72,6 @@ public class UiLogSink : ILogEventSink
                 var title = $"Error from {source}";
                 var message = logEvent.RenderMessage();
 
-                NotificationService.ShowNotification(title, message);
-
                 if (ConfigManager.Config.DisableErrorPopups) return;
 
                 App.MainWindow?.Show();
