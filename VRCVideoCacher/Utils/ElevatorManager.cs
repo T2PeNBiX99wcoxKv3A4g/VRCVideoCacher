@@ -41,7 +41,7 @@ public class ElevatorManager
         var launchClient = InPressureVessel ? FindLaunchClient() : null;
         Log.Debug("InPressureVessel={InPressureVessel} launch-client={LC}", InPressureVessel, launchClient ?? "n/a");
 
-        string appPath = Environment.ProcessPath!;
+        var appPath = Environment.ProcessPath!;
 
         ProcessStartInfo MakeStartInfo(string exe, string args) => launchClient != null
             ? new()

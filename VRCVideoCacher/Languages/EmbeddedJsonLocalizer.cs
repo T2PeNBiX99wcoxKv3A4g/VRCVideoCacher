@@ -59,7 +59,7 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
             Reload();
         }
 
-        if (_languageStrings?.TryGetValue(key, out string? value) == true)
+        if (_languageStrings?.TryGetValue(key, out var value) == true)
         {
             return value;
         }

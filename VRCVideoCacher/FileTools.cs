@@ -77,7 +77,7 @@ public class FileTools
         string steamPath;
         if (OperatingSystem.IsWindows())
         {
-            string? steamInstallPath = (string?)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", "");
+            var steamInstallPath = (string?)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", "");
             if (string.IsNullOrEmpty(steamInstallPath))
             {
                 Log.Error("GetAppLibraryPath: Unable to find Steam installation directory");

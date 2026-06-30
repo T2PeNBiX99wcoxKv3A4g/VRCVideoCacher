@@ -21,7 +21,7 @@ public class OpenVRService
         // doesn't activate theater mode, even if vrserver starts after us.
         Task.Run(async () =>
         {
-            bool retry = true;
+            var retry = true;
 
             while (retry)
             {
@@ -96,7 +96,7 @@ public class OpenVRService
         var vrEvent = new VREvent_t();
         var eventSize = (uint)Marshal.SizeOf<VREvent_t>();
 
-        bool quitApp = false;
+        var quitApp = false;
         while (!quitApp)
         {
             await Task.Delay(500);

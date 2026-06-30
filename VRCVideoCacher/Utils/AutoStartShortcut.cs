@@ -105,8 +105,8 @@ public class AutoStartShortcut
 
         var shortcuts = FindShortcutFiles(shortcutPath);
 
-        string legacyExtension = ShouldUseSteamShortcut() ? ExeShortcutExtension : SteamShortcutExtension;
-        bool foundLegacy = false;
+        var legacyExtension = ShouldUseSteamShortcut() ? ExeShortcutExtension : SteamShortcutExtension;
+        var foundLegacy = false;
         foreach (var shortCut in shortcuts)
         {
             if (shortCut.Contains(ShortcutName) && shortCut.EndsWith(legacyExtension, StringComparison.OrdinalIgnoreCase))
@@ -257,7 +257,7 @@ public class AutoStartShortcut
         try
         {
             // Check Windows registry for installed applications
-            string[] registryPaths = new[]
+            var registryPaths = new[]
             {
                     @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
                     @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
