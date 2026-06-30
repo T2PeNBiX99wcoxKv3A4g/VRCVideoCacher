@@ -69,8 +69,10 @@ public class VideoId
 
     public static async Task<string> TryGetYouTubeVideoId(string url)
     {
-        var args = new List<string>();
-        args.Add("-j");
+        var args = new List<string>
+        {
+            "-j"
+        };
 
         var (rawData, error, exitCode) = await RunYtdlpAsync(args, url);
         if (exitCode != 0)
@@ -104,6 +106,7 @@ public class VideoId
             Log.Warning("Failed to get video ID: Video is a stream");
             return string.Empty;
         }
+        // ReSharper disable once InvertIf
         if (data.Duration > ConfigManager.Config.CacheYouTubeMaxLength * 60)
         {
             Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length})", data.Duration / 60 / ConfigManager.Config.CacheYouTubeMaxLength);
