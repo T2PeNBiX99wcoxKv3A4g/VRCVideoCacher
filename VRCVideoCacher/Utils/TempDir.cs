@@ -1,6 +1,6 @@
 namespace VRCVideoCacher.Utils;
 
-public class TempDir : IDisposable
+public sealed class TempDir : IDisposable
 {
     private const string Prefix = "VRCVideoCacher-";
 
@@ -20,7 +20,7 @@ public class TempDir : IDisposable
 
     public string FullName => _di.FullName;
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed) return;
         try
