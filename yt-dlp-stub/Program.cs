@@ -28,7 +28,7 @@ internal static class Program
 
         var url = string.Empty;
         var avPro = true;
-        string source = "vrchat";
+        var source = "vrchat";
         foreach (var arg in args)
         {
             if (arg.Contains("[protocol^=http]"))
