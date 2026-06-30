@@ -61,7 +61,7 @@
     </PropertyGroup>
     
     <ItemGroup Condition="'$(Configuration)' == 'SteamRelease'">
-        <PackageReference Include="Steamworks.NET.AnyCPU" Version="2026.163.0-a" />
+        <PackageReference Include="Steamworks.NET.AnyCPU" Version="2026.164.0" />
     </ItemGroup>
 
     <ItemGroup>
