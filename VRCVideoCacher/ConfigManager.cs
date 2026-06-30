@@ -8,12 +8,8 @@ namespace VRCVideoCacher;
 
 public class ConfigManager
 {
-    public static ConfigModel Config { get; }
     private static readonly ILogger Log = Program.Logger.ForContext<ConfigManager>();
     private static readonly string ConfigFilePath;
-
-    // Events for UI
-    public static event Action? OnConfigChanged;
 
     static ConfigManager()
     {
@@ -45,9 +41,7 @@ public class ConfigManager
                 FirstRunConsole();
         }
         else
-        {
             Log.Information("Config loaded successfully.");
-        }
 
         if (Config.YtdlpWebServerUrl.EndsWith('/'))
             Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
@@ -55,6 +49,11 @@ public class ConfigManager
         Log.Information("Loaded config.");
         TrySaveConfig();
     }
+
+    public static ConfigModel Config { get; }
+
+    // Events for UI
+    public static event Action? OnConfigChanged;
 
     public static void TrySaveConfig()
     {
@@ -86,9 +85,7 @@ public class ConfigManager
 
         var autoSetup = GetUserConfirmation("Would you like to use VRCVideoCacher for only fixing YouTube videos?", true);
         if (autoSetup)
-        {
             Log.Information("Basic config created. You can modify it later in the Config.json file.");
-        }
         else
         {
             Config.CacheYouTube = GetUserConfirmation("Would you like to cache/download Youtube videos?", true);
@@ -98,20 +95,22 @@ public class ConfigManager
                 Config.CacheYouTubeMaxResolution = maxResolution ? 2160 : 1080;
             }
 
-            var vrDancingPyPyChoice = GetUserConfirmation("Would you like to cache/download VRDancing & PyPyDance videos?", true);
+            var vrDancingPyPyChoice =
+                GetUserConfirmation("Would you like to cache/download VRDancing & PyPyDance videos?", true);
             Config.CacheVrDancing = vrDancingPyPyChoice;
             Config.CachePyPyDance = vrDancingPyPyChoice;
 
             Config.PatchResonite = GetUserConfirmation("Would you like to enable Resonite support?", false);
         }
 
-        if (OperatingSystem.IsWindows() && GetUserConfirmation("Would you like to add VRCVideoCacher to VRCX auto start?", true))
-        {
+        if (OperatingSystem.IsWindows() &&
+            GetUserConfirmation("Would you like to add VRCVideoCacher to VRCX auto start?", true))
             AutoStartShortcut.CreateShortcut();
-        }
 
-        Log.Information("You'll need to install our companion extension to fetch youtube cookies (This will fix YouTube bot errors)");
-        Log.Information("Chrome: https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge");
+        Log.Information(
+            "You'll need to install our companion extension to fetch youtube cookies (This will fix YouTube bot errors)");
+        Log.Information(
+            "Chrome: https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge");
         Log.Information("Firefox: https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter/");
         Log.Information("More info: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
         TrySaveConfig();
@@ -124,45 +123,45 @@ public class ConfigManager
     }
 }
 
-
 public class ConfigModel
 {
-    // yt-dlp
-    public string YtdlpWebServerUrl = "http://localhost:9696";
-    public bool YtdlpUseCookies = true;
-    public bool YtdlpAutoUpdate = true;
-    public string YtdlpAdditionalArgs = string.Empty;
-    public string YtdlpDubLanguage = string.Empty;
-
-    // Caching
-    public string CachedAssetPath = "";
-    public float CacheMaxSizeInGb = 10f;
-    public bool CacheYouTube;
-    public int CacheYouTubeMaxResolution = 1080;
-    public int CacheYouTubeMaxLength = 120;
-    public bool CachePyPyDance;
-    public bool CacheVrDancing;
-    public bool CacheOnly = false;
+    // Video Cacher
+    public bool AutoUpdateVrcVideoCacher = true;
 
     // Cache Rules
     public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
     public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
-    public string[] PreCacheUrls = [];
 
-    // Patching
-    public bool PatchResonite;
-    public string ResonitePath = "";
-    public bool PatchVrChat = true;
-
-    // Video Cacher
-    public bool AutoUpdateVrcVideoCacher = true;
+    // Caching
+    public string CachedAssetPath = "";
+    public float CacheMaxSizeInGb = 10f;
+    public bool CacheOnly = false;
+    public bool CachePyPyDance;
+    public bool CacheVrDancing;
+    public bool CacheYouTube;
+    public int CacheYouTubeMaxLength = 120;
+    public int CacheYouTubeMaxResolution = 1080;
     public bool CloseToTray = true;
-    public bool StartMinimized = false;
-    public bool StartWithSteamVr = true;
     public bool CookieSetupCompleted = false;
-    public bool RedirectVRDancing = false;
     public bool DisableErrorPopups = false;
 
     // Localization
     public string Language = "en";
+
+    // Patching
+    public bool PatchResonite;
+    public bool PatchVrChat = true;
+    public string[] PreCacheUrls = [];
+    public bool RedirectVRDancing = false;
+    public string ResonitePath = "";
+    public bool StartMinimized = false;
+    public bool StartWithSteamVr = true;
+    public string YtdlpAdditionalArgs = string.Empty;
+    public bool YtdlpAutoUpdate = true;
+    public string YtdlpDubLanguage = string.Empty;
+
+    public bool YtdlpUseCookies = true;
+
+    // yt-dlp
+    public string YtdlpWebServerUrl = "http://localhost:9696";
 }
