@@ -180,11 +180,9 @@ public class Updater
         if (LaunchArgs.OldPid == null)
         {
             // clean up
-            if (Environment.ProcessPath != TempFilePath && File.Exists(TempFilePath))
-            {
-                Console.WriteLine("Update temp file exists. Deleting temp file.");
-                File.Delete(TempFilePath);
-            }
+            if (Environment.ProcessPath == TempFilePath || !File.Exists(TempFilePath)) return false;
+            Console.WriteLine("Update temp file exists. Deleting temp file.");
+            File.Delete(TempFilePath);
 
             return false;
         }
