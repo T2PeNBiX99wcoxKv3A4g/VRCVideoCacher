@@ -42,7 +42,7 @@ public partial class AboutView : UserControl
         OpenUrl(DiscordUrl);
     }
 
-    private void OpenUrl(string url)
+    private static void OpenUrl(string url)
     {
         try
         {
