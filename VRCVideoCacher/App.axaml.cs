@@ -202,9 +202,9 @@ public class App : Application
 
         Localizer.LanguageChanged += (_, _) =>
         {
-            if (_showItem != null) _showItem.Header = Localizer.Get("TrayShow");
-            if (_openCacheItem != null) _openCacheItem.Header = Localizer.Get("TrayOpenCacheFolder");
-            if (_exitItem != null) _exitItem.Header = Localizer.Get("TrayExit");
+            _showItem?.Header = Localizer.Get("TrayShow");
+            _openCacheItem?.Header = Localizer.Get("TrayOpenCacheFolder");
+            _exitItem?.Header = Localizer.Get("TrayExit");
         };
 
         var menu = new NativeMenu
@@ -237,7 +237,7 @@ public class App : Application
         }
     }
 
-    private void OpenCacheFolder()
+    private static void OpenCacheFolder()
     {
         var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
