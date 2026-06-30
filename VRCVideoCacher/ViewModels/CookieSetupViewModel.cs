@@ -170,7 +170,7 @@ public partial class CookieSetupViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void OpenYouTube()
+    private static void OpenYouTube()
     {
         OpenUrl("https://www.youtube.com");
     }
