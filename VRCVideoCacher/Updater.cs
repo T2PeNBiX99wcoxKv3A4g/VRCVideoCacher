@@ -32,6 +32,7 @@ public class Updater
     private static readonly string FileName = OperatingSystem.IsWindows() ? "VRCVideoCacher.exe" : "VRCVideoCacher";
     private static readonly string FilePath = Path.Join(Program.CurrentProcessPath, FileName);
     private static readonly string BackupFilePath = Path.Join(Program.CurrentProcessPath, "VRCVideoCacher.bkp");
+
     private static readonly string TempFilePath = Path.Join(Program.CurrentProcessPath,
         OperatingSystem.IsWindows() ? "VRCVideoCacher.Temp.exe" : "VRCVideoCacher.Temp");
 
