@@ -169,7 +169,7 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void OpenCacheFolder()
+    private static void OpenCacheFolder()
     {
         var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
