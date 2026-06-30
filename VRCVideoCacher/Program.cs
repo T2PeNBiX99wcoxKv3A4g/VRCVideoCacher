@@ -3,6 +3,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using Avalonia;
+using JetBrains.Annotations;
 using Serilog;
 using VRCVideoCacher.API;
 using VRCVideoCacher.Services;
@@ -170,9 +171,9 @@ internal sealed class Program
         }
         if (Environment.CommandLine.Contains("--Hash"))
         {
-            Console.WriteLine(GetYtdlpHash(false));
+            Console.WriteLine(GetYtDlpHash(false));
             if (OperatingSystem.IsLinux())
-                Console.WriteLine(GetYtdlpHash(true));
+                Console.WriteLine(GetYtDlpHash(true));
             Environment.Exit(0);
         }
         Console.CancelKeyPress += (_, _) => Environment.Exit(0);
@@ -215,11 +216,9 @@ internal sealed class Program
 
     public static void DeleteCookieFile()
     {
-        if (File.Exists(YtdlManager.CookiesPath))
-        {
-            File.Delete(YtdlManager.CookiesPath);
-            Logger.Information("Deleted cookie file.");
-        }
+        if (!File.Exists(YtdlManager.CookiesPath)) return;
+        File.Delete(YtdlManager.CookiesPath);
+        Logger.Information("Deleted cookie file.");
     }
 
     public static bool DoesCookieFileExist() => File.Exists(YtdlManager.CookiesPath);
@@ -241,10 +240,7 @@ internal sealed class Program
         if (string.IsNullOrEmpty(cookies))
             return false;
 
-        if (cookies.Contains("youtube.com") && cookies.Contains("LOGIN_INFO"))
-            return true;
-
-        return false;
+        return cookies.Contains("youtube.com") && cookies.Contains("LOGIN_INFO");
     }
 
     public static async Task<bool?> ValidateCookiesAsync()
@@ -299,11 +295,9 @@ internal sealed class Program
         }
     }
 
-    public static Stream GetYtDlpStub(bool linux)
-    {
-        return GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{(linux ? "_linux" : ".exe")}");
-    }
+    public static Stream GetYtDlpStub(bool linux) => GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{(linux ? "_linux" : ".exe")}");
 
+    [PublicAPI]
     public static Stream GetEmbeddedResource(string resourceName)
     {
         var assembly = Assembly.GetExecutingAssembly();
@@ -314,7 +308,7 @@ internal sealed class Program
         return stream;
     }
 
-    public static string GetYtdlpHash(bool linux)
+    public static string GetYtDlpHash(bool linux)
     {
         var stream = GetYtDlpStub(linux);
         using var ms = new MemoryStream();

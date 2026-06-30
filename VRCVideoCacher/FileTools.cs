@@ -20,15 +20,7 @@ public class FileTools
 
     static FileTools()
     {
-        string? resoPath;
-        if (!string.IsNullOrEmpty(ConfigManager.Config.ResonitePath))
-        {
-            resoPath = ConfigManager.Config.ResonitePath;
-        }
-        else
-        {
-            resoPath = GetAppLibraryPath(ResoniteAppId)?.Select(path => Path.Join(path, "steamapps", "common", "Resonite"))?.Where(Path.Exists)?.First();
-        }
+        var resoPath = !string.IsNullOrEmpty(ConfigManager.Config.ResonitePath) ? ConfigManager.Config.ResonitePath : GetAppLibraryPath(ResoniteAppId)?.Select(path => Path.Join(path, "steamapps", "common", "Resonite"))?.Where(Path.Exists)?.First();
 
         if (!string.IsNullOrEmpty(resoPath))
         {
@@ -213,7 +205,7 @@ public class FileTools
         if (File.Exists(ytdlPath))
         {
             var hash = Program.ComputeBinaryContentHash(File.ReadAllBytes(ytdlPath));
-            if (hash == Program.GetYtdlpHash(linux))
+            if (hash == Program.GetYtDlpHash(linux))
             {
                 Log.Information("YT-DLP is already patched.");
                 return;
