@@ -17,18 +17,23 @@ namespace VRCVideoCacher;
 
 internal sealed class Program
 {
-    // Versioning is YEAR.MONTH.RELEASE — set in the .csproj <Version> property
-    public static readonly string Version =
-        typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-        ?? "unknown";
     public const string CreatorElly = "Elly";
     public const string CreatorNatsumi = "Natsumi";
     public const string CreatorHaxy = "Haxy";
     public const string CreatorHauskaz = "Hauskaz";
     public const string CreatorDubyaDude = "DubyaDude";
+
+    // Versioning is YEAR.MONTH.RELEASE — set in the .csproj <Version> property
+    public static readonly string Version =
+        typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? "unknown";
+
     public static ILogger Logger = Log.ForContext("SourceContext", "Core");
     public static readonly string CurrentProcessPath = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
-    public static readonly string DataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher");
+
+    public static readonly string DataPath =
+        Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher");
+
     public static readonly string UtilsPath = Path.Join(DataPath, "Utils");
     public static event Action? OnCookiesUpdated;
 
@@ -64,26 +69,26 @@ internal sealed class Program
             Environment.Exit(0);
             return;
         }
+
         var processes = Process.GetProcessesByName("VRCVideoCacher");
         if (processes.Length > 1)
         {
             if (LaunchArgs.KillExistingInstance)
             {
                 foreach (var process in processes)
-                {
                     if (process.Id != Environment.ProcessId)
-                    {
                         try
                         {
                             process.Kill();
-                            Logger.Information("Killed existing instance with PID {Pid} due to kill existing instance argument.", process.Id);
+                            Logger.Information(
+                                "Killed existing instance with PID {Pid} due to kill existing instance argument.",
+                                process.Id);
                         }
                         catch (Exception ex)
                         {
-                            Logger.Warning(ex, "Failed to kill existing instance with PID {Pid}. It may still be running.", process.Id);
+                            Logger.Warning(ex,
+                                "Failed to kill existing instance with PID {Pid}. It may still be running.", process.Id);
                         }
-                    }
-                }
             }
             else
             {
@@ -91,28 +96,27 @@ internal sealed class Program
                 Environment.Exit(0);
             }
         }
+
         foreach (var process in processes)
             process.Dispose();
 
         LoggerUtils.InitializeLogger();
         Logger = Log.ForContext("SourceContext", "Core");
 
-        Logger.Information("VRCVideoCacher version {Version} created by {Elly}, {Natsumi}, {Haxy}, {Hauskaz}, {DubyaDude}", Version, CreatorElly, CreatorNatsumi, CreatorHaxy, CreatorHauskaz, CreatorDubyaDude);
+        Logger.Information(
+            "VRCVideoCacher version {Version} created by {Elly}, {Natsumi}, {Haxy}, {Hauskaz}, {DubyaDude}", Version,
+            CreatorElly, CreatorNatsumi, CreatorHaxy, CreatorHauskaz, CreatorDubyaDude);
 
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
             if (e.Exception is Exception ex)
-            {
                 LoggerUtils.LogUnhandledException(ex, "Unobserved task exception");
-            }
         };
 #if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             if (e.ExceptionObject is Exception ex)
-            {
                 LoggerUtils.LogUnhandledException(ex, "Unhandled exception");
-            }
             Log.CloseAndFlush();
         };
 #endif
@@ -146,16 +150,20 @@ internal sealed class Program
 
     private static async Task InitVrcVideoCacher()
     {
-        try { Console.Title = $"VRCVideoCacher v{Version}{AdminCheck.GetAdminTitleWarning()}"; } catch { /* GUI mode, no console */ }
+        try
+        {
+            Console.Title = $"VRCVideoCacher v{Version}{AdminCheck.GetAdminTitleWarning()}";
+        }
+        catch
+        {
+            /* GUI mode, no console */
+        }
 
         if (AdminCheck.IsRunningAsAdmin())
-        {
-            Logger.Warning("Application is running with administrator privileges. This is not recommended for security reasons.");
-        }
+            Logger.Warning(
+                "Application is running with administrator privileges. This is not recommended for security reasons.");
         if (AdminCheck.ShouldShowAdminWarning())
-        {
             Logger.Error(AdminCheck.AdminWarningMessage);
-        }
 
         OpenVRService.Start(CurrentProcessPath);
 
@@ -169,6 +177,7 @@ internal sealed class Program
             FileTools.RestoreAllYtdl();
             Environment.Exit(0);
         }
+
         if (Environment.CommandLine.Contains("--Hash"))
         {
             Console.WriteLine(GetYtDlpHash(false));
@@ -176,6 +185,7 @@ internal sealed class Program
                 Console.WriteLine(GetYtDlpHash(true));
             Environment.Exit(0);
         }
+
         Console.CancelKeyPress += (_, _) => Environment.Exit(0);
         AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAppQuit();
 
@@ -197,7 +207,8 @@ internal sealed class Program
         await BulkPreCache.DownloadFileList();
 
         if (ConfigManager.Config.YtdlpUseCookies && !IsCookiesEnabledAndValid())
-            Logger.Warning("No cookies found, please use the browser extension to send cookies or disable \"ytdlUseCookies\" in config.");
+            Logger.Warning(
+                "No cookies found, please use the browser extension to send cookies or disable \"ytdlUseCookies\" in config.");
 
         CacheManager.Init();
 
@@ -269,7 +280,10 @@ internal sealed class Program
                     var name = parts[5];
                     var value = parts[6];
 
-                    cookieContainer.Add(new Cookie(name, value, path, domain) { Secure = secure });
+                    cookieContainer.Add(new Cookie(name, value, path, domain)
+                    {
+                        Secure = secure
+                    });
                 }
                 catch
                 {
@@ -282,7 +296,8 @@ internal sealed class Program
             handler.CookieContainer = cookieContainer;
             handler.UseCookies = true;
             using var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Add("User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             using var response = await client.GetAsync("https://www.youtube.com/new", cts.Token);
@@ -295,7 +310,8 @@ internal sealed class Program
         }
     }
 
-    public static Stream GetYtDlpStub(bool linux) => GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{(linux ? "_linux" : ".exe")}");
+    public static Stream GetYtDlpStub(bool linux) =>
+        GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{(linux ? "_linux" : ".exe")}");
 
     [PublicAPI]
     public static Stream GetEmbeddedResource(string resourceName)
