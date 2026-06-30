@@ -45,7 +45,7 @@ public partial class CookieSetupViewModel : ViewModelBase
     public bool IsStep4 => CurrentStep == 4;
     public bool IsStep5 => CurrentStep == 5;
 
-    public bool CanGoBack => CurrentStep > 1 && CurrentStep < 5;
+    public bool CanGoBack => CurrentStep is > 1 and < 5;
     public bool CanGoNext => CurrentStep switch
     {
         1 => false, // Must select browser

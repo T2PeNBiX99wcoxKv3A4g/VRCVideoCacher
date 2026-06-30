@@ -101,7 +101,7 @@ internal sealed class Program
 
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            if (e.Exception != null && e.Exception is Exception ex)
+            if (e.Exception is Exception ex)
             {
                 LoggerUtils.LogUnhandledException(ex, "Unobserved task exception");
             }
@@ -109,7 +109,7 @@ internal sealed class Program
 #if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            if (e.ExceptionObject != null && e.ExceptionObject is Exception ex)
+            if (e.ExceptionObject is Exception ex)
             {
                 LoggerUtils.LogUnhandledException(ex, "Unhandled exception");
             }
