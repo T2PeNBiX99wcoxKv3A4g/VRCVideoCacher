@@ -69,7 +69,7 @@ internal static class Program
             var output = await response.Content.ReadAsStringAsync();
             WriteLog($"[Response] {output}");
             if (!response.IsSuccessStatusCode)
-                throw new Exception(output);
+                throw new(output);
             Console.WriteLine(output);
         }
         catch (HttpRequestException ex) when (ex.InnerException is SocketException socketEx && socketEx.SocketErrorCode == SocketError.ConnectionRefused)
