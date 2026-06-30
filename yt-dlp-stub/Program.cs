@@ -72,7 +72,7 @@ internal static class Program
                 throw new(output);
             Console.WriteLine(output);
         }
-        catch (HttpRequestException ex) when (ex.InnerException is SocketException socketEx && socketEx.SocketErrorCode == SocketError.ConnectionRefused)
+        catch (HttpRequestException ex) when (ex.InnerException is SocketException { SocketErrorCode: SocketError.ConnectionRefused })
         {
             WriteLog("[Error] Connection refused. Is the server running?");
             await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
