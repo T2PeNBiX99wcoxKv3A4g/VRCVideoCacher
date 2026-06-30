@@ -2,7 +2,7 @@ namespace VRCVideoCacher.Utils;
 
 public class TempDir : IDisposable
 {
-    private const String Prefix = "VRCVideoCacher-";
+    private const string Prefix = "VRCVideoCacher-";
 
     private readonly DirectoryInfo _di = Directory.CreateTempSubdirectory(Prefix);
     private bool _disposed;
