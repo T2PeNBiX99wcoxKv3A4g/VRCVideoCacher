@@ -98,7 +98,7 @@ public class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void InitializeLocalization()
+    private static void InitializeLocalization()
     {
         var localizer = new EmbeddedJsonLocalizer();
         Localizer.SetLocalizer(localizer);
@@ -227,14 +227,12 @@ public class App : Application
         _trayIcon.Clicked += (_, _) => ShowMainWindow();
     }
 
-    private void ShowMainWindow()
+    private static void ShowMainWindow()
     {
-        if (MainWindow != null)
-        {
-            MainWindow.Show();
-            MainWindow.WindowState = WindowState.Normal;
-            MainWindow.Activate();
-        }
+        if (MainWindow == null) return;
+        MainWindow.Show();
+        MainWindow.WindowState = WindowState.Normal;
+        MainWindow.Activate();
     }
 
     private static void OpenCacheFolder()
