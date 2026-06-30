@@ -21,11 +21,11 @@ internal sealed class Program
     public static readonly string Version =
         typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? "unknown";
-    public const string Creator_Elly = "Elly";
-    public const string Creator_Natsumi = "Natsumi";
-    public const string Creator_Haxy = "Haxy";
-    public const string Creator_Hauskaz = "Hauskaz";
-    public const string Creator_DubyaDude = "DubyaDude";
+    public const string CreatorElly = "Elly";
+    public const string CreatorNatsumi = "Natsumi";
+    public const string CreatorHaxy = "Haxy";
+    public const string CreatorHauskaz = "Hauskaz";
+    public const string CreatorDubyaDude = "DubyaDude";
     public static ILogger Logger = Log.ForContext("SourceContext", "Core");
     public static readonly string CurrentProcessPath = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
     public static readonly string DataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher");
@@ -97,7 +97,7 @@ internal sealed class Program
         LoggerUtils.InitializeLogger();
         Logger = Log.ForContext("SourceContext", "Core");
 
-        Logger.Information("VRCVideoCacher version {Version} created by {Elly}, {Natsumi}, {Haxy}, {Hauskaz}, {DubyaDude}", Version, Creator_Elly, Creator_Natsumi, Creator_Haxy, Creator_Hauskaz, Creator_DubyaDude);
+        Logger.Information("VRCVideoCacher version {Version} created by {Elly}, {Natsumi}, {Haxy}, {Hauskaz}, {DubyaDude}", Version, CreatorElly, CreatorNatsumi, CreatorHaxy, CreatorHauskaz, CreatorDubyaDude);
 
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
