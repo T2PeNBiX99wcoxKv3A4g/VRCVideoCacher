@@ -113,7 +113,7 @@ public class Updater
 
                 var process = new Process
                 {
-                    StartInfo = new ProcessStartInfo
+                    StartInfo = new()
                     {
                         FileName = TempFilePath,
                         UseShellExecute = true,
@@ -217,7 +217,7 @@ public class Updater
         var argsString = string.Join(' ', args.Select(x => x));
         var process = new Process
         {
-            StartInfo = new ProcessStartInfo
+            StartInfo = new()
             {
                 FileName = FilePath,
                 UseShellExecute = true,

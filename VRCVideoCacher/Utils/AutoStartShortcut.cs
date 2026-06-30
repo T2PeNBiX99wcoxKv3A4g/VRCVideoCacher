@@ -82,11 +82,11 @@ public class AutoStartShortcut
         {
             var shortcut = new Shortcut
             {
-                LinkTargetIDList = new LinkTargetIDList
+                LinkTargetIDList = new()
                 {
                     Path = Environment.ProcessPath
                 },
-                StringData = new StringData
+                StringData = new()
                 {
                     WorkingDir = Path.GetDirectoryName(Environment.ProcessPath)
                 }

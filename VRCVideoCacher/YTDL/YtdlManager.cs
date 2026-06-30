@@ -102,7 +102,7 @@ public class YtdlManager
     public static async Task TryDownloadYtdlp()
     {
         if (!Directory.Exists(Program.UtilsPath))
-            throw new Exception("Failed to get Utils path");
+            throw new("Failed to get Utils path");
 
         Log.Information("Checking for YT-DLP updates...");
         using var response = await HttpClient.GetAsync(YtdlpApiUrl);
@@ -145,7 +145,7 @@ public class YtdlManager
     public static async Task TryDownloadDeno()
     {
         if (!Directory.Exists(Program.UtilsPath))
-            throw new Exception("Failed to get Utils path");
+            throw new("Failed to get Utils path");
 
         using var apiResponse = await HttpClient.GetAsync(DenoApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
@@ -303,7 +303,7 @@ public class YtdlManager
     public static async Task TryDownloadFfmpeg()
     {
         if (!Directory.Exists(Program.UtilsPath))
-            throw new Exception("Failed to get Utils path");
+            throw new("Failed to get Utils path");
 
         if (!ConfigManager.Config.CacheYouTube)
             return;
@@ -436,12 +436,12 @@ public class YtdlManager
             {
                 Architecture.X64 => "yt-dlp_linux",
                 Architecture.Arm64 => "yt-dlp_linux_aarch64",
-                _ => throw new Exception($"Unsupported architecture {RuntimeInformation.OSArchitecture}"),
+                _ => throw new($"Unsupported architecture {RuntimeInformation.OSArchitecture}"),
             };
         }
         else
         {
-            throw new Exception($"Unsupported operating system {Environment.OSVersion}");
+            throw new($"Unsupported operating system {Environment.OSVersion}");
         }
 
         foreach (var assetVersion in json.assets)
@@ -451,7 +451,7 @@ public class YtdlManager
 
             await using var stream = await HttpClient.GetStreamAsync(assetVersion.browser_download_url);
             if (string.IsNullOrEmpty(Program.UtilsPath))
-                throw new Exception("Failed to get YT-DLP path");
+                throw new("Failed to get YT-DLP path");
 
             // Ensure directory exists
             var ytdlDir = Path.GetDirectoryName(YtdlPath);
@@ -466,7 +466,7 @@ public class YtdlManager
             Versions.Save();
             return;
         }
-        throw new Exception("Failed to download YT-DLP");
+        throw new("Failed to download YT-DLP");
     }
 
     private static async Task<bool> CheckIfProcessStarts(string path, string arg = "--version")
@@ -476,7 +476,7 @@ public class YtdlManager
         {
             var process = new Process
             {
-                StartInfo = new ProcessStartInfo
+                StartInfo = new()
                 {
                     FileName = path,
                     Arguments = arg,

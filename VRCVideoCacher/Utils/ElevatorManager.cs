@@ -43,7 +43,8 @@ public class ElevatorManager
         string appPath = Environment.ProcessPath!;
 
         ProcessStartInfo MakeStartInfo(string exe, string args) => launchClient != null
-            ? new ProcessStartInfo { FileName = launchClient, Arguments = $"--alongside-steam -- {exe} {args}", UseShellExecute = false }
+            ? new()
+                { FileName = launchClient, Arguments = $"--alongside-steam -- {exe} {args}", UseShellExecute = false }
             : new ProcessStartInfo { FileName = exe, Arguments = args, UseShellExecute = false };
 
         // 1. Try pkexec
@@ -51,7 +52,8 @@ public class ElevatorManager
         if (pkexec != null)
         {
             Log.Debug("Using pkexec");
-            return new Process { StartInfo = MakeStartInfo(pkexec, $"{appPath} {flag}") };
+            return new()
+                { StartInfo = MakeStartInfo(pkexec, $"{appPath} {flag}") };
         }
 
         // 2. Try sudo -A with a graphical askpass helper
@@ -69,7 +71,8 @@ public class ElevatorManager
             Log.Debug("Using sudo -A with askpass: {Askpass}", askpass);
             var psi = MakeStartInfo("/usr/bin/sudo", $"-A {appPath} {flag}");
             psi.Environment["SUDO_ASKPASS"] = askpass;
-            return new Process { StartInfo = psi };
+            return new()
+                { StartInfo = psi };
         }
 
         // 3. Fall back to a terminal emulator with sudo
@@ -82,7 +85,8 @@ public class ElevatorManager
             var termArgs = termPath.Contains("gnome-terminal")
                 ? $"-- /usr/bin/sudo {appPath} {flag}"
                 : $"-e /usr/bin/sudo {appPath} {flag}";
-            return new Process { StartInfo = MakeStartInfo(termPath, termArgs) };
+            return new()
+                { StartInfo = MakeStartInfo(termPath, termArgs) };
         }
 
         Log.Error("No elevation method found. Please manually edit /etc/hosts.");
@@ -102,7 +106,8 @@ public class ElevatorManager
         Process? proc;
         if (OperatingSystem.IsWindows())
         {
-            proc = new Process { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--addhost", UseShellExecute = true, Verb = "runas" } };
+            proc = new()
+                { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--addhost", UseShellExecute = true, Verb = "runas" } };
             try { proc.Start(); }
             catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
@@ -143,7 +148,8 @@ public class ElevatorManager
         Process? proc;
         if (OperatingSystem.IsWindows())
         {
-            proc = new Process { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--removehost", UseShellExecute = true, Verb = "runas" } };
+            proc = new()
+                { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--removehost", UseShellExecute = true, Verb = "runas" } };
             try { proc.Start(); }
             catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {

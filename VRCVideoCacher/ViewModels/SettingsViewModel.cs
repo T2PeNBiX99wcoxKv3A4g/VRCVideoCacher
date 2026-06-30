@@ -172,7 +172,7 @@ public partial class SettingsViewModel : ViewModelBase
         BlockedUrls.Clear();
         foreach (var url in config.BlockedUrls)
         {
-            BlockedUrls.Add(new BlockedUrlEntry(url));
+            BlockedUrls.Add(new(url));
         }
         BlockRedirect = config.BlockRedirect;
 
@@ -300,7 +300,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private void AddBlockedUrl()
     {
-        BlockedUrls.Add(new BlockedUrlEntry("https://"));
+        BlockedUrls.Add(new("https://"));
     }
 
     [RelayCommand]

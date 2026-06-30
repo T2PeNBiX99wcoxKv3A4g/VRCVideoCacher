@@ -93,7 +93,7 @@ public class VideoId
             return string.Empty;
         }
 
-        DatabaseManager.AddVideoInfoCache(new VideoInfoCache
+        DatabaseManager.AddVideoInfoCache(new()
         {
             Id = data.Id,
             Title = data.Name,
@@ -147,7 +147,7 @@ public class VideoId
         if (videoInfo.VideoUrl.Contains("results?") && videoInfo.UrlType == UrlType.YouTube)
         {
             const string message = "URL is a search query, cannot get video URL.";
-            return new Tuple<string, bool>(message, false);
+            return new(message, false);
         }
 
         var url = videoInfo.VideoUrl;
@@ -163,10 +163,10 @@ public class VideoId
             if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
                 Log.Error("Fix this error by running cookie setup.");
 
-            return new Tuple<string, bool>(error, false);
+            return new(error, false);
         }
 
-        return new Tuple<string, bool>(output, true);
+        return new(output, true);
     }
 
 }

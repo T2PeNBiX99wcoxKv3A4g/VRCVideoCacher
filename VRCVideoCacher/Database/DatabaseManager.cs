@@ -22,7 +22,7 @@ public static class DatabaseManager
             .EnableSensitiveDataLogging()
             .Options;
 
-        _contextFactory = new PooledDbContextFactory<Database>(options);
+        _contextFactory = new(options);
 
         using var db = _contextFactory.CreateDbContext();
         db.Database.EnsureCreated();

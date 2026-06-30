@@ -106,7 +106,7 @@ public class WinGet
             var error = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
             if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))
-                throw new Exception($"Installation failed with exit code {process.ExitCode}. Error: {error}");
+                throw new($"Installation failed with exit code {process.ExitCode}. Error: {error}");
 
             var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
             if (process.ExitCode == 0)

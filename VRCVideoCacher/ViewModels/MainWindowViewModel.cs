@@ -29,13 +29,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        Dashboard = new DashboardViewModel();
-        Settings = new SettingsViewModel();
-        CacheBrowser = new CacheBrowserViewModel();
-        DownloadQueue = new DownloadQueueViewModel();
-        LogViewer = new LogViewerViewModel();
-        History = new HistoryViewModel();
-        About = new AboutViewModel();
+        Dashboard = new();
+        Settings = new();
+        CacheBrowser = new();
+        DownloadQueue = new();
+        LogViewer = new();
+        History = new();
+        About = new();
 
         _currentView = Dashboard;
 

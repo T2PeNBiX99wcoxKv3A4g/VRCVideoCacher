@@ -53,7 +53,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            MainWindow = new MainWindow
+            MainWindow = new()
             {
                 DataContext = new MainWindowViewModel()
             };
@@ -185,13 +185,13 @@ public partial class App : Application
             };
         }
 
-        _showItem = new NativeMenuItem(Localizer.Get("TrayShow"));
+        _showItem = new(Localizer.Get("TrayShow"));
         _showItem.Click += (_, _) => ShowMainWindow();
 
-        _openCacheItem = new NativeMenuItem(Localizer.Get("TrayOpenCacheFolder"));
+        _openCacheItem = new(Localizer.Get("TrayOpenCacheFolder"));
         _openCacheItem.Click += (_, _) => OpenCacheFolder();
 
-        _exitItem = new NativeMenuItem(Localizer.Get("TrayExit"));
+        _exitItem = new(Localizer.Get("TrayExit"));
         _exitItem.Click += (_, _) =>
         {
             _isExiting = true;
@@ -214,10 +214,10 @@ public partial class App : Application
             _exitItem
         };
 
-        _trayIcon = new TrayIcon
+        _trayIcon = new()
         {
             ToolTipText = "VRCVideoCacher",
-            Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(new Uri("avares://VRCVideoCacher/Assets/icon.ico"))),
+            Icon = new(Avalonia.Platform.AssetLoader.Open(new("avares://VRCVideoCacher/Assets/icon.ico"))),
             Menu = menu,
             IsVisible = true
         };

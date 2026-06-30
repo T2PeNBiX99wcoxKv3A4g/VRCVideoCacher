@@ -40,7 +40,7 @@ public class PyPyDanceHandler : ISiteHandler
 
             _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
 
-            return new VideoInfo
+            return new()
             {
                 VideoUrl = videoUrl,
                 VideoId = videoId,

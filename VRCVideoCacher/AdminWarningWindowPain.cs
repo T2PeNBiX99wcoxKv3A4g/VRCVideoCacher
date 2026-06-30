@@ -23,14 +23,14 @@ public class AdminWarningWindowPain : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Content = new StackPanel
         {
-            Margin = new Thickness(20),
+            Margin = new(20),
             Children =
             {
                 new TextBlock
                 {
                     Text = error,
                     TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                    Margin = new Thickness(0, 0, 0, 20)
+                    Margin = new(0, 0, 0, 20)
                 },
                 okButton
             }

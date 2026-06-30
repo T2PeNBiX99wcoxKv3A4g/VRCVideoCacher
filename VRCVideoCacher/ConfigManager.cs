@@ -39,7 +39,7 @@ public class ConfigManager
         if (Config == null)
         {
             Log.Information("No valid config found, creating new one...");
-            Config = new ConfigModel
+            Config = new()
             {
                 Language = GetSystemLanguage()
             };

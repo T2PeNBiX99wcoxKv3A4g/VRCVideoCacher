@@ -36,7 +36,7 @@ public class ThirdPartyYTResolver : ISiteHandler
                 break;
 
             // Resolve relative redirects against the current URL
-            var next = location.IsAbsoluteUri ? location.ToString() : new Uri(new Uri(current), location).ToString();
+            var next = location.IsAbsoluteUri ? location.ToString() : new Uri(new(current), location).ToString();
 
             if (!Uri.TryCreate(next, UriKind.Absolute, out var nextUri))
                 break;

@@ -44,7 +44,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            CurrentDownload = new DownloadItemViewModel
+            CurrentDownload = new()
             {
                 VideoUrl = video.VideoUrl,
                 VideoId = video.VideoId,
@@ -82,7 +82,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
         var queue = VideoDownloader.GetQueueSnapshot();
         foreach (var video in queue)
         {
-            QueuedDownloads.Add(new DownloadItemViewModel
+            QueuedDownloads.Add(new()
             {
                 VideoUrl = video.VideoUrl,
                 VideoId = video.VideoId,
@@ -94,7 +94,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
         var current = VideoDownloader.GetCurrentDownload();
         if (current != null)
         {
-            CurrentDownload = new DownloadItemViewModel
+            CurrentDownload = new()
             {
                 VideoUrl = current.VideoUrl,
                 VideoId = current.VideoId,

@@ -13,7 +13,7 @@ public class GenericHandler : ISiteHandler
     {
         var videoId = VideoId.HashUrl(url);
         Log.Information("No specific handler found for URL, using generic handler: {URL}", url);
-        return Task.FromResult<VideoInfo?>(new VideoInfo
+        return Task.FromResult<VideoInfo?>(new()
         {
             VideoUrl = url,
             VideoId = videoId,

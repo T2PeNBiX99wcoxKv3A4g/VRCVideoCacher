@@ -22,7 +22,7 @@ public class VRDancingHandler : ISiteHandler
             await VRDancingAPIService.DownloadMetadata(code, videoId);
         });
 
-        return Task.FromResult<VideoInfo?>(new VideoInfo
+        return Task.FromResult<VideoInfo?>(new()
         {
             VideoUrl = url,
             VideoId = videoId,

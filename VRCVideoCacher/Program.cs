@@ -312,7 +312,7 @@ internal sealed class Program
         var assembly = Assembly.GetExecutingAssembly();
         var stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null)
-            throw new Exception($"{resourceName} not found in resources.");
+            throw new($"{resourceName} not found in resources.");
 
         return stream;
     }

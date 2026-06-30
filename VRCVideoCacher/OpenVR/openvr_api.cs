@@ -8543,7 +8543,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRSystem_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRSystem = new CVRSystem(pInterface);
+					m_pVRSystem = new(pInterface);
 			}
 			return m_pVRSystem;
 		}
@@ -8556,7 +8556,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRChaperone_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRChaperone = new CVRChaperone(pInterface);
+					m_pVRChaperone = new(pInterface);
 			}
 			return m_pVRChaperone;
 		}
@@ -8569,7 +8569,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRChaperoneSetup_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRChaperoneSetup = new CVRChaperoneSetup(pInterface);
+					m_pVRChaperoneSetup = new(pInterface);
 			}
 			return m_pVRChaperoneSetup;
 		}
@@ -8582,7 +8582,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRCompositor_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRCompositor = new CVRCompositor(pInterface);
+					m_pVRCompositor = new(pInterface);
 			}
 			return m_pVRCompositor;
 		}
@@ -8595,7 +8595,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRHeadsetView_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRHeadsetView = new CVRHeadsetView(pInterface);
+					m_pVRHeadsetView = new(pInterface);
 			}
 			return m_pVRHeadsetView;
 		}
@@ -8608,7 +8608,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVROverlay_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVROverlay = new CVROverlay(pInterface);
+					m_pVROverlay = new(pInterface);
 			}
 			return m_pVROverlay;
 		}
@@ -8621,7 +8621,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVROverlayView_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVROverlayView = new CVROverlayView(pInterface);
+					m_pVROverlayView = new(pInterface);
 			}
 			return m_pVROverlayView;
 		}
@@ -8634,7 +8634,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRRenderModels_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRRenderModels = new CVRRenderModels(pInterface);
+					m_pVRRenderModels = new(pInterface);
 			}
 			return m_pVRRenderModels;
 		}
@@ -8647,7 +8647,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRResources_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRResources = new CVRResources(pInterface);
+					m_pVRResources = new(pInterface);
 			}
 			return m_pVRResources;
 		}
@@ -8660,7 +8660,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRExtendedDisplay_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRExtendedDisplay = new CVRExtendedDisplay(pInterface);
+					m_pVRExtendedDisplay = new(pInterface);
 			}
 			return m_pVRExtendedDisplay;
 		}
@@ -8673,7 +8673,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRSettings_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRSettings = new CVRSettings(pInterface);
+					m_pVRSettings = new(pInterface);
 			}
 			return m_pVRSettings;
 		}
@@ -8686,7 +8686,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRApplications_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRApplications = new CVRApplications(pInterface);
+					m_pVRApplications = new(pInterface);
 			}
 			return m_pVRApplications;
 		}
@@ -8699,7 +8699,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRScreenshots_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRScreenshots = new CVRScreenshots(pInterface);
+					m_pVRScreenshots = new(pInterface);
 			}
 			return m_pVRScreenshots;
 		}
@@ -8712,7 +8712,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRTrackedCamera_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRTrackedCamera = new CVRTrackedCamera(pInterface);
+					m_pVRTrackedCamera = new(pInterface);
 			}
 			return m_pVRTrackedCamera;
 		}
@@ -8725,7 +8725,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix+IVRInput_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRInput = new CVRInput(pInterface);
+					m_pVRInput = new(pInterface);
 			}
 			return m_pVRInput;
 		}
@@ -8738,7 +8738,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix + IVRIOBuffer_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRIOBuffer = new CVRIOBuffer(pInterface);
+					m_pVRIOBuffer = new(pInterface);
 			}
 			return m_pVRIOBuffer;
 		}
@@ -8751,7 +8751,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix + IVRSpatialAnchors_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRSpatialAnchors = new CVRSpatialAnchors(pInterface);
+					m_pVRSpatialAnchors = new(pInterface);
 			}
 			return m_pVRSpatialAnchors;
 		}
@@ -8764,7 +8764,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix + IVRDebug_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRDebug = new CVRDebug(pInterface);
+					m_pVRDebug = new(pInterface);
 			}
 			return m_pVRDebug;
 		}
@@ -8777,7 +8777,7 @@ public class OpenVR
 				var eError = EVRInitError.None;
 				var pInterface = OpenVRInterop.GetGenericInterface(FnTable_Prefix + IVRNotifications_Version, ref eError);
 				if (pInterface != IntPtr.Zero && eError == EVRInitError.None)
-					m_pVRNotifications = new CVRNotifications(pInterface);
+					m_pVRNotifications = new(pInterface);
 			}
 			return m_pVRNotifications;
 		}
@@ -8809,7 +8809,7 @@ public class OpenVR
 		get
 		{
 			if (_OpenVRInternal_ModuleContext == null)
-				_OpenVRInternal_ModuleContext = new COpenVRContext();
+				_OpenVRInternal_ModuleContext = new();
 			return _OpenVRInternal_ModuleContext;
 		}
 	}

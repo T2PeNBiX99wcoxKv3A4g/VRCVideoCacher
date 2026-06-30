@@ -85,7 +85,7 @@ public class PyPyDanceApiService
             if (songInfo?.StartTime != null && duration != null)
                 duration -= songInfo.StartTime;
 
-            DatabaseManager.AddVideoInfoCache(new VideoInfoCache
+            DatabaseManager.AddVideoInfoCache(new()
             {
                 Id = videoId,
                 Title = songInfo?.Name,

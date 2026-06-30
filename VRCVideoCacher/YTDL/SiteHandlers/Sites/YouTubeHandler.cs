@@ -32,7 +32,7 @@ public class YouTubeHandler : ISiteHandler
 
         videoId = videoId.Length > 11 ? videoId[..11] : videoId;
 
-        return Task.FromResult<VideoInfo?>(new VideoInfo
+        return Task.FromResult<VideoInfo?>(new()
         {
             VideoUrl = url,
             VideoId = videoId,

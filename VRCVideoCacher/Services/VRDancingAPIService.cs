@@ -12,7 +12,7 @@ public class VRDancingAPIService
     private static readonly ILogger Logger = Program.Logger.ForContext<VRDancingAPIService>();
     private static readonly HttpClient HttpClient = new()
     {
-        BaseAddress = new Uri(VRDancingAPIBaseURL),
+        BaseAddress = new(VRDancingAPIBaseURL),
         DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher {Program.Version}" } },
         Timeout = TimeSpan.FromSeconds(10)
     };
@@ -33,7 +33,7 @@ public class VRDancingAPIService
                 return;
 
             await ThumbnailManager.TrySaveThumbnail(videoId, vrdData.ThumbnailURL);
-            DatabaseManager.AddVideoInfoCache(new VideoInfoCache
+            DatabaseManager.AddVideoInfoCache(new()
             {
                 Id = videoId,
                 Title = vrdData.Song,
