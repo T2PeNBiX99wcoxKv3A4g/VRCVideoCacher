@@ -200,7 +200,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void DeleteAll()
+    private static void DeleteAll()
     {
         CacheManager.ClearCache();
     }
