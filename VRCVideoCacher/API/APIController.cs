@@ -189,7 +189,7 @@ public class ApiController : WebApiController
         await HttpContext.SendStringAsync(response, "text/plain", Encoding.UTF8);
         // check if file is cached again to handle race condition
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);
-        if (!isCached && (
+        if (!isCached && videoInfo.VideoId != "live" && (
                 (videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube) ||
                 (videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance) ||
                 (videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing)))
