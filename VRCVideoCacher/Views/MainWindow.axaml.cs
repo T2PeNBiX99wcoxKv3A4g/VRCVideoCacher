@@ -14,7 +14,7 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.UnhandledException += OnUnhandledException;
     }
 
-    private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         if (e.Exception is { } ex)
         {
