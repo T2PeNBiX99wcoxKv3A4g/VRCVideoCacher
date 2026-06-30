@@ -42,7 +42,7 @@ internal sealed class Program
 #if STEAMRELEASE
         if (LaunchArgs.SteamSdk)
         {
-            if (SteamAPI.RestartAppIfNecessary(new AppId_t(4296960)))
+            if (SteamAPI.RestartAppIfNecessary(new(4296960)))
             {
                 Environment.Exit(0);
                 return;
@@ -302,10 +302,7 @@ internal sealed class Program
     {
         var assembly = Assembly.GetExecutingAssembly();
         var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null)
-            throw new Exception($"{resourceName} not found in resources.");
-
-        return stream;
+        return stream ?? throw new($"{resourceName} not found in resources.");
     }
 
     public static string GetYtDlpHash(bool linux)
