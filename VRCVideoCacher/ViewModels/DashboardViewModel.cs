@@ -1,8 +1,11 @@
+using System.Diagnostics;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
+using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.Views;
@@ -46,7 +49,7 @@ public partial class DashboardViewModel : ViewModelBase
     private string? _motd;
 
     [ObservableProperty]
-    private bool _cookiesFileExists = false;
+    private bool _cookiesFileExists;
 
     public bool HasMotd => !string.IsNullOrWhiteSpace(Motd);
 
@@ -99,7 +102,7 @@ public partial class DashboardViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(RefreshCacheStats);
     }
 
-    private void OnDownloadStarted(Models.VideoInfo video)
+    private void OnDownloadStarted(VideoInfo video)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -107,7 +110,7 @@ public partial class DashboardViewModel : ViewModelBase
         });
     }
 
-    private void OnDownloadCompleted(Models.VideoInfo video, bool success)
+    private void OnDownloadCompleted(VideoInfo video, bool success)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -171,11 +174,11 @@ public partial class DashboardViewModel : ViewModelBase
         var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
         {
-            System.Diagnostics.Process.Start("explorer.exe", cachePath);
+            Process.Start("explorer.exe", cachePath);
         }
         else if (OperatingSystem.IsLinux())
         {
-            System.Diagnostics.Process.Start("xdg-open", cachePath);
+            Process.Start("xdg-open", cachePath);
         }
     }
 
@@ -206,7 +209,7 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private async Task SetupCookieExtension()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var viewModel = new CookieSetupViewModel();
             var window = new CookieSetupWindow

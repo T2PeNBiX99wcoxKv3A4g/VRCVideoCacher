@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Serilog;
 using VRCVideoCacher.Database;
-using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.YTDL.SiteHandlers;
 using JsonSerializer = System.Text.Json.JsonSerializer;

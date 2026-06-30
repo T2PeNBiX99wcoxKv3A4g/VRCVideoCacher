@@ -1,6 +1,6 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Avalonia.Media;
 
 namespace VRCVideoCacher;
 
@@ -15,7 +15,7 @@ public class AdminWarningWindowPain : Window
                     HorizontalAlignment = HorizontalAlignment.Right,
                     Width = 80,
                 };
-        okButton.Click += (_, _) => this.Close();
+        okButton.Click += (_, _) => Close();
 
         Title = "VRCVideoCacher";
         Width = 400;
@@ -29,7 +29,7 @@ public class AdminWarningWindowPain : Window
                 new TextBlock
                 {
                     Text = error,
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                    TextWrapping = TextWrapping.Wrap,
                     Margin = new(0, 0, 0, 20)
                 },
                 okButton

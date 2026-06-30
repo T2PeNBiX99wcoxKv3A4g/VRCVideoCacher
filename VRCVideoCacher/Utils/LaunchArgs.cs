@@ -17,10 +17,10 @@ public class LaunchArgs
     public static bool ErrorReporting = true;
     public static bool UseGlobalPath;
     public static int? OldPid;
-    public static bool KillExistingInstance = false;
+    public static bool KillExistingInstance;
     public static bool SteamSdk = true;
     public static bool OVR = true;
-    public static bool CloseWithSteamVr = false;
+    public static bool CloseWithSteamVr;
 
     public static void SetupArguments(params string[] args)
     {

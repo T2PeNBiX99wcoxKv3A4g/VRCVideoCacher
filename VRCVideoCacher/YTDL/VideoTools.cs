@@ -1,8 +1,10 @@
-﻿namespace VRCVideoCacher;
+﻿using Serilog;
+
+namespace VRCVideoCacher;
 
 public class VideoTools
 {
-    private static readonly Serilog.ILogger Log = Program.Logger.ForContext<VideoTools>();
+    private static readonly ILogger Log = Program.Logger.ForContext<VideoTools>();
     private static readonly HttpClient HttpClient = new();
 
     public static async Task<bool> Prefetch(string videoUrl, int maxRetryCount = 7)
@@ -64,9 +66,7 @@ public class VideoTools
                 maxRetryCount, statusCode);
             return false;
         }
-        else
-        {
-            return true;
-        }
+
+        return true;
     }
 }

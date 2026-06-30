@@ -17,6 +17,6 @@ public partial class PopupWindow : Window
 
     private void OkButton_Click(object? sender, RoutedEventArgs e)
     {
-        this.Close();
+        Close();
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace VRCVideoCacher.Utils;
+﻿using System.Security.Principal;
+
+namespace VRCVideoCacher.Utils;
 
 public static class AdminCheck
 {
@@ -27,9 +29,9 @@ public static class AdminCheck
         {
             try
             {
-                var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                var identity = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
             catch
             {

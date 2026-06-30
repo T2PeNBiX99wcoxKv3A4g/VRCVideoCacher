@@ -1,6 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Media;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
@@ -107,7 +111,7 @@ public partial class HistoryItemViewModel : ViewModelBase
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
                 FileName = Url,
                 UseShellExecute = true
@@ -119,8 +123,8 @@ public partial class HistoryItemViewModel : ViewModelBase
     [RelayCommand]
     private async Task CopyUrl()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is
-            Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is
+            IClassicDesktopStyleApplicationLifetime desktop)
         {
             var clipboard = desktop.MainWindow?.Clipboard;
             if (clipboard != null)
@@ -138,7 +142,7 @@ public partial class HistoryViewModel : ViewModelBase
 
     public HistoryViewModel()
     {
-        DatabaseManager.OnPlayHistoryAdded += () => Avalonia.Threading.Dispatcher.UIThread.Post(Refresh);
+        DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.Post(Refresh);
 
 
         // Causes infinite loop because we update cache inside LoadMetadataAsync, which triggers this event again.

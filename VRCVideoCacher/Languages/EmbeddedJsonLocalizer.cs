@@ -64,6 +64,6 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
             return value;
         }
 
-        return base.Language + ":" + key;
+        return Language + ":" + key;
     }
 }

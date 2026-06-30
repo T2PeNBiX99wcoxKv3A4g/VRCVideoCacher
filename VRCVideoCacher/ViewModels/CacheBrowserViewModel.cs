@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -55,7 +58,7 @@ public partial class CacheItemViewModel : ViewModelBase
         var url = $"https://www.youtube.com/watch?v={VideoId}";
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
                 FileName = url,
                 UseShellExecute = true
@@ -68,7 +71,7 @@ public partial class CacheItemViewModel : ViewModelBase
     private async Task CopyUrl()
     {
         var url = $"{ConfigManager.Config.YtdlpWebServerUrl}/{FileName}";
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var clipboard = desktop.MainWindow?.Clipboard;
             if (clipboard != null)
@@ -211,16 +214,16 @@ public partial class CacheBrowserViewModel : ViewModelBase
             if (SelectedItem != null)
             {
                 var filePath = Path.Join(cachePath, SelectedItem.FileName);
-                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+                Process.Start("explorer.exe", $"/select,\"{filePath}\"");
             }
             else
             {
-                System.Diagnostics.Process.Start("explorer.exe", cachePath);
+                Process.Start("explorer.exe", cachePath);
             }
         }
         else if (OperatingSystem.IsLinux())
         {
-            System.Diagnostics.Process.Start("xdg-open", cachePath);
+            Process.Start("xdg-open", cachePath);
         }
     }
 

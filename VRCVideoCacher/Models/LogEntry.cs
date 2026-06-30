@@ -1,4 +1,5 @@
 using Avalonia.Media;
+
 // ReSharper disable ReplaceWithFieldKeyword
 
 namespace VRCVideoCacher.Models;

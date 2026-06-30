@@ -7,7 +7,7 @@ using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.ViewModels;
 
-public partial class DownloadItemViewModel : ViewModelBase
+public class DownloadItemViewModel : ViewModelBase
 {
     public string VideoUrl { get; init; } = string.Empty;
     public string VideoId { get; init; } = string.Empty;

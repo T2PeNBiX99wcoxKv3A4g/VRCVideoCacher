@@ -1,8 +1,10 @@
-﻿namespace VRCVideoCacher.Utils;
+﻿using Serilog;
+
+namespace VRCVideoCacher.Utils;
 
 public class HostsManager
 {
-    private static readonly Serilog.ILogger Log = Program.Logger.ForContext<HostsManager>();
+    private static readonly ILogger Log = Program.Logger.ForContext<HostsManager>();
 
     private static readonly string Header = $"{Environment.NewLine}# ----- BEGIN VRCVIDEOCACHER -----{Environment.NewLine}";
     private static readonly string Footer = $"{Environment.NewLine}# ----- END VRCVIDEOCACHER -----{Environment.NewLine}";

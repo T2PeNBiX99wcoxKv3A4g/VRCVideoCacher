@@ -126,7 +126,7 @@ public class Updater
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("Failed to update: {Message}", ex.ToString());
+                Console.Error.WriteLine("Failed to update: {Message}", ex);
                 if (File.Exists(TempFilePath))
                     File.Delete(TempFilePath);
             }
@@ -202,7 +202,7 @@ public class Updater
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine("Failed to copy new version to target path: {Message}", ex.ToString());
+            Console.Error.WriteLine("Failed to copy new version to target path: {Message}", ex);
             return false;
         }
 

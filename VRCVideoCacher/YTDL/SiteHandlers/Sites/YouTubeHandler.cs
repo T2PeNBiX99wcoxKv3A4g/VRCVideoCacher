@@ -45,9 +45,7 @@ public class YouTubeHandler : ISiteHandler
 
     public List<string> GetYtdlpArguments(Uri uri, bool avPro)
     {
-        var args = new List<string>
-        {
-        };
+        var args = new List<string>();
 
         if (avPro)
         {

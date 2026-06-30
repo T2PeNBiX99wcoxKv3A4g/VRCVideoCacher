@@ -7,10 +7,8 @@
 //=============================================================================
 #if !OPENVR_XR_API
 
-using System;
 using System.Runtime.InteropServices;
-using Valve.VR;
-
+using System.Text;
 #if UNITY_5_3_OR_NEWER
 using UnityEngine;
 #endif
@@ -169,7 +167,7 @@ public struct IVRSystem
 	internal _GetArrayTrackedDeviceProperty GetArrayTrackedDeviceProperty;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetStringTrackedDeviceProperty(uint unDeviceIndex, ETrackedDeviceProperty prop, System.Text.StringBuilder pchValue, uint unBufferSize, ref ETrackedPropertyError pError);
+	internal delegate uint _GetStringTrackedDeviceProperty(uint unDeviceIndex, ETrackedDeviceProperty prop, StringBuilder pchValue, uint unBufferSize, ref ETrackedPropertyError pError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetStringTrackedDeviceProperty GetStringTrackedDeviceProperty;
 
@@ -280,7 +278,7 @@ public struct IVRSystem
 	internal _AcknowledgeQuit_Exiting AcknowledgeQuit_Exiting;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetAppContainerFilePaths(System.Text.StringBuilder pchBuffer, uint unBufferSize);
+	internal delegate uint _GetAppContainerFilePaths(StringBuilder pchBuffer, uint unBufferSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetAppContainerFilePaths GetAppContainerFilePaths;
 
@@ -416,12 +414,12 @@ public struct IVRApplications
 	internal _GetApplicationCount GetApplicationCount;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRApplicationError _GetApplicationKeyByIndex(uint unApplicationIndex, System.Text.StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
+	internal delegate EVRApplicationError _GetApplicationKeyByIndex(uint unApplicationIndex, StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetApplicationKeyByIndex GetApplicationKeyByIndex;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRApplicationError _GetApplicationKeyByProcessId(uint unProcessId, System.Text.StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
+	internal delegate EVRApplicationError _GetApplicationKeyByProcessId(uint unProcessId, StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetApplicationKeyByProcessId GetApplicationKeyByProcessId;
 
@@ -467,7 +465,7 @@ public struct IVRApplications
 	internal _GetApplicationsErrorNameFromEnum GetApplicationsErrorNameFromEnum;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetApplicationPropertyString(IntPtr pchAppKey, EVRApplicationProperty eProperty, System.Text.StringBuilder pchPropertyValueBuffer, uint unPropertyValueBufferLen, ref EVRApplicationError peError);
+	internal delegate uint _GetApplicationPropertyString(IntPtr pchAppKey, EVRApplicationProperty eProperty, StringBuilder pchPropertyValueBuffer, uint unPropertyValueBufferLen, ref EVRApplicationError peError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetApplicationPropertyString GetApplicationPropertyString;
 
@@ -500,28 +498,28 @@ public struct IVRApplications
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
 	[return: MarshalAs(UnmanagedType.I1)]
-	internal delegate bool _GetDefaultApplicationForMimeType(IntPtr pchMimeType, System.Text.StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
+	internal delegate bool _GetDefaultApplicationForMimeType(IntPtr pchMimeType, StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetDefaultApplicationForMimeType GetDefaultApplicationForMimeType;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
 	[return: MarshalAs(UnmanagedType.I1)]
-	internal delegate bool _GetApplicationSupportedMimeTypes(IntPtr pchAppKey, System.Text.StringBuilder pchMimeTypesBuffer, uint unMimeTypesBuffer);
+	internal delegate bool _GetApplicationSupportedMimeTypes(IntPtr pchAppKey, StringBuilder pchMimeTypesBuffer, uint unMimeTypesBuffer);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetApplicationSupportedMimeTypes GetApplicationSupportedMimeTypes;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetApplicationsThatSupportMimeType(IntPtr pchMimeType, System.Text.StringBuilder pchAppKeysThatSupportBuffer, uint unAppKeysThatSupportBuffer);
+	internal delegate uint _GetApplicationsThatSupportMimeType(IntPtr pchMimeType, StringBuilder pchAppKeysThatSupportBuffer, uint unAppKeysThatSupportBuffer);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetApplicationsThatSupportMimeType GetApplicationsThatSupportMimeType;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetApplicationLaunchArguments(uint unHandle, System.Text.StringBuilder pchArgs, uint unArgs);
+	internal delegate uint _GetApplicationLaunchArguments(uint unHandle, StringBuilder pchArgs, uint unArgs);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetApplicationLaunchArguments GetApplicationLaunchArguments;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRApplicationError _GetStartingApplication(System.Text.StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
+	internal delegate EVRApplicationError _GetStartingApplication(StringBuilder pchAppKeyBuffer, uint unAppKeyBufferLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetStartingApplication GetStartingApplication;
 
@@ -698,7 +696,7 @@ public struct IVRChaperoneSetup
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
 	[return: MarshalAs(UnmanagedType.I1)]
-	internal delegate bool _ExportLiveToBuffer(System.Text.StringBuilder pBuffer, ref uint pnBufferLength);
+	internal delegate bool _ExportLiveToBuffer(StringBuilder pBuffer, ref uint pnBufferLength);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _ExportLiveToBuffer ExportLiveToBuffer;
 
@@ -940,12 +938,12 @@ public struct IVRCompositor
 	internal _UnlockGLSharedTextureForAccess UnlockGLSharedTextureForAccess;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetVulkanInstanceExtensionsRequired(System.Text.StringBuilder pchValue, uint unBufferSize);
+	internal delegate uint _GetVulkanInstanceExtensionsRequired(StringBuilder pchValue, uint unBufferSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetVulkanInstanceExtensionsRequired GetVulkanInstanceExtensionsRequired;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetVulkanDeviceExtensionsRequired(IntPtr pPhysicalDevice, System.Text.StringBuilder pchValue, uint unBufferSize);
+	internal delegate uint _GetVulkanDeviceExtensionsRequired(IntPtr pPhysicalDevice, StringBuilder pchValue, uint unBufferSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetVulkanDeviceExtensionsRequired GetVulkanDeviceExtensionsRequired;
 
@@ -1029,12 +1027,12 @@ public struct IVROverlay
 	internal _DestroyOverlay DestroyOverlay;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetOverlayKey(ulong ulOverlayHandle, System.Text.StringBuilder pchValue, uint unBufferSize, ref EVROverlayError pError);
+	internal delegate uint _GetOverlayKey(ulong ulOverlayHandle, StringBuilder pchValue, uint unBufferSize, ref EVROverlayError pError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetOverlayKey GetOverlayKey;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetOverlayName(ulong ulOverlayHandle, System.Text.StringBuilder pchValue, uint unBufferSize, ref EVROverlayError pError);
+	internal delegate uint _GetOverlayName(ulong ulOverlayHandle, StringBuilder pchValue, uint unBufferSize, ref EVROverlayError pError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetOverlayName GetOverlayName;
 
@@ -1199,7 +1197,7 @@ public struct IVROverlay
 	internal _SetOverlayTransformTrackedDeviceComponent SetOverlayTransformTrackedDeviceComponent;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVROverlayError _GetOverlayTransformTrackedDeviceComponent(ulong ulOverlayHandle, ref uint punDeviceIndex, System.Text.StringBuilder pchComponentName, uint unComponentNameSize);
+	internal delegate EVROverlayError _GetOverlayTransformTrackedDeviceComponent(ulong ulOverlayHandle, ref uint punDeviceIndex, StringBuilder pchComponentName, uint unComponentNameSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetOverlayTransformTrackedDeviceComponent GetOverlayTransformTrackedDeviceComponent;
 
@@ -1395,7 +1393,7 @@ public struct IVROverlay
 	internal _ShowKeyboardForOverlay ShowKeyboardForOverlay;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetKeyboardText(System.Text.StringBuilder pchText, uint cchText);
+	internal delegate uint _GetKeyboardText(StringBuilder pchText, uint cchText);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetKeyboardText GetKeyboardText;
 
@@ -1542,7 +1540,7 @@ public struct IVRRenderModels
 	internal _FreeTextureD3D11 FreeTextureD3D11;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetRenderModelName(uint unRenderModelIndex, System.Text.StringBuilder pchRenderModelName, uint unRenderModelNameLen);
+	internal delegate uint _GetRenderModelName(uint unRenderModelIndex, StringBuilder pchRenderModelName, uint unRenderModelNameLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetRenderModelName GetRenderModelName;
 
@@ -1557,7 +1555,7 @@ public struct IVRRenderModels
 	internal _GetComponentCount GetComponentCount;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetComponentName(IntPtr pchRenderModelName, uint unComponentIndex, System.Text.StringBuilder pchComponentName, uint unComponentNameLen);
+	internal delegate uint _GetComponentName(IntPtr pchRenderModelName, uint unComponentIndex, StringBuilder pchComponentName, uint unComponentNameLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetComponentName GetComponentName;
 
@@ -1567,7 +1565,7 @@ public struct IVRRenderModels
 	internal _GetComponentButtonMask GetComponentButtonMask;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetComponentRenderModelName(IntPtr pchRenderModelName, IntPtr pchComponentName, System.Text.StringBuilder pchComponentRenderModelName, uint unComponentRenderModelNameLen);
+	internal delegate uint _GetComponentRenderModelName(IntPtr pchRenderModelName, IntPtr pchComponentName, StringBuilder pchComponentRenderModelName, uint unComponentRenderModelNameLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetComponentRenderModelName GetComponentRenderModelName;
 
@@ -1590,12 +1588,12 @@ public struct IVRRenderModels
 	internal _RenderModelHasComponent RenderModelHasComponent;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetRenderModelThumbnailURL(IntPtr pchRenderModelName, System.Text.StringBuilder pchThumbnailURL, uint unThumbnailURLLen, ref EVRRenderModelError peError);
+	internal delegate uint _GetRenderModelThumbnailURL(IntPtr pchRenderModelName, StringBuilder pchThumbnailURL, uint unThumbnailURLLen, ref EVRRenderModelError peError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetRenderModelThumbnailURL GetRenderModelThumbnailURL;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetRenderModelOriginalPath(IntPtr pchRenderModelName, System.Text.StringBuilder pchOriginalPath, uint unOriginalPathLen, ref EVRRenderModelError peError);
+	internal delegate uint _GetRenderModelOriginalPath(IntPtr pchRenderModelName, StringBuilder pchOriginalPath, uint unOriginalPathLen, ref EVRRenderModelError peError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetRenderModelOriginalPath GetRenderModelOriginalPath;
 
@@ -1666,7 +1664,7 @@ public struct IVRSettings
 	internal _GetFloat GetFloat;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate void _GetString(IntPtr pchSection, IntPtr pchSettingsKey, System.Text.StringBuilder pchValue, uint unValueLen, ref EVRSettingsError peError);
+	internal delegate void _GetString(IntPtr pchSection, IntPtr pchSettingsKey, StringBuilder pchValue, uint unValueLen, ref EVRSettingsError peError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetString GetString;
 
@@ -1701,7 +1699,7 @@ public struct IVRScreenshots
 	internal _GetScreenshotPropertyType GetScreenshotPropertyType;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetScreenshotPropertyFilename(uint screenshotHandle, EVRScreenshotPropertyFilenames filenameType, System.Text.StringBuilder pchFilename, uint cchFilename, ref EVRScreenshotError pError);
+	internal delegate uint _GetScreenshotPropertyFilename(uint screenshotHandle, EVRScreenshotPropertyFilenames filenameType, StringBuilder pchFilename, uint cchFilename, ref EVRScreenshotError pError);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetScreenshotPropertyFilename GetScreenshotPropertyFilename;
 
@@ -1731,7 +1729,7 @@ public struct IVRResources
 	internal _LoadSharedResource LoadSharedResource;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetResourceFullPath(IntPtr pchResourceName, IntPtr pchResourceTypeDirectory, System.Text.StringBuilder pchPathBuffer, uint unBufferLen);
+	internal delegate uint _GetResourceFullPath(IntPtr pchResourceName, IntPtr pchResourceTypeDirectory, StringBuilder pchPathBuffer, uint unBufferLen);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetResourceFullPath GetResourceFullPath;
 
@@ -1746,7 +1744,7 @@ public struct IVRDriverManager
 	internal _GetDriverCount GetDriverCount;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _GetDriverName(uint nDriver, System.Text.StringBuilder pchValue, uint unBufferSize);
+	internal delegate uint _GetDriverName(uint nDriver, StringBuilder pchValue, uint unBufferSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetDriverName GetDriverName;
 
@@ -1847,7 +1845,7 @@ public struct IVRInput
 	internal _GetBoneHierarchy GetBoneHierarchy;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRInputError _GetBoneName(ulong action, int nBoneIndex, System.Text.StringBuilder pchBoneName, uint unNameBufferSize);
+	internal delegate EVRInputError _GetBoneName(ulong action, int nBoneIndex, StringBuilder pchBoneName, uint unNameBufferSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetBoneName GetBoneName;
 
@@ -1892,7 +1890,7 @@ public struct IVRInput
 	internal _GetActionOrigins GetActionOrigins;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRInputError _GetOriginLocalizedName(ulong origin, System.Text.StringBuilder pchNameArray, uint unNameArraySize, int unStringSectionsToInclude);
+	internal delegate EVRInputError _GetOriginLocalizedName(ulong origin, StringBuilder pchNameArray, uint unNameArraySize, int unStringSectionsToInclude);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetOriginLocalizedName GetOriginLocalizedName;
 
@@ -1933,7 +1931,7 @@ public struct IVRInput
 	internal _OpenBindingUI OpenBindingUI;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRInputError _GetBindingVariant(ulong ulDevicePath, System.Text.StringBuilder pchVariantArray, uint unVariantArraySize);
+	internal delegate EVRInputError _GetBindingVariant(ulong ulDevicePath, StringBuilder pchVariantArray, uint unVariantArraySize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetBindingVariant GetBindingVariant;
 
@@ -1994,7 +1992,7 @@ public struct IVRSpatialAnchors
 	internal _GetSpatialAnchorPose GetSpatialAnchorPose;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate EVRSpatialAnchorError _GetSpatialAnchorDescriptor(uint unHandle, System.Text.StringBuilder pchDescriptorOut, ref uint punDescriptorBufferLenInOut);
+	internal delegate EVRSpatialAnchorError _GetSpatialAnchorDescriptor(uint unHandle, StringBuilder pchDescriptorOut, ref uint punDescriptorBufferLenInOut);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _GetSpatialAnchorDescriptor GetSpatialAnchorDescriptor;
 
@@ -2019,7 +2017,7 @@ public struct IVRDebug
 	internal _FinishVrProfilerEvent FinishVrProfilerEvent;
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	internal delegate uint _DriverDebugRequest(uint unDeviceIndex, IntPtr pchRequest, System.Text.StringBuilder pchResponseBuffer, uint unResponseBufferSize);
+	internal delegate uint _DriverDebugRequest(uint unDeviceIndex, IntPtr pchRequest, StringBuilder pchResponseBuffer, uint unResponseBufferSize);
 	[MarshalAs(UnmanagedType.FunctionPtr)]
 	internal _DriverDebugRequest DriverDebugRequest;
 
@@ -2199,9 +2197,9 @@ public class Utils
 			return IntPtr.Zero;
 		}
 
-		int size = System.Text.Encoding.UTF8.GetByteCount(managedString) + 1;
+		int size = Encoding.UTF8.GetByteCount(managedString) + 1;
 		if (buffer.Length < size) buffer = new byte[size];
-		int written = System.Text.Encoding.UTF8.GetBytes(managedString, 0, managedString.Length, buffer, 0);
+		int written = Encoding.UTF8.GetBytes(managedString, 0, managedString.Length, buffer, 0);
 		buffer[written] = 0x00; // null terminate
 		IntPtr nativeUtf8 = Marshal.AllocHGlobal(written+1);
 		Marshal.Copy(buffer, 0, nativeUtf8, written+1);
@@ -2359,7 +2357,7 @@ public class CVRSystem
 		uint result = FnTable.GetArrayTrackedDeviceProperty(unDeviceIndex,prop,propType,pBuffer,unBufferSize,ref pError);
 		return result;
 	}
-	public uint GetStringTrackedDeviceProperty(uint unDeviceIndex,ETrackedDeviceProperty prop,System.Text.StringBuilder pchValue,uint unBufferSize,ref ETrackedPropertyError pError)
+	public uint GetStringTrackedDeviceProperty(uint unDeviceIndex,ETrackedDeviceProperty prop,StringBuilder pchValue,uint unBufferSize,ref ETrackedPropertyError pError)
 	{
 		uint result = FnTable.GetStringTrackedDeviceProperty(unDeviceIndex,prop,pchValue,unBufferSize,ref pError);
 		return result;
@@ -2384,14 +2382,14 @@ public class CVRSystem
 	public bool PollNextEvent(ref VREvent_t pEvent,uint uncbVREvent)
 	{
 #if !UNITY_METRO
-		if ((System.Environment.OSVersion.Platform == System.PlatformID.MacOSX) ||
-				(System.Environment.OSVersion.Platform == System.PlatformID.Unix))
+		if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+				(Environment.OSVersion.Platform == PlatformID.Unix))
 		{
 			PollNextEventUnion u;
 			VREvent_t_Packed event_packed = new VREvent_t_Packed();
 			u.pPollNextEventPacked = null;
 			u.pPollNextEvent = FnTable.PollNextEvent;
-			bool packed_result = u.pPollNextEventPacked(ref event_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t_Packed)));
+			bool packed_result = u.pPollNextEventPacked(ref event_packed,(uint)Marshal.SizeOf(typeof(VREvent_t_Packed)));
 
 			event_packed.Unpack(ref pEvent);
 			return packed_result;
@@ -2415,14 +2413,14 @@ public class CVRSystem
 	public bool PollNextEventWithPose(ETrackingUniverseOrigin eOrigin,ref VREvent_t pEvent,uint uncbVREvent,ref TrackedDevicePose_t pTrackedDevicePose)
 	{
 #if !UNITY_METRO
-		if ((System.Environment.OSVersion.Platform == System.PlatformID.MacOSX) ||
-				(System.Environment.OSVersion.Platform == System.PlatformID.Unix))
+		if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+				(Environment.OSVersion.Platform == PlatformID.Unix))
 		{
 			PollNextEventWithPoseUnion u;
 			VREvent_t_Packed event_packed = new VREvent_t_Packed();
 			u.pPollNextEventWithPosePacked = null;
 			u.pPollNextEventWithPose = FnTable.PollNextEventWithPose;
-			bool packed_result = u.pPollNextEventWithPosePacked(eOrigin,ref event_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t_Packed)),ref pTrackedDevicePose);
+			bool packed_result = u.pPollNextEventWithPosePacked(eOrigin,ref event_packed,(uint)Marshal.SizeOf(typeof(VREvent_t_Packed)),ref pTrackedDevicePose);
 
 			event_packed.Unpack(ref pEvent);
 			return packed_result;
@@ -2472,14 +2470,14 @@ public class CVRSystem
 	public bool GetControllerState(uint unControllerDeviceIndex,ref VRControllerState_t pControllerState,uint unControllerStateSize)
 	{
 #if !UNITY_METRO
-		if ((System.Environment.OSVersion.Platform == System.PlatformID.MacOSX) ||
-				(System.Environment.OSVersion.Platform == System.PlatformID.Unix))
+		if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+				(Environment.OSVersion.Platform == PlatformID.Unix))
 		{
 			GetControllerStateUnion u;
 			VRControllerState_t_Packed state_packed = new VRControllerState_t_Packed(pControllerState);
 			u.pGetControllerStatePacked = null;
 			u.pGetControllerState = FnTable.GetControllerState;
-			bool packed_result = u.pGetControllerStatePacked(unControllerDeviceIndex,ref state_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t_Packed)));
+			bool packed_result = u.pGetControllerStatePacked(unControllerDeviceIndex,ref state_packed,(uint)Marshal.SizeOf(typeof(VRControllerState_t_Packed)));
 
 			state_packed.Unpack(ref pControllerState);
 			return packed_result;
@@ -2503,14 +2501,14 @@ public class CVRSystem
 	public bool GetControllerStateWithPose(ETrackingUniverseOrigin eOrigin,uint unControllerDeviceIndex,ref VRControllerState_t pControllerState,uint unControllerStateSize,ref TrackedDevicePose_t pTrackedDevicePose)
 	{
 #if !UNITY_METRO
-		if ((System.Environment.OSVersion.Platform == System.PlatformID.MacOSX) ||
-				(System.Environment.OSVersion.Platform == System.PlatformID.Unix))
+		if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+				(Environment.OSVersion.Platform == PlatformID.Unix))
 		{
 			GetControllerStateWithPoseUnion u;
 			VRControllerState_t_Packed state_packed = new VRControllerState_t_Packed(pControllerState);
 			u.pGetControllerStateWithPosePacked = null;
 			u.pGetControllerStateWithPose = FnTable.GetControllerStateWithPose;
-			bool packed_result = u.pGetControllerStateWithPosePacked(eOrigin,unControllerDeviceIndex,ref state_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t_Packed)),ref pTrackedDevicePose);
+			bool packed_result = u.pGetControllerStateWithPosePacked(eOrigin,unControllerDeviceIndex,ref state_packed,(uint)Marshal.SizeOf(typeof(VRControllerState_t_Packed)),ref pTrackedDevicePose);
 
 			state_packed.Unpack(ref pControllerState);
 			return packed_result;
@@ -2562,7 +2560,7 @@ public class CVRSystem
 	{
 		FnTable.AcknowledgeQuit_Exiting();
 	}
-	public uint GetAppContainerFilePaths(System.Text.StringBuilder pchBuffer,uint unBufferSize)
+	public uint GetAppContainerFilePaths(StringBuilder pchBuffer,uint unBufferSize)
 	{
 		uint result = FnTable.GetAppContainerFilePaths(pchBuffer,unBufferSize);
 		return result;
@@ -2726,12 +2724,12 @@ public class CVRApplications
 		uint result = FnTable.GetApplicationCount();
 		return result;
 	}
-	public EVRApplicationError GetApplicationKeyByIndex(uint unApplicationIndex,System.Text.StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
+	public EVRApplicationError GetApplicationKeyByIndex(uint unApplicationIndex,StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
 	{
 		EVRApplicationError result = FnTable.GetApplicationKeyByIndex(unApplicationIndex,pchAppKeyBuffer,unAppKeyBufferLen);
 		return result;
 	}
-	public EVRApplicationError GetApplicationKeyByProcessId(uint unProcessId,System.Text.StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
+	public EVRApplicationError GetApplicationKeyByProcessId(uint unProcessId,StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
 	{
 		EVRApplicationError result = FnTable.GetApplicationKeyByProcessId(unProcessId,pchAppKeyBuffer,unAppKeyBufferLen);
 		return result;
@@ -2794,7 +2792,7 @@ public class CVRApplications
 		IntPtr result = FnTable.GetApplicationsErrorNameFromEnum(error);
 		return Marshal.PtrToStringAnsi(result);
 	}
-	public uint GetApplicationPropertyString(string pchAppKey,EVRApplicationProperty eProperty,System.Text.StringBuilder pchPropertyValueBuffer,uint unPropertyValueBufferLen,ref EVRApplicationError peError)
+	public uint GetApplicationPropertyString(string pchAppKey,EVRApplicationProperty eProperty,StringBuilder pchPropertyValueBuffer,uint unPropertyValueBufferLen,ref EVRApplicationError peError)
 	{
 		IntPtr pchAppKeyUtf8 = Utils.ToUtf8(pchAppKey);
 		uint result = FnTable.GetApplicationPropertyString(pchAppKeyUtf8,eProperty,pchPropertyValueBuffer,unPropertyValueBufferLen,ref peError);
@@ -2838,33 +2836,33 @@ public class CVRApplications
 		Marshal.FreeHGlobal(pchMimeTypeUtf8);
 		return result;
 	}
-	public bool GetDefaultApplicationForMimeType(string pchMimeType,System.Text.StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
+	public bool GetDefaultApplicationForMimeType(string pchMimeType,StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
 	{
 		IntPtr pchMimeTypeUtf8 = Utils.ToUtf8(pchMimeType);
 		bool result = FnTable.GetDefaultApplicationForMimeType(pchMimeTypeUtf8,pchAppKeyBuffer,unAppKeyBufferLen);
 		Marshal.FreeHGlobal(pchMimeTypeUtf8);
 		return result;
 	}
-	public bool GetApplicationSupportedMimeTypes(string pchAppKey,System.Text.StringBuilder pchMimeTypesBuffer,uint unMimeTypesBuffer)
+	public bool GetApplicationSupportedMimeTypes(string pchAppKey,StringBuilder pchMimeTypesBuffer,uint unMimeTypesBuffer)
 	{
 		IntPtr pchAppKeyUtf8 = Utils.ToUtf8(pchAppKey);
 		bool result = FnTable.GetApplicationSupportedMimeTypes(pchAppKeyUtf8,pchMimeTypesBuffer,unMimeTypesBuffer);
 		Marshal.FreeHGlobal(pchAppKeyUtf8);
 		return result;
 	}
-	public uint GetApplicationsThatSupportMimeType(string pchMimeType,System.Text.StringBuilder pchAppKeysThatSupportBuffer,uint unAppKeysThatSupportBuffer)
+	public uint GetApplicationsThatSupportMimeType(string pchMimeType,StringBuilder pchAppKeysThatSupportBuffer,uint unAppKeysThatSupportBuffer)
 	{
 		IntPtr pchMimeTypeUtf8 = Utils.ToUtf8(pchMimeType);
 		uint result = FnTable.GetApplicationsThatSupportMimeType(pchMimeTypeUtf8,pchAppKeysThatSupportBuffer,unAppKeysThatSupportBuffer);
 		Marshal.FreeHGlobal(pchMimeTypeUtf8);
 		return result;
 	}
-	public uint GetApplicationLaunchArguments(uint unHandle,System.Text.StringBuilder pchArgs,uint unArgs)
+	public uint GetApplicationLaunchArguments(uint unHandle,StringBuilder pchArgs,uint unArgs)
 	{
 		uint result = FnTable.GetApplicationLaunchArguments(unHandle,pchArgs,unArgs);
 		return result;
 	}
-	public EVRApplicationError GetStartingApplication(System.Text.StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
+	public EVRApplicationError GetStartingApplication(StringBuilder pchAppKeyBuffer,uint unAppKeyBufferLen)
 	{
 		EVRApplicationError result = FnTable.GetStartingApplication(pchAppKeyBuffer,unAppKeyBufferLen);
 		return result;
@@ -3041,7 +3039,7 @@ public class CVRChaperoneSetup
 		bool result = FnTable.GetLiveSeatedZeroPoseToRawTrackingPose(ref pmatSeatedZeroPoseToRawTrackingPose);
 		return result;
 	}
-	public bool ExportLiveToBuffer(System.Text.StringBuilder pBuffer,ref uint pnBufferLength)
+	public bool ExportLiveToBuffer(StringBuilder pBuffer,ref uint pnBufferLength)
 	{
 		pnBufferLength = 0;
 		bool result = FnTable.ExportLiveToBuffer(pBuffer,ref pnBufferLength);
@@ -3262,12 +3260,12 @@ public class CVRCompositor
 	{
 		FnTable.UnlockGLSharedTextureForAccess(glSharedTextureHandle);
 	}
-	public uint GetVulkanInstanceExtensionsRequired(System.Text.StringBuilder pchValue,uint unBufferSize)
+	public uint GetVulkanInstanceExtensionsRequired(StringBuilder pchValue,uint unBufferSize)
 	{
 		uint result = FnTable.GetVulkanInstanceExtensionsRequired(pchValue,unBufferSize);
 		return result;
 	}
-	public uint GetVulkanDeviceExtensionsRequired(IntPtr pPhysicalDevice,System.Text.StringBuilder pchValue,uint unBufferSize)
+	public uint GetVulkanDeviceExtensionsRequired(IntPtr pPhysicalDevice,StringBuilder pchValue,uint unBufferSize)
 	{
 		uint result = FnTable.GetVulkanDeviceExtensionsRequired(pPhysicalDevice,pchValue,unBufferSize);
 		return result;
@@ -3365,12 +3363,12 @@ public class CVROverlay
 		EVROverlayError result = FnTable.DestroyOverlay(ulOverlayHandle);
 		return result;
 	}
-	public uint GetOverlayKey(ulong ulOverlayHandle,System.Text.StringBuilder pchValue,uint unBufferSize,ref EVROverlayError pError)
+	public uint GetOverlayKey(ulong ulOverlayHandle,StringBuilder pchValue,uint unBufferSize,ref EVROverlayError pError)
 	{
 		uint result = FnTable.GetOverlayKey(ulOverlayHandle,pchValue,unBufferSize,ref pError);
 		return result;
 	}
-	public uint GetOverlayName(ulong ulOverlayHandle,System.Text.StringBuilder pchValue,uint unBufferSize,ref EVROverlayError pError)
+	public uint GetOverlayName(ulong ulOverlayHandle,StringBuilder pchValue,uint unBufferSize,ref EVROverlayError pError)
 	{
 		uint result = FnTable.GetOverlayName(ulOverlayHandle,pchValue,unBufferSize,ref pError);
 		return result;
@@ -3553,7 +3551,7 @@ public class CVROverlay
 		Marshal.FreeHGlobal(pchComponentNameUtf8);
 		return result;
 	}
-	public EVROverlayError GetOverlayTransformTrackedDeviceComponent(ulong ulOverlayHandle,ref uint punDeviceIndex,System.Text.StringBuilder pchComponentName,uint unComponentNameSize)
+	public EVROverlayError GetOverlayTransformTrackedDeviceComponent(ulong ulOverlayHandle,ref uint punDeviceIndex,StringBuilder pchComponentName,uint unComponentNameSize)
 	{
 		punDeviceIndex = 0;
 		EVROverlayError result = FnTable.GetOverlayTransformTrackedDeviceComponent(ulOverlayHandle,ref punDeviceIndex,pchComponentName,unComponentNameSize);
@@ -3619,14 +3617,14 @@ public class CVROverlay
 	public bool PollNextOverlayEvent(ulong ulOverlayHandle,ref VREvent_t pEvent,uint uncbVREvent)
 	{
 #if !UNITY_METRO
-		if ((System.Environment.OSVersion.Platform == System.PlatformID.MacOSX) ||
-				(System.Environment.OSVersion.Platform == System.PlatformID.Unix))
+		if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+				(Environment.OSVersion.Platform == PlatformID.Unix))
 		{
 			PollNextOverlayEventUnion u;
 			VREvent_t_Packed event_packed = new VREvent_t_Packed();
 			u.pPollNextOverlayEventPacked = null;
 			u.pPollNextOverlayEvent = FnTable.PollNextOverlayEvent;
-			bool packed_result = u.pPollNextOverlayEventPacked(ulOverlayHandle,ref event_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t_Packed)));
+			bool packed_result = u.pPollNextOverlayEventPacked(ulOverlayHandle,ref event_packed,(uint)Marshal.SizeOf(typeof(VREvent_t_Packed)));
 
 			event_packed.Unpack(ref pEvent);
 			return packed_result;
@@ -3793,7 +3791,7 @@ public class CVROverlay
 		Marshal.FreeHGlobal(pchExistingTextUtf8);
 		return result;
 	}
-	public uint GetKeyboardText(System.Text.StringBuilder pchText,uint cchText)
+	public uint GetKeyboardText(StringBuilder pchText,uint cchText)
 	{
 		uint result = FnTable.GetKeyboardText(pchText,cchText);
 		return result;
@@ -3951,7 +3949,7 @@ public class CVRRenderModels
 	{
 		FnTable.FreeTextureD3D11(pD3D11Texture2D);
 	}
-	public uint GetRenderModelName(uint unRenderModelIndex,System.Text.StringBuilder pchRenderModelName,uint unRenderModelNameLen)
+	public uint GetRenderModelName(uint unRenderModelIndex,StringBuilder pchRenderModelName,uint unRenderModelNameLen)
 	{
 		uint result = FnTable.GetRenderModelName(unRenderModelIndex,pchRenderModelName,unRenderModelNameLen);
 		return result;
@@ -3968,7 +3966,7 @@ public class CVRRenderModels
 		Marshal.FreeHGlobal(pchRenderModelNameUtf8);
 		return result;
 	}
-	public uint GetComponentName(string pchRenderModelName,uint unComponentIndex,System.Text.StringBuilder pchComponentName,uint unComponentNameLen)
+	public uint GetComponentName(string pchRenderModelName,uint unComponentIndex,StringBuilder pchComponentName,uint unComponentNameLen)
 	{
 		IntPtr pchRenderModelNameUtf8 = Utils.ToUtf8(pchRenderModelName);
 		uint result = FnTable.GetComponentName(pchRenderModelNameUtf8,unComponentIndex,pchComponentName,unComponentNameLen);
@@ -3984,7 +3982,7 @@ public class CVRRenderModels
 		Marshal.FreeHGlobal(pchComponentNameUtf8);
 		return result;
 	}
-	public uint GetComponentRenderModelName(string pchRenderModelName,string pchComponentName,System.Text.StringBuilder pchComponentRenderModelName,uint unComponentRenderModelNameLen)
+	public uint GetComponentRenderModelName(string pchRenderModelName,string pchComponentName,StringBuilder pchComponentRenderModelName,uint unComponentRenderModelNameLen)
 	{
 		IntPtr pchRenderModelNameUtf8 = Utils.ToUtf8(pchRenderModelName);
 		IntPtr pchComponentNameUtf8 = Utils.ToUtf8(pchComponentName);
@@ -4019,8 +4017,8 @@ public class CVRRenderModels
 		IntPtr pchRenderModelNameUtf8 = Utils.ToUtf8(pchRenderModelName);
 		IntPtr pchComponentNameUtf8 = Utils.ToUtf8(pchComponentName);
 #if !UNITY_METRO
-		if ((System.Environment.OSVersion.Platform == System.PlatformID.MacOSX) ||
-				(System.Environment.OSVersion.Platform == System.PlatformID.Unix))
+		if ((Environment.OSVersion.Platform == PlatformID.MacOSX) ||
+				(Environment.OSVersion.Platform == PlatformID.Unix))
 		{
 			GetComponentStateUnion u;
 			VRControllerState_t_Packed state_packed = new VRControllerState_t_Packed(pControllerState);
@@ -4046,14 +4044,14 @@ public class CVRRenderModels
 		Marshal.FreeHGlobal(pchComponentNameUtf8);
 		return result;
 	}
-	public uint GetRenderModelThumbnailURL(string pchRenderModelName,System.Text.StringBuilder pchThumbnailURL,uint unThumbnailURLLen,ref EVRRenderModelError peError)
+	public uint GetRenderModelThumbnailURL(string pchRenderModelName,StringBuilder pchThumbnailURL,uint unThumbnailURLLen,ref EVRRenderModelError peError)
 	{
 		IntPtr pchRenderModelNameUtf8 = Utils.ToUtf8(pchRenderModelName);
 		uint result = FnTable.GetRenderModelThumbnailURL(pchRenderModelNameUtf8,pchThumbnailURL,unThumbnailURLLen,ref peError);
 		Marshal.FreeHGlobal(pchRenderModelNameUtf8);
 		return result;
 	}
-	public uint GetRenderModelOriginalPath(string pchRenderModelName,System.Text.StringBuilder pchOriginalPath,uint unOriginalPathLen,ref EVRRenderModelError peError)
+	public uint GetRenderModelOriginalPath(string pchRenderModelName,StringBuilder pchOriginalPath,uint unOriginalPathLen,ref EVRRenderModelError peError)
 	{
 		IntPtr pchRenderModelNameUtf8 = Utils.ToUtf8(pchRenderModelName);
 		uint result = FnTable.GetRenderModelOriginalPath(pchRenderModelNameUtf8,pchOriginalPath,unOriginalPathLen,ref peError);
@@ -4160,7 +4158,7 @@ public class CVRSettings
 		Marshal.FreeHGlobal(pchSettingsKeyUtf8);
 		return result;
 	}
-	public void GetString(string pchSection,string pchSettingsKey,System.Text.StringBuilder pchValue,uint unValueLen,ref EVRSettingsError peError)
+	public void GetString(string pchSection,string pchSettingsKey,StringBuilder pchValue,uint unValueLen,ref EVRSettingsError peError)
 	{
 		IntPtr pchSectionUtf8 = Utils.ToUtf8(pchSection);
 		IntPtr pchSettingsKeyUtf8 = Utils.ToUtf8(pchSettingsKey);
@@ -4202,7 +4200,7 @@ public class CVRScreenshots
 	}
 	public EVRScreenshotError HookScreenshot(EVRScreenshotType [] pSupportedTypes)
 	{
-		EVRScreenshotError result = FnTable.HookScreenshot(pSupportedTypes,(int) pSupportedTypes.Length);
+		EVRScreenshotError result = FnTable.HookScreenshot(pSupportedTypes,pSupportedTypes.Length);
 		return result;
 	}
 	public EVRScreenshotType GetScreenshotPropertyType(uint screenshotHandle,ref EVRScreenshotError pError)
@@ -4210,7 +4208,7 @@ public class CVRScreenshots
 		EVRScreenshotType result = FnTable.GetScreenshotPropertyType(screenshotHandle,ref pError);
 		return result;
 	}
-	public uint GetScreenshotPropertyFilename(uint screenshotHandle,EVRScreenshotPropertyFilenames filenameType,System.Text.StringBuilder pchFilename,uint cchFilename,ref EVRScreenshotError pError)
+	public uint GetScreenshotPropertyFilename(uint screenshotHandle,EVRScreenshotPropertyFilenames filenameType,StringBuilder pchFilename,uint cchFilename,ref EVRScreenshotError pError)
 	{
 		uint result = FnTable.GetScreenshotPropertyFilename(screenshotHandle,filenameType,pchFilename,cchFilename,ref pError);
 		return result;
@@ -4254,7 +4252,7 @@ public class CVRResources
 		Marshal.FreeHGlobal(pchResourceNameUtf8);
 		return result;
 	}
-	public uint GetResourceFullPath(string pchResourceName,string pchResourceTypeDirectory,System.Text.StringBuilder pchPathBuffer,uint unBufferLen)
+	public uint GetResourceFullPath(string pchResourceName,string pchResourceTypeDirectory,StringBuilder pchPathBuffer,uint unBufferLen)
 	{
 		IntPtr pchResourceNameUtf8 = Utils.ToUtf8(pchResourceName);
 		IntPtr pchResourceTypeDirectoryUtf8 = Utils.ToUtf8(pchResourceTypeDirectory);
@@ -4276,7 +4274,7 @@ public class CVRDriverManager
 		uint result = FnTable.GetDriverCount();
 		return result;
 	}
-	public uint GetDriverName(uint nDriver,System.Text.StringBuilder pchValue,uint unBufferSize)
+	public uint GetDriverName(uint nDriver,StringBuilder pchValue,uint unBufferSize)
 	{
 		uint result = FnTable.GetDriverName(nDriver,pchValue,unBufferSize);
 		return result;
@@ -4393,7 +4391,7 @@ public class CVRInput
 		EVRInputError result = FnTable.GetBoneHierarchy(action,pParentIndices,(uint) pParentIndices.Length);
 		return result;
 	}
-	public EVRInputError GetBoneName(ulong action,int nBoneIndex,System.Text.StringBuilder pchBoneName,uint unNameBufferSize)
+	public EVRInputError GetBoneName(ulong action,int nBoneIndex,StringBuilder pchBoneName,uint unNameBufferSize)
 	{
 		EVRInputError result = FnTable.GetBoneName(action,nBoneIndex,pchBoneName,unNameBufferSize);
 		return result;
@@ -4439,7 +4437,7 @@ public class CVRInput
 		EVRInputError result = FnTable.GetActionOrigins(actionSetHandle,digitalActionHandle,originsOut,(uint) originsOut.Length);
 		return result;
 	}
-	public EVRInputError GetOriginLocalizedName(ulong origin,System.Text.StringBuilder pchNameArray,uint unNameArraySize,int unStringSectionsToInclude)
+	public EVRInputError GetOriginLocalizedName(ulong origin,StringBuilder pchNameArray,uint unNameArraySize,int unStringSectionsToInclude)
 	{
 		EVRInputError result = FnTable.GetOriginLocalizedName(origin,pchNameArray,unNameArraySize,unStringSectionsToInclude);
 		return result;
@@ -4486,7 +4484,7 @@ public class CVRInput
 		Marshal.FreeHGlobal(pchAppKeyUtf8);
 		return result;
 	}
-	public EVRInputError GetBindingVariant(ulong ulDevicePath,System.Text.StringBuilder pchVariantArray,uint unVariantArraySize)
+	public EVRInputError GetBindingVariant(ulong ulDevicePath,StringBuilder pchVariantArray,uint unVariantArraySize)
 	{
 		EVRInputError result = FnTable.GetBindingVariant(ulDevicePath,pchVariantArray,unVariantArraySize);
 		return result;
@@ -4560,7 +4558,7 @@ public class CVRSpatialAnchors
 		EVRSpatialAnchorError result = FnTable.GetSpatialAnchorPose(unHandle,eOrigin,ref pPoseOut);
 		return result;
 	}
-	public EVRSpatialAnchorError GetSpatialAnchorDescriptor(uint unHandle,System.Text.StringBuilder pchDescriptorOut,ref uint punDescriptorBufferLenInOut)
+	public EVRSpatialAnchorError GetSpatialAnchorDescriptor(uint unHandle,StringBuilder pchDescriptorOut,ref uint punDescriptorBufferLenInOut)
 	{
 		punDescriptorBufferLenInOut = 0;
 		EVRSpatialAnchorError result = FnTable.GetSpatialAnchorDescriptor(unHandle,pchDescriptorOut,ref punDescriptorBufferLenInOut);
@@ -4594,7 +4592,7 @@ public class CVRDebug
 		Marshal.FreeHGlobal(pchMessageUtf8);
 		return result;
 	}
-	public uint DriverDebugRequest(uint unDeviceIndex,string pchRequest,System.Text.StringBuilder pchResponseBuffer,uint unResponseBufferSize)
+	public uint DriverDebugRequest(uint unDeviceIndex,string pchRequest,StringBuilder pchResponseBuffer,uint unResponseBufferSize)
 	{
 		IntPtr pchRequestUtf8 = Utils.ToUtf8(pchRequest);
 		uint result = FnTable.DriverDebugRequest(unDeviceIndex,pchRequestUtf8,pchResponseBuffer,unResponseBufferSize);
@@ -4809,7 +4807,7 @@ public class OpenVRInterop
 	[DllImportAttribute("openvr_api", EntryPoint = "VR_RuntimePath", CallingConvention = CallingConvention.Cdecl)]
 	internal static extern string RuntimePath();
 	[DllImportAttribute("openvr_api", EntryPoint = "VR_GetRuntimePath", CallingConvention = CallingConvention.Cdecl)]
-	internal static extern bool GetRuntimePath(System.Text.StringBuilder pchPathBuffer, uint unBufferSize, ref uint punRequiredBufferSize);
+	internal static extern bool GetRuntimePath(StringBuilder pchPathBuffer, uint unBufferSize, ref uint punRequiredBufferSize);
 	[DllImportAttribute("openvr_api", EntryPoint = "VR_GetStringForHmdError", CallingConvention = CallingConvention.Cdecl)]
 	internal static extern IntPtr GetStringForHmdError(EVRInitError error);
 	[DllImportAttribute("openvr_api", EntryPoint = "VR_GetGenericInterface", CallingConvention = CallingConvention.Cdecl)]
@@ -6646,7 +6644,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)cNewInput0,
 				(char)cNewInput1,
 				(char)cNewInput2,
@@ -6792,17 +6790,17 @@ public enum EBlockQueueCreationFlag
 	public VREvent_Data_t data;
 	public VREvent_t_Packed(VREvent_t unpacked)
 	{
-		this.eventType = unpacked.eventType;
-		this.trackedDeviceIndex = unpacked.trackedDeviceIndex;
-		this.eventAgeSeconds = unpacked.eventAgeSeconds;
-		this.data = unpacked.data;
+		eventType = unpacked.eventType;
+		trackedDeviceIndex = unpacked.trackedDeviceIndex;
+		eventAgeSeconds = unpacked.eventAgeSeconds;
+		data = unpacked.data;
 	}
 	public void Unpack(ref VREvent_t unpacked)
 	{
-		unpacked.eventType = this.eventType;
-		unpacked.trackedDeviceIndex = this.trackedDeviceIndex;
-		unpacked.eventAgeSeconds = this.eventAgeSeconds;
-		unpacked.data = this.data;
+		unpacked.eventType = eventType;
+		unpacked.trackedDeviceIndex = trackedDeviceIndex;
+		unpacked.eventAgeSeconds = eventAgeSeconds;
+		unpacked.data = data;
 	}
 }
 [StructLayout(LayoutKind.Sequential)] public struct RenderModel_ComponentState_t
@@ -6845,25 +6843,25 @@ public enum EBlockQueueCreationFlag
 	public VRControllerAxis_t rAxis4;
 	public VRControllerState_t_Packed(VRControllerState_t unpacked)
 	{
-		this.unPacketNum = unpacked.unPacketNum;
-		this.ulButtonPressed = unpacked.ulButtonPressed;
-		this.ulButtonTouched = unpacked.ulButtonTouched;
-		this.rAxis0 = unpacked.rAxis0;
-		this.rAxis1 = unpacked.rAxis1;
-		this.rAxis2 = unpacked.rAxis2;
-		this.rAxis3 = unpacked.rAxis3;
-		this.rAxis4 = unpacked.rAxis4;
+		unPacketNum = unpacked.unPacketNum;
+		ulButtonPressed = unpacked.ulButtonPressed;
+		ulButtonTouched = unpacked.ulButtonTouched;
+		rAxis0 = unpacked.rAxis0;
+		rAxis1 = unpacked.rAxis1;
+		rAxis2 = unpacked.rAxis2;
+		rAxis3 = unpacked.rAxis3;
+		rAxis4 = unpacked.rAxis4;
 	}
 	public void Unpack(ref VRControllerState_t unpacked)
 	{
-		unpacked.unPacketNum = this.unPacketNum;
-		unpacked.ulButtonPressed = this.ulButtonPressed;
-		unpacked.ulButtonTouched = this.ulButtonTouched;
-		unpacked.rAxis0 = this.rAxis0;
-		unpacked.rAxis1 = this.rAxis1;
-		unpacked.rAxis2 = this.rAxis2;
-		unpacked.rAxis3 = this.rAxis3;
-		unpacked.rAxis4 = this.rAxis4;
+		unpacked.unPacketNum = unPacketNum;
+		unpacked.ulButtonPressed = ulButtonPressed;
+		unpacked.ulButtonTouched = ulButtonTouched;
+		unpacked.rAxis0 = rAxis0;
+		unpacked.rAxis1 = rAxis1;
+		unpacked.rAxis2 = rAxis2;
+		unpacked.rAxis3 = rAxis3;
+		unpacked.rAxis4 = rAxis4;
 	}
 }
 [StructLayout(LayoutKind.Sequential)] public struct CameraVideoStreamFrameHeader_t
@@ -7057,19 +7055,19 @@ public enum EBlockQueueCreationFlag
 	public ushort unMipLevels;
 	public RenderModel_TextureMap_t_Packed(RenderModel_TextureMap_t unpacked)
 	{
-		this.unWidth = unpacked.unWidth;
-		this.unHeight = unpacked.unHeight;
-		this.rubTextureMapData = unpacked.rubTextureMapData;
-		this.format = unpacked.format;
-		this.unMipLevels = unpacked.unMipLevels;
+		unWidth = unpacked.unWidth;
+		unHeight = unpacked.unHeight;
+		rubTextureMapData = unpacked.rubTextureMapData;
+		format = unpacked.format;
+		unMipLevels = unpacked.unMipLevels;
 	}
 	public void Unpack(ref RenderModel_TextureMap_t unpacked)
 	{
-		unpacked.unWidth = this.unWidth;
-		unpacked.unHeight = this.unHeight;
-		unpacked.rubTextureMapData = this.rubTextureMapData;
-		unpacked.format = this.format;
-		unpacked.unMipLevels = this.unMipLevels;
+		unpacked.unWidth = unWidth;
+		unpacked.unHeight = unHeight;
+		unpacked.rubTextureMapData = rubTextureMapData;
+		unpacked.format = format;
+		unpacked.unMipLevels = unMipLevels;
 	}
 }
 [StructLayout(LayoutKind.Sequential)] public struct RenderModel_t
@@ -7090,19 +7088,19 @@ public enum EBlockQueueCreationFlag
 	public int diffuseTextureId;
 	public RenderModel_t_Packed(RenderModel_t unpacked)
 	{
-		this.rVertexData = unpacked.rVertexData;
-		this.unVertexCount = unpacked.unVertexCount;
-		this.rIndexData = unpacked.rIndexData;
-		this.unTriangleCount = unpacked.unTriangleCount;
-		this.diffuseTextureId = unpacked.diffuseTextureId;
+		rVertexData = unpacked.rVertexData;
+		unVertexCount = unpacked.unVertexCount;
+		rIndexData = unpacked.rIndexData;
+		unTriangleCount = unpacked.unTriangleCount;
+		diffuseTextureId = unpacked.diffuseTextureId;
 	}
 	public void Unpack(ref RenderModel_t unpacked)
 	{
-		unpacked.rVertexData = this.rVertexData;
-		unpacked.unVertexCount = this.unVertexCount;
-		unpacked.rIndexData = this.rIndexData;
-		unpacked.unTriangleCount = this.unTriangleCount;
-		unpacked.diffuseTextureId = this.diffuseTextureId;
+		unpacked.rVertexData = rVertexData;
+		unpacked.unVertexCount = unVertexCount;
+		unpacked.rIndexData = rIndexData;
+		unpacked.unTriangleCount = unTriangleCount;
+		unpacked.diffuseTextureId = diffuseTextureId;
 	}
 }
 [StructLayout(LayoutKind.Sequential)] public struct RenderModel_ControllerMode_State_t
@@ -7167,7 +7165,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)rchRenderModelComponentName0,
 				(char)rchRenderModelComponentName1,
 				(char)rchRenderModelComponentName2,
@@ -7307,7 +7305,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)rchDevicePathName0,
 				(char)rchDevicePathName1,
 				(char)rchDevicePathName2,
@@ -7444,7 +7442,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)rchInputPathName0,
 				(char)rchInputPathName1,
 				(char)rchInputPathName2,
@@ -7581,7 +7579,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)rchModeName0,
 				(char)rchModeName1,
 				(char)rchModeName2,
@@ -7718,7 +7716,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)rchSlotName0,
 				(char)rchSlotName1,
 				(char)rchSlotName2,
@@ -7855,7 +7853,7 @@ public enum EBlockQueueCreationFlag
 	{
 		get
 		{
-			return new string(new char[] {
+			return new string(new[] {
 				(char)rchInputSourceType0,
 				(char)rchInputSourceType1,
 				(char)rchInputSourceType2,
@@ -8016,9 +8014,9 @@ public class OpenVR
 		{
 			uint pathSize = 512;
 			uint requiredPathSize = 512;
-			System.Text.StringBuilder path = new System.Text.StringBuilder((int)pathSize);
+			StringBuilder path = new StringBuilder((int)pathSize);
 			bool success = OpenVRInterop.GetRuntimePath(path, pathSize, ref requiredPathSize);
-			if (success == false)
+			if (!success)
 			{
 				return null;
 			}
@@ -8729,9 +8727,9 @@ public class OpenVR
 		private CVRSpatialAnchors m_pVRSpatialAnchors;
 		private CVRNotifications m_pVRNotifications;
 		private CVRDebug m_pVRDebug;
-	};
+	}
 
-	private static COpenVRContext _OpenVRInternal_ModuleContext = null;
+	private static COpenVRContext _OpenVRInternal_ModuleContext;
 	static COpenVRContext OpenVRInternal_ModuleContext
 	{
 		get
@@ -8786,7 +8784,7 @@ public class OpenVR
 
 		if (peError == EVRInitError.None)
 		{
-			pSystem = OpenVR.System;
+			pSystem = System;
 			peError = pSystem.SetSDKVersion(k_nSteamVRVersionMajor, k_nSteamVRVersionMinor, k_nSteamVRVersionBuild);
 		}
 

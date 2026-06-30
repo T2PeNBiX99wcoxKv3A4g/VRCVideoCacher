@@ -139,11 +139,11 @@ public class ConfigModel
     // Caching
     public string CachedAssetPath = "";
     public float CacheMaxSizeInGb = 10f;
-    public bool CacheYouTube = false;
+    public bool CacheYouTube;
     public int CacheYouTubeMaxResolution = 1080;
     public int CacheYouTubeMaxLength = 120;
-    public bool CachePyPyDance = false;
-    public bool CacheVrDancing = false;
+    public bool CachePyPyDance;
+    public bool CacheVrDancing;
     public bool CacheOnly = false;
 
     // Cache Rules
@@ -152,7 +152,7 @@ public class ConfigModel
     public string[] PreCacheUrls = [];
 
     // Patching
-    public bool PatchResonite = false;
+    public bool PatchResonite;
     public string ResonitePath = "";
     public bool PatchVrChat = true;
 

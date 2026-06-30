@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using Serilog;
 using VRCVideoCacher.API;
@@ -109,7 +110,7 @@ public class ElevatorManager
             proc = new()
                 { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--addhost", UseShellExecute = true, Verb = "runas" } };
             try { proc.Start(); }
-            catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+            catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
                 Log.Warning("User cancelled UAC prompt.");
                 return;
@@ -151,7 +152,7 @@ public class ElevatorManager
             proc = new()
                 { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--removehost", UseShellExecute = true, Verb = "runas" } };
             try { proc.Start(); }
-            catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+            catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
                 Log.Warning("User cancelled UAC prompt.");
                 return;

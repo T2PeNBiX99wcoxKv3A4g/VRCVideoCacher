@@ -1,7 +1,8 @@
+using System.Diagnostics;
 using System.Runtime.Versioning;
+using Microsoft.Win32;
 using Serilog;
 using ShellLink;
-using ShellLink.Structures;
 
 namespace VRCVideoCacher.Utils;
 
@@ -13,7 +14,7 @@ public class AutoStartShortcut
     private const string SteamShortcutExtension = ".url";
     private const string SteamGameUrl = "steam://rungameid/4296960";
     private const string ExeShortcutExtension = ".lnk";
-    private static bool? _doesVrcxSupportSteamShortcut = null;
+    private static bool? _doesVrcxSupportSteamShortcut;
 
     [SupportedOSPlatform("windows")]
     public static void TryUpdateShortcutPath()
@@ -264,7 +265,7 @@ public class AutoStartShortcut
 
             foreach (var regPath in registryPaths)
             {
-                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(regPath))
+                using (var key = Registry.LocalMachine.OpenSubKey(regPath))
                 {
                     if (key != null)
                     {
@@ -308,10 +309,10 @@ public class AutoStartShortcut
             Log.Warning(ex, "Error searching registry for VRCX");
         }
 
-        System.Diagnostics.Process[]? processes = null;
+        Process[]? processes = null;
         try
         {
-            processes = System.Diagnostics.Process.GetProcessesByName("VRCX");
+            processes = Process.GetProcessesByName("VRCX");
 
             if (processes != null)
             {

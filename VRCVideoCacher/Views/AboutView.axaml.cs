@@ -1,4 +1,7 @@
+using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using VRCVideoCacher.ViewModels;
 
 namespace VRCVideoCacher.Views;
 
@@ -11,30 +14,30 @@ public partial class AboutView : UserControl
     public AboutView()
     {
         InitializeComponent();
-        DataContext = new VRCVideoCacher.ViewModels.AboutViewModel();
+        DataContext = new AboutViewModel();
     }
 
-    private void OnDiscordClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnDiscordClick(object? sender, RoutedEventArgs e)
     {
         OpenUrl(DiscordUrl);
     }
 
-    private void OnGitHubClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnGitHubClick(object? sender, RoutedEventArgs e)
     {
         OpenUrl(GithubUrl);
     }
 
-    private void OnSteamClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnSteamClick(object? sender, RoutedEventArgs e)
     {
         OpenUrl(SteamUrl);
     }
 
-    private void OnGitHubIssueClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnGitHubIssueClick(object? sender, RoutedEventArgs e)
     {
         OpenUrl($"{GithubUrl}/issues");
     }
 
-    private void OnDiscordIssueClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnDiscordIssueClick(object? sender, RoutedEventArgs e)
     {
         OpenUrl(DiscordUrl);
     }
@@ -43,12 +46,12 @@ public partial class AboutView : UserControl
     {
         try
         {
-            var psi = new System.Diagnostics.ProcessStartInfo
+            var psi = new ProcessStartInfo
             {
                 FileName = url,
                 UseShellExecute = true
             };
-            System.Diagnostics.Process.Start(psi);
+            Process.Start(psi);
         }
         catch { /* Optionally handle errors */ }
     }

@@ -9,7 +9,7 @@ public class AboutViewModel : ViewModelBase
 
     public AboutViewModel()
     {
-        Version = VRCVideoCacher.Program.Version;
-        CreatedBy = Localizer.Get("CreatedBy") + $" {VRCVideoCacher.Program.Creator_Elly}, {VRCVideoCacher.Program.Creator_Natsumi}, {VRCVideoCacher.Program.Creator_Haxy}, {VRCVideoCacher.Program.Creator_Hauskaz}, {VRCVideoCacher.Program.Creator_DubyaDude}";
+        Version = Program.Version;
+        CreatedBy = Localizer.Get("CreatedBy") + $" {Program.Creator_Elly}, {Program.Creator_Natsumi}, {Program.Creator_Haxy}, {Program.Creator_Hauskaz}, {Program.Creator_DubyaDude}";
     }
 }

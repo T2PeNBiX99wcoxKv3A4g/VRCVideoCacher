@@ -3,6 +3,7 @@ using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 using JetBrains.Annotations;
+using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
@@ -14,7 +15,7 @@ public class ApiController : WebApiController
 {
     private static int YoutubePrefetchMaxRetries => VvcConfigService.CurrentConfig.RetryCount;
 
-    private static readonly Serilog.ILogger Log = Program.Logger.ForContext<ApiController>();
+    private static readonly ILogger Log = Program.Logger.ForContext<ApiController>();
     private static readonly HttpClient HttpClient = new()
     {
         DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }

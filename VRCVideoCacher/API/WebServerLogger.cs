@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Swan.Logging;
+
 // ReSharper disable ClassNeverInstantiated.Global
 
 namespace VRCVideoCacher.API;

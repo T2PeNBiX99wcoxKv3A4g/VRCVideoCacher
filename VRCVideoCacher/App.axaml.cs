@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.Languages;
@@ -13,7 +15,7 @@ using VRCVideoCacher.Views;
 
 namespace VRCVideoCacher;
 
-public partial class App : Application
+public class App : Application
 {
     private TrayIcon? _trayIcon;
     public static MainWindow? MainWindow;
@@ -217,7 +219,7 @@ public partial class App : Application
         _trayIcon = new()
         {
             ToolTipText = "VRCVideoCacher",
-            Icon = new(Avalonia.Platform.AssetLoader.Open(new("avares://VRCVideoCacher/Assets/icon.ico"))),
+            Icon = new(AssetLoader.Open(new("avares://VRCVideoCacher/Assets/icon.ico"))),
             Menu = menu,
             IsVisible = true
         };
@@ -240,11 +242,11 @@ public partial class App : Application
         var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
         {
-            System.Diagnostics.Process.Start("explorer.exe", cachePath);
+            Process.Start("explorer.exe", cachePath);
         }
         else if (OperatingSystem.IsLinux())
         {
-            System.Diagnostics.Process.Start("xdg-open", cachePath);
+            Process.Start("xdg-open", cachePath);
         }
     }
 }

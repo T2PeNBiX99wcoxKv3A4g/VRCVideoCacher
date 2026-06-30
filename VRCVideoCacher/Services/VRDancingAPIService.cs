@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Serilog;
 using VRCVideoCacher.Database;
-using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.Services;
