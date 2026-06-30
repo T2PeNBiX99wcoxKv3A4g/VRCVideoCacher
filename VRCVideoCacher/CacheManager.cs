@@ -19,9 +19,6 @@ public class CacheManager
     private static readonly ConcurrentDictionary<string, VideoCache> CachedAssets = new();
     public static readonly string CachePath;
 
-    // Events for UI
-    public static event Action<string, CacheChangeType>? OnCacheChanged;
-
     static CacheManager()
     {
         if (string.IsNullOrEmpty(ConfigManager.Config.CachedAssetPath))
@@ -34,6 +31,9 @@ public class CacheManager
         Log.Debug("Using cache path {CachePath}", CachePath);
         BuildCache();
     }
+
+    // Events for UI
+    public static event Action<string, CacheChangeType>? OnCacheChanged;
 
     private static string GetSystemCacheFolder()
     {
@@ -94,6 +94,7 @@ public class CacheManager
                         File.Delete(thumbnailPath);
                 }
             }
+
             CachedAssets.TryRemove(oldestFile.Key, out _);
             oldestFiles.RemoveAt(0);
         }
@@ -123,13 +124,7 @@ public class CacheManager
 
     private static long GetCacheSize()
     {
-        var totalSize = 0L;
-        foreach (var cache in CachedAssets)
-        {
-            totalSize += cache.Value.Size;
-        }
-
-        return totalSize;
+        return CachedAssets.Sum(cache => cache.Value.Size);
     }
 
     // Public accessors for UI
@@ -180,6 +175,7 @@ public class CacheManager
                 Log.Error("Failed to delete {FileName}: {Error}", fileName, ex.ToString());
             }
         }
+
         CachedAssets.Clear();
         OnCacheChanged?.Invoke(string.Empty, CacheChangeType.Cleared);
         Log.Information("Cache cleared");
