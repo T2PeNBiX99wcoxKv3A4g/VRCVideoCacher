@@ -110,10 +110,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
     public ObservableCollection<CacheItemViewModel> CachedVideos { get; } = [];
     public ObservableCollection<CacheItemViewModel> FilteredVideos { get; } = [];
 
-    public CacheBrowserViewModel()
-    {
-        CacheManager.OnCacheChanged += OnCacheChanged;
-    }
+    public CacheBrowserViewModel() => CacheManager.OnCacheChanged += OnCacheChanged;
 
     private void OnCacheChanged(string fileName, CacheChangeType changeType)
     {

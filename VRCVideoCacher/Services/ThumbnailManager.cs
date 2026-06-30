@@ -17,10 +17,7 @@ public static class ThumbnailManager
         Directory.CreateDirectory(ThumbnailCacheDir);
     }
 
-    public static string GetThumbnailPath(string videoId)
-    {
-        return Path.Join(ThumbnailCacheDir, $"{videoId}.jpg");
-    }
+    public static string GetThumbnailPath(string videoId) => Path.Join(ThumbnailCacheDir, $"{videoId}.jpg");
 
     public static string? GetThumbnail(string videoId)
     {

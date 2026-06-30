@@ -23,8 +23,5 @@ public class FileSizeConverter : IValueConverter
         return $"{adjustedSize:N2} {SizeSuffixes[mag]}";
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }

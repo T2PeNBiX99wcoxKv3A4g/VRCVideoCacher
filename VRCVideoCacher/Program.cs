@@ -222,10 +222,7 @@ internal sealed class Program
         }
     }
 
-    public static bool DoesCookieFileExist()
-    {
-        return File.Exists(YtdlManager.CookiesPath);
-    }
+    public static bool DoesCookieFileExist() => File.Exists(YtdlManager.CookiesPath);
 
     public static bool IsCookiesEnabledAndValid()
     {
@@ -302,10 +299,7 @@ internal sealed class Program
         }
     }
 
-    public static Stream GetYtDlpStub()
-    {
-        return GetEmbeddedResource("VRCVideoCacher.yt-dlp-stub.exe");
-    }
+    public static Stream GetYtDlpStub() => GetEmbeddedResource("VRCVideoCacher.yt-dlp-stub.exe");
 
     public static Stream GetEmbeddedResource(string resourceName)
     {
@@ -326,10 +320,7 @@ internal sealed class Program
         return ComputeBinaryContentHash(ms.ToArray());
     }
 
-    public static string ComputeBinaryContentHash(byte[] base64)
-    {
-        return Convert.ToBase64String(SHA256.HashData(base64));
-    }
+    public static string ComputeBinaryContentHash(byte[] base64) => Convert.ToBase64String(SHA256.HashData(base64));
 
     private static void OnAppQuit()
     {

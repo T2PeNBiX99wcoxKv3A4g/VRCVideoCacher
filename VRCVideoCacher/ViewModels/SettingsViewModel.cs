@@ -16,10 +16,7 @@ public partial class BlockedUrlEntry : ObservableObject
     [ObservableProperty]
     private string _url;
 
-    public BlockedUrlEntry(string url)
-    {
-        _url = url;
-    }
+    public BlockedUrlEntry(string url) => _url = url;
 }
 
 public partial class SettingsViewModel : ViewModelBase

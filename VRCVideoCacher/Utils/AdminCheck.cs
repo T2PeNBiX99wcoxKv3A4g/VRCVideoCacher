@@ -10,10 +10,7 @@ public static class AdminCheck
         "Please run the application with standard user privileges. " +
         "\r\n\r\nIf you really need it, please use --bypass-admin-warning to stop this error message.";
 
-    public static bool ShouldShowAdminWarning()
-    {
-        return IsRunningAsAdmin() && !LaunchArgs.IsBypassArgumentPresent;
-    }
+    public static bool ShouldShowAdminWarning() => IsRunningAsAdmin() && !LaunchArgs.IsBypassArgumentPresent;
 
     public static string GetAdminTitleWarning()
     {

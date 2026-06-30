@@ -16,15 +16,13 @@ public class VideoId
 
     internal static Uri? ToUri(string url) => Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri : null;
 
-    internal static string HashUrl(string url)
-    {
-        return Convert.ToBase64String(
-            SHA256.HashData(
-                Encoding.UTF8.GetBytes(url)))
+    internal static string HashUrl(string url) =>
+        Convert.ToBase64String(
+                SHA256.HashData(
+                    Encoding.UTF8.GetBytes(url)))
             .Replace("/", "")
             .Replace("+", "")
             .Replace("=", "");
-    }
 
     private static Process GetYtdlpProcess()
     {

@@ -8,10 +8,7 @@ public class BoolToStatusConverter : IValueConverter
 {
     public static readonly BoolToStatusConverter Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        return value is true ? Localizer.Get("Running") : Localizer.Get("Stopped");
-    }
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value is true ? Localizer.Get("Running") : Localizer.Get("Stopped");
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotImplementedException();
@@ -21,10 +18,7 @@ public class BoolToStatusColorConverter : IValueConverter
 {
     public static readonly BoolToStatusColorConverter Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        return value is true ? "Green" : "Red";
-    }
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value is true ? "Green" : "Red";
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotImplementedException();
