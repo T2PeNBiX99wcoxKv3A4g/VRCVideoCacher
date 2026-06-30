@@ -20,7 +20,7 @@ public class FileTools
 
     static FileTools()
     {
-        var resoPath = !string.IsNullOrEmpty(ConfigManager.Config.ResonitePath) ? ConfigManager.Config.ResonitePath : GetAppLibraryPath(ResoniteAppId)?.Select(path => Path.Join(path, "steamapps", "common", "Resonite"))?.Where(Path.Exists)?.First();
+        var resoPath = !string.IsNullOrEmpty(ConfigManager.Config.ResonitePath) ? ConfigManager.Config.ResonitePath : GetAppLibraryPath(ResoniteAppId)?.Select(path => Path.Join(path, "steamapps", "common", "Resonite")).Where(Path.Exists).First();
 
         if (!string.IsNullOrEmpty(resoPath))
         {
@@ -28,7 +28,7 @@ public class FileTools
             BackupPathReso = $"{YtdlPathReso}.bkp";
         }
 
-        string? localLowPath = null;
+        string? localLowPath;
         if (OperatingSystem.IsWindows())
         {
             localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
@@ -77,7 +77,7 @@ public class FileTools
         string steamPath;
         if (OperatingSystem.IsWindows())
         {
-            var steamInstallPath = (string?)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", "");
+            var steamInstallPath = GetSteamInstallPathWindows();
             if (string.IsNullOrEmpty(steamInstallPath))
             {
                 Log.Error("GetAppLibraryPath: Unable to find Steam installation directory");
@@ -89,9 +89,8 @@ public class FileTools
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-            var steamPaths = SteamPaths.Select(path => Path.Join(home, path))
-                .Where(Path.Exists);
-            if (steamPaths.Count() == 0)
+            var steamPaths = SteamPaths.Select(path => Path.Join(home, path)).Where(Path.Exists).ToArray();
+            if (steamPaths.Length == 0)
             {
                 Log.Error("GetAppLibraryPath: Steam folder doesn't exist!");
                 return null;
@@ -130,7 +129,8 @@ public class FileTools
 
         libraryPaths = [.. libraryPaths.Where(Path.Exists)];
 
-        if (libraryPaths.Count() == 0)
+        // ReSharper disable once InvertIf
+        if (libraryPaths.Count == 0)
         {
             Log.Error("Failed to find library path for Steam app {AppId}.", appid);
             return null;
@@ -142,13 +142,10 @@ public class FileTools
     private static string? GetCompatPath(string appid)
     {
         var libraryPaths = GetAppLibraryPath(appid);
-        if (libraryPaths == null) return null;
-
-        var paths = libraryPaths
-            .Select(path => Path.Join(path, $"steamapps/compatdata/{appid}"))
+        var paths = libraryPaths?.Select(path => Path.Join(path, $"steamapps/compatdata/{appid}"))
             .Where(Path.Exists)
             .ToImmutableList();
-        return paths.Count > 0 ? paths.First() : null;
+        return paths?.Count > 0 ? paths.First() : null;
     }
 
     public static string? LocateFile(string filename)
@@ -170,12 +167,10 @@ public class FileTools
         if (!File.Exists(path))
             throw new FileNotFoundException($"File not found: {path}");
 
-        if (!OperatingSystem.IsWindows())
-        {
-            var mode = File.GetUnixFileMode(path);
-            mode |= UnixFileMode.UserExecute;
-            File.SetUnixFileMode(path, mode);
-        }
+        if (OperatingSystem.IsWindows()) return;
+        var mode = File.GetUnixFileMode(path);
+        mode |= UnixFileMode.UserExecute;
+        File.SetUnixFileMode(path, mode);
     }
 
     public static void BackupAllYtdl()
