@@ -11,12 +11,10 @@ namespace VRCVideoCacher.ViewModels;
 
 public record LanguageOption(string Code, string DisplayName);
 
-public partial class BlockedUrlEntry : ObservableObject
+public partial class BlockedUrlEntry(string url) : ObservableObject
 {
     [ObservableProperty]
-    private string _url;
-
-    public BlockedUrlEntry(string url) => _url = url;
+    private string _url = url;
 }
 
 public partial class SettingsViewModel : ViewModelBase
@@ -111,7 +109,7 @@ public partial class SettingsViewModel : ViewModelBase
     private bool _disableErrorPopups;
 
     // Language selection
-    public IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
+    public static IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
         Localizer.Languages
             .Select(code => new LanguageOption(code, GetLanguageDisplayName(code)))
             .ToList();
