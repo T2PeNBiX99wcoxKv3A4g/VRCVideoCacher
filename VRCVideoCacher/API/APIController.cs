@@ -2,6 +2,7 @@ using System.Text;
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
+using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
@@ -20,6 +21,7 @@ public class ApiController : WebApiController
     };
 
     [Route(HttpVerbs.Post, "/youtube-cookies")]
+    [PublicAPI]
     public async Task ReceiveYoutubeCookies()
     {
         HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -60,6 +62,7 @@ public class ApiController : WebApiController
     }
 
     [Route(HttpVerbs.Get, "/getvideo")]
+    [PublicAPI]
     public async Task GetVideo()
     {
         // escape double quotes for our own safety
