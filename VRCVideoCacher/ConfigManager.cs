@@ -4,13 +4,11 @@ using Newtonsoft.Json;
 using Serilog;
 using VRCVideoCacher.Utils;
 
-// ReSharper disable FieldCanBeMadeReadOnly.Global
-
 namespace VRCVideoCacher;
 
 public class ConfigManager
 {
-    public static ConfigModel Config { get; private set; }
+    public static ConfigModel Config { get; }
     private static readonly ILogger Log = Program.Logger.ForContext<ConfigManager>();
     private static readonly string ConfigFilePath;
 
