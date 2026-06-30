@@ -129,7 +129,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
     {
         FilteredVideos.Clear();
 
-        var filter = SearchFilter?.ToLowerInvariant() ?? string.Empty;
+        var filter = SearchFilter.ToLowerInvariant();
         foreach (var video in CachedVideos)
         {
             if (string.IsNullOrEmpty(filter) ||
