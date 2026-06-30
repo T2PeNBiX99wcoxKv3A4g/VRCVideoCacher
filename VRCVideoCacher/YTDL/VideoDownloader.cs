@@ -136,8 +136,10 @@ public class VideoDownloader
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
         var tempDownloadWebmPath = Path.Join(tempDir.FullName, TempDownloadWebmName);
 
-        var args = new List<string>();
-        args.Add("-q");
+        var args = new List<string>
+        {
+            "-q"
+        };
 
         var process = new Process
         {
