@@ -126,7 +126,7 @@ public class VideoId
         args.Add("-J"); // --dump-single-json
         args.Add("-s");
         args.Add("--impersonate=\"safari\"");
-        args.Add("--extractor-args=\"youtube:player_client=web\"");
+        args.Add("--extractor-args=\"youtube:player_client=web;youtubetab:skip=authcheck\"");
 
 
         var (output, error, exitCode) = await RunYtdlpAsync(args, url);
