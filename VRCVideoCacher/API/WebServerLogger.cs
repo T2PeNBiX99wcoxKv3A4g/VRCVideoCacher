@@ -1,14 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Swan.Logging;
-
-// ReSharper disable ClassNeverInstantiated.Global
 
 namespace VRCVideoCacher.API;
 
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public partial class WebServerLogger : ILogger
 {
-    public LogLevel LogLevel { get; } = LogLevel.Info;
     private static readonly Regex RequestIdPrefix = RequestIdRegex();
+    public LogLevel LogLevel => LogLevel.Info;
 
     public void Dispose()
     {
