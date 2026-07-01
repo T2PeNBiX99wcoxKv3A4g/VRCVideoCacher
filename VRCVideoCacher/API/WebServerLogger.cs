@@ -5,10 +5,10 @@ using Swan.Logging;
 
 namespace VRCVideoCacher.API;
 
-public class WebServerLogger : ILogger
+public partial class WebServerLogger : ILogger
 {
     public LogLevel LogLevel { get; } = LogLevel.Info;
-    private static readonly Regex RequestIdPrefix = new(@"^\[.*?\]\s*", RegexOptions.Compiled);
+    private static readonly Regex RequestIdPrefix = RequestIdRegex();
 
     public void Dispose()
     {
@@ -32,4 +32,7 @@ public class WebServerLogger : ILogger
                 break;
         }
     }
+
+    [GeneratedRegex(@"^\[.*?\]\s*", RegexOptions.Compiled)]
+    private static partial Regex RequestIdRegex();
 }
