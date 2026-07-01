@@ -13,13 +13,19 @@ namespace VRCVideoCacher.API;
 
 public class ApiController : WebApiController
 {
-    private static int YoutubePrefetchMaxRetries => VvcConfigService.CurrentConfig.RetryCount;
-
     private static readonly ILogger Log = Program.Logger.ForContext<ApiController>();
+
     private static readonly HttpClient HttpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
     };
+
+    private static int YoutubePrefetchMaxRetries => VvcConfigService.CurrentConfig.RetryCount;
 
     [Route(HttpVerbs.Post, "/youtube-cookies")]
     [PublicAPI]
@@ -103,7 +109,7 @@ public class ApiController : WebApiController
         if (requestUrl.StartsWith("https://anime.illumination.media"))
             avPro = true;
         else if (requestUrl.Contains(".imvrcdn.com") ||
-                 (requestUrl.Contains(".illumination.media") && !requestUrl.StartsWith("https://yt.illumination.media")))
+                 requestUrl.Contains(".illumination.media") && !requestUrl.StartsWith("https://yt.illumination.media"))
         {
             Log.Information("URL Is Illumination media: Bypassing.");
             await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
@@ -118,18 +124,27 @@ public class ApiController : WebApiController
             return;
         }
 
+        if (requestUrl.StartsWith("https://manifest.googlevideo.com/"))
+        {
+            Log.Information("URL already handled: Return.");
+            await HttpContext.SendStringAsync(requestUrl, "text/plain", Encoding.UTF8);
+            return;
+        }
+
         var videoInfo = await VideoId.GetVideoId(requestUrl, avPro);
         if (videoInfo == null)
         {
             Log.Information("Failed to get Video Info for URL: {URL}", requestUrl);
             return;
         }
+
         DatabaseManager.AddPlayHistory(videoInfo);
 
         if (source == "resonite")
         {
             Log.Information("Request sent from resonite sending json.");
-            await HttpContext.SendStringAsync(await VideoId.GetURLResonite(videoInfo.VideoUrl), "text/plain", Encoding.UTF8);
+            await HttpContext.SendStringAsync(await VideoId.GetURLResonite(videoInfo.VideoUrl), "text/plain",
+                Encoding.UTF8);
             return;
         }
 
@@ -168,6 +183,7 @@ public class ApiController : WebApiController
                 await HttpContext.SendStringAsync(response, "text/plain", Encoding.UTF8);
                 return;
             }
+
             response = string.Empty;
         }
 
@@ -181,7 +197,7 @@ public class ApiController : WebApiController
             {
                 Log.Warning("Prefetch failed with AVPro, retrying without AVPro.");
                 avPro = false;
-                (response, success) = await VideoId.GetUrl(videoInfo, avPro);
+                (response, _) = await VideoId.GetUrl(videoInfo, avPro);
                 await VideoTools.Prefetch(response, YoutubePrefetchMaxRetries);
             }
         }
@@ -191,12 +207,10 @@ public class ApiController : WebApiController
         // check if file is cached again to handle race condition
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);
         if (!isCached && videoInfo.VideoId != "live" && (
-                (videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube) ||
-                (videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance) ||
-                (videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing)))
-        {
+            videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
+            videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
+            videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing))
             VideoDownloader.QueueDownload(videoInfo);
-        }
     }
 
     private static (bool isCached, string filePath, string fileName) GetCachedFile(string videoId, bool avPro)
@@ -212,6 +226,7 @@ public class ApiController : WebApiController
             filePath = Path.Join(CacheManager.CachePath, fileName);
             isCached = File.Exists(filePath);
         }
+
         return (isCached, filePath, fileName);
     }
 }
