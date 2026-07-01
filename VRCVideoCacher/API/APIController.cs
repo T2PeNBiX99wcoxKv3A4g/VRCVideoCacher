@@ -124,7 +124,7 @@ public class ApiController : WebApiController
             return;
         }
 
-        if (requestUrl.StartsWith("https://manifest.googlevideo.com/"))
+        if (requestUrl.StartsWith("https://manifest.googlevideo.com"))
         {
             Log.Information("URL already handled: Return.");
             await HttpContext.SendStringAsync(requestUrl, "text/plain", Encoding.UTF8);
