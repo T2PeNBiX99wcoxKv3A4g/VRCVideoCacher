@@ -35,7 +35,7 @@ public class VideoId
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             }
         };
 
@@ -80,11 +80,13 @@ public class VideoId
             Log.Warning("Failed to get video ID: {Error}", error.Trim());
             return string.Empty;
         }
+
         if (string.IsNullOrEmpty(rawData))
         {
             Log.Warning("Failed to get video ID");
             return string.Empty;
         }
+
         var data = JsonSerializer.Deserialize(rawData, VideoIdJsonContext.Default.YtdlpVideoInfo);
         if (data?.Id is null || data.Duration is null)
         {
@@ -106,10 +108,12 @@ public class VideoId
             Log.Warning("Failed to get video ID: Video is a stream");
             return string.Empty;
         }
+
         // ReSharper disable once InvertIf
         if (data.Duration > ConfigManager.Config.CacheYouTubeMaxLength * 60)
         {
-            Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length})", data.Duration / 60 / ConfigManager.Config.CacheYouTubeMaxLength);
+            Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length})",
+                data.Duration / 60 / ConfigManager.Config.CacheYouTubeMaxLength);
             return string.Empty;
         }
 
@@ -130,6 +134,7 @@ public class VideoId
 
 
         var (output, error, exitCode) = await RunYtdlpAsync(args, url);
+        // ReSharper disable once InvertIf
         if (exitCode != 0)
         {
             if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
@@ -163,16 +168,18 @@ public class VideoId
         {
             if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
                 Log.Error("Fix this error by running cookie setup.");
+            // ReSharper disable once InvertIf
             if (error.Contains(
                     "Requested format is not available. Use --list-formats for a list of available formats") && avPro)
             {
-                Log.Warning($"AVpro format request failed retrying for 360p. ");
+                Log.Warning("AVpro format request failed retrying for 360p. ");
+                // ReSharper disable once TailRecursiveCall
                 return await GetUrl(videoInfo, false);
             }
-            return new Tuple<string, bool>(error, false);
+
+            return new(error, false);
         }
 
         return new(output, true);
     }
-
 }
