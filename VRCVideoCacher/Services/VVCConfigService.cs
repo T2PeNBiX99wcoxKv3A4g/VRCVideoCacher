@@ -1,12 +1,14 @@
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace VRCVideoCacher.Services;
 
-public static class VvcConfigService
+public class VvcConfigService
 {
     private static readonly HttpClient HttpClient;
     public static event Action? OnApiConfigChanged;
+    public static ILogger Logger = Log.ForContext<VvcConfigService>();
     public static VvcConfig CurrentConfig { get; private set; } = new();
 
     static VvcConfigService()
@@ -29,10 +31,11 @@ public static class VvcConfigService
                 }
             }
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            Program.Logger.Warning(exception, "Failed to get config from API");
+            Logger.Warning(ex, "Failed to get config from Video Cacher API.");
         }
+        
     }
 }
 

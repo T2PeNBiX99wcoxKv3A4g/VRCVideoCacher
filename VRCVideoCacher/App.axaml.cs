@@ -86,13 +86,6 @@ public class App : Application
                 _trayIcon?.Dispose();
                 _trayIcon = null;
             };
-
-            if (AdminCheck.ShouldShowAdminWarning())
-            {
-                MainWindow.Show();
-                var adminWindow = new PopupWindow(AdminCheck.AdminWarningMessage);
-                _ = adminWindow.ShowDialog(MainWindow);
-            }
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -163,8 +163,13 @@ public class VideoId
         {
             if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
                 Log.Error("Fix this error by running cookie setup.");
-
-            return new(error, false);
+            if (error.Contains(
+                    "Requested format is not available. Use --list-formats for a list of available formats") && avPro)
+            {
+                Log.Warning($"AVpro format request failed retrying for 360p. ");
+                return await GetUrl(videoInfo, false);
+            }
+            return new Tuple<string, bool>(error, false);
         }
 
         return new(output, true);
