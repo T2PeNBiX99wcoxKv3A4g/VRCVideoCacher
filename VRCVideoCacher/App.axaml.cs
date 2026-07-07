@@ -9,7 +9,6 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.Languages;
-using VRCVideoCacher.Utils;
 using VRCVideoCacher.ViewModels;
 using VRCVideoCacher.Views;
 
@@ -17,8 +16,18 @@ namespace VRCVideoCacher;
 
 public class App : Application
 {
-    private TrayIcon? _trayIcon;
+    // Win32 message constants for close interception
+    private const uint WmClose = 0x0010;
+    private const uint WmSysCommand = 0x0112;
+    private const int ScClose = 0xF060;
     public static MainWindow? MainWindow;
+    private IClassicDesktopStyleApplicationLifetime? _desktop;
+    private NativeMenuItem? _exitItem;
+
+    private bool _isExiting;
+    private NativeMenuItem? _openCacheItem;
+    private NativeMenuItem? _showItem;
+    private TrayIcon? _trayIcon;
 
     public override void Initialize()
     {
@@ -48,7 +57,9 @@ public class App : Application
         }, DispatcherPriority.Background);
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "DataValidators is safe to access at startup")]
+    [UnconditionalSuppressMessage("Trimming",
+        "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code",
+        Justification = "DataValidators is safe to access at startup")]
     public override void OnFrameworkInitializationCompleted()
     {
         InitializeLocalization();
@@ -101,35 +112,19 @@ public class App : Application
         Localizer.Language = lang;
     }
 
-    private bool _isExiting;
-    private IClassicDesktopStyleApplicationLifetime? _desktop;
-    private NativeMenuItem? _showItem;
-    private NativeMenuItem? _openCacheItem;
-    private NativeMenuItem? _exitItem;
-
-    // Win32 message constants for close interception
-    private const uint WmClose = 0x0010;
-    private const uint WmSysCommand = 0x0112;
-    private const int ScClose = 0xF060;
-
     private IntPtr Win32WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         // User clicked the title-bar X button (generates SC_CLOSE before WM_CLOSE).
-        // Marking as handled suppresses the subsequent WM_CLOSE, so the Closing
-        // event never fires for a normal user-initiated close on Windows.
-        if (ConfigManager.Config.CloseToTray &&
-            msg == WmSysCommand &&
-            (wParam.ToInt32() & 0xFFF0) == ScClose)
+        if ((msg != WmSysCommand || (wParam.ToInt32() & 0xFFF0) != ScClose) && msg != WmClose) return IntPtr.Zero;
+        if (ConfigManager.Config.CloseToTray)
         {
             MainWindow?.Hide();
             handled = true;
             return IntPtr.Zero;
         }
 
-        // Raw WM_CLOSE arriving here means it came from an external source
-        // (taskkill, Task Manager) — a user close via SC_CLOSE would have been
-        // caught above and never reached this point.
-        if (msg == WmClose && !_isExiting)
+        // ReSharper disable once InvertIf
+        if (!_isExiting)
         {
             _isExiting = true;
             _trayIcon?.Dispose();
@@ -232,12 +227,8 @@ public class App : Application
     {
         var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
-        {
             Process.Start("explorer.exe", cachePath);
-        }
         else if (OperatingSystem.IsLinux())
-        {
             Process.Start("xdg-open", cachePath);
-        }
     }
 }
