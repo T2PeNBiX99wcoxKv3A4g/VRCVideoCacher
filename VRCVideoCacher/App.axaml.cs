@@ -17,8 +17,11 @@ namespace VRCVideoCacher;
 public class App : Application
 {
     // Win32 message constants for close interception
+    private const uint WmDestroy = 0x0002;
     private const uint WmClose = 0x0010;
     private const uint WmSysCommand = 0x0112;
+    private const uint WmQueryEndSession = 0x0011;
+    private const uint WmEndSession = 0x0016;
     private const int ScClose = 0xF060;
     public static MainWindow? MainWindow;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
@@ -114,26 +117,37 @@ public class App : Application
 
     private IntPtr Win32WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        // User clicked the title-bar X button (generates SC_CLOSE before WM_CLOSE).
-        if ((msg != WmSysCommand || (wParam.ToInt32() & 0xFFF0) != ScClose) && msg != WmClose) return IntPtr.Zero;
-        if (ConfigManager.Config.CloseToTray)
+        switch (msg)
         {
-            MainWindow?.Hide();
-            handled = true;
-            return IntPtr.Zero;
+            case WmQueryEndSession or WmEndSession:
+                ShutDown(ref handled);
+                break;
+            case WmSysCommand when (wParam.ToInt32() & 0xFFF0) == ScClose:
+            case WmClose:
+            {
+                if (ConfigManager.Config.CloseToTray)
+                {
+                    MainWindow?.Hide();
+                    handled = true;
+                    break;
+                }
+
+                ShutDown(ref handled);
+                break;
+            }
         }
 
-        // ReSharper disable once InvertIf
-        if (!_isExiting)
+        return IntPtr.Zero;
+
+        void ShutDown(ref bool handled)
         {
+            if (_isExiting) return;
             _isExiting = true;
             _trayIcon?.Dispose();
             _trayIcon = null;
             _desktop?.Shutdown();
             handled = true;
         }
-
-        return IntPtr.Zero;
     }
 
     private void SetupTrayIcon(IClassicDesktopStyleApplicationLifetime desktop)
