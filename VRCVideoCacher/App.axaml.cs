@@ -17,7 +17,6 @@ namespace VRCVideoCacher;
 public class App : Application
 {
     // Win32 message constants for close interception
-    private const uint WmDestroy = 0x0002;
     private const uint WmClose = 0x0010;
     private const uint WmSysCommand = 0x0112;
     private const uint WmQueryEndSession = 0x0011;
