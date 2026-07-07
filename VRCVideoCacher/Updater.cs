@@ -91,11 +91,7 @@ public class Updater
 
     private static async Task UpdateAsync(GitHubRelease release)
     {
-        foreach (var asset in release.assets)
-        {
-            if (asset.name != FileName)
-                continue;
-
+        foreach (var asset in release.assets.Where(asset => asset.name == FileName))
             try
             {
                 if (File.Exists(TempFilePath))
@@ -147,7 +143,6 @@ public class Updater
                 if (File.Exists(TempFilePath))
                     File.Delete(TempFilePath);
             }
-        }
     }
 
     private static async Task<bool> HashCheck(string githubHash)
