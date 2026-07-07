@@ -211,7 +211,7 @@ public class ApiController : WebApiController
 
         // check if file is cached again to handle race condition
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);
-        if (!isCached && videoInfo.VideoId != "live" && (
+        if (!isCached && (
             videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
             videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
             videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing))
@@ -224,6 +224,7 @@ public class ApiController : WebApiController
         var fileName = $"{videoId}.{ext}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
         var isCached = File.Exists(filePath);
+        // ReSharper disable once InvertIf
         if (avPro && !isCached)
         {
             // retry with .mp4
