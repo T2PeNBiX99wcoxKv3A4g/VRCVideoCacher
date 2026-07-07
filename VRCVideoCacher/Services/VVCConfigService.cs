@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -7,15 +8,18 @@ namespace VRCVideoCacher.Services;
 public class VvcConfigService
 {
     private static readonly HttpClient HttpClient;
-    public static event Action? OnApiConfigChanged;
-    public static ILogger Logger = Log.ForContext<VvcConfigService>();
-    public static VvcConfig CurrentConfig { get; private set; } = new();
+
+    [PublicAPI] public static readonly ILogger Logger = Log.ForContext<VvcConfigService>();
 
     static VvcConfigService()
     {
         HttpClient = new();
         HttpClient.DefaultRequestHeaders.Add("User-Agent", $"VRCVideoCacher v{Program.Version}");
     }
+
+    public static VvcConfig CurrentConfig { get; private set; } = new();
+    public static event Action? OnApiConfigChanged;
+
     public static async Task GetConfig()
     {
         try
@@ -35,15 +39,13 @@ public class VvcConfigService
         {
             Logger.Warning(ex, "Failed to get config from Video Cacher API.");
         }
-        
     }
 }
 
+[PublicAPI]
 public class VvcConfig
 {
-    [JsonPropertyName("motd")]
-    public string Motd { get; set; } = string.Empty;
+    [JsonPropertyName("motd")] public string Motd { get; set; } = string.Empty;
 
-    [JsonPropertyName("retryCount")]
-    public int RetryCount { get; set; } = 7;
+    [JsonPropertyName("retryCount")] public int RetryCount { get; set; } = 7;
 }
