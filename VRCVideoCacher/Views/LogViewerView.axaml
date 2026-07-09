@@ -7,12 +7,6 @@
              x:Class="VRCVideoCacher.Views.LogViewerView"
              x:DataType="vm:LogViewerViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="ListBoxItem">
-            <Setter Property="Focusable" Value="False" />
-        </Style>
-    </UserControl.Styles>
-
     <Grid RowDefinitions="Auto, Auto, *" Margin="10">
         <!-- Header -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,15">
