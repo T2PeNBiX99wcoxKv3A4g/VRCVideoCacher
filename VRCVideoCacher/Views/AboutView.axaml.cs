@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using VRCVideoCacher.ViewModels;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Views;
 
@@ -19,40 +20,26 @@ public partial class AboutView : UserControl
 
     private void OnDiscordClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl(DiscordUrl);
+        OpenUrl.Open(DiscordUrl);
     }
 
     private void OnGitHubClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl(GithubUrl);
+        OpenUrl.Open(GithubUrl);
     }
 
     private void OnSteamClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl(SteamUrl);
+        OpenUrl.Open(SteamUrl);
     }
 
     private void OnGitHubIssueClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl($"{GithubUrl}/issues");
+        OpenUrl.Open($"{GithubUrl}/issues");
     }
 
     private void OnDiscordIssueClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl(DiscordUrl);
-    }
-
-    private static void OpenUrl(string url)
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            };
-            Process.Start(psi);
-        }
-        catch { /* Optionally handle errors */ }
+        OpenUrl.Open(DiscordUrl);
     }
 }

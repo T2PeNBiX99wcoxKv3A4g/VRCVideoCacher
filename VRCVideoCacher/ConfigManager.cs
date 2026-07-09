@@ -125,43 +125,42 @@ public class ConfigManager
 
 public class ConfigModel
 {
-    // Video Cacher
-    public bool AutoUpdateVrcVideoCacher = true;
-
-    // Cache Rules
-    public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
-    public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
+    // yt-dlp
+    public string YtdlpWebServerUrl = "http://localhost:9696";
+    public bool YtdlpUseCookies = true;
+    public bool YtdlpAutoUpdate = true;
+    public string YtdlpAdditionalArgs = string.Empty;
+    public string YtdlpDubLanguage = string.Empty;
 
     // Caching
     public string CachedAssetPath = "";
     public float CacheMaxSizeInGb = 10f;
-    public bool CacheOnly = false;
-    public bool CachePyPyDance;
-    public bool CacheVrDancing;
-    public bool CacheYouTube;
-    public int CacheYouTubeMaxLength = 120;
+    public bool CacheYouTube = false;
     public int CacheYouTubeMaxResolution = 1080;
+    public int CacheYouTubeMaxLength = 120;
+    public bool CachePyPyDance = false;
+    public bool CacheVrDancing = false;
+    public bool CacheOnly = false;
+
+    // Cache Rules
+    public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
+    public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
+    public string[] PreCacheUrls = [];
+
+    // Patching
+    public bool PatchResonite = false;
+    public string ResonitePath = "";
+    public bool PatchVrChat = true;
+
+    // Video Cacher
+    public bool AutoUpdateVrcVideoCacher = true;
     public bool CloseToTray = true;
+    public bool StartMinimized = false;
+    public bool StartWithSteamVr = true;
     public bool CookieSetupCompleted = false;
-    public bool DisableErrorPopups = false;
+    public bool RedirectVRDancing = false;
+    public bool ErrorPopups = true;
 
     // Localization
     public string Language = "en";
-
-    // Patching
-    public bool PatchResonite;
-    public bool PatchVrChat = true;
-    public string[] PreCacheUrls = [];
-    public bool RedirectVRDancing = false;
-    public string ResonitePath = "";
-    public bool StartMinimized = false;
-    public bool StartWithSteamVr = true;
-    public string YtdlpAdditionalArgs = string.Empty;
-    public bool YtdlpAutoUpdate = true;
-    public string YtdlpDubLanguage = string.Empty;
-
-    public bool YtdlpUseCookies = true;
-
-    // yt-dlp
-    public string YtdlpWebServerUrl = "http://localhost:9696";
 }

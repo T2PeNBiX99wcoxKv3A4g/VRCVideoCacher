@@ -132,7 +132,6 @@ public class VideoId
         args.Add("--impersonate=\"safari\"");
         args.Add("--extractor-args=\"youtube:player_client=web;youtubetab:skip=authcheck\"");
 
-
         var (output, error, exitCode) = await RunYtdlpAsync(args, url);
         // ReSharper disable once InvertIf
         if (exitCode != 0)
@@ -163,23 +162,18 @@ public class VideoId
 
         var (output, error, exitCode) = await RunYtdlpAsync(args, url);
 
-        // ReSharper disable once InvertIf
-        if (exitCode != 0)
+        if (exitCode == 0) // success
+            return new Tuple<string, bool>(output, true);
+
+        if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
+            Log.Error("Fix this error by running cookie setup.");
+
+        if (error.Contains(
+            "Requested format is not available. Use --list-formats for a list of available formats") && avPro)
         {
-            if (error.Contains("Sign in to confirm you’re not a bot")) // Exact Text, do not modify.
-                Log.Error("Fix this error by running cookie setup.");
-            // ReSharper disable once InvertIf
-            if (error.Contains(
-                    "Requested format is not available. Use --list-formats for a list of available formats") && avPro)
-            {
-                Log.Warning("AVpro format request failed retrying for 360p. ");
-                // ReSharper disable once TailRecursiveCall
-                return await GetUrl(videoInfo, false);
-            }
-
-            return new(error, false);
+            Log.Warning("AVPro format request failed retrying for 360p.");
+            return await GetUrl(videoInfo, false);
         }
-
-        return new(output, true);
+        return new Tuple<string, bool>(error, false);
     }
 }

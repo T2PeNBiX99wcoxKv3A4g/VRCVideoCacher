@@ -176,9 +176,15 @@ public class FileTools
     public static void BackupAllYtdl()
     {
         if (ConfigManager.Config.PatchVrChat)
-            BackupAndReplaceYtdl(YtdlPathVrc, BackupPathVrc, false);
+        {
+            if (!BackupAndReplaceYtdl(YtdlPathVrc, BackupPathVrc, false))
+                Log.Error("Can't find VRC data, it may not be installed. {Path}", YtdlPathVrc);
+        }
         if (ConfigManager.Config.PatchResonite)
-            BackupAndReplaceYtdl(YtdlPathReso, BackupPathReso, OperatingSystem.IsLinux());
+        {
+            if (!BackupAndReplaceYtdl(YtdlPathReso, BackupPathReso, OperatingSystem.IsLinux()))
+                Log.Warning("Can't find Resonite data, it may not be installed. {Path}", YtdlPathVrc);
+        }
     }
 
     public static void RestoreAllYtdl()
@@ -187,14 +193,13 @@ public class FileTools
         RestoreYtdl(YtdlPathReso, BackupPathReso);
     }
 
-    private static void BackupAndReplaceYtdl(string? ytdlPath, string? backupPath, bool linux)
+    private static bool BackupAndReplaceYtdl(string? ytdlPath, string? backupPath, bool linux)
     {
         if (string.IsNullOrEmpty(ytdlPath) ||
             string.IsNullOrEmpty(backupPath) ||
             !Directory.Exists(Path.GetDirectoryName(ytdlPath)))
         {
-            Log.Warning("YT-DLP directory does not exist, Game may not be installed. {Path}", ytdlPath);
-            return;
+            return false;
         }
 
         if (File.Exists(ytdlPath))
@@ -203,7 +208,7 @@ public class FileTools
             if (hash == Program.GetYtDlpHash(linux))
             {
                 Log.Information("YT-DLP is already patched.");
-                return;
+                return true;
             }
 
             if (File.Exists(backupPath))
@@ -225,6 +230,7 @@ public class FileTools
         File.SetAttributes(ytdlPath, attr);
         MarkFileExecutable(ytdlPath);
         Log.Information("Patched YT-DLP.");
+        return true;
     }
 
     private static void RestoreYtdl(string? ytdlPath, string? backupPath)
