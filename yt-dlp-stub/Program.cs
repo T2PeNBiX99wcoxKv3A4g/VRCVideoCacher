@@ -1,12 +1,11 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 
 namespace yt_dlp;
 
 internal static class Program
 {
-    private static string _logFilePath = string.Empty;
     private const string BaseUrl = "http://127.0.0.1:9696";
+    private static string _logFilePath = string.Empty;
 
     private static void WriteLog(string message)
     {
@@ -24,7 +23,8 @@ internal static class Program
     public static async Task Main(string[] args)
     {
         var appDataPath =
-            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low", @"VRChat\VRChat\Tools");
+            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
+                @"VRChat\VRChat\Tools");
         _logFilePath = Path.Join(appDataPath, "ytdl.log");
 
         var url = string.Empty;
@@ -65,16 +65,20 @@ internal static class Program
         try
         {
             using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("VRCVideoCacher", "1.0"));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new("VRCVideoCacher", "1.0"));
             var inputUrl = Uri.EscapeDataString(url);
-            var response = await httpClient.GetAsync($"{BaseUrl}/api/getvideo?url={inputUrl}&avpro={avPro}&source={source}");
+            var response =
+                await httpClient.GetAsync($"{BaseUrl}/api/getvideo?url={inputUrl}&avpro={avPro}&source={source}");
             var output = await response.Content.ReadAsStringAsync();
             WriteLog($"[Response] {output}");
             if (!response.IsSuccessStatusCode)
                 throw new(output);
             Console.WriteLine(output);
         }
-        catch (HttpRequestException ex) when (ex.InnerException is SocketException { SocketErrorCode: SocketError.ConnectionRefused })
+        catch (HttpRequestException ex) when (ex.InnerException is SocketException
+                                              {
+                                                  SocketErrorCode: SocketError.ConnectionRefused
+                                              })
         {
             WriteLog("[Error] Connection refused. Is the server running?");
             await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
@@ -85,6 +89,7 @@ internal static class Program
                 attr &= ~FileAttributes.ReadOnly;
                 File.SetAttributes(ytdlPath, attr);
             }
+
             Environment.ExitCode = 1;
         }
         catch (Exception ex)
