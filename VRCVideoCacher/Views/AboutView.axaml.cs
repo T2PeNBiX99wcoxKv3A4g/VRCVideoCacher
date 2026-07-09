@@ -1,8 +1,7 @@
-using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using VRCVideoCacher.ViewModels;
 using VRCVideoCacher.Utils;
+using VRCVideoCacher.ViewModels;
 
 namespace VRCVideoCacher.Views;
 
