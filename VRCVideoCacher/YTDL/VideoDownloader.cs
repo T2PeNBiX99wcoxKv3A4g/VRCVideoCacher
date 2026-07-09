@@ -13,16 +13,18 @@ public class VideoDownloader
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadWebmName = "_tempVideo.webm";
     private static readonly ILogger Log = Program.Logger.ForContext<VideoDownloader>();
+
     private static readonly HttpClient HttpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
     };
-    private static readonly ConcurrentQueue<VideoInfo> DownloadQueue = new();
 
-    // Events for UI
-    public static event Action<VideoInfo>? OnDownloadStarted;
-    public static event Action<VideoInfo, bool>? OnDownloadCompleted;
-    public static event Action? OnQueueChanged;
+    private static readonly ConcurrentQueue<VideoInfo> DownloadQueue = new();
 
     // Current download tracking
     private static VideoInfo? _currentDownload;
@@ -31,6 +33,11 @@ public class VideoDownloader
     {
         Task.Run(DownloadThread);
     }
+
+    // Events for UI
+    public static event Action<VideoInfo>? OnDownloadStarted;
+    public static event Action<VideoInfo, bool>? OnDownloadCompleted;
+    public static event Action? OnQueueChanged;
 
     private static async Task DownloadThread()
     {
@@ -86,17 +93,13 @@ public class VideoDownloader
     {
         if (DownloadQueue.Any(x => x.VideoId == videoInfo.VideoId &&
                                    x.DownloadFormat == videoInfo.DownloadFormat))
-        {
             // Log.Information("URL is already in the download queue.");
             return;
-        }
         if (_currentDownload != null &&
             _currentDownload.VideoId == videoInfo.VideoId &&
             _currentDownload.DownloadFormat == videoInfo.DownloadFormat)
-        {
             // Log.Information("URL is already being downloaded.");
             return;
-        }
 
         DownloadQueue.Enqueue(videoInfo);
         OnQueueChanged?.Invoke();
@@ -151,7 +154,7 @@ public class VideoDownloader
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             }
         };
 
@@ -162,7 +165,8 @@ public class VideoDownloader
                 ? "+ba[acodec=opus][ext=webm]"
                 : $"+(ba[acodec=opus][ext=webm][language={ConfigManager.Config.YtdlpDubLanguage}]/ba[acodec=opus][ext=webm])";
             args.Add($"-o \"{tempDownloadWebmPath}\"");
-            args.Add($"-f \"bv*[height<={ConfigManager.Config.CacheYouTubeMaxResolution}][vcodec~='^av01'][ext=mp4][dynamic_range='SDR']{audioArg}/bv*[height<={ConfigManager.Config.CacheYouTubeMaxResolution}][vcodec~='vp9'][ext=webm][dynamic_range='SDR']{audioArg}\"");
+            args.Add(
+                $"-f \"bv*[height<={ConfigManager.Config.CacheYouTubeMaxResolution}][vcodec~='^av01'][ext=mp4][dynamic_range='SDR']{audioArg}/bv*[height<={ConfigManager.Config.CacheYouTubeMaxResolution}][vcodec~='vp9'][ext=webm][dynamic_range='SDR']{audioArg}\"");
         }
         else
         {
@@ -171,7 +175,8 @@ public class VideoDownloader
                 ? "+ba[ext=m4a]"
                 : $"+(ba[ext=m4a][language={ConfigManager.Config.YtdlpDubLanguage}]/ba[ext=m4a])";
             args.Add($"-o \"{tempDownloadMp4Path}\"");
-            args.Add($"-f \"bv*[height<=1080][vcodec~='^(avc|h264)']{audioArgPotato}/bv*[height<=1080][vcodec~='^av01'][dynamic_range='SDR']\"");
+            args.Add(
+                $"-f \"bv*[height<=1080][vcodec~='^(avc|h264)']{audioArgPotato}/bv*[height<=1080][vcodec~='^av01'][dynamic_range='SDR']\"");
             args.Add("--remux-video mp4");
             // $@"-f best/bestvideo[height<=?720]+bestaudio {url} " %(id)s.%(ext)s
         }
@@ -186,10 +191,12 @@ public class VideoDownloader
         {
             Log.Error("Failed to download YouTube Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
             if (error.Contains("Sign in to confirm you’re not a bot"))
-                Log.Error("Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
+                Log.Error(
+                    "Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
 
             return false;
         }
+
         Thread.Sleep(100);
 
         var fileName = $"{videoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
@@ -208,17 +215,14 @@ public class VideoDownloader
             {
                 Log.Error("Failed to delete temp file: {ex}", ex.ToString());
             }
+
             return false;
         }
 
         if (File.Exists(tempDownloadMp4Path))
-        {
             File.Move(tempDownloadMp4Path, filePath);
-        }
         else if (File.Exists(tempDownloadWebmPath))
-        {
             File.Move(tempDownloadWebmPath, filePath);
-        }
         else
         {
             Log.Error("Failed to download YouTube Video: {URL}", url);
@@ -246,7 +250,7 @@ public class VideoDownloader
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             }
         };
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
@@ -260,6 +264,7 @@ public class VideoDownloader
             Log.Error("Failed to download VRDancing Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
             return false;
         }
+
         Thread.Sleep(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
@@ -279,10 +284,9 @@ public class VideoDownloader
 
             return false;
         }
+
         if (File.Exists(tempDownloadMp4Path))
-        {
             File.Move(tempDownloadMp4Path, filePath);
-        }
         else
         {
             Log.Error("Failed to download VRDancing Video: {URL}", url);
@@ -308,6 +312,7 @@ public class VideoDownloader
             url = response.Headers.Location?.ToString();
             response = await HttpClient.GetAsync(url);
         }
+
         if (!response.IsSuccessStatusCode)
         {
             Log.Error("Failed to download video: {URL}", url);
@@ -315,7 +320,8 @@ public class VideoDownloader
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync();
-        await using var fileStream = new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None);
+        await using var fileStream =
+            new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None);
         await stream.CopyToAsync(fileStream);
         fileStream.Close();
         response.Dispose();
@@ -324,9 +330,7 @@ public class VideoDownloader
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(tempDownloadMp4Path))
-        {
             File.Move(tempDownloadMp4Path, filePath);
-        }
         else
         {
             Log.Error("Failed to download Video: {URL}", url);
