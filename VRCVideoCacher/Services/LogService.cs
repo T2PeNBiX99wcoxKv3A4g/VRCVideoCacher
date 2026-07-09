@@ -64,7 +64,6 @@ public class UiLogSink : ILogEventSink
     public void Emit(LogEvent logEvent)
     {
         if (ConfigManager.Config is { ErrorPopups: true } && logEvent.Level >= LogEventLevel.Error)
-        {
             Dispatcher.UIThread.Post(() =>
             {
                 App.MainWindow?.Show();
@@ -74,13 +73,12 @@ public class UiLogSink : ILogEventSink
                     ? sourceContext.ToString()
                     : "Unknown";
                 var message = logEvent.RenderMessage();
-                _currentPopup = new PopupWindow(message)
+                _currentPopup = new(message)
                 {
                     Title = $"Error from {source}"
                 };
                 _ = _currentPopup.ShowDialog(App.MainWindow!);
             });
-        }
         LogService.EmitLogEntry(logEvent);
     }
 }
