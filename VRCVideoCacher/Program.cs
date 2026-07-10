@@ -150,7 +150,14 @@ internal sealed class Program
 
     private static async Task InitVrcVideoCacher()
     {
-        try { Console.Title = $"VRCVideoCacher v{Version}"; } catch { /* GUI mode, no console */ }
+        try
+        {
+            Console.Title = $"VRCVideoCacher v{Version}";
+        }
+        catch
+        {
+            /* GUI mode, no console */
+        }
 
         OpenVRService.Start(CurrentProcessPath);
 
