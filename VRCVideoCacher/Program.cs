@@ -143,7 +143,7 @@ internal sealed class Program
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Backend error");
+                Logger.Error(ex, "Backend error: {Message}", ex.Message);
             }
         });
     }
