@@ -79,7 +79,7 @@ public class UiLogSink : ILogEventSink
                 var message = logEvent.RenderMessage();
                 if (logEvent.Exception != null)
                     message += Environment.NewLine + logEvent.Exception;
-                _currentPopup = new PopupWindow(message)
+                _currentPopup = new(message)
                 {
                     Title = $"Error from {source}"
                 };
