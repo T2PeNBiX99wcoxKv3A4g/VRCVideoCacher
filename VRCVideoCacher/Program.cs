@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Serilog;
 using VRCVideoCacher.API;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Services.Sabr;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 #if STEAMRELEASE
@@ -162,7 +163,13 @@ internal sealed class Program
         OpenVRService.Start(CurrentProcessPath);
 
         Directory.CreateDirectory(UtilsPath);
-#if !STEAMRELEASE
+        // Surface a fixed-port (9696) conflict up front — with the offending process — before WebServer
+        // throws an opaque bind error. Reassignable ports (bgutil) handle themselves when they start.
+        PortAudit.CheckWebServerPort();
+        // SABRRELEASE: the version carries a "-sabr" suffix, which SemVer ranks BELOW the plain release —
+        // so the updater would consider mainline "newer" and overwrite the test build. Never self-update
+        // a feature-branch build.
+#if !STEAMRELEASE && !SABRRELEASE
         await Updater.CheckForUpdates();
 #endif
         Updater.Cleanup();
@@ -193,6 +200,12 @@ internal sealed class Program
             YtdlManager.StartYtdlUpdaterThread();
             _ = YtdlManager.TryDownloadFfmpeg();
         }
+
+        // Warm the SABR PO token provider now (downloads/installs on first run, then supervises its Deno
+        // server) so it is usually ready by the first SABR playback. Runs in the background; SABR waits on
+        // its readiness and fails cleanly if it never comes up. Deno is provisioned just above.
+        if (ConfigManager.Config.SabrRestreamEnabled)
+            BgUtilPotProvider.Ensure();
 
         if (OperatingSystem.IsWindows())
             AutoStartShortcut.TryUpdateShortcutPath();
