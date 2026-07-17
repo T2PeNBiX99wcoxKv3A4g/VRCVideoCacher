@@ -12,19 +12,6 @@ namespace VRCVideoCacher.YTDL;
 
 public class YtdlManager
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<YtdlManager>();
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
-    };
-    public static readonly string CookiesPath;
-
-    public static readonly string YtdlPath =
-        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
-    public static readonly string DenoPath =
-        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
-    public static readonly string FfmpegPath =
-        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
     // that worked before still works, and SABR-only videos now extract and download too — which mainline
     // cannot do at all.
@@ -38,6 +25,28 @@ public class YtdlManager
     private const string DenoApiUrl = "https://api.github.com/repos/denoland/deno/releases/latest";
     private const string DenoFallBackVersionURL = "https://dl.deno.land/release-latest.txt";
     private const string DenoFallBackDownloadURL = "https://dl.deno.land/release/";
+    private static readonly ILogger Log = Program.Logger.ForContext<YtdlManager>();
+
+    private static readonly HttpClient HttpClient = new()
+    {
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
+    };
+
+    public static readonly string CookiesPath;
+
+    public static readonly string YtdlPath =
+        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
+
+    public static readonly string DenoPath =
+        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
+
+    public static readonly string FfmpegPath =
+        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
 
     static YtdlManager()
@@ -118,6 +127,7 @@ public class YtdlManager
             Log.Warning("Failed to check for YT-DLP updates.");
             return;
         }
+
         var data = await response.Content.ReadAsStringAsync();
         var json = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (json == null)
@@ -140,11 +150,13 @@ public class YtdlManager
             Log.Warning("Failed to check for YT-DLP updates.");
             return;
         }
+
         if (currentYtdlVersion == latestVersion)
         {
             Log.Information("YT-DLP is up to date.");
             return;
         }
+
         Log.Information("YT-DLP is outdated. Updating...");
 
         await DownloadYtdl(json);
@@ -161,6 +173,7 @@ public class YtdlManager
             Log.Warning("Failed to get latest ffmpeg release: {ResponseStatusCode}", apiResponse.StatusCode);
             return;
         }
+
         var data = await apiResponse.Content.ReadAsStringAsync();
         var json = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (json == null)
@@ -182,20 +195,19 @@ public class YtdlManager
             Log.Warning("Failed to check for Deno updates.");
             return;
         }
+
         if (currentDenoVersion == latestVersion)
         {
             Log.Information("Deno is up to date.");
             return;
         }
+
         Log.Information("Deno is outdated. Updating...");
 
         string assetName;
         if (OperatingSystem.IsWindows())
-        {
             assetName = "deno-x86_64-pc-windows-msvc.zip";
-        }
         else if (OperatingSystem.IsLinux())
-        {
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X64:
@@ -208,12 +220,12 @@ public class YtdlManager
                     Log.Error("Unsupported architecture {OSArchitecture}", RuntimeInformation.OSArchitecture);
                     return;
             }
-        }
         else
         {
             Log.Error("Unsupported operating system {OperatingSystem}", Environment.OSVersion);
             return;
         }
+
         // deno-x86_64-pc-windows-msvc.zip -> deno-x86_64-pc-windows-msvc
         var assets = json.assets.Where(asset => asset.name == assetName).ToList();
         if (assets.Count < 1)
@@ -232,6 +244,7 @@ public class YtdlManager
             await TryDownloadDenoFallback(assetName);
             return;
         }
+
         await using var responseStream = await response.Content.ReadAsStreamAsync();
         var reader = await ReaderFactory.OpenAsyncReader(responseStream);
         try
@@ -270,6 +283,7 @@ public class YtdlManager
             Log.Warning("Failed to get latest Deno version: {ResponseStatusCode}", response.StatusCode);
             return;
         }
+
         var latestVersion = (await response.Content.ReadAsStringAsync()).Trim();
         var url = $"{DenoFallBackDownloadURL}{latestVersion}/{assetName}";
         using var downloadResponse = await HttpClient.GetAsync(url);
@@ -316,12 +330,14 @@ public class YtdlManager
         if (!ConfigManager.Config.CacheYouTube)
             return;
 
-        using var apiResponse = await HttpClient.GetAsync(OperatingSystem.IsWindows() ? FfmpegApiUrl : FfmpegNightlyApiUrl);
+        using var apiResponse =
+            await HttpClient.GetAsync(OperatingSystem.IsWindows() ? FfmpegApiUrl : FfmpegNightlyApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
         {
             Log.Warning("Failed to get latest ffmpeg release: {ResponseStatusCode}", apiResponse.StatusCode);
             return;
         }
+
         var data = await apiResponse.Content.ReadAsStringAsync();
         var json = JsonConvert.DeserializeObject<GitHubRelease>(data);
         if (json == null)
@@ -343,20 +359,19 @@ public class YtdlManager
             Log.Warning("Failed to check for FFmpeg updates.");
             return;
         }
+
         if (currentffmpegVersion == latestVersion)
         {
             Log.Information("FFmpeg is up to date.");
             return;
         }
+
         Log.Information("FFmpeg is outdated. Updating...");
 
         string assetSuffix;
         if (OperatingSystem.IsWindows())
-        {
             assetSuffix = "full_build-shared.zip";
-        }
         else if (OperatingSystem.IsLinux())
-        {
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X64:
@@ -369,12 +384,12 @@ public class YtdlManager
                     Log.Error("Unsupported architecture {OSArchitecture}", RuntimeInformation.OSArchitecture);
                     return;
             }
-        }
         else
         {
             Log.Error("Unsupported operating system {OperatingSystem}", Environment.OSVersion);
             return;
         }
+
         var url = json.assets
             .FirstOrDefault(assetVersion => assetVersion.name.EndsWith(assetSuffix, StringComparison.OrdinalIgnoreCase))
             ?.browser_download_url ?? string.Empty;
@@ -383,6 +398,7 @@ public class YtdlManager
             Log.Error("Unable to find ffmpeg asset for this platform.");
             return;
         }
+
         Log.Information("Downloading FFmpeg...");
 
         using var response = await HttpClient.GetAsync(url);
@@ -435,22 +451,16 @@ public class YtdlManager
 
         string assetName;
         if (OperatingSystem.IsWindows())
-        {
             assetName = "yt-dlp.exe";
-        }
         else if (OperatingSystem.IsLinux())
-        {
             assetName = RuntimeInformation.OSArchitecture switch
             {
                 Architecture.X64 => "yt-dlp_linux",
                 Architecture.Arm64 => "yt-dlp_linux_aarch64",
-                _ => throw new($"Unsupported architecture {RuntimeInformation.OSArchitecture}"),
+                _ => throw new($"Unsupported architecture {RuntimeInformation.OSArchitecture}")
             };
-        }
         else
-        {
             throw new($"Unsupported operating system {Environment.OSVersion}");
-        }
 
         foreach (var assetVersion in json.assets)
         {
@@ -475,6 +485,7 @@ public class YtdlManager
             Versions.Save();
             return;
         }
+
         throw new("Failed to download YT-DLP");
     }
 
@@ -493,7 +504,7 @@ public class YtdlManager
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                     StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
                 }
             };
             process.Start();
@@ -511,6 +522,7 @@ public class YtdlManager
             Log.Error("Exception while starting {ProcessName}: {Message}", processName, ex.Message);
             return false;
         }
+
         return true;
     }
 }
