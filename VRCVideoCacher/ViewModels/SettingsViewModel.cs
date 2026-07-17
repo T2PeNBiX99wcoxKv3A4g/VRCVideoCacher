@@ -269,6 +269,7 @@ public partial class SettingsViewModel : ViewModelBase
         config.CacheMaxSizeInGb = CacheMaxSizeInGb;
         config.CachePyPyDance = CachePyPyDance;
         config.CacheVrDancing = CacheVRDancing;
+        config.CacheGeneric = CacheGeneric;
         config.CacheOnly = CacheOnly;
         config.PatchResonite = PatchResonite;
         config.PatchVrChat = PatchVRC;
