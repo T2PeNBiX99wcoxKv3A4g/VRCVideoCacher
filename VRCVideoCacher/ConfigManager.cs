@@ -132,25 +132,6 @@ public class ConfigModel
     public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
     public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
 
-    // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
-    // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.
-    public bool SabrRestreamEnabled = true;
-    // Max resolution for SABR STREAMING. Deliberately separate from CacheYouTubeMaxResolution, which
-    // governs the cache download only.
-    public int SabrMaxResolution = 1080;
-    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
-    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
-    public bool SabrRestreamForce = true;
-    // Base URL of the bgutil PO token provider. SABR uses the web client, which requires a GVS PO token;
-    // the token comes from this provider (auto-managed on our Deno at the default localhost port). A
-    // non-loopback URL points at an externally-run provider and skips auto-management.
-    //
-    // Host is "localhost", NOT "127.0.0.1", deliberately: the bgutil server binds "::" (IPv6), which on
-    // Windows is v6only, so a bare 127.0.0.1 connection is refused. "localhost" resolves to both ::1 and
-    // 127.0.0.1 and the client falls through to whichever the server is actually on (IPv6 here, or IPv4
-    // when the server had to fall back to 0.0.0.0 on IPv6-less machines).
-    public string SabrPotBaseUrl = "http://localhost:4416";
-
     // Caching
     public string CachedAssetPath = "";
     public float CacheMaxSizeInGb = 10f;
@@ -172,7 +153,30 @@ public class ConfigModel
     public bool PatchVrChat = true;
     public string[] PreCacheUrls = [];
     public bool RedirectVRDancing = false;
+
     public string ResonitePath = "";
+
+    // Max resolution for SABR STREAMING. Deliberately separate from CacheYouTubeMaxResolution, which
+    // governs the cache download only.
+    public int SabrMaxResolution = 1080;
+
+    // Base URL of the bgutil PO token provider. SABR uses the web client, which requires a GVS PO token;
+    // the token comes from this provider (auto-managed on our Deno at the default localhost port). A
+    // non-loopback URL points at an externally-run provider and skips auto-management.
+    //
+    // Host is "localhost", NOT "127.0.0.1", deliberately: the bgutil server binds "::" (IPv6), which on
+    // Windows is v6only, so a bare 127.0.0.1 connection is refused. "localhost" resolves to both ::1 and
+    // 127.0.0.1 and the client falls through to whichever the server is actually on (IPv6 here, or IPv4
+    // when the server had to fall back to 0.0.0.0 on IPv6-less machines).
+    public string SabrPotBaseUrl = "http://localhost:4416";
+
+    // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
+    // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.
+    public bool SabrRestreamEnabled = true;
+
+    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
+    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
+    public bool SabrRestreamForce = true;
     public bool StartMinimized = false;
     public bool StartWithSteamVr = true;
     public string YtdlpAdditionalArgs = string.Empty;
