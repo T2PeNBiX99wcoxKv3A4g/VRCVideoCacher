@@ -1,11 +1,14 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.API;
+
+// ReSharper disable MemberCanBeMadeStatic.Global
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -13,103 +16,94 @@ public record LanguageOption(string Code, string DisplayName);
 
 public partial class BlockedUrlEntry(string url) : ObservableObject
 {
-    [ObservableProperty]
-    private string _url = url;
+    [ObservableProperty] public partial string Url { get; set; } = url;
+}
+
+[SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+public partial class RedirectUrlEntry(string url, string redirectUrl) : ObservableObject
+{
+    [ObservableProperty] public partial string Url { get; set; } = url;
+
+    [ObservableProperty] public partial string RedirectUrl { get; set; } = redirectUrl;
 }
 
 public partial class SettingsViewModel : ViewModelBase
 {
     private bool _isLoadingConfig;
 
+    public SettingsViewModel()
+    {
+        BlockedUrls.CollectionChanged += OnBlockedUrlsCollectionChanged;
+        ConfigManager.OnConfigChanged += LoadFromConfig;
+        LoadFromConfig();
+    }
+
     // Server Settings
-    [ObservableProperty]
-    private string _webServerUrl = string.Empty;
+    [ObservableProperty] public partial string WebServerUrl { get; set; } = string.Empty;
 
     // Download Settings
-    [ObservableProperty]
-    private bool _ytdlUseCookies;
+    [ObservableProperty] public partial bool YtdlUseCookies { get; set; }
 
-    [ObservableProperty]
-    private bool _ytdlAutoUpdate;
+    [ObservableProperty] public partial bool YtdlAutoUpdate { get; set; }
 
-    [ObservableProperty]
-    private string _ytdlAdditionalArgs = string.Empty;
+    [ObservableProperty] public partial string YtdlAdditionalArgs { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private string _ytdlDubLanguage = string.Empty;
+    [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
 
     // Cache Settings
-    [ObservableProperty]
-    private string _cachedAssetPath = string.Empty;
+    [ObservableProperty] public partial string CachedAssetPath { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private bool _cacheYouTube;
+    [ObservableProperty] public partial bool CacheYouTube { get; set; }
 
-    [ObservableProperty]
-    private int _cacheYouTubeMaxResolution;
+    [ObservableProperty] public partial int CacheYouTubeMaxResolution { get; set; }
 
     // Resolution options for the dropdown
     public int[] ResolutionOptions { get; } = [720, 1080, 1440, 2160];
 
-    [ObservableProperty]
-    private int _cacheYouTubeMaxLength;
+    [ObservableProperty] public partial int CacheYouTubeMaxLength { get; set; }
 
-    [ObservableProperty]
-    private float _cacheMaxSizeInGb;
+    [ObservableProperty] public partial float CacheMaxSizeInGb { get; set; }
 
-    [ObservableProperty]
-    private bool _cachePyPyDance;
+    [ObservableProperty] public partial bool CachePyPyDance { get; set; }
 
-    [ObservableProperty]
-    private bool _cacheVRDancing;
-    
-    [ObservableProperty]
-    private bool _cacheGeneric;
+    [ObservableProperty] public partial bool CacheVRDancing { get; set; }
 
-    [ObservableProperty]
-    private bool _cacheOnly;
+    [ObservableProperty] public partial bool CacheGeneric { get; set; }
+
+    [ObservableProperty] public partial bool CacheOnly { get; set; }
 
     // Patching
-    [ObservableProperty]
-    private bool _patchResonite;
+    [ObservableProperty] public partial bool PatchResonite { get; set; }
 
-    [ObservableProperty]
-    private bool _patchVRC;
+    [ObservableProperty] public partial bool PatchVRC { get; set; }
 
-    [ObservableProperty]
-    private bool _redirectVRDancing;
+    [ObservableProperty] public partial bool RedirectVRDancing { get; set; }
 
     // Updates
-    [ObservableProperty]
-    private bool _autoUpdate;
+    [ObservableProperty] public partial bool AutoUpdate { get; set; }
 
-    [ObservableProperty]
-    private bool _closeToTray;
+    [ObservableProperty] public partial bool CloseToTray { get; set; }
 
-    [ObservableProperty]
-    private bool _startMinimized;
+    [ObservableProperty] public partial bool StartMinimized { get; set; }
 
     // Blocked URLs
     public ObservableCollection<BlockedUrlEntry> BlockedUrls { get; } = [];
 
-    [ObservableProperty]
-    private string _blockRedirect = string.Empty;
+    public ObservableCollection<RedirectUrlEntry> RedirectUrls { get; } = [];
+
+    [ObservableProperty] public partial string BlockRedirect { get; set; } = string.Empty;
 
     // Status
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private string _statusMessageColor = string.Empty;
+    [ObservableProperty] public partial string StatusMessageColor { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private bool _startWithSteamVr;
+    [ObservableProperty] public partial bool StartWithSteamVr { get; set; }
 
-    [ObservableProperty]
-    private bool _hasChanges;
+    [ObservableProperty] public partial bool HasChanges { get; set; }
 
-    [ObservableProperty]
-    private bool _errorPopups;
+    [ObservableProperty] public partial bool ErrorPopups { get; set; }
 
     // Language selection
     public static IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
@@ -117,8 +111,7 @@ public partial class SettingsViewModel : ViewModelBase
             .Select(code => new LanguageOption(code, GetLanguageDisplayName(code)))
             .ToList();
 
-    [ObservableProperty]
-    private LanguageOption? _selectedLanguageOption;
+    [ObservableProperty] public partial LanguageOption? SelectedLanguageOption { get; set; }
 
     partial void OnSelectedLanguageOptionChanged(LanguageOption? value)
     {
@@ -130,15 +123,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     private static string GetLanguageDisplayName(string code)
     {
-        try { return CultureInfo.GetCultureInfo(code).NativeName; }
-        catch { return code; }
-    }
-
-    public SettingsViewModel()
-    {
-        BlockedUrls.CollectionChanged += OnBlockedUrlsCollectionChanged;
-        ConfigManager.OnConfigChanged += LoadFromConfig;
-        LoadFromConfig();
+        try
+        {
+            return CultureInfo.GetCultureInfo(code).NativeName;
+        }
+        catch
+        {
+            return code;
+        }
     }
 
     private void LoadFromConfig()
@@ -170,10 +162,11 @@ public partial class SettingsViewModel : ViewModelBase
         RedirectVRDancing = config.RedirectVRDancing;
         BlockedUrls.Clear();
         foreach (var url in config.BlockedUrls)
-        {
             BlockedUrls.Add(new(url));
-        }
         BlockRedirect = config.BlockRedirect;
+        RedirectUrls.Clear();
+        for (var i = 0; i < config.RedirectUrls.Length; i++)
+            RedirectUrls.Add(new(config.RedirectUrls[i], config.RedirectUrlRedirects[i]));
 
         SelectedLanguageOption = AvailableLanguageOptions.FirstOrDefault(o => o.Code == config.Language)
                                  ?? AvailableLanguageOptions.FirstOrDefault();
@@ -187,9 +180,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void SetHasChanges()
     {
         if (_isLoadingConfig)
-        {
             return;
-        }
 
         HasChanges = true;
         StatusMessage = Localizer.Get("SettingsUnsavedChanges");
@@ -199,20 +190,12 @@ public partial class SettingsViewModel : ViewModelBase
     private void OnBlockedUrlsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.OldItems is not null)
-        {
             foreach (var oldItem in e.OldItems.OfType<BlockedUrlEntry>())
-            {
                 oldItem.PropertyChanged -= OnBlockedUrlEntryPropertyChanged;
-            }
-        }
 
         if (e.NewItems is not null)
-        {
             foreach (var newItem in e.NewItems.OfType<BlockedUrlEntry>())
-            {
                 newItem.PropertyChanged += OnBlockedUrlEntryPropertyChanged;
-            }
-        }
 
         SetHasChanges();
     }
@@ -220,32 +203,8 @@ public partial class SettingsViewModel : ViewModelBase
     private void OnBlockedUrlEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(BlockedUrlEntry.Url))
-        {
             SetHasChanges();
-        }
     }
-
-    partial void OnWebServerUrlChanged(string value) => SetHasChanges();
-    partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
-    partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
-    partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
-    partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxResolutionChanged(int value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxLengthChanged(int value) => SetHasChanges();
-    partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
-    partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
-    partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
-    partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
-    partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
-    partial void OnPatchVRCChanged(bool value) => SetHasChanges();
-    partial void OnAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
-    partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
-    partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
-    partial void OnBlockRedirectChanged(string value) => SetHasChanges();
-    partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
 
     [RelayCommand]
     private void SaveSettings()
@@ -282,6 +241,12 @@ public partial class SettingsViewModel : ViewModelBase
             .Select(item => item.Url)
             .ToArray();
         config.BlockRedirect = BlockRedirect;
+        config.RedirectUrls = RedirectUrls
+            .Select(item => item.Url)
+            .ToArray();
+        config.RedirectUrlRedirects = RedirectUrls
+            .Select(item => item.RedirectUrl)
+            .ToArray();
         config.RedirectVRDancing = RedirectVRDancing;
         ConfigManager.TrySaveConfig();
         HasChanges = false;
@@ -308,4 +273,41 @@ public partial class SettingsViewModel : ViewModelBase
     {
         BlockedUrls.Remove(url);
     }
+
+    [RelayCommand]
+    private void AddRedirectUrl()
+    {
+        RedirectUrls.Add(new("https://", "https://"));
+    }
+
+    [RelayCommand]
+    private void RemoveRedirectUrl(RedirectUrlEntry url)
+    {
+        RedirectUrls.Remove(url);
+    }
+
+    // ReSharper disable UnusedParameterInPartialMethod
+    partial void OnWebServerUrlChanged(string value) => SetHasChanges();
+    partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
+    partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
+    partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
+    partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
+    partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
+    partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
+    partial void OnCacheYouTubeMaxResolutionChanged(int value) => SetHasChanges();
+    partial void OnCacheYouTubeMaxLengthChanged(int value) => SetHasChanges();
+    partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
+    partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
+    partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
+    partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
+    partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
+    partial void OnPatchVRCChanged(bool value) => SetHasChanges();
+    partial void OnAutoUpdateChanged(bool value) => SetHasChanges();
+    partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
+    partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
+    partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
+    partial void OnBlockRedirectChanged(string value) => SetHasChanges();
+
+    partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
+    // ReSharper restore UnusedParameterInPartialMethod
 }
