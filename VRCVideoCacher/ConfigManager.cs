@@ -139,6 +139,7 @@ public class ConfigModel
     public bool CachePyPyDance;
     public bool CacheVrDancing;
     public bool CacheYouTube;
+    public bool CacheGeneric;
     public int CacheYouTubeMaxLength = 120;
     public int CacheYouTubeMaxResolution = 1080;
     public bool CloseToTray = true;
