@@ -47,9 +47,7 @@ public class ApiController : WebApiController
         // it and lose one side's rotated session tokens — which is exactly what gets us bot-checked.
         // See YtdlCookieJar.
         using (await YtdlCookieJar.AcquireAsync())
-        {
             await File.WriteAllTextAsync(YtdlManager.CookiesPath, cookies);
-        }
 
         HttpContext.Response.StatusCode = 200;
         await HttpContext.SendStringAsync("Cookies received.", "text/plain", Encoding.UTF8);
@@ -193,6 +191,7 @@ public class ApiController : WebApiController
                     VideoDownloader.QueueDownload(videoInfo);
                 return;
             }
+
             Log.Warning("Forced SABR restream failed; falling back to normal resolution.");
         }
 
@@ -214,6 +213,7 @@ public class ApiController : WebApiController
                         VideoDownloader.QueueDownload(videoInfo);
                     return;
                 }
+
                 HttpContext.Response.StatusCode = 500;
                 await HttpContext.SendStringAsync(response, "text/plain", Encoding.UTF8);
                 return;
