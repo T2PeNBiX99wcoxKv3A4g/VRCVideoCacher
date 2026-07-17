@@ -165,8 +165,8 @@ public partial class SettingsViewModel : ViewModelBase
             BlockedUrls.Add(new(url));
         BlockRedirect = config.BlockRedirect;
         RedirectUrls.Clear();
-        for (var i = 0; i < config.RedirectUrls.Length; i++)
-            RedirectUrls.Add(new(config.RedirectUrls[i], config.RedirectUrlRedirects[i]));
+        foreach (var (redirectUrl, redirectTo) in config.RedirectUrls)
+            RedirectUrls.Add(new(redirectUrl, redirectTo));
 
         SelectedLanguageOption = AvailableLanguageOptions.FirstOrDefault(o => o.Code == config.Language)
                                  ?? AvailableLanguageOptions.FirstOrDefault();
@@ -241,12 +241,7 @@ public partial class SettingsViewModel : ViewModelBase
             .Select(item => item.Url)
             .ToArray();
         config.BlockRedirect = BlockRedirect;
-        config.RedirectUrls = RedirectUrls
-            .Select(item => item.Url)
-            .ToArray();
-        config.RedirectUrlRedirects = RedirectUrls
-            .Select(item => item.RedirectUrl)
-            .ToArray();
+        config.RedirectUrls = RedirectUrls.ToDictionary(x => x.Url, x => x.RedirectUrl);
         config.RedirectVRDancing = RedirectVRDancing;
         ConfigManager.TrySaveConfig();
         HasChanges = false;

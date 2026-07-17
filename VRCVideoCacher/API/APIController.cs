@@ -102,12 +102,11 @@ public class ApiController : WebApiController
             requestUrl = ConfigManager.Config.BlockRedirect;
         }
 
-        for (var i = 0; i < ConfigManager.Config.RedirectUrls.Length; i++)
+        foreach (var (redirectUrl, redirectTo) in ConfigManager.Config.RedirectUrls)
         {
-            var redirectUrl = ConfigManager.Config.RedirectUrls[i];
             if (!requestUrl.StartsWith(redirectUrl)) continue;
             Log.Information("URL Is Redirected: {URL}", requestUrl);
-            requestUrl = ConfigManager.Config.RedirectUrlRedirects[i];
+            requestUrl = redirectTo;
             break;
         }
 

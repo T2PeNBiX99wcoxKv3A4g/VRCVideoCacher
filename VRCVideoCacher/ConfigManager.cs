@@ -131,8 +131,7 @@ public class ConfigModel
     // Cache Rules
     public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
     public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
-    public string[] RedirectUrls = [];
-    public string[] RedirectUrlRedirects = [];
+    public Dictionary<string, string> RedirectUrls = [];
 
     // Caching
     public string CachedAssetPath = "";
