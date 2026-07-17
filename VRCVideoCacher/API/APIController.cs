@@ -102,6 +102,15 @@ public class ApiController : WebApiController
             requestUrl = ConfigManager.Config.BlockRedirect;
         }
 
+        for (var i = 0; i < ConfigManager.Config.RedirectUrls.Length; i++)
+        {
+            var redirectUrl = ConfigManager.Config.RedirectUrls[i];
+            if (!requestUrl.StartsWith(redirectUrl)) continue;
+            Log.Information("URL Is Redirected: {URL}", requestUrl);
+            requestUrl = ConfigManager.Config.RedirectUrlRedirects[i];
+            break;
+        }
+
         if (requestUrl.StartsWith("https://mightygymcdn.nyc3.cdn.digitaloceanspaces.com"))
         {
             Log.Information("URL Is Mighty Gym: Bypassing.");
