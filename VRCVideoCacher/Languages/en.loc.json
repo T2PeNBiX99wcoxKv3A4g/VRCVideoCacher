@@ -65,6 +65,7 @@
   "ErrorPopups": "Error Popups",
   "BlockedUrls": "Blocked URLs",
   "BlockedUrlRedirect": "Blocked URL Redirect",
+  "RedirectUrls": "Redirect URLs",
   "SettingsSaved": "Settings saved!",
   "SettingsReset": "Settings reset to last saved values.",
   "SettingsUnsavedChanges": "You have unsaved changes.",
