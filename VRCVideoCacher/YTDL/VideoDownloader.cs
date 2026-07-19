@@ -219,25 +219,9 @@ public class VideoDownloader
         }
 
         if (File.Exists(tempDownloadMp4Path))
-        {
-            if (File.Exists(filePath))
-            {
-                Log.Warning("File already exists: {FilePath}", filePath);
-                return false;
-            }
-
             File.Move(tempDownloadMp4Path, filePath);
-        }
         else if (File.Exists(tempDownloadWebmPath))
-        {
-            if (File.Exists(filePath))
-            {
-                Log.Warning("File already exists: {FilePath}", filePath);
-                return false;
-            }
-
             File.Move(tempDownloadWebmPath, filePath);
-        }
         else
         {
             Log.Error("Failed to download YouTube Video: {URL}", url);
@@ -301,15 +285,7 @@ public class VideoDownloader
         }
 
         if (File.Exists(tempDownloadMp4Path))
-        {
-            if (File.Exists(filePath))
-            {
-                Log.Warning("File already exists: {FilePath}", filePath);
-                return false;
-            }
-
             File.Move(tempDownloadMp4Path, filePath);
-        }
         else
         {
             Log.Error("Failed to download VRDancing Video: {URL}", url);
@@ -352,16 +328,24 @@ public class VideoDownloader
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
-        if (File.Exists(tempDownloadMp4Path))
+        if (File.Exists(filePath))
         {
-            if (File.Exists(filePath))
+            Log.Error("File already exists, canceling...");
+            try
             {
-                Log.Warning("File already exists: {FilePath}", filePath);
-                return false;
+                if (File.Exists(tempDownloadMp4Path))
+                    File.Delete(tempDownloadMp4Path);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Failed to delete temp file: {ex}", ex.ToString());
             }
 
-            File.Move(tempDownloadMp4Path, filePath);
+            return false;
         }
+
+        if (File.Exists(tempDownloadMp4Path))
+            File.Move(tempDownloadMp4Path, filePath);
         else
         {
             Log.Error("Failed to download Video: {URL}", url);
@@ -425,15 +409,7 @@ public class VideoDownloader
         }
 
         if (File.Exists(tempDownloadMp4Path))
-        {
-            if (File.Exists(filePath))
-            {
-                Log.Warning("File already exists: {FilePath}", filePath);
-                return false;
-            }
-
             File.Move(tempDownloadMp4Path, filePath);
-        }
         else
         {
             Log.Error("Failed to download Generic Video: {URL}", url);
