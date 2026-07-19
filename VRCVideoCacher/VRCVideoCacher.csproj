@@ -146,11 +146,20 @@
           <TargetPath>libopenvr_api.so</TargetPath>
         </None>
         <EmbeddedResource Include="manifest.vrmanifest" />
+        <!-- ~1s of H.264 + stereo Opus in MP4: the fixture OpusMp4Check decodes through Media
+             Foundation to prove the machine can actually play what SabrSegmentMuxer produces. -->
+        <None Remove="opus_probe.mp4" />
+        <EmbeddedResource Include="opus_probe.mp4" />
     </ItemGroup>
 
     <ItemGroup>
         <None Remove="Languages\*.loc.json" />
         <EmbeddedResource Include="Languages\*.loc.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- The SABR client and its protobuf/UMP types are internal; the tests drive them directly. -->
+        <InternalsVisibleTo Include="VRCVideoCacher.Tests" />
     </ItemGroup>
 
 </Project>

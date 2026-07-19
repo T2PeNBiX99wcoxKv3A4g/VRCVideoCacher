@@ -161,7 +161,17 @@ public class ConfigModel
     // Max resolution for SABR STREAMING. Deliberately separate from CacheYouTubeMaxResolution, which
     // governs the cache download only.
     public int SabrMaxResolution = 1080;
-
+    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
+    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
+    public bool SabrRestreamForce = true;
+    // Serve YouTube LIVE broadcasts over SABR as a sliding-window HLS stream instead of handing the
+    // game yt-dlp's HLS manifest. Falls back to that manifest on any failure, so turning this off (or
+    // hitting a bug) costs nothing but the old behaviour.
+    public bool SabrLiveEnabled = true;
+    // How many segments the live playlist advertises. This is a live edge, not a DVR: a longer window
+    // costs disk and start-up latency and buys rewind that VRChat cannot use anyway (AVPro will not
+    // scrub a playlist without EXT-X-ENDLIST, which a live playlist must never carry).
+    public int SabrLiveWindowSegments = 6;
     // Base URL of the bgutil PO token provider. SABR uses the web client, which requires a GVS PO token;
     // the token comes from this provider (auto-managed on our Deno at the default localhost port). A
     // non-loopback URL points at an externally-run provider and skips auto-management.
@@ -175,10 +185,7 @@ public class ConfigModel
     // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
     // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.
     public bool SabrRestreamEnabled = true;
-
-    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
-    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
-    public bool SabrRestreamForce = true;
+    
     public bool StartMinimized = false;
     public bool StartWithSteamVr = true;
     public string YtdlpAdditionalArgs = string.Empty;
