@@ -378,32 +378,52 @@ public class VideoDownloader
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
-        Log.Information("Downloading Video: {URL}", videoInfo.VideoUrl);
         var url = videoInfo.VideoUrl;
-        var response = await HttpClient.GetAsync(url);
-        if (response.StatusCode == HttpStatusCode.Redirect)
+        var process = new Process
         {
-            Log.Information("Redirected to: {URL}", response.Headers.Location);
-            url = response.Headers.Location?.ToString();
-            response = await HttpClient.GetAsync(url);
-        }
-
-        if (!response.IsSuccessStatusCode)
+            StartInfo =
+            {
+                FileName = YtdlManager.YtdlPath,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
+            }
+        };
+        process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
+        Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
+        process.Start();
+        await process.WaitForExitAsync();
+        var error = await process.StandardError.ReadToEndAsync();
+        error = error.Trim();
+        if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download video: {URL}", url);
+            Log.Error("Failed to download Generic Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
             return false;
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync();
-        await using var fileStream =
-            new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None);
-        await stream.CopyToAsync(fileStream);
-        fileStream.Close();
-        response.Dispose();
-        await Task.Delay(10);
+        Thread.Sleep(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
+        if (File.Exists(filePath))
+        {
+            Log.Error("File already exists, canceling...");
+            try
+            {
+                if (File.Exists(tempDownloadMp4Path))
+                    File.Delete(tempDownloadMp4Path);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Failed to delete temp file: {ex}", ex.ToString());
+            }
+
+            return false;
+        }
+
         if (File.Exists(tempDownloadMp4Path))
         {
             if (File.Exists(filePath))
@@ -416,12 +436,12 @@ public class VideoDownloader
         }
         else
         {
-            Log.Error("Failed to download Video: {URL}", url);
+            Log.Error("Failed to download Generic Video: {URL}", url);
             return false;
         }
 
         CacheManager.AddToCache(fileName);
-        Log.Information("Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        Log.Information("Generic Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 }
