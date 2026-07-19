@@ -72,6 +72,7 @@ public class VideoDownloader
                         success = await DownloadVRDancingVideoWithId(queueItem);
                         break;
                     case UrlType.Other:
+                        success = await DownloadGenericVideo(queueItem);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -306,6 +307,50 @@ public class VideoDownloader
     }
 
     private static async Task<bool> DownloadVideoWithId(VideoInfo videoInfo)
+    {
+        using var tempDir = new TempDir();
+        var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
+
+        Log.Information("Downloading Video: {URL}", videoInfo.VideoUrl);
+        var url = videoInfo.VideoUrl;
+        var response = await HttpClient.GetAsync(url);
+        if (response.StatusCode == HttpStatusCode.Redirect)
+        {
+            Log.Information("Redirected to: {URL}", response.Headers.Location);
+            url = response.Headers.Location?.ToString();
+            response = await HttpClient.GetAsync(url);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Log.Error("Failed to download video: {URL}", url);
+            return false;
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync();
+        await using var fileStream =
+            new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None);
+        await stream.CopyToAsync(fileStream);
+        fileStream.Close();
+        response.Dispose();
+        await Task.Delay(10);
+
+        var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        if (File.Exists(tempDownloadMp4Path))
+            File.Move(tempDownloadMp4Path, filePath);
+        else
+        {
+            Log.Error("Failed to download Video: {URL}", url);
+            return false;
+        }
+
+        CacheManager.AddToCache(fileName);
+        Log.Information("Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        return true;
+    }
+    
+    private static async Task<bool> DownloadGenericVideo(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
