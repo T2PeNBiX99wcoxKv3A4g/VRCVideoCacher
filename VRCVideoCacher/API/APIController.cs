@@ -198,7 +198,7 @@ public class ApiController : WebApiController
                 // Never queue a livestream: it has no end, and the download worker is a single serial
                 // thread, so one live job blocks every other cache download indefinitely.
                 if (ConfigManager.Config.CacheYouTube && !SabrRestreamService.CacheConverges
-                    && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
+                                                      && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
                     VideoDownloader.QueueDownload(videoInfo);
                 return;
             }
