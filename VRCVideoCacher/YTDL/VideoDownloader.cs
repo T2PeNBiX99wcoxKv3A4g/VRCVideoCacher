@@ -219,9 +219,25 @@ public class VideoDownloader
         }
 
         if (File.Exists(tempDownloadMp4Path))
+        {
+            if (File.Exists(filePath))
+            {
+                Log.Warning("File already exists: {FilePath}", filePath);
+                return false;
+            }
+
             File.Move(tempDownloadMp4Path, filePath);
+        }
         else if (File.Exists(tempDownloadWebmPath))
+        {
+            if (File.Exists(filePath))
+            {
+                Log.Warning("File already exists: {FilePath}", filePath);
+                return false;
+            }
+
             File.Move(tempDownloadWebmPath, filePath);
+        }
         else
         {
             Log.Error("Failed to download YouTube Video: {URL}", url);
@@ -285,7 +301,15 @@ public class VideoDownloader
         }
 
         if (File.Exists(tempDownloadMp4Path))
+        {
+            if (File.Exists(filePath))
+            {
+                Log.Warning("File already exists: {FilePath}", filePath);
+                return false;
+            }
+
             File.Move(tempDownloadMp4Path, filePath);
+        }
         else
         {
             Log.Error("Failed to download VRDancing Video: {URL}", url);
@@ -329,7 +353,15 @@ public class VideoDownloader
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(tempDownloadMp4Path))
+        {
+            if (File.Exists(filePath))
+            {
+                Log.Warning("File already exists: {FilePath}", filePath);
+                return false;
+            }
+
             File.Move(tempDownloadMp4Path, filePath);
+        }
         else
         {
             Log.Error("Failed to download Video: {URL}", url);
@@ -340,7 +372,7 @@ public class VideoDownloader
         Log.Information("Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
-    
+
     private static async Task<bool> DownloadGenericVideo(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
@@ -373,7 +405,15 @@ public class VideoDownloader
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(tempDownloadMp4Path))
+        {
+            if (File.Exists(filePath))
+            {
+                Log.Warning("File already exists: {FilePath}", filePath);
+                return false;
+            }
+
             File.Move(tempDownloadMp4Path, filePath);
+        }
         else
         {
             Log.Error("Failed to download Video: {URL}", url);
