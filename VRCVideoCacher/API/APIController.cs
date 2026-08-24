@@ -292,9 +292,9 @@ public class ApiController : WebApiController
     }
 
     /// <summary>
-    /// Refuses a known-unavailable video with 403. A 4xx tells the player this is a permanent "won't
-    /// serve", so a well-behaved one stops retrying — unlike the 500 a real error returns, which invites
-    /// the retry loop that gets us bot-checked. Either way we no longer touch YouTube for it.
+    ///     Refuses a known-unavailable video with 403. A 4xx tells the player this is a permanent "won't
+    ///     serve", so a well-behaved one stops retrying — unlike the 500 a real error returns, which invites
+    ///     the retry loop that gets us bot-checked. Either way we no longer touch YouTube for it.
     /// </summary>
     private async Task RespondVideoUnavailable(string videoId)
     {
