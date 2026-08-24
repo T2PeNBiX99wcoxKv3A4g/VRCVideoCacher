@@ -216,31 +216,6 @@ public partial class SettingsViewModel : ViewModelBase
             SetHasChanges();
     }
 
-    partial void OnWebServerUrlChanged(string value) => SetHasChanges();
-    partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
-    partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
-    partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterSuperResolutionChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterVoiceBoostedAudioChanged(bool value) => SetHasChanges();
-    partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
-    partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxResolutionChanged(int value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxLengthChanged(int value) => SetHasChanges();
-    partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
-    partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
-    partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
-    partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
-    partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
-    partial void OnPatchVRCChanged(bool value) => SetHasChanges();
-    partial void OnAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
-    partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
-    partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
-    partial void OnBlockRedirectChanged(string value) => SetHasChanges();
-    partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
-
     [RelayCommand]
     private void SaveSettings()
     {
