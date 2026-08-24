@@ -91,12 +91,13 @@ internal static class SabrExtractor
         var isLive = string.Equals(liveStatus, "is_live", StringComparison.Ordinal);
         var targetDurationSec = config["target_duration_sec"]?.Value<int?>() ?? 0;
 
-        log.Information("SABR formats for {VideoId}{Live}: video {VideoFormat} ({VCodec} {Height}p {Range}) + audio {AudioFormat} ({ACodec})",
+        log.Information("SABR formats for {VideoId}{Live}: video {VideoFormat} ({VCodec} {Height}p {Range}) + audio {AudioFormat} ({ACodec} {ALang})",
             videoId,
             isLive ? $" [LIVE, {targetDurationSec}s segments]" : string.Empty,
             video["format_id"]?.Value<string>(), video["vcodec"]?.Value<string>(), video["height"]?.Value<int>(),
             hdr ? "HDR" : "SDR",
-            audio["format_id"]?.Value<string>(), audio["acodec"]?.Value<string>());
+            audio["format_id"]?.Value<string>(), audio["acodec"]?.Value<string>(),
+            audio["language"]?.Value<string>() ?? "und");
 
         var poToken = config["po_token"]?.Value<string>();
         if (string.IsNullOrEmpty(poToken))
@@ -131,11 +132,26 @@ internal static class SabrExtractor
     /// <summary>
     /// Opus by preference — the better codec — except in fMP4-only mode, where it isn't an option:
     /// YouTube ships Opus exclusively in WebM, which HLS cannot carry as segments.
+    ///
+    /// Language is chosen BEFORE codec/bitrate (see <see cref="PickAudioLanguage"/>): YouTube auto-dubs
+    /// a video into a dozen-plus languages that all share the original's itag, and the dubs frequently
+    /// have a HIGHER bitrate than the source — so picking on bitrate alone silently returns a dub. The
+    /// non-SABR path avoids this by leaning on yt-dlp's default sort (original first) plus the operator's
+    /// Preferred Dub Language; this mirrors that.
     /// </summary>
     private static JToken? PickAudio(List<JToken> formats, bool fmp4Only)
     {
         var audio = formats.Where(f => f["acodec"]?.Value<string>() is { } a && a != "none"
                                        && f["vcodec"]?.Value<string>() is "none" or null).ToList();
+
+        audio = PickAudioLanguage(audio);
+
+        // Drop AI-modified variants if asked — but each filter keeps its variant when it's the only
+        // option left, so the video still plays rather than falling back to a dub or nothing.
+        if (ConfigManager.Config.SabrFilterDrcAudio)
+            audio = FilterKeepingSome(audio, IsDrc);
+        if (ConfigManager.Config.SabrFilterVoiceBoostedAudio)
+            audio = FilterKeepingSome(audio, IsVoiceBoosted);
 
         var aac = audio.Where(f => IsAac(f)).MaxBy(Bitrate);
         if (fmp4Only)
@@ -146,6 +162,49 @@ internal static class SabrExtractor
                ?? aac
                ?? audio.MaxBy(Bitrate);
     }
+
+    /// <summary>
+    /// Narrows the audio formats to the wanted language before codec/bitrate selection.
+    ///
+    /// yt-dlp tags the source track with the highest <c>language_preference</c> (10) and an
+    /// "original (default)" note, and every auto-dub with -1. So:
+    /// <list type="bullet">
+    ///   <item>Preferred Dub Language set and available ⇒ just those formats.</item>
+    ///   <item>otherwise ⇒ the original track (max language_preference) — which is also the fallback
+    ///     when the requested dub isn't offered, exactly like the non-SABR
+    ///     <c>[language=X]/&lt;default&gt;</c> selector.</item>
+    /// </list>
+    /// A single-language video has one preference value across every format, so this is a no-op there;
+    /// if no format carries language metadata at all, the choice is left to codec/bitrate as before.
+    /// </summary>
+    private static List<JToken> PickAudioLanguage(List<JToken> audio)
+    {
+        if (audio.Count == 0)
+            return audio;
+
+        var dub = ConfigManager.Config.YtdlpDubLanguage;
+        if (!string.IsNullOrEmpty(dub))
+        {
+            var matches = audio.Where(f => LanguageMatches(f, dub)).ToList();
+            if (matches.Count > 0)
+                return matches;
+            // Requested dub not available — fall through to the original, as the non-SABR path does.
+        }
+
+        var maxPref = audio.Max(LanguagePreference);
+        if (maxPref == int.MinValue)
+            return audio; // no language metadata — leave it to codec/bitrate
+
+        var original = audio.Where(f => LanguagePreference(f) == maxPref).ToList();
+        return original.Count > 0 ? original : audio;
+    }
+
+    private static int LanguagePreference(JToken format) =>
+        format["language_preference"]?.Value<int?>() ?? int.MinValue;
+
+    private static bool LanguageMatches(JToken format, string lang) =>
+        format["language"]?.Value<string>() is { } l &&
+        l.StartsWith(lang, StringComparison.OrdinalIgnoreCase);
 
     private static string ClientOf(JToken format) =>
         format["_sabr_config"]?["client_name"]?.Value<string>() ?? "";
@@ -166,16 +225,47 @@ internal static class SabrExtractor
     /// well, and HDR is also the higher-bitrate variant, so ordering purely on bitrate would silently
     /// pick it (which is exactly the bug that made 4K videos fail).
     /// </summary>
-    private static JToken? PickVideo(List<JToken> formats, int maxHeight, bool fmp4Only) =>
-        formats
+    private static JToken? PickVideo(List<JToken> formats, int maxHeight, bool fmp4Only)
+    {
+        var candidates = formats
             .Where(f => f["vcodec"]?.Value<string>() is { } v && v != "none")
             .Where(f => !fmp4Only || IsH264(f)) // VP9/AV1 are WebM-only; HLS can't carry them natively
             .Where(f => (f["height"]?.Value<int>() ?? 0) <= maxHeight)
+            .ToList();
+
+        // Drop AI "super resolution" (upscaled) variants, keeping them only if nothing else is left.
+        if (ConfigManager.Config.SabrFilterSuperResolution)
+            candidates = FilterKeepingSome(candidates, IsSuperResolution);
+
+        return candidates
             .OrderByDescending(f => f["height"]?.Value<int>() ?? 0)
             .ThenBy(f => IsHdr(f) ? 1 : 0)
             .ThenBy(CodecRank)
             .ThenByDescending(Bitrate)
             .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Removes the formats matching <paramref name="unwanted"/> — unless that would remove them all, in
+    /// which case the list is returned untouched. A filtered-out variant is always better than no format.
+    /// </summary>
+    private static List<JToken> FilterKeepingSome(List<JToken> formats, Func<JToken, bool> unwanted)
+    {
+        var kept = formats.Where(f => !unwanted(f)).ToList();
+        return kept.Count > 0 ? kept : formats;
+    }
+
+    /// <summary>DRC (volume-normalised) audio — yt-dlp joins a "-drc" suffix onto the format id.</summary>
+    private static bool IsDrc(JToken format) =>
+        format["format_id"]?.Value<string>()?.EndsWith("-drc", StringComparison.Ordinal) == true;
+
+    /// <summary>AI "voice boosted" audio — yt-dlp joins a "-vb" suffix onto the format id.</summary>
+    private static bool IsVoiceBoosted(JToken format) =>
+        format["format_id"]?.Value<string>()?.EndsWith("-vb", StringComparison.Ordinal) == true;
+
+    /// <summary>AI "super resolution" (upscaled) video — yt-dlp joins a "-sr" suffix onto the format id.</summary>
+    private static bool IsSuperResolution(JToken format) =>
+        format["format_id"]?.Value<string>()?.EndsWith("-sr", StringComparison.Ordinal) == true;
 
     private static bool IsHdr(JToken format) =>
         format["dynamic_range"]?.Value<string>() is { } range
