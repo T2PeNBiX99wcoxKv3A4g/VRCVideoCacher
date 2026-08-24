@@ -114,9 +114,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     // Language selection
     public static IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
-        Localizer.Languages
-            .Select(code => new LanguageOption(code, GetLanguageDisplayName(code)))
-            .ToList();
+    [
+        .. Localizer.Languages.Select(code => new LanguageOption(code, GetLanguageDisplayName(code)))
+    ];
 
     [ObservableProperty] public partial LanguageOption? SelectedLanguageOption { get; set; }
 
@@ -275,9 +275,10 @@ public partial class SettingsViewModel : ViewModelBase
         config.StartMinimized = StartMinimized;
         config.StartWithSteamVr = StartWithSteamVr;
         config.ErrorPopups = ErrorPopups;
-        config.BlockedUrls = BlockedUrls
-            .Select(item => item.Url)
-            .ToArray();
+        config.BlockedUrls =
+        [
+            .. BlockedUrls.Select(item => item.Url)
+        ];
         config.BlockRedirect = BlockRedirect;
         config.RedirectUrls = RedirectUrls.ToDictionary(x => x.Url, x => x.RedirectUrl);
         config.RedirectVRDancing = RedirectVRDancing;
