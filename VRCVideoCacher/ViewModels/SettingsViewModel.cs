@@ -39,6 +39,13 @@ public partial class SettingsViewModel : ViewModelBase
         LoadFromConfig();
     }
 
+    // YouTube SABR Options
+    [ObservableProperty] public partial bool SabrFilterDrcAudio { get; set; }
+
+    [ObservableProperty] public partial bool SabrFilterSuperResolution { get; set; }
+
+    [ObservableProperty] public partial bool SabrFilterVoiceBoostedAudio { get; set; }
+
     // Server Settings
     [ObservableProperty] public partial string WebServerUrl { get; set; } = string.Empty;
 
@@ -50,16 +57,6 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial string YtdlAdditionalArgs { get; set; } = string.Empty;
 
     [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
-
-    // YouTube SABR Options
-    [ObservableProperty]
-    private bool _sabrFilterDrcAudio;
-
-    [ObservableProperty]
-    private bool _sabrFilterSuperResolution;
-
-    [ObservableProperty]
-    private bool _sabrFilterVoiceBoostedAudio;
 
     // Cache Settings
     [ObservableProperty] public partial string CachedAssetPath { get; set; } = string.Empty;
@@ -328,6 +325,9 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
     partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
     partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
+    partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
+    partial void OnSabrFilterSuperResolutionChanged(bool value) => SetHasChanges();
+    partial void OnSabrFilterVoiceBoostedAudioChanged(bool value) => SetHasChanges();
     partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
     partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
     partial void OnCacheYouTubeMaxResolutionChanged(int value) => SetHasChanges();
