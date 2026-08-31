@@ -128,54 +128,31 @@ public class ConfigManager
 [SuppressMessage("ReSharper", "ConvertToConstant.Global")]
 public class ConfigModel
 {
-    // Video Cacher
-    public bool AutoUpdateVrcVideoCacher = true;
+    // yt-dlp
+    public string YtdlpWebServerUrl = "http://localhost:9696";
+    public bool YtdlpUseCookies = true;
+    public bool YtdlpAutoUpdate = true;
+    public string YtdlpAdditionalArgs = string.Empty;
+    public string YtdlpDubLanguage = string.Empty;
 
-    // Cache Rules
-    public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
-    public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
-
-    // Caching
-    public string CachedAssetPath = "";
-    public bool CacheGeneric;
-    public float CacheMaxSizeInGb = 10f;
-    public bool CacheOnly = false;
-    public bool CachePyPyDance;
-    public bool CacheVrDancing;
-    public bool CacheYouTube;
-    public int CacheYouTubeMaxLength = 120;
-    public int CacheYouTubeMaxResolution = 1080;
-    public bool CloseToTray = true;
-    public bool CookieSetupCompleted = false;
-    public bool ErrorPopups = true;
-
-    // Localization
-    public string Language = "en";
-
-    // Patching
-    public bool PatchResonite;
-    public bool PatchVrChat = true;
-    public string[] PreCacheUrls = [];
-    public Dictionary<string, string> RedirectUrls = [];
-    public bool RedirectVRDancing = false;
-
-    public string ResonitePath = "";
-
+    // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
+    // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.
+    public bool SabrRestreamEnabled = true;
+    // Max resolution for SABR STREAMING. Deliberately separate from CacheYouTubeMaxResolution, which
+    // governs the cache download only.
+    public int SabrMaxResolution = 1080;
+    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
+    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
+    public bool SabrRestreamForce = true;
     // Serve YouTube LIVE broadcasts over SABR as a sliding-window HLS stream instead of handing the
     // game yt-dlp's HLS manifest. Falls back to that manifest on any failure, so turning this off (or
     // hitting a bug) costs nothing but the old behaviour.
     public bool SabrLiveEnabled = true;
-
     // How many segments the live playlist advertises. This is a live edge, not a DVR: a longer window
     // costs disk and start-up latency and buys rewind that VRChat cannot use anyway (AVPro will not
     // scrub a playlist without EXT-X-ENDLIST, which a live playlist must never carry).
     public int SabrLiveWindowSegments = 6;
-
-    // Max resolution for SABR STREAMING. Deliberately separate from CacheYouTubeMaxResolution, which
-    // governs the cache download only.
-    public int SabrMaxResolution = 1080;
-
-    // Base URL of the bgutil PO token provider. SABR uses the web client, which requires a GVS PO token;
+    // Base URL of the bgutil PO token provider. SABR uses the web client, which requires a GVS PO token for non premium accounts;
     // the token comes from this provider (auto-managed on our Deno at the default localhost port). A
     // non-loopback URL points at an externally-run provider and skips auto-management.
     //
@@ -193,22 +170,46 @@ public class ConfigModel
     // Filter out YouTube's AI "voice boosted" audio tracks when picking SABR audio. yt-dlp tags these
     // with a "-vb" format-id suffix and an "AI-voice boosted" note. Off by default.
     public bool SabrFilterVoiceBoostedAudio = false;
+    // Testing/eval: force the SABR path to mux AAC audio instead of Opus, regardless of the Opus-in-MP4
+    // decode check. Lets the AAC fallback path be exercised on a machine that CAN play Opus. Off by
+    // default (the check picks the codec automatically).
+    public bool SabrForceAacAudio = false;
+    // Extra yt-dlp arguments appended to the SABR extraction run only (the -J link-extraction). Separate
+    // from YtdlpAdditionalArgs, which applies to the non-SABR/fallback path — the SABR extraction is a
+    // different command (web client, plugin dirs, PO token) so its overrides belong here.
+    public string SabrAdditionalArgs = string.Empty;
 
-    // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
-    // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.
-    public bool SabrRestreamEnabled = true;
+    // Caching
+    public string CachedAssetPath = "";
+    public float CacheMaxSizeInGb = 10f;
+    public bool CacheYouTube = false;
+    public int CacheYouTubeMaxResolution = 1080;
+    public int CacheYouTubeMaxLength = 120;
+    public bool CachePyPyDance = false;
+    public bool CacheVrDancing = false;
+    public bool CacheGeneric = false;
+    public bool CacheOnly = false;
 
-    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
-    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
-    public bool SabrRestreamForce = true;
+    // Cache Rules
+    public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
+    public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
+    public string[] PreCacheUrls = [];
+    public Dictionary<string, string> RedirectUrls = [];
 
+    // Patching
+    public bool PatchResonite = false;
+    public string ResonitePath = "";
+    public bool PatchVrChat = true;
+
+    // Video Cacher
+    public bool AutoUpdateVrcVideoCacher = true;
+    public bool CloseToTray = true;
     public bool StartMinimized = false;
     public bool StartWithSteamVr = true;
-    public string YtdlpAdditionalArgs = string.Empty;
-    public bool YtdlpAutoUpdate = true;
-    public string YtdlpDubLanguage = string.Empty;
-    public bool YtdlpUseCookies = true;
+    public bool CookieSetupCompleted = false;
+    public bool RedirectVRDancing = false;
+    public bool ErrorPopups = true;
 
-    // yt-dlp
-    public string YtdlpWebServerUrl = "http://localhost:9696";
+    // Localization
+    public string Language = "en";
 }

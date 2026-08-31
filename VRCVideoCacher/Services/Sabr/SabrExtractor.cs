@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Serilog;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.Services.Sabr;
@@ -38,6 +39,21 @@ internal static class SabrExtractor
     /// </summary>
     private static readonly TimeSpan PotProviderTimeout = TimeSpan.FromSeconds(45);
 
+    /// <summary>
+    /// Latched true once an extraction comes back as a Premium session (<see cref="IsPremiumStream"/>).
+    /// Premium web SABR needs no GVS PO token, so this makes every later extraction skip the bgutil
+    /// provider — no token minted, no wait on it. Reset if a Premium-assumed run yields no SABR formats.
+    /// </summary>
+    private static volatile bool _accountIsPremium;
+
+    /// <summary>
+    /// Whether the last extraction came back as a Premium session. The legacy (non-AVPro) path reads this
+    /// to decide whether to send a GVS PO token — Premium needs none, exactly as here. Only ever set true
+    /// by a SABR extraction, so a non-AVPro-only user (who never runs SABR) stays "not Premium" and keeps
+    /// sending the token, which is the safe default.
+    /// </summary>
+    internal static bool AccountIsPremium => _accountIsPremium;
+
     /// <param name="fmp4Only">
     /// Restrict to fMP4 tracks (H.264 + AAC). Required when the fragments are served to HLS directly:
     /// HLS cannot carry WebM segments, and YouTube only ships Opus and VP9/AV1 in WebM.
@@ -45,30 +61,40 @@ internal static class SabrExtractor
     public static async Task<SabrSource> ExtractAsync(string videoUrl, int maxHeight, string ytdlpPath,
         string? cookiesPath, ILogger log, CancellationToken ct = default, bool fmp4Only = false)
     {
-        // The web client's SABR formats require a GVS PO token; make sure the provider that mints it is up
-        // before we extract, so a missing token surfaces as a clean failure here rather than a mid-stream
-        // attestation stall.
-        if (!await BgUtilPotProvider.WaitReadyAsync(PotProviderTimeout, ct))
+        // A Premium account is served ad-free web SABR and, per yt-dlp's not_required_for_premium, needs
+        // NO GVS PO token — so once we know the account is Premium we stop minting one (and stop waiting
+        // on the provider). We only learn Premium status FROM an extraction, so the first run still uses
+        // the provider; _accountIsPremium then latches it for every run after.
+        var usePotProvider = !_accountIsPremium;
+
+        if (usePotProvider && !await BgUtilPotProvider.WaitReadyAsync(PotProviderTimeout, ct))
             throw new SabrException(
                 "PO token provider (bgutil) is not ready, so the web SABR client cannot be used.");
 
-        var json = await RunYtdlpAsync(videoUrl, ytdlpPath, cookiesPath, log, ct);
+        var json = await RunYtdlpAsync(videoUrl, ytdlpPath, cookiesPath, log, ct, usePotProvider);
 
         var videoId = json["id"]?.Value<string>()
                       ?? throw new SabrException("yt-dlp returned no video id");
 
-        // We drive SABR through the WEB client only. Its formats carry a GVS PO token (minted by the
-        // bgutil provider and surfaced in _sabr_config.po_token); that token, plus the web client_info, is
-        // what the SABR server attests against.
+        // We drive SABR through the WEB client only. For a non-Premium account these formats carry a GVS
+        // PO token (minted by the bgutil provider, surfaced in _sabr_config.po_token) that the SABR server
+        // attests against together with the web client_info; a Premium account gets them without one.
         var formats = (json["formats"] as JArray ?? [])
             .Where(f => f["protocol"]?.Value<string>() == "sabr")
             .Where(f => IsClient(f, "web"))
             .ToList();
 
         if (formats.Count == 0)
+        {
+            // We skipped the PO provider assuming Premium and got nothing back: the assumption was wrong
+            // (or the account is no longer Premium). Clear the latch so the next attempt brings the
+            // provider back — the caller retries on the next getvideo.
+            if (!usePotProvider)
+                _accountIsPremium = false;
             throw new SabrException(
                 "No web-client SABR formats found. yt-dlp may not have used the web client — check cookies " +
                 "and that the bgutil plugin loaded (--plugin-dirs).");
+        }
 
         var client = ClientOf(formats[0]);
 
@@ -99,18 +125,31 @@ internal static class SabrExtractor
             audio["format_id"]?.Value<string>(), audio["acodec"]?.Value<string>(),
             audio["language"]?.Value<string>() ?? "und");
 
+        var streamingUrl = video["url"]?.Value<string>()
+                           ?? throw new SabrException("SABR format carried no streaming URL");
+
+        // A YouTube Premium session is served an ad-free stream tagged with a content tier (ctier) in the
+        // streaming URL and, per yt-dlp's gvs_pot_required(..., not_required_for_premium), does NOT need a
+        // GVS PO token — so bgutil being down (or simply declining to mint one) must not block Premium
+        // playback. A non-Premium web session with no token gets no SABR formats at all, so it already
+        // failed the "no web-client SABR formats" check above and never reaches here; hence a missing
+        // token is only fatal when we are not Premium.
         var poToken = config["po_token"]?.Value<string>();
-        if (string.IsNullOrEmpty(poToken))
+        var isPremium = IsPremiumStream(streamingUrl);
+        // Latch Premium so the next extraction skips the PO provider entirely (see the top of this method).
+        _accountIsPremium = isPremium;
+        if (string.IsNullOrEmpty(poToken) && !isPremium)
             throw new SabrException(
                 "The web SABR format carried no po_token — the bgutil PO token provider did not supply one. " +
                 "SABR playback cannot proceed without it.");
+        if (string.IsNullOrEmpty(poToken))
+            log.Information("SABR: {VideoId} is a Premium session; proceeding without a GVS PO token", videoId);
 
         return new SabrSource
         {
             VideoId = videoId,
             // Every SABR format shares the same ABR streaming URL and ustreamer config.
-            AbrStreamingUrl = video["url"]?.Value<string>()
-                              ?? throw new SabrException("SABR format carried no streaming URL"),
+            AbrStreamingUrl = streamingUrl,
             UstreamerConfig = config["video_playback_ustreamer_config"]?.Value<string>()
                               ?? throw new SabrException("SABR format carried no ustreamer config"),
             ClientInfo = ParseClientInfo(config["client_info"]),
@@ -118,7 +157,9 @@ internal static class SabrExtractor
             AudioFormat = ParseFormatId(audio["_sabr_config"]!),
             VideoFormat = ParseFormatId(config),
             Hdr = hdr,
-            PoToken = poToken,
+            // Empty ⇒ Premium (no token needed); normalise to null so the client omits it rather than
+            // sending an empty PoToken in StreamerContext.
+            PoToken = string.IsNullOrEmpty(poToken) ? null : poToken,
             VideoCodec = video["vcodec"]?.Value<string>() ?? "avc1.4d401f",
             AudioCodec = audio["acodec"]?.Value<string>() ?? "mp4a.40.2",
             Width = video["width"]?.Value<int>() ?? 1920,
@@ -130,8 +171,9 @@ internal static class SabrExtractor
     }
 
     /// <summary>
-    /// Opus by preference — the better codec — except in fMP4-only mode, where it isn't an option:
-    /// YouTube ships Opus exclusively in WebM, which HLS cannot carry as segments.
+    /// Opus by preference — the better codec — except in fMP4-only mode, where it isn't an option
+    /// (YouTube ships Opus exclusively in WebM, which HLS cannot carry as segments), and except when this
+    /// PC can't decode Opus-in-MP4 (<see cref="OpusMp4Check.PreferAacAudio"/>), where we mux AAC instead.
     ///
     /// Language is chosen BEFORE codec/bitrate (see <see cref="PickAudioLanguage"/>): YouTube auto-dubs
     /// a video into a dozen-plus languages that all share the original's itag, and the dubs frequently
@@ -155,6 +197,15 @@ internal static class SabrExtractor
 
         var aac = audio.Where(f => IsAac(f)).MaxBy(Bitrate);
         if (fmp4Only)
+            return aac;
+
+        // This PC can't decode Opus-in-MP4 (out-of-date/older Windows), so mux AAC instead — AVPro plays
+        // it fine now. Keep Opus only if the video has no AAC track at all (better than nothing). See
+        // OpusMp4Check. The IsWindows() guard is required: PreferAacAudio is a Windows-only signal.
+        // SabrForceAacAudio is the test override — exercise this path on a machine that CAN play Opus.
+        var preferAac = ConfigManager.Config.SabrForceAacAudio
+                        || (OperatingSystem.IsWindows() && OpusMp4Check.PreferAacAudio);
+        if (preferAac && aac is not null)
             return aac;
 
         return audio.Where(f => f["acodec"]!.Value<string>()!.StartsWith("opus", StringComparison.Ordinal))
@@ -271,6 +322,17 @@ internal static class SabrExtractor
         format["dynamic_range"]?.Value<string>() is { } range
         && !range.Equals("SDR", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Whether yt-dlp extracted this as a YouTube Premium session. Premium streams are ad-free and carry
+    /// a content tier (<c>ctier</c>) in the streaming URL; a non-Premium web session has none. yt-dlp
+    /// does not surface its own Premium detection in the <c>-J</c> output, so this URL marker is the
+    /// signal we have — and it lines up exactly with the browser's Premium web SABR request.
+    /// </summary>
+    private static bool IsPremiumStream(string streamingUrl) =>
+        Uri.TryCreate(streamingUrl, UriKind.Absolute, out var uri)
+        && uri.Query.TrimStart('?').Split('&')
+            .Any(p => p.StartsWith("ctier=", StringComparison.OrdinalIgnoreCase));
+
     private static int CodecRank(JToken format) => format["vcodec"]?.Value<string>() switch
     {
         { } v when v.StartsWith("avc1", StringComparison.Ordinal) => 0,
@@ -309,12 +371,12 @@ internal static class SabrExtractor
     }
 
     private static async Task<JObject> RunYtdlpAsync(string videoUrl, string ytdlpPath, string? cookiesPath,
-        ILogger log, CancellationToken ct)
+        ILogger log, CancellationToken ct, bool usePotProvider)
     {
         var args = new StringBuilder();
         // formats=duplicate exposes the SABR variants alongside the normal ones. player_client=web pins us
-        // to the web client, whose SABR formats require a GVS PO token that the bgutil plugin supplies.
-        args.Append("-J --no-warnings --extractor-args \"youtube:formats=duplicate;player_client=web\" ");
+        // to the web client, whose SABR formats require a GVS PO token (non-Premium) that bgutil supplies.
+        args.Append("-J --no-playlist --no-warnings --extractor-args \"youtube:formats=duplicate;player_client=web\" ");
         // The web client's streaming URL carries an 'n' challenge yt-dlp must descramble during extraction,
         // which needs a JS runtime. (android_vr didn't — REQUIRE_JS_PLAYER was false there.)
         if (File.Exists(YtdlManager.DenoPath))
@@ -324,10 +386,16 @@ internal static class SabrExtractor
         // base_url explicitly rather than relying on the plugin's auto-detect default (127.0.0.1) — the
         // server binds IPv6 "::", so a bare 127.0.0.1 is refused on Windows; "localhost" (the
         // SabrPotBaseUrl default) resolves to both families and connects. See ConfigManager.
-        args.Append($"--plugin-dirs \"{BgUtilPotProvider.PluginSearchDir}\" ");
-        args.Append($"--extractor-args \"youtubepot-bgutilhttp:base_url={BgUtilPotProvider.BaseUrl}\" ");
+        // Skipped entirely for a Premium account, which needs no GVS PO token — so yt-dlp mints none.
+        if (usePotProvider)
+            foreach (var potArg in BgUtilPotProvider.ExtractorArgs)
+                args.Append(potArg).Append(' ');
         if (!string.IsNullOrEmpty(cookiesPath) && File.Exists(cookiesPath))
             args.Append($"--cookies \"{cookiesPath}\" ");
+        // Operator overrides for the SABR extraction specifically (separate from YtdlpAdditionalArgs,
+        // which is for the non-SABR path). Appended last so they can override the defaults above.
+        if (!string.IsNullOrWhiteSpace(ConfigManager.Config.SabrAdditionalArgs))
+            args.Append($"{ConfigManager.Config.SabrAdditionalArgs.Trim()} ");
         args.Append($"\"{videoUrl}\"");
 
         using var process = new Process

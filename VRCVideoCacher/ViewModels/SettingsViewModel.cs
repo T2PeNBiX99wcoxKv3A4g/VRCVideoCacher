@@ -58,6 +58,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
 
+    [ObservableProperty]
+    private string _sabrAdditionalArgs = string.Empty;
+
     // Cache Settings
     [ObservableProperty] public partial string CachedAssetPath { get; set; } = string.Empty;
 
@@ -153,6 +156,7 @@ public partial class SettingsViewModel : ViewModelBase
         SabrFilterDrcAudio = config.SabrFilterDrcAudio;
         SabrFilterSuperResolution = config.SabrFilterSuperResolution;
         SabrFilterVoiceBoostedAudio = config.SabrFilterVoiceBoostedAudio;
+        SabrAdditionalArgs = config.SabrAdditionalArgs;
         CachedAssetPath = config.CachedAssetPath;
         CacheYouTube = config.CacheYouTube;
         CacheYouTubeMaxResolution = config.CacheYouTubeMaxResolution;
@@ -216,6 +220,32 @@ public partial class SettingsViewModel : ViewModelBase
             SetHasChanges();
     }
 
+    partial void OnWebServerUrlChanged(string value) => SetHasChanges();
+    partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
+    partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
+    partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
+    partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
+    partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
+    partial void OnSabrFilterSuperResolutionChanged(bool value) => SetHasChanges();
+    partial void OnSabrFilterVoiceBoostedAudioChanged(bool value) => SetHasChanges();
+    partial void OnSabrAdditionalArgsChanged(string value) => SetHasChanges();
+    partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
+    partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
+    partial void OnCacheYouTubeMaxResolutionChanged(int value) => SetHasChanges();
+    partial void OnCacheYouTubeMaxLengthChanged(int value) => SetHasChanges();
+    partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
+    partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
+    partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
+    partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
+    partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
+    partial void OnPatchVRCChanged(bool value) => SetHasChanges();
+    partial void OnAutoUpdateChanged(bool value) => SetHasChanges();
+    partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
+    partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
+    partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
+    partial void OnBlockRedirectChanged(string value) => SetHasChanges();
+    partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
+
     [RelayCommand]
     private void SaveSettings()
     {
@@ -234,6 +264,7 @@ public partial class SettingsViewModel : ViewModelBase
         config.SabrFilterDrcAudio = SabrFilterDrcAudio;
         config.SabrFilterSuperResolution = SabrFilterSuperResolution;
         config.SabrFilterVoiceBoostedAudio = SabrFilterVoiceBoostedAudio;
+        config.SabrAdditionalArgs = SabrAdditionalArgs;
         config.CachedAssetPath = CachedAssetPath;
         config.CacheYouTube = CacheYouTube;
         config.CacheYouTubeMaxResolution = CacheYouTubeMaxResolution;
