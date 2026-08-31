@@ -237,38 +237,51 @@ public class YtdlManager
         Log.Information("Downloading Deno...");
         var url = assets.First().browser_download_url;
 
-        using var response = await HttpClient.GetAsync(url);
-        if (!response.IsSuccessStatusCode)
+        try
         {
+            using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Log.Information("Failed to download deno from github attempting fallback download.");
+                await TryDownloadDenoFallback(assetName);
+                return;
+            }
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            var reader = await ReaderFactory.OpenAsyncReader(responseStream);
+
+            try
+            {
+                while (await reader.MoveToNextEntryAsync())
+                {
+                    if (reader.Entry.Key == null || reader.Entry.IsDirectory)
+                        continue;
+
+                    Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
+                    var path = Path.Join(Program.UtilsPath, reader.Entry.Key);
+                    await using var outputStream =
+                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using var entryStream = await reader.OpenEntryStreamAsync();
+                    await entryStream.CopyToAsync(outputStream);
+                    FileTools.MarkFileExecutable(path);
+                    Versions.CurrentVersion.Deno = json.tag_name;
+                    Versions.Save();
+                    Log.Information("Deno downloaded and extracted.");
+                    return;
+                }
+            }
+            finally
+            {
+                await reader.DisposeAsync();
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Backend error: {Message}", e.Message);
             Log.Information("Failed to download deno from github attempting fallback download.");
             await TryDownloadDenoFallback(assetName);
             return;
-        }
-
-        await using var responseStream = await response.Content.ReadAsStreamAsync();
-        var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-        try
-        {
-            while (await reader.MoveToNextEntryAsync())
-            {
-                if (reader.Entry.Key == null || reader.Entry.IsDirectory)
-                    continue;
-
-                Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
-                var path = Path.Join(Program.UtilsPath, reader.Entry.Key);
-                await using var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-                await using var entryStream = await reader.OpenEntryStreamAsync();
-                await entryStream.CopyToAsync(outputStream);
-                FileTools.MarkFileExecutable(path);
-                Versions.CurrentVersion.Deno = json.tag_name;
-                Versions.Save();
-                Log.Information("Deno downloaded and extracted.");
-                return;
-            }
-        }
-        finally
-        {
-            await reader.DisposeAsync();
         }
 
         Log.Error("Failed to extract Deno files.");
@@ -286,7 +299,7 @@ public class YtdlManager
 
         var latestVersion = (await response.Content.ReadAsStringAsync()).Trim();
         var url = $"{DenoFallBackDownloadURL}{latestVersion}/{assetName}";
-        using var downloadResponse = await HttpClient.GetAsync(url);
+        using var downloadResponse = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         if (!downloadResponse.IsSuccessStatusCode)
         {
             Log.Error("Failed to download Deno from fallback URL: {ResponseStatusCode}", downloadResponse.StatusCode);
@@ -398,7 +411,7 @@ public class YtdlManager
 
         Log.Information("Downloading FFmpeg...");
 
-        using var response = await HttpClient.GetAsync(url);
+        using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         await using var responseStream = await response.Content.ReadAsStreamAsync();
         var reader = await ReaderFactory.OpenAsyncReader(responseStream);
         var success = false;
@@ -459,11 +472,8 @@ public class YtdlManager
         else
             throw new($"Unsupported operating system {Environment.OSVersion}");
 
-        foreach (var assetVersion in json.assets)
+        foreach (var assetVersion in json.assets.Where(assetVersion => assetVersion.name == assetName))
         {
-            if (assetVersion.name != assetName)
-                continue;
-
             await using var stream = await HttpClient.GetStreamAsync(assetVersion.browser_download_url);
             if (string.IsNullOrEmpty(Program.UtilsPath))
                 throw new("Failed to get YT-DLP path");
