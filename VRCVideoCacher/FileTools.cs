@@ -16,7 +16,9 @@ public class FileTools
     private static readonly string? BackupPathVrc;
     private static readonly string? YtdlPathReso;
     private static readonly string? BackupPathReso;
-    private static readonly ImmutableList<string> SteamPaths = [".var/app/com.valvesoftware.Steam/data/Steam", ".steam/steam", ".local/share/Steam"];
+
+    private static readonly ImmutableList<string> SteamPaths =
+        [".var/app/com.valvesoftware.Steam/data/Steam", ".steam/steam", ".local/share/Steam"];
 
     static FileTools()
     {
