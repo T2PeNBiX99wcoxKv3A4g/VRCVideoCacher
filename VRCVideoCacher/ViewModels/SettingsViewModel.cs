@@ -58,8 +58,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private string _sabrAdditionalArgs = string.Empty;
+    [ObservableProperty] public partial string SabrAdditionalArgs { get; set; } = string.Empty;
 
     // Cache Settings
     [ObservableProperty] public partial string CachedAssetPath { get; set; } = string.Empty;
@@ -220,6 +219,7 @@ public partial class SettingsViewModel : ViewModelBase
             SetHasChanges();
     }
 
+    // ReSharper disable UnusedParameterInPartialMethod
     partial void OnWebServerUrlChanged(string value) => SetHasChanges();
     partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
     partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
@@ -245,6 +245,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
     partial void OnBlockRedirectChanged(string value) => SetHasChanges();
     partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
+    // ReSharper restore UnusedParameterInPartialMethod
 
     [RelayCommand]
     private void SaveSettings()
@@ -325,32 +326,4 @@ public partial class SettingsViewModel : ViewModelBase
     {
         RedirectUrls.Remove(url);
     }
-
-    // ReSharper disable UnusedParameterInPartialMethod
-    partial void OnWebServerUrlChanged(string value) => SetHasChanges();
-    partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
-    partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
-    partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterSuperResolutionChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterVoiceBoostedAudioChanged(bool value) => SetHasChanges();
-    partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
-    partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxResolutionChanged(int value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxLengthChanged(int value) => SetHasChanges();
-    partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
-    partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
-    partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
-    partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
-    partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
-    partial void OnPatchVRCChanged(bool value) => SetHasChanges();
-    partial void OnAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
-    partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
-    partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
-    partial void OnBlockRedirectChanged(string value) => SetHasChanges();
-
-    partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
-    // ReSharper restore UnusedParameterInPartialMethod
 }
