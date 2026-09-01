@@ -60,6 +60,19 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial string SabrAdditionalArgs { get; set; } = string.Empty;
 
+    // YouTube SABR Options
+    [ObservableProperty]
+    private bool _sabrFilterDrcAudio;
+
+    [ObservableProperty]
+    private bool _sabrFilterSuperResolution;
+
+    [ObservableProperty]
+    private bool _sabrFilterVoiceBoostedAudio;
+
+    [ObservableProperty]
+    private string _sabrAdditionalArgs = string.Empty;
+
     // Cache Settings
     [ObservableProperty] public partial string CachedAssetPath { get; set; } = string.Empty;
 
