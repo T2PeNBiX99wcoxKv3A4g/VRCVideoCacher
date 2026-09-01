@@ -39,12 +39,6 @@ public partial class SettingsViewModel : ViewModelBase
         LoadFromConfig();
     }
 
-    // YouTube SABR Options
-    [ObservableProperty] public partial bool SabrFilterDrcAudio { get; set; }
-
-    [ObservableProperty] public partial bool SabrFilterSuperResolution { get; set; }
-
-    [ObservableProperty] public partial bool SabrFilterVoiceBoostedAudio { get; set; }
 
     // Server Settings
     [ObservableProperty] public partial string WebServerUrl { get; set; } = string.Empty;
@@ -58,20 +52,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial string SabrAdditionalArgs { get; set; } = string.Empty;
-
     // YouTube SABR Options
-    [ObservableProperty]
-    private bool _sabrFilterDrcAudio;
+    [ObservableProperty] public partial bool SabrFilterDrcAudio { get; set; }
 
-    [ObservableProperty]
-    private bool _sabrFilterSuperResolution;
+    [ObservableProperty] public partial bool SabrFilterSuperResolution { get; set; }
 
-    [ObservableProperty]
-    private bool _sabrFilterVoiceBoostedAudio;
+    [ObservableProperty] public partial bool SabrFilterVoiceBoostedAudio { get; set; }
 
-    [ObservableProperty]
-    private string _sabrAdditionalArgs = string.Empty;
+    [ObservableProperty] public partial string SabrAdditionalArgs { get; set; } = string.Empty;
 
     // Cache Settings
     [ObservableProperty] public partial string CachedAssetPath { get; set; } = string.Empty;

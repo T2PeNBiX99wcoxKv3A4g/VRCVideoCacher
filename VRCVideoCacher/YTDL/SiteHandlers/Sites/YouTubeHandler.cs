@@ -79,13 +79,6 @@ public partial class YouTubeHandler : ISiteHandler
         if (!SabrExtractor.AccountIsPremium && BgUtilPotProvider.IsReady)
             args.AddRange(BgUtilPotProvider.ExtractorArgs);
 
-        // Send a GVS PO token on the legacy path too, exactly as SABR does: YouTube increasingly
-        // bot-checks token-less extractions, and this is what stops it. Non-Premium only (Premium needs
-        // none — SabrExtractor.AccountIsPremium), and only when the provider is actually up so we never
-        // stall or fail the legacy path on a provider that is disabled or still coming online.
-        if (!SabrExtractor.AccountIsPremium && BgUtilPotProvider.IsReady)
-            args.AddRange(BgUtilPotProvider.ExtractorArgs);
-
         return args;
     }
 
