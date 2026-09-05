@@ -441,6 +441,12 @@ internal static class BgUtilPotProvider
         }
     }
 
+    /// <summary>
+    /// Active health check for status display: pings the provider regardless of the SABR toggle — the
+    /// legacy yt-dlp path needs the PO token too — and returns whether it answered.
+    /// </summary>
+    public static Task<bool> IsRespondingAsync() => PingAsync();
+
     private static async Task<bool> PingAsync()
     {
         try

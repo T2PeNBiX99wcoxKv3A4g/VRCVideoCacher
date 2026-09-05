@@ -197,7 +197,7 @@ internal sealed class Program
             // VRChat then shows as a video that never plays. Nothing in any log says so — hence the
             // explicit check. Runs off the startup path; it costs a decode of a ~1s clip.
             if (OperatingSystem.IsWindows())
-                _ = Task.Run(OpusMp4Check.Run);
+                _ = OpusMp4Check.EnsureAsync();
         }
 
         if (OperatingSystem.IsWindows())
