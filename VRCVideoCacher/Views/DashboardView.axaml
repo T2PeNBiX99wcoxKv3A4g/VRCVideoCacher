@@ -12,7 +12,9 @@
         Grid.Row="0"
         Background="#1a73e8"
         IsVisible="{Binding HasMotd}"
-        Padding="12,8">
+        BorderBrush="#8ab4f8"
+        BorderThickness="0,0,0,2"
+        Padding="16,12">
         <!-- The MOTD is remote text rendered as markdown so it can carry clickable links.
              HyperlinkButton's themed accent colour is unreadable on this blue, so links are
              restyled to white + underline to read as links against the banner.
@@ -35,12 +37,17 @@
                 <Setter Property="Foreground" Value="#b9d0ff"/>
             </Style>
         </Border.Styles>
-        <TextBlock
-            Foreground="White"
-            ctl:MarkdownText.Text="{Binding Motd}"
-            TextWrapping="Wrap"
-            HorizontalAlignment="Center"
-            FontWeight="Medium" />
+        <Grid ColumnDefinitions="Auto, *">
+            <mi:MaterialIcon Grid.Column="0" Kind="Bullhorn" Width="28" Height="28"
+                             Foreground="White" VerticalAlignment="Center" Margin="0,0,14,0"/>
+            <TextBlock Grid.Column="1"
+                       Foreground="White"
+                       ctl:MarkdownText.Text="{Binding Motd}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       FontSize="16"
+                       FontWeight="Bold" />
+        </Grid>
     </Border>
     <ScrollViewer Grid.Row="1">
         
