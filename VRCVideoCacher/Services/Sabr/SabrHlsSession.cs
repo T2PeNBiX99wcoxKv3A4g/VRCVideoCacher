@@ -63,10 +63,18 @@ internal sealed class SabrHlsSession : ISabrSession
 
     private DateTime _lastAccess = DateTime.UtcNow;
 
+    // True while a fill task is actively pulling fragments over SABR. Assumed true until the first fill
+    // finishes, so a freshly-created session reads as "streaming". A seek starts a new fill (true again).
+    private volatile bool _isFetching = true;
+    private int _fillGeneration;
+
     public string PlaybackUrl { get; }
     public string VideoId => _videoId;
     public TimeSpan IdleFor => DateTime.UtcNow - _lastAccess;
     public long DurationMs => _videoIndex.TotalDurationMs;
+
+    /// <summary>Whether we are currently fetching this video over SABR (drives the "Streaming" status).</summary>
+    public bool IsFetching => _isFetching;
 
     /// <summary>
     /// Raised once the session holds every fragment of the video, so the fetched media can be turned into
@@ -163,6 +171,11 @@ internal sealed class SabrHlsSession : ISabrSession
             _fillCts = new CancellationTokenSource();
             var ct = _fillCts.Token;
 
+            // This fill is now the active one; only its own completion may clear the fetching flag (a later
+            // fill bumps the generation, so a superseded fill's finally is ignored).
+            var fillGeneration = ++_fillGeneration;
+            _isFetching = true;
+
             _videoFillStart = _videoIndex.IndexAt(fromMs);
             _fillHead = _videoFillStart - 1;
 
@@ -192,6 +205,9 @@ internal sealed class SabrHlsSession : ISabrSession
                 finally
                 {
                     http.Dispose();
+                    // Only the latest fill clears the flag; a fill cancelled by a newer one leaves it set.
+                    if (fillGeneration == _fillGeneration)
+                        _isFetching = false;
                 }
             }, ct);
         }

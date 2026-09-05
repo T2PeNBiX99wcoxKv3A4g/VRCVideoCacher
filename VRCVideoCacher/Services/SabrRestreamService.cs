@@ -363,7 +363,15 @@ public static class SabrRestreamService
                             session.IdleFor > TimeSpan.FromSeconds(10);
 
                 if (!ended && session.IdleFor <= (isLive ? LiveIdleTimeout : IdleTimeout))
+                {
+                    // The session is kept alive (for seeks / cache convergence) for the full idle window, but
+                    // the "Streaming" indicator should only show while we're actually pulling fragments over
+                    // SABR — otherwise it lingers on the status bar for the whole 2-minute reap after playback
+                    // stopped. Live streams continuously, so its indicator stays until the (short) reap.
+                    if (session is SabrHlsSession hls)
+                        SyncStreamIndicator(id, hls.IsFetching);
                     continue;
+                }
 
                 Log.Information("Tearing down SABR session for {VideoId} ({Reason}, idle {Idle:g})",
                     id, ended ? "broadcast ended" : "idle", session.IdleFor);
@@ -380,6 +388,27 @@ public static class SabrRestreamService
 
                 session.Dispose();
             }
+        }
+    }
+
+    /// <summary>
+    /// Shows the "Streaming X" status while a VOD session is fetching over SABR and clears it when the fetch
+    /// stops — recreated if a later seek starts fetching again. Called from the reaper poll.
+    /// </summary>
+    private static void SyncStreamIndicator(string videoId, bool fetching)
+    {
+        if (fetching)
+        {
+            if (StreamActivities.ContainsKey(videoId))
+                return;
+            var activity = StatusService.Begin(StatusCategory.Streaming,
+                string.Format(Localizer.Get("StatusStreaming"), videoId));
+            if (!StreamActivities.TryAdd(videoId, activity))
+                activity.Dispose();
+        }
+        else if (StreamActivities.TryRemove(videoId, out var activity))
+        {
+            activity.Dispose();
         }
     }
 
