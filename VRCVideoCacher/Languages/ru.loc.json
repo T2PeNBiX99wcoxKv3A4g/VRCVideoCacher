@@ -37,6 +37,12 @@
   "Expired": "Истек",
   "Unknown": "Неизвестен",
   "ServerRunning": "Сервер работает",
+  "StatusDownloading": "Загрузка {0}",
+  "StatusStreaming": "Трансляция {0}",
+  "StatusUpdatingApp": "Обновление VRCVideoCacher",
+  "StatusProviderSetup": "Настройка провайдера PO-токенов",
+  "StatusProviderWaiting": "Ожидание провайдера PO-токенов",
+  "StatusMore": " (ещё {0})",
 
   "ServerSettings": "Настройки сервера",
   "WebServerUrl": "URL-Веб сервера",

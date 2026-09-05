@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Jeek.Avalonia.Localization;
 using Newtonsoft.Json;
 using Serilog;
 using SharpCompress.Readers;
@@ -225,14 +226,18 @@ public class YtdlManager
         Log.Information("Downloading Deno...");
         var url = assets.First().browser_download_url;
 
-        using var response = await HttpClient.GetAsync(url);
+        using var activity = StatusService.Begin(StatusCategory.Provisioning,
+            string.Format(Localizer.Get("StatusDownloading"), "Deno"));
+
+        using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         if (!response.IsSuccessStatusCode)
         {
             Log.Information("Failed to download deno from github attempting fallback download.");
-            await TryDownloadDenoFallback(assetName);
+            await TryDownloadDenoFallback(assetName, activity);
             return;
         }
-        await using var responseStream = await response.Content.ReadAsStreamAsync();
+        await using var responseStream = new ProgressStream(
+            await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength, activity.Report);
         var reader = await ReaderFactory.OpenAsyncReader(responseStream);
         try
         {
@@ -261,7 +266,7 @@ public class YtdlManager
         Log.Error("Failed to extract Deno files.");
     }
 
-    private static async Task TryDownloadDenoFallback(string assetName)
+    private static async Task TryDownloadDenoFallback(string assetName, StatusActivity activity)
     {
         Log.Warning("Falling back to Deno version check via text file.");
         using var response = await HttpClient.GetAsync(DenoFallBackVersionURL);
@@ -272,14 +277,15 @@ public class YtdlManager
         }
         var latestVersion = (await response.Content.ReadAsStringAsync()).Trim();
         var url = $"{DenoFallBackDownloadURL}{latestVersion}/{assetName}";
-        using var downloadResponse = await HttpClient.GetAsync(url);
+        using var downloadResponse = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         if (!downloadResponse.IsSuccessStatusCode)
         {
             Log.Error("Failed to download Deno from fallback URL: {ResponseStatusCode}", downloadResponse.StatusCode);
             return;
         }
 
-        await using var responseStream = await downloadResponse.Content.ReadAsStreamAsync();
+        await using var responseStream = new ProgressStream(
+            await downloadResponse.Content.ReadAsStreamAsync(), downloadResponse.Content.Headers.ContentLength, activity.Report);
         var reader = await ReaderFactory.OpenAsyncReader(responseStream);
         try
         {
@@ -382,8 +388,12 @@ public class YtdlManager
         }
         Log.Information("Downloading FFmpeg...");
 
-        using var response = await HttpClient.GetAsync(url);
-        await using var responseStream = await response.Content.ReadAsStreamAsync();
+        using var activity = StatusService.Begin(StatusCategory.Provisioning,
+            string.Format(Localizer.Get("StatusDownloading"), "FFmpeg"));
+
+        using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        await using var responseStream = new ProgressStream(
+            await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength, activity.Report);
         var reader = await ReaderFactory.OpenAsyncReader(responseStream);
         var success = false;
         try
@@ -454,7 +464,12 @@ public class YtdlManager
             if (assetVersion.name != assetName)
                 continue;
 
-            await using var stream = await HttpClient.GetStreamAsync(assetVersion.browser_download_url);
+            using var activity = StatusService.Begin(StatusCategory.Provisioning,
+                string.Format(Localizer.Get("StatusDownloading"), "yt-dlp"));
+            using var response = await HttpClient.GetAsync(assetVersion.browser_download_url,
+                HttpCompletionOption.ResponseHeadersRead);
+            await using var stream = new ProgressStream(
+                await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength, activity.Report);
             if (string.IsNullOrEmpty(Program.UtilsPath))
                 throw new Exception("Failed to get YT-DLP path");
 

@@ -37,6 +37,12 @@
   "Expired": "만료됨",
   "Unknown": "알 수 없음",
   "ServerRunning": "서버 실행 중",
+  "StatusDownloading": "{0} 다운로드 중",
+  "StatusStreaming": "{0} 스트리밍 중",
+  "StatusUpdatingApp": "VRCVideoCacher 업데이트 중",
+  "StatusProviderSetup": "PO 토큰 제공자 설정 중",
+  "StatusProviderWaiting": "PO 토큰 제공자 대기 중",
+  "StatusMore": " (외 {0}개)",
 
   "ServerSettings": "서버 설정",
   "WebServerUrl": "웹 서버 URL",

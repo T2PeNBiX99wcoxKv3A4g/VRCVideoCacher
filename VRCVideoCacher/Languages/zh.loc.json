@@ -37,6 +37,12 @@
   "Expired": "已过期",
   "Unknown": "未知",
   "ServerRunning": "服务器运行中",
+  "StatusDownloading": "正在下载 {0}",
+  "StatusStreaming": "正在流式传输 {0}",
+  "StatusUpdatingApp": "正在更新 VRCVideoCacher",
+  "StatusProviderSetup": "正在设置 PO 令牌提供程序",
+  "StatusProviderWaiting": "正在等待 PO 令牌提供程序",
+  "StatusMore": "（还有 {0} 项）",
 
   "ServerSettings": "服务器设置",
   "WebServerUrl": "Web 服务器地址",

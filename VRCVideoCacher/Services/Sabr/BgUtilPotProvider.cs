@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Jeek.Avalonia.Localization;
 using Newtonsoft.Json;
 using Serilog;
 using SharpCompress.Readers;
@@ -158,6 +159,12 @@ internal static class BgUtilPotProvider
 
         Ensure();
 
+        if (_isReady)
+            return true;
+
+        using var activity = StatusService.Begin(StatusCategory.Provisioning,
+            Localizer.Get("StatusProviderWaiting"));
+
         var deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
         {
@@ -176,6 +183,8 @@ internal static class BgUtilPotProvider
         if (IsAutoManaged)
         {
             ReassignPortIfInUse();
+            using var activity = StatusService.Begin(StatusCategory.Provisioning,
+                Localizer.Get("StatusProviderSetup"));
             try
             {
                 await EnsureInstalledAsync();

@@ -37,6 +37,12 @@
   "Expired": "Lejárt",
   "Unknown": "Ismeretlen",
   "ServerRunning": "Szerver Fut",
+  "StatusDownloading": "{0} letöltése",
+  "StatusStreaming": "{0} streamelése",
+  "StatusUpdatingApp": "VRCVideoCacher frissítése",
+  "StatusProviderSetup": "PO token szolgáltató beállítása",
+  "StatusProviderWaiting": "Várakozás a PO token szolgáltatóra",
+  "StatusMore": " (+{0} további)",
 
   "ServerSettings": "Szerver Beállítások",
   "WebServerUrl": "Web Szerver URL",

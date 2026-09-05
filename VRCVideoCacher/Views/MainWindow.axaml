@@ -126,7 +126,14 @@
         <!-- Status Bar -->
         <Border Grid.Row="1" Background="#252525" Padding="10,5">
             <Grid ColumnDefinitions="*, Auto">
-                <TextBlock Grid.Column="0" Text="{Binding StatusText}" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <ProgressBar Width="130" Height="4" Minimum="0" Maximum="1"
+                                 VerticalAlignment="Center"
+                                 IsVisible="{Binding StatusShowBar}"
+                                 IsIndeterminate="{Binding StatusIndeterminate}"
+                                 Value="{Binding StatusProgress}"/>
+                    <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusColor}" VerticalAlignment="Center"/>
+                </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding CacheStatusText}" VerticalAlignment="Center"/>
             </Grid>
         </Border>

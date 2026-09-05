@@ -2,8 +2,10 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog.Events;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -12,8 +14,10 @@ public partial class LogViewerViewModel : ViewModelBase
     [ObservableProperty]
     private string _filterText = string.Empty;
 
+    // Off by default: Debug/trace is not captured at all (keeping it out of the log file and buffer). Turning
+    // it on lowers the live log level so debug output starts flowing — see OnShowDebugChanged.
     [ObservableProperty]
-    private bool _showDebug = true;
+    private bool _showDebug;
 
     [ObservableProperty]
     private bool _showInfo = true;
@@ -102,7 +106,14 @@ public partial class LogViewerViewModel : ViewModelBase
     }
 
     partial void OnFilterTextChanged(string value) => ApplyFilter();
-    partial void OnShowDebugChanged(bool value) => ApplyFilter();
+
+    partial void OnShowDebugChanged(bool value)
+    {
+        // Capture Debug/trace only while the toggle is on, so it never spams the log file or buffer by
+        // default. Information is the floor either way.
+        LoggerUtils.LevelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
+        ApplyFilter();
+    }
     partial void OnShowInfoChanged(bool value) => ApplyFilter();
     partial void OnShowWarningChanged(bool value) => ApplyFilter();
     partial void OnShowErrorChanged(bool value) => ApplyFilter();

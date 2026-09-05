@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using Sentry.Serilog;
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Serilog.Templates;
 using Serilog.Templates.Themes;
 using VRCVideoCacher.Services;
@@ -13,6 +15,13 @@ public static class LoggerUtils
     private static readonly string LogsPath = Path.Join(Program.DataPath, "Logs");
     private static DateTime? LoggerStartDateTime;
 
+    /// <summary>
+    /// Controls the live minimum log level for every sink (console, file, UI). Defaults to Information so
+    /// the Debug/trace output never spams the log or the log file; the LogViewer's Debug toggle flips this
+    /// to <see cref="LogEventLevel.Debug"/> at runtime to bring it back.
+    /// </summary>
+    public static readonly LoggingLevelSwitch LevelSwitch = new(LogEventLevel.Information);
+
     public static void InitializeLogger()
     {
         if (LaunchArgs.ErrorReporting)
@@ -22,7 +31,8 @@ public static class LoggerUtils
 
         LoggerStartDateTime = DateTime.Now;
         var loggerConfiguration = new LoggerConfiguration()
-            .MinimumLevel.Debug()
+            // Information and above by default; the LogViewer's Debug toggle lowers LevelSwitch at runtime.
+            .MinimumLevel.ControlledBy(LevelSwitch)
             .WriteTo.Console(new ExpressionTemplate(
                 "[{@t:HH:mm:ss} {@l:u3} {Coalesce(Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1),'<none>')}] {@m}" + Environment.NewLine + "{@x}",
                 theme: TemplateTheme.Literate))

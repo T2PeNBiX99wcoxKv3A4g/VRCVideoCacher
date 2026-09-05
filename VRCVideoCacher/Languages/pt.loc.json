@@ -37,6 +37,12 @@
   "Expired": "Expirado",
   "Unknown": "Desconhecido",
   "ServerRunning": "Servidor em execução",
+  "StatusDownloading": "Baixando {0}",
+  "StatusStreaming": "Transmitindo {0}",
+  "StatusUpdatingApp": "Atualizando o VRCVideoCacher",
+  "StatusProviderSetup": "Configurando o provedor de token PO",
+  "StatusProviderWaiting": "Aguardando o provedor de token PO",
+  "StatusMore": " (+{0} mais)",
 
   "ServerSettings": "Preferências de servidor",
   "WebServerUrl": "URL de Web Servidor",
