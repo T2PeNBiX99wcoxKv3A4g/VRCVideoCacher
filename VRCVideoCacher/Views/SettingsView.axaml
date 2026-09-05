@@ -10,19 +10,19 @@
         <!-- Header -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto, Auto" Margin="10">
             <TextBlock Text="{l:Localize Settings}" FontSize="24" FontWeight="Bold"/>
-            
+
             <!-- Status Message -->
             <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Margin="15,0" VerticalAlignment="Center"
                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                        Foreground="{Binding StatusMessageColor}"/>
-            
+
             <Button Grid.Column="2" Command="{Binding ResetToDefaultsCommand}" Margin="0,0,10,0">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <mi:MaterialIcon Kind="Undo" Width="16" Height="16"/>
                     <TextBlock Text="{l:Localize Reset}"/>
                 </StackPanel>
             </Button>
-            
+
             <Button Grid.Column="3" Command="{Binding SaveSettingsCommand}" Classes="accent">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <mi:MaterialIcon Kind="ContentSave" Width="16" Height="16"/>
@@ -32,17 +32,18 @@
 
 
         </Grid>
-        
+
         <ScrollViewer Grid.Row="1">
             <StackPanel Spacing="20" Margin="10">
                 <!-- General Settings -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
+                <Border Background="#2d2d2d" CornerRadius="8" Padding="15">
+                    <StackPanel Spacing="10">
                         <TextBlock Text="{l:Localize General}" FontWeight="SemiBold" FontSize="16"/>
 
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="{l:Localize Language}"/>
-                            <ComboBox ItemsSource="{Binding AvailableLanguageOptions}"
+                        <Grid ColumnDefinitions="Auto, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize Language}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding AvailableLanguageOptions}"
                                       SelectedItem="{Binding SelectedLanguageOption}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -50,47 +51,17 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                        </StackPanel>
-                        
-                        <CheckBox IsChecked="{Binding CloseToTray}" Content="{l:Localize CloseToTray}"/>
+                        </Grid>
 
-                        <CheckBox IsChecked="{Binding StartMinimized}" Content="{l:Localize StartMinimized}"/>
+                        <!-- Compact two-column layout for the general toggles -->
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="15" RowSpacing="5">
+                            <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding CloseToTray}" Content="{l:Localize CloseToTray}"/>
+                            <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding StartMinimized}" Content="{l:Localize StartMinimized}"/>
+                            <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding StartWithSteamVr}" Content="{l:Localize StartWithSteamVr}"/>
+                            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding ErrorPopups}" Content="{l:Localize ErrorPopups}"/>
+                        </Grid>
 
-                        <CheckBox IsChecked="{Binding StartWithSteamVr}" Content="{l:Localize StartWithSteamVr}"/>
-
-                        <CheckBox IsChecked="{Binding ErrorPopups}" Content="{l:Localize ErrorPopups}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Server Settings -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                        <TextBlock Text="{l:Localize ServerSettings}" FontWeight="SemiBold" FontSize="16"/>
-
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="{l:Localize WebServerUrl}"/>
-                            <TextBox Text="{Binding WebServerUrl}" PlaceholderText="http://localhost:9696"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- Download Settings -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                        <TextBlock Text="{l:Localize DownloadSettings}" FontWeight="SemiBold" FontSize="16"/>
-
-                        <CheckBox IsChecked="{Binding YtdlUseCookies}" Content="{l:Localize UseYouTubeCookies}"/>
-                        <CheckBox IsChecked="{Binding YtdlAutoUpdate}" Content="{l:Localize AutoUpdateUtils}"/>
-
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="{l:Localize AdditionalYtdlpArgs}"/>
-                            <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="Optional arguments"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="{l:Localize PreferredDubLanguage}"/>
-                            <TextBox Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original"/>
-                        </StackPanel>
+                        <CheckBox IsChecked="{Binding ShowAdvanced}" Content="{l:Localize ShowAdvancedSettings}"/>
                     </StackPanel>
                 </Border>
 
@@ -113,9 +84,29 @@
                                   Content="{l:Localize SabrFilterVoiceBoostedAudio}"
                                   ToolTip.Tip="{l:Localize SabrFilterVoiceBoostedAudioTooltip}"/>
 
-                        <StackPanel Spacing="5">
+                        <StackPanel Spacing="5" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize SabrAdditionalArgs}"/>
                             <TextBox Text="{Binding SabrAdditionalArgs}" PlaceholderText="Optional arguments"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Download Settings -->
+                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="{l:Localize DownloadSettings}" FontWeight="SemiBold" FontSize="16"/>
+
+                        <CheckBox IsChecked="{Binding YtdlUseCookies}" Content="{l:Localize UseYouTubeCookies}"/>
+                        <CheckBox IsChecked="{Binding YtdlAutoUpdate}" Content="{l:Localize AutoUpdateUtils}"/>
+
+                        <StackPanel Spacing="5" IsVisible="{Binding ShowAdvanced}">
+                            <TextBlock Text="{l:Localize AdditionalYtdlpArgs}"/>
+                            <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="Optional arguments"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{l:Localize PreferredDubLanguage}"/>
+                            <TextBox Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -156,58 +147,73 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Game Patching -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                        <TextBlock Text="{l:Localize GamePatching}" FontWeight="SemiBold" FontSize="16"/>
+                <!-- Advanced sections (revealed by the "Show advanced settings" toggle) -->
+                <StackPanel Spacing="20" IsVisible="{Binding ShowAdvanced}">
+                    <!-- Server Settings -->
+                    <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="{l:Localize ServerSettings}" FontWeight="SemiBold" FontSize="16"/>
 
-                        <CheckBox IsChecked="{Binding PatchVRC}" Content="{l:Localize PatchVRChat}"/>
-                        <CheckBox IsChecked="{Binding PatchResonite}" Content="{l:Localize PatchResonite}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Updates -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                        <TextBlock Text="{l:Localize Updates}" FontWeight="SemiBold" FontSize="16"/>
-
-                        <CheckBox IsChecked="{Binding AutoUpdate}" Content="{l:Localize AutoUpdateVRCVideoCacher}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Blocked URLs -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <TextBlock Text="{l:Localize BlockedUrls}" FontWeight="SemiBold" FontSize="16"/>
-                            <Button Grid.Column="1" Command="{Binding AddBlockedUrlCommand}">
-                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
-                                    <TextBlock Text="{l:Localize Add}"/>
-                                </StackPanel>
-                            </Button>
-                        </Grid>
-
-                        <ItemsControl ItemsSource="{Binding BlockedUrls}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid ColumnDefinitions="*, Auto" Margin="0,5">
-                                        <TextBox Grid.Column="0" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                        <Button Grid.Column="1" Margin="5,0,0,0"
-                                                Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveBlockedUrlCommand}"
-                                                CommandParameter="{Binding}">
-                                            <mi:MaterialIcon Kind="Delete" Width="16" Height="16"/>
-                                        </Button>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <StackPanel Spacing="5" Margin="0,20,0,0">
-                            <TextBlock Text="{l:Localize BlockedUrlRedirect}" FontWeight="SemiBold" FontSize="16"/>
-                            <TextBox Text="{Binding BlockRedirect}" PlaceholderText="Redirect URL"/>
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="{l:Localize WebServerUrl}"/>
+                                <TextBox Text="{Binding WebServerUrl}" PlaceholderText="http://localhost:9696"/>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
+                    </Border>
+
+                    <!-- Game Patching -->
+                    <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="{l:Localize GamePatching}" FontWeight="SemiBold" FontSize="16"/>
+
+                            <CheckBox IsChecked="{Binding PatchVRC}" Content="{l:Localize PatchVRChat}"/>
+                            <CheckBox IsChecked="{Binding PatchResonite}" Content="{l:Localize PatchResonite}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Updates -->
+                    <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="{l:Localize Updates}" FontWeight="SemiBold" FontSize="16"/>
+
+                            <CheckBox IsChecked="{Binding AutoUpdate}" Content="{l:Localize AutoUpdateVRCVideoCacher}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Blocked URLs -->
+                    <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                        <StackPanel Spacing="15">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{l:Localize BlockedUrls}" FontWeight="SemiBold" FontSize="16"/>
+                                <Button Grid.Column="1" Command="{Binding AddBlockedUrlCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
+                                        <TextBlock Text="{l:Localize Add}"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{Binding BlockedUrls}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*, Auto" Margin="0,5">
+                                            <TextBox Grid.Column="0" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <Button Grid.Column="1" Margin="5,0,0,0"
+                                                    Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveBlockedUrlCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <mi:MaterialIcon Kind="Delete" Width="16" Height="16"/>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Spacing="5" Margin="0,20,0,0">
+                                <TextBlock Text="{l:Localize BlockedUrlRedirect}" FontWeight="SemiBold" FontSize="16"/>
+                                <TextBox Text="{Binding BlockRedirect}" PlaceholderText="Redirect URL"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </Grid>

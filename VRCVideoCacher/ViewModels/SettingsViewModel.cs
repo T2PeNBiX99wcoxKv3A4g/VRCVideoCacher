@@ -129,6 +129,11 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _errorPopups;
 
+    // Pure view state: reveals the advanced setting sections. Not a config value, so it is neither
+    // loaded/saved nor tracked as an unsaved change.
+    [ObservableProperty]
+    private bool _showAdvanced;
+
     // Language selection
     public IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
         Localizer.Languages

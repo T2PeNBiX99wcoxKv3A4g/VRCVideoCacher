@@ -18,6 +18,7 @@
   "Done": "完了",
   "Language": "言語",
   "General": "一般",
+  "ShowAdvancedSettings": "詳細設定を表示",
 
   "ToggleHostTooltip": "ローカルホストキャッシュに YouTube ドメインを使用するかどうかを切り替えます",
   "ServerStatus": "サーバーの状態",

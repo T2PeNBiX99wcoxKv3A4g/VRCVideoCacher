@@ -18,6 +18,7 @@
   "Done": "Concluir",
   "Language": "Idioma",
   "General": "Geral",
+  "ShowAdvancedSettings": "Mostrar configurações avançadas",
 
   "ToggleHostTooltip": "Alternar entre domínio do YouTube e localhost para cachê.",
   "ServerStatus": "Status do servidor",

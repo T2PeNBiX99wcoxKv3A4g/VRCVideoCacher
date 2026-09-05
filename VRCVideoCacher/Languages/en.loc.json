@@ -18,6 +18,7 @@
   "Done": "Done",
   "Language": "Language",
   "General": "General",
+  "ShowAdvancedSettings": "Show advanced settings",
 
   "ToggleHostTooltip": "Toggle using YouTube domain for localhost cache",
   "ServerStatus": "Server Status",

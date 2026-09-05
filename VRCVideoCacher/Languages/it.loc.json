@@ -18,6 +18,7 @@
   "Done": "Fatto",
   "Language": "Lingua",
   "General": "Generale",
+  "ShowAdvancedSettings": "Mostra impostazioni avanzate",
 
   "ToggleHostTooltip": "Usa il dominio YouTube per la cache di localhost",
   "ServerStatus": "Stato del Server",

@@ -18,6 +18,7 @@
   "Done": "完成",
   "Language": "语言",
   "General": "常规",
+  "ShowAdvancedSettings": "显示高级设置",
 
   "ToggleHostTooltip": "切换是否使用 YouTube 域名提供本地缓存",
   "ServerStatus": "服务器状态",

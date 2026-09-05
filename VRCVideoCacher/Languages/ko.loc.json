@@ -18,6 +18,7 @@
   "Done": "완료",
   "Language": "언어",
   "General": "일반",
+  "ShowAdvancedSettings": "고급 설정 표시",
 
   "ToggleHostTooltip": "캐시된 동영상에 YouTube 도메인 사용 켜기/끄기",
   "ServerStatus": "서버 상태",

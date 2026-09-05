@@ -18,6 +18,7 @@
   "Done": "Kész",
   "Language": "Nyelv",
   "General": "Általános",
+  "ShowAdvancedSettings": "Speciális beállítások megjelenítése",
 
   "ToggleHostTooltip": "A YouTube domain használatának bekapcsolása a localhost gyorsítótár számára",
   "ServerStatus": "Szerver Állapota",

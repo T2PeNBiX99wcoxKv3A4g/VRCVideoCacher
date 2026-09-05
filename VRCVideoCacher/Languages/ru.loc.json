@@ -18,6 +18,7 @@
   "Done": "Готово",
   "Language": "Язык программы",
   "General": "Общие",
+  "ShowAdvancedSettings": "Показать расширенные настройки",
 
   "ToggleHostTooltip": "Переключить локальный домен Ютуба(YouTube) для использования кэша",
   "ServerStatus": "Статус сервера",
