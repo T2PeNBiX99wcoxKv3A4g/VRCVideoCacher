@@ -63,6 +63,8 @@
   "AdditionalYtdlpArgs": "추가 yt-dlp 인수",
   "PreferredDubLanguage": "선호하는 음성 언어 (예시: 한국어는 'ko')",
   "YouTubeSabrOptions": "YouTube SABR 옵션",
+  "SabrMaxResolution": "최대 스트리밍 해상도",
+  "SabrMaxResolutionTooltip": "SABR 스트리밍의 최대 해상도입니다.",
   "SabrPreferStreaming": "SABR 스트리밍 우선 사용 (YouTube Premium 권장)",
   "SabrPreferStreamingTooltip": "SABR을 통해 YouTube 동영상을 스트리밍합니다(탐색 가능, 최대 4K, Premium에서 광고 없음). YouTube Premium이 없으면 선택을 해제하세요. SABR은 광고를 재생 지연으로 표시하므로 더 빠른 기존 직접 URL 방식을 먼저 시도합니다. SABR 전용 동영상은 어느 경우든 SABR로 대체됩니다. AVPro에만 영향을 미치며 Unity 플레이어는 항상 기존 방식을 사용합니다.",
   "SabrFilterDrcAudio": "DRC(안정적인 볼륨) 오디오 필터링",

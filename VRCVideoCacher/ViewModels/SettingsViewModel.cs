@@ -48,6 +48,9 @@ public partial class SettingsViewModel : ViewModelBase
     private bool _preferSabrStreaming;
 
     [ObservableProperty]
+    private int _sabrMaxResolution;
+
+    [ObservableProperty]
     private bool _sabrFilterDrcAudio;
 
     [ObservableProperty]
@@ -175,6 +178,7 @@ public partial class SettingsViewModel : ViewModelBase
         YtdlAdditionalArgs = config.YtdlpAdditionalArgs;
         YtdlDubLanguage = config.YtdlpDubLanguage;
         PreferSabrStreaming = config.SabrPreferStreaming;
+        SabrMaxResolution = config.SabrMaxResolution;
         SabrFilterDrcAudio = config.SabrFilterDrcAudio;
         SabrFilterSuperResolution = config.SabrFilterSuperResolution;
         SabrFilterVoiceBoostedAudio = config.SabrFilterVoiceBoostedAudio;
@@ -258,6 +262,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
     partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
     partial void OnPreferSabrStreamingChanged(bool value) => SetHasChanges();
+    partial void OnSabrMaxResolutionChanged(int value) => SetHasChanges();
     partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
     partial void OnSabrFilterSuperResolutionChanged(bool value) => SetHasChanges();
     partial void OnSabrFilterVoiceBoostedAudioChanged(bool value) => SetHasChanges();
@@ -295,6 +300,7 @@ public partial class SettingsViewModel : ViewModelBase
         config.YtdlpAdditionalArgs = YtdlAdditionalArgs;
         config.YtdlpDubLanguage = YtdlDubLanguage;
         config.SabrPreferStreaming = PreferSabrStreaming;
+        config.SabrMaxResolution = SabrMaxResolution;
         config.SabrFilterDrcAudio = SabrFilterDrcAudio;
         config.SabrFilterSuperResolution = SabrFilterSuperResolution;
         config.SabrFilterVoiceBoostedAudio = SabrFilterVoiceBoostedAudio;

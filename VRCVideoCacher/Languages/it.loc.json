@@ -63,6 +63,8 @@
   "AdditionalYtdlpArgs": "Argomenti aggiuntivi yt-dlp",
   "PreferredDubLanguage": "Lingua doppiaggio preferita (es. 'it' per Italiano)",
   "YouTubeSabrOptions": "Opzioni SABR di YouTube",
+  "SabrMaxResolution": "Risoluzione massima di streaming",
+  "SabrMaxResolutionTooltip": "Risoluzione massima per lo streaming SABR.",
   "SabrPreferStreaming": "Preferisci lo streaming SABR (consigliato per YouTube Premium)",
   "SabrPreferStreamingTooltip": "Riproduci in streaming i video di YouTube tramite SABR (con ricerca, fino a 4K, senza pubblicità con Premium). Deseleziona se non hai YouTube Premium: SABR mostra la pubblicità come ritardi di riproduzione, quindi viene provato prima il più veloce percorso legacy con URL diretto. I video solo SABR ricorrono comunque a SABR. Interessa solo AVPro; il lettore Unity usa sempre il percorso legacy.",
   "SabrFilterDrcAudio": "Filtra audio DRC (volume normalizzato)",

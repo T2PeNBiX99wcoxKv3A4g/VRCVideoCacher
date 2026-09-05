@@ -63,6 +63,8 @@
   "AdditionalYtdlpArgs": "追加する yt-dlp の引数",
   "PreferredDubLanguage": "優先する吹き替えの言語 (例: ja で日本語)",
   "YouTubeSabrOptions": "YouTube SABR オプション",
+  "SabrMaxResolution": "最大ストリーミング解像度",
+  "SabrMaxResolutionTooltip": "SABR ストリーミングの最大解像度。",
   "SabrPreferStreaming": "SABR ストリーミングを優先（YouTube Premium 推奨）",
   "SabrPreferStreamingTooltip": "YouTube 動画を SABR でストリーミングします（シーク可能、最大 4K、Premium では広告なし）。YouTube Premium がない場合はオフにしてください。SABR は広告を再生の遅延として表示するため、より高速な従来の直接 URL 方式が優先して試されます。SABR 専用動画はいずれの場合も SABR にフォールバックします。AVPro のみに影響し、Unity プレーヤーは常に従来の方式を使用します。",
   "SabrFilterDrcAudio": "DRC（音量正規化）音声を除外",

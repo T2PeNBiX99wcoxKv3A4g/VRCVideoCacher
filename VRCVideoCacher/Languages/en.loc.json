@@ -63,6 +63,8 @@
   "AdditionalYtdlpArgs": "Additional yt-dlp Arguments",
   "PreferredDubLanguage": "Preferred Dub Language (e.g., 'de' for German)",
   "YouTubeSabrOptions": "YouTube SABR Options",
+  "SabrMaxResolution": "Max streaming resolution",
+  "SabrMaxResolutionTooltip": "Maximum resolution for SABR streaming.",
   "SabrPreferStreaming": "Prefer SABR streaming (recommended for YouTube Premium)",
   "SabrPreferStreamingTooltip": "Stream YouTube videos through SABR (seekable, up to 4K, ad-free on Premium). Uncheck if you don't have YouTube Premium: SABR shows ads as playback delays, so the faster legacy direct-URL path is tried first instead. SABR-only videos still fall back to SABR either way. Only affects AVPro; the Unity player always uses the legacy path.",
   "SabrFilterDrcAudio": "Filter DRC (volume-normalised) audio",
