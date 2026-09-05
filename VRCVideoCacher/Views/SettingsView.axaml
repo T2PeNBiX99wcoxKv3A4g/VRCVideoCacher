@@ -74,15 +74,17 @@
                                   Content="{l:Localize SabrPreferStreaming}"
                                   ToolTip.Tip="{l:Localize SabrPreferStreamingTooltip}"/>
 
-                        <CheckBox IsChecked="{Binding SabrFilterDrcAudio}"
-                                  Content="{l:Localize SabrFilterDrcAudio}"
-                                  ToolTip.Tip="{l:Localize SabrFilterDrcAudioTooltip}"/>
-                        <CheckBox IsChecked="{Binding SabrFilterSuperResolution}"
-                                  Content="{l:Localize SabrFilterSuperResolution}"
-                                  ToolTip.Tip="{l:Localize SabrFilterSuperResolutionTooltip}"/>
-                        <CheckBox IsChecked="{Binding SabrFilterVoiceBoostedAudio}"
-                                  Content="{l:Localize SabrFilterVoiceBoostedAudio}"
-                                  ToolTip.Tip="{l:Localize SabrFilterVoiceBoostedAudioTooltip}"/>
+                        <StackPanel Spacing="15" IsVisible="{Binding ShowAdvanced}">
+                            <CheckBox IsChecked="{Binding SabrFilterDrcAudio}"
+                                      Content="{l:Localize SabrFilterDrcAudio}"
+                                      ToolTip.Tip="{l:Localize SabrFilterDrcAudioTooltip}"/>
+                            <CheckBox IsChecked="{Binding SabrFilterSuperResolution}"
+                                      Content="{l:Localize SabrFilterSuperResolution}"
+                                      ToolTip.Tip="{l:Localize SabrFilterSuperResolutionTooltip}"/>
+                            <CheckBox IsChecked="{Binding SabrFilterVoiceBoostedAudio}"
+                                      Content="{l:Localize SabrFilterVoiceBoostedAudio}"
+                                      ToolTip.Tip="{l:Localize SabrFilterVoiceBoostedAudioTooltip}"/>
+                        </StackPanel>
 
                         <StackPanel Spacing="5" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize SabrAdditionalArgs}"/>
