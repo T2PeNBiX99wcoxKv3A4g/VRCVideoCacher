@@ -11,14 +11,38 @@ public sealed class ProgressStream : Stream
     private readonly Stream _inner;
     private readonly long _total;
     private readonly Action<double> _report;
+    private readonly TimeSpan? _stallTimeout;
     private long _read;
     private double _lastReported = -1;
 
-    public ProgressStream(Stream inner, long? total, Action<double> report)
+    /// <param name="stallTimeout">
+    /// If set, a single read that receives no data within this window throws a <see cref="TimeoutException"/>.
+    /// With <c>ResponseHeadersRead</c> the HttpClient timeout no longer bounds the body, so this is what
+    /// stops a dead connection from hanging the download forever. Null = no per-read timeout.
+    /// </param>
+    public ProgressStream(Stream inner, long? total, Action<double> report, TimeSpan? stallTimeout = null)
     {
         _inner = inner;
         _total = total ?? 0;
         _report = report;
+        _stallTimeout = stallTimeout;
+    }
+
+    private async ValueTask<int> ReadInnerAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+    {
+        if (_stallTimeout is not { } stall)
+            return await _inner.ReadAsync(buffer, cancellationToken);
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(stall);
+        try
+        {
+            return await _inner.ReadAsync(buffer, cts.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException($"Download stalled: no data received for {stall.TotalSeconds:0}s.");
+        }
     }
 
     private void Advance(int n)
@@ -43,14 +67,14 @@ public sealed class ProgressStream : Stream
 
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
-        var n = await _inner.ReadAsync(buffer, cancellationToken);
+        var n = await ReadInnerAsync(buffer, cancellationToken);
         Advance(n);
         return n;
     }
 
     public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        var n = await _inner.ReadAsync(buffer.AsMemory(offset, count), cancellationToken);
+        var n = await ReadInnerAsync(buffer.AsMemory(offset, count), cancellationToken);
         Advance(n);
         return n;
     }
