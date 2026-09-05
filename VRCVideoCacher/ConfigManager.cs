@@ -142,9 +142,12 @@ public class ConfigModel
     // Max resolution for SABR STREAMING. Deliberately separate from CacheYouTubeMaxResolution, which
     // governs the cache download only.
     public int SabrMaxResolution = 1080;
-    // Testing/eval: force ALL uncached YouTube videos through the SABR restream path (skip the
-    // normal direct-URL resolution), so the feature can be exercised before SABR-only is widespread.
-    public bool SabrRestreamForce = true;
+    // YouTube delivery mode. When true (default), every uncached AVPro YouTube video goes through the
+    // SABR restream path first (seekable HLS, 4K, ad-free on Premium); legacy direct-URL is only a
+    // fallback. When false ("legacy-first"), the fast legacy direct URL is tried first and SABR is used
+    // only for SABR-only videos that have no direct URL. Non-Premium accounts hit SABR ad backoffs, so
+    // they generally want this off. Non-AVPro always takes the legacy path regardless (SABR is AVPro-only).
+    public bool SabrPreferStreaming = true;
     // Serve YouTube LIVE broadcasts over SABR as a sliding-window HLS stream instead of handing the
     // game yt-dlp's HLS manifest. Falls back to that manifest on any failure, so turning this off (or
     // hitting a bug) costs nothing but the old behaviour.

@@ -99,6 +99,10 @@
                     <StackPanel Spacing="15">
                         <TextBlock Text="{l:Localize YouTubeSabrOptions}" FontWeight="SemiBold" FontSize="16"/>
 
+                        <CheckBox IsChecked="{Binding PreferSabrStreaming}"
+                                  Content="{l:Localize SabrPreferStreaming}"
+                                  ToolTip.Tip="{l:Localize SabrPreferStreamingTooltip}"/>
+
                         <CheckBox IsChecked="{Binding SabrFilterDrcAudio}"
                                   Content="{l:Localize SabrFilterDrcAudio}"
                                   ToolTip.Tip="{l:Localize SabrFilterDrcAudioTooltip}"/>

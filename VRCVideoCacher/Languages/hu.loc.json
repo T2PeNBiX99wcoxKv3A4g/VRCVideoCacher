@@ -46,6 +46,8 @@
   "AdditionalYtdlpArgs": "Kiegészítő yt-dlp Paraméterek",
   "PreferredDubLanguage": "Előnyben részesített szinkron (pl. 'hu' a magyar nyelv esetében)",
   "YouTubeSabrOptions": "YouTube SABR beállítások",
+  "SabrPreferStreaming": "SABR streamelés előnyben részesítése (YouTube Premiumhoz ajánlott)",
+  "SabrPreferStreamingTooltip": "YouTube videók streamelése SABR-en keresztül (tekerhető, akár 4K, Premiummal reklámmentes). Vedd ki a pipát, ha nincs YouTube Premiumod: a SABR a reklámokat lejátszási késleltetésként jeleníti meg, ezért előbb a gyorsabb, hagyományos közvetlen URL-es útvonalat próbálja. A csak SABR-es videók így is a SABR-re esnek vissza. Csak az AVPro-t érinti; a Unity lejátszó mindig a hagyományos útvonalat használja.",
   "SabrFilterDrcAudio": "DRC (hangerő-normalizált) hang szűrése",
   "SabrFilterDrcAudioTooltip": "Kihagyja a YouTube DRC hangváltozatait, amelyek automatikus hangerő-normalizálást alkalmaznak. A DRC sáv csak akkor kerül felhasználásra, ha a kiválasztott nyelvhez ez az egyetlen elérhető.",
   "SabrFilterSuperResolution": "AI szuperfelbontású (felskálázott) videó szűrése",

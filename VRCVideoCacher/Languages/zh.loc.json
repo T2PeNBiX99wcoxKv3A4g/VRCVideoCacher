@@ -45,6 +45,8 @@
   "AdditionalYtdlpArgs": "yt-dlp 附加参数",
   "PreferredDubLanguage": "首选配音语言（例如：中文填写「zh」）",
   "YouTubeSabrOptions": "YouTube SABR 选项",
+  "SabrPreferStreaming": "优先使用 SABR 流式传输（推荐 YouTube Premium 用户）",
+  "SabrPreferStreamingTooltip": "通过 SABR 流式传输 YouTube 视频（可拖动进度、最高 4K、Premium 无广告）。如果没有 YouTube Premium，请取消勾选：SABR 会以播放延迟的形式插入广告，因此将优先尝试更快的传统直链方式。无论哪种方式，仅支持 SABR 的视频仍会回退到 SABR。仅影响 AVPro；Unity 播放器始终使用传统方式。",
   "SabrFilterDrcAudio": "过滤 DRC（音量标准化）音频",
   "SabrFilterDrcAudioTooltip": "跳过 YouTube 的 DRC 音频（会自动进行音量标准化）。如果所选语言仅有该音轨，仍会使用 DRC 音轨。",
   "SabrFilterSuperResolution": "过滤 AI 超分辨率（放大）视频",
