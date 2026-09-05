@@ -34,6 +34,7 @@
   "ToolNotFound": "찾을 수 없음",
   "ToolNotWorking": "작동하지 않음",
   "ToolNotApplicable": "해당 없음",
+  "ToolDownloading": "다운로드 중…",
   "ToolAacFallback": "AAC 대체 (Opus 미지원)",
   "OpenCacheFolder": "캐시 폴더 열기",
   "SetupYouTubeCookieExtension": "YouTube 쿠키 확장 설정",

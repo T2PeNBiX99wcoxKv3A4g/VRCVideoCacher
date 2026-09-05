@@ -163,7 +163,7 @@ internal static class BgUtilPotProvider
             return true;
 
         using var activity = StatusService.Begin(StatusCategory.Provisioning,
-            Localizer.Get("StatusProviderWaiting"));
+            Localizer.Get("StatusProviderWaiting"), key: ToolVerifier.PotProviderKey);
 
         var deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
@@ -184,7 +184,7 @@ internal static class BgUtilPotProvider
         {
             ReassignPortIfInUse();
             using var activity = StatusService.Begin(StatusCategory.Provisioning,
-                Localizer.Get("StatusProviderSetup"));
+                Localizer.Get("StatusProviderSetup"), key: ToolVerifier.PotProviderKey);
             try
             {
                 await EnsureInstalledAsync();

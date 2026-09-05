@@ -34,6 +34,7 @@
   "ToolNotFound": "見つかりません",
   "ToolNotWorking": "動作しません",
   "ToolNotApplicable": "該当なし",
+  "ToolDownloading": "ダウンロード中…",
   "ToolAacFallback": "AAC フォールバック（Opus 非対応）",
   "OpenCacheFolder": "キャッシュフォルダーを開く",
   "SetupYouTubeCookieExtension": "YouTube の Cookie 拡張機能をセットアップ",

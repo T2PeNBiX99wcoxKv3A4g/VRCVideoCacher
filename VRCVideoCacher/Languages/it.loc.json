@@ -34,6 +34,7 @@
   "ToolNotFound": "Non trovato",
   "ToolNotWorking": "Non funzionante",
   "ToolNotApplicable": "N/D",
+  "ToolDownloading": "Download in corso…",
   "ToolAacFallback": "Fallback AAC (Opus non supportato)",
   "OpenCacheFolder": "Apri cartella Cache",
   "SetupYouTubeCookieExtension": "Configura estensione Cookie YouTube",

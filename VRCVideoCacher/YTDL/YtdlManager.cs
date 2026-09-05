@@ -227,7 +227,7 @@ public class YtdlManager
         var url = assets.First().browser_download_url;
 
         using var activity = StatusService.Begin(StatusCategory.Provisioning,
-            string.Format(Localizer.Get("StatusDownloading"), "Deno"));
+            string.Format(Localizer.Get("StatusDownloading"), "Deno"), key: ToolVerifier.DenoKey);
 
         using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         if (!response.IsSuccessStatusCode)
@@ -389,7 +389,7 @@ public class YtdlManager
         Log.Information("Downloading FFmpeg...");
 
         using var activity = StatusService.Begin(StatusCategory.Provisioning,
-            string.Format(Localizer.Get("StatusDownloading"), "FFmpeg"));
+            string.Format(Localizer.Get("StatusDownloading"), "FFmpeg"), key: ToolVerifier.FfmpegKey);
 
         using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         await using var responseStream = new ProgressStream(
@@ -465,7 +465,7 @@ public class YtdlManager
                 continue;
 
             using var activity = StatusService.Begin(StatusCategory.Provisioning,
-                string.Format(Localizer.Get("StatusDownloading"), "yt-dlp"));
+                string.Format(Localizer.Get("StatusDownloading"), "yt-dlp"), key: ToolVerifier.YtDlpKey);
             using var response = await HttpClient.GetAsync(assetVersion.browser_download_url,
                 HttpCompletionOption.ResponseHeadersRead);
             await using var stream = new ProgressStream(

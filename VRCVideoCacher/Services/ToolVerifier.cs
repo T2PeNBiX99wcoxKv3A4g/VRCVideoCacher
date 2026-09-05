@@ -15,6 +15,12 @@ public readonly record struct ToolCheck(bool Ok, bool Present, string Detail);
 /// </summary>
 public static class ToolVerifier
 {
+    // Stable keys shared with StatusService so the dashboard can tell which tool a download activity is for.
+    public const string YtDlpKey = "yt-dlp";
+    public const string FfmpegKey = "ffmpeg";
+    public const string DenoKey = "deno";
+    public const string PotProviderKey = "pot-provider";
+
     public static async Task<ToolCheck> VerifyYtDlpAsync()
     {
         // Run --version to confirm it actually works, but display the tracked release NAME instead: we ship

@@ -30,6 +30,9 @@ public sealed class StatusActivity : IDisposable
     internal long Seq { get; init; }
     public StatusCategory Category { get; }
 
+    /// <summary>Optional stable identifier (e.g. a tool name) so consumers can tell which thing this is.</summary>
+    public string? Key { get; init; }
+
     private volatile string _text;
     private double? _progress;
     private int _disposed;
@@ -106,15 +109,28 @@ public static class StatusService
     /// <summary>Idempotent touch so the static constructor (and its log hook) runs even before the first activity.</summary>
     public static void Init() { }
 
-    public static StatusActivity Begin(StatusCategory category, string text, double? progress = null)
+    public static StatusActivity Begin(StatusCategory category, string text, double? progress = null, string? key = null)
     {
         var activity = new StatusActivity(category, text, progress)
         {
             Seq = Interlocked.Increment(ref _seq),
+            Key = key,
         };
         Activities[activity.Id] = activity;
         NotifyChanged();
         return activity;
+    }
+
+    /// <summary>Keys of all currently-active activities that carry one (e.g. tools currently downloading).</summary>
+    public static HashSet<string> ActiveKeys()
+    {
+        var keys = new HashSet<string>();
+        foreach (var activity in Activities.Values)
+        {
+            if (activity.Key is { } key)
+                keys.Add(key);
+        }
+        return keys;
     }
 
     /// <summary>Briefly show a transient message (warning color for warnings/errors), then revert.</summary>

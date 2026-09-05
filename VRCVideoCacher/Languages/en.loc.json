@@ -34,6 +34,7 @@
   "ToolNotFound": "Not found",
   "ToolNotWorking": "Not working",
   "ToolNotApplicable": "N/A",
+  "ToolDownloading": "Downloading…",
   "ToolAacFallback": "AAC fallback (Opus unsupported)",
   "OpenCacheFolder": "Open Cache Folder",
   "SetupYouTubeCookieExtension": "Setup YouTube Cookie Extension",

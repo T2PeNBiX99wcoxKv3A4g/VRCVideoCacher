@@ -34,6 +34,7 @@
   "ToolNotFound": "Nem található",
   "ToolNotWorking": "Nem működik",
   "ToolNotApplicable": "N/A",
+  "ToolDownloading": "Letöltés…",
   "ToolAacFallback": "AAC tartalék (Opus nem támogatott)",
   "OpenCacheFolder": "Gyorsítótár Mappa Megnyitás",
   "SetupYouTubeCookieExtension": "YouTube Süti Bővítmény Beállítás",

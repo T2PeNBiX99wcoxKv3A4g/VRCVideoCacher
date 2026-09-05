@@ -34,6 +34,7 @@
   "ToolNotFound": "Не найдено",
   "ToolNotWorking": "Не работает",
   "ToolNotApplicable": "Н/Д",
+  "ToolDownloading": "Загрузка…",
   "ToolAacFallback": "Запасной AAC (Opus не поддерживается)",
   "OpenCacheFolder": "Открыть Файлы кэша",
   "SetupYouTubeCookieExtension": "Настроить расщирения для YouTube Cookie",
