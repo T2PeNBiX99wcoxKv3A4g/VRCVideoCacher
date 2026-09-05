@@ -4,6 +4,10 @@
   "CacheBrowser": "Navegador em Cachê",
   "Downloads": "Downloads",
   "History": "Histórico",
+  "HistoryMaxSize": "Máx. de entradas",
+  "ClearAllHistory": "Limpar todo o histórico",
+  "ClearAllHistoryConfirm": "Excluir todo o histórico de reprodução? Isso não pode ser desfeito.",
+  "DeleteHistoryEntry": "Excluir entrada",
   "Logs": "Registros",
   "About": "Sobre",
 

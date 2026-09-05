@@ -4,6 +4,10 @@
   "CacheBrowser": "Gyorsítótár Böngésző",
   "Downloads": "Letöltések",
   "History": "Előzmények",
+  "HistoryMaxSize": "Max. bejegyzés",
+  "ClearAllHistory": "Összes előzmény törlése",
+  "ClearAllHistoryConfirm": "Törli az összes lejátszási előzményt? Ez nem vonható vissza.",
+  "DeleteHistoryEntry": "Bejegyzés törlése",
   "Logs": "Naplók",
   "About": "Rólunk",
 

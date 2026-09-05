@@ -11,10 +11,21 @@
     <Grid RowDefinitions="Auto, *, Auto">
         <!-- Header -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="10">
-            <TextBlock Text="{l:Localize History}" FontSize="24" FontWeight="Bold"/>
-            <Button Grid.Column="1" Command="{Binding RefreshCommand}" ToolTip.Tip="{l:Localize Refresh}">
-                <mi:MaterialIcon Kind="Refresh" Width="20" Height="20"/>
-            </Button>
+            <TextBlock Text="{l:Localize History}" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="{l:Localize HistoryMaxSize}" VerticalAlignment="Center"/>
+                <NumericUpDown Value="{Binding MaxSize}" Minimum="1" Maximum="1000000" Increment="100"
+                               FormatString="0" Width="140" VerticalAlignment="Center"/>
+                <Button Command="{Binding ClearAllCommand}" ToolTip.Tip="{l:Localize ClearAllHistory}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <mi:MaterialIcon Kind="DeleteSweep" Width="18" Height="18"/>
+                        <TextBlock Text="{l:Localize ClearAllHistory}"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding RefreshCommand}" ToolTip.Tip="{l:Localize Refresh}">
+                    <mi:MaterialIcon Kind="Refresh" Width="20" Height="20"/>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!-- History List -->
@@ -51,6 +62,9 @@
                                 </Button>
                                 <Button Command="{Binding CopyUrlCommand}" ToolTip.Tip="Copy URL" Padding="8">
                                     <mi:MaterialIcon Kind="ContentCopy" Width="18" Height="18"/>
+                                </Button>
+                                <Button Command="{Binding DeleteCommand}" ToolTip.Tip="{l:Localize DeleteHistoryEntry}" Padding="8">
+                                    <mi:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="#E57373"/>
                                 </Button>
                             </StackPanel>
                         </Grid>

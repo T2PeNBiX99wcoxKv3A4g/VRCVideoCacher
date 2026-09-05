@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="VRCVideoCacher.Views.ConfirmWindow"
+        Title="VRCVideoCacher"
+        Width="460"
+        CanResize="False"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="20" Spacing="15">
+        <TextBlock x:Name="TitleTextBlock" FontSize="16" FontWeight="SemiBold"/>
+        <TextBlock x:Name="MessageTextBlock" TextWrapping="Wrap"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+            <Button x:Name="CancelButton" Width="90" Click="Cancel_Click"/>
+            <Button x:Name="ConfirmButton" Width="90" Classes="danger" Click="Confirm_Click"/>
+        </StackPanel>
+    </StackPanel>
+
+    <Window.Styles>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#E57373"/>
+        </Style>
+    </Window.Styles>
+</Window>

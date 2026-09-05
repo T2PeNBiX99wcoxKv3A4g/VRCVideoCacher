@@ -4,6 +4,10 @@
   "CacheBrowser": "缓存浏览器",
   "Downloads": "下载",
   "History": "历史记录",
+  "HistoryMaxSize": "最大条目数",
+  "ClearAllHistory": "清除所有历史记录",
+  "ClearAllHistoryConfirm": "删除所有播放历史记录？此操作无法撤销。",
+  "DeleteHistoryEntry": "删除条目",
   "Logs": "日志",
   "About": "关于",
 

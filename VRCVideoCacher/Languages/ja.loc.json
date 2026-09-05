@@ -4,6 +4,10 @@
   "CacheBrowser": "キャッシュブラウザー",
   "Downloads": "ダウンロード",
   "History": "履歴",
+  "HistoryMaxSize": "最大件数",
+  "ClearAllHistory": "履歴をすべて消去",
+  "ClearAllHistoryConfirm": "再生履歴をすべて削除しますか？この操作は元に戻せません。",
+  "DeleteHistoryEntry": "エントリを削除",
   "Logs": "ログ",
   "About": "バージョン情報",
 

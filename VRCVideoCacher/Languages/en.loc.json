@@ -4,6 +4,10 @@
   "CacheBrowser": "Cache Browser",
   "Downloads": "Downloads",
   "History": "History",
+  "HistoryMaxSize": "Max entries",
+  "ClearAllHistory": "Clear all history",
+  "ClearAllHistoryConfirm": "Delete all play history? This cannot be undone.",
+  "DeleteHistoryEntry": "Delete entry",
   "Logs": "Logs",
   "About": "About",
 

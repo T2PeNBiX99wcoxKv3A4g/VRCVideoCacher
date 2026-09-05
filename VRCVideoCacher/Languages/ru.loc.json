@@ -4,6 +4,10 @@
   "CacheBrowser": "Кэш браузера",
   "Downloads": "Загрузки",
   "History": "История",
+  "HistoryMaxSize": "Макс. записей",
+  "ClearAllHistory": "Очистить всю историю",
+  "ClearAllHistoryConfirm": "Удалить всю историю воспроизведения? Это действие нельзя отменить.",
+  "DeleteHistoryEntry": "Удалить запись",
   "Logs": "Логи",
   "About": "О программе",
 

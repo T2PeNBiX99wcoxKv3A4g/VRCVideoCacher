@@ -4,6 +4,10 @@
   "CacheBrowser": "캐시 브라우저",
   "Downloads": "다운로드",
   "History": "기록",
+  "HistoryMaxSize": "최대 항목 수",
+  "ClearAllHistory": "모든 기록 지우기",
+  "ClearAllHistoryConfirm": "모든 재생 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+  "DeleteHistoryEntry": "항목 삭제",
   "Logs": "로그",
   "About": "정보",
 

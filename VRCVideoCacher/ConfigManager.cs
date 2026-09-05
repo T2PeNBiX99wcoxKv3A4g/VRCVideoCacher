@@ -193,6 +193,10 @@ public class ConfigModel
     public bool CacheVrDancing = false;
     public bool CacheOnly = false;
 
+    // Play history retention: keep only the newest this-many play records; older ones are trimmed as new
+    // plays arrive and when this value is lowered. Also governs how many the History view loads.
+    public int HistoryMaxSize = 1000;
+
     // Cache Rules
     public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
     public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";

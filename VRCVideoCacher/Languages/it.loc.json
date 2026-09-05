@@ -4,6 +4,10 @@
   "CacheBrowser": "Sfoglia Cache",
   "Downloads": "Download",
   "History": "Cronologia",
+  "HistoryMaxSize": "Voci massime",
+  "ClearAllHistory": "Cancella tutta la cronologia",
+  "ClearAllHistoryConfirm": "Eliminare tutta la cronologia di riproduzione? L'operazione non può essere annullata.",
+  "DeleteHistoryEntry": "Elimina voce",
   "Logs": "Logs",
   "About": "Informazioni",
 
