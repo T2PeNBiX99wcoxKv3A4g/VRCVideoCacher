@@ -66,7 +66,7 @@
   "SabrMaxResolution": "Risoluzione massima di streaming",
   "SabrMaxResolutionTooltip": "Risoluzione massima per lo streaming SABR.",
   "SabrPreferStreaming": "Preferisci lo streaming SABR (consigliato per YouTube Premium)",
-  "SabrPreferStreamingTooltip": "Riproduci in streaming i video di YouTube tramite SABR (con ricerca, fino a 4K, senza pubblicità con Premium). Deseleziona se non hai YouTube Premium: SABR mostra la pubblicità come ritardi di riproduzione, quindi viene provato prima il più veloce percorso legacy con URL diretto. I video solo SABR ricorrono comunque a SABR. Interessa solo AVPro; il lettore Unity usa sempre il percorso legacy.",
+  "SabrPreferStreamingTooltip": "Riproduci YouTube tramite streaming SABR (con ricerca, fino a 4K, senza pubblicità con Premium). Disattiva se non hai Premium per evitare ritardi dovuti alla pubblicità. Solo AVPro.",
   "SabrFilterDrcAudio": "Filtra audio DRC (volume normalizzato)",
   "SabrFilterDrcAudioTooltip": "Ignora le varianti audio DRC di YouTube, che applicano la normalizzazione automatica del volume. Una traccia DRC viene comunque usata se è l'unica disponibile per la lingua scelta.",
   "SabrFilterSuperResolution": "Filtra video AI in super risoluzione (con upscaling)",

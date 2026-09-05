@@ -66,7 +66,7 @@
   "SabrMaxResolution": "最大ストリーミング解像度",
   "SabrMaxResolutionTooltip": "SABR ストリーミングの最大解像度。",
   "SabrPreferStreaming": "SABR ストリーミングを優先（YouTube Premium 推奨）",
-  "SabrPreferStreamingTooltip": "YouTube 動画を SABR でストリーミングします（シーク可能、最大 4K、Premium では広告なし）。YouTube Premium がない場合はオフにしてください。SABR は広告を再生の遅延として表示するため、より高速な従来の直接 URL 方式が優先して試されます。SABR 専用動画はいずれの場合も SABR にフォールバックします。AVPro のみに影響し、Unity プレーヤーは常に従来の方式を使用します。",
+  "SabrPreferStreamingTooltip": "SABR ストリーミングで YouTube を再生（シーク可能、最大 4K、Premium では広告なし）。Premium でない場合は広告による遅延を避けるためオフにしてください。AVPro のみ。",
   "SabrFilterDrcAudio": "DRC（音量正規化）音声を除外",
   "SabrFilterDrcAudioTooltip": "自動で音量を正規化する YouTube の DRC 音声を除外します。選択した言語で他に選択肢がない場合のみ DRC トラックを使用します。",
   "SabrFilterSuperResolution": "AI 超解像（アップスケール）映像を除外",
