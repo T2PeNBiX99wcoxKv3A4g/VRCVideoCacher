@@ -1,5 +1,4 @@
 using System.Collections.Specialized;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -23,9 +22,6 @@ public partial class LogViewerView : UserControl
                 vm.FilteredLogEntries.CollectionChanged += OnLogEntriesChanged;
         };
 
-        // Scroll to bottom when view becomes visible
-        PropertyChanged += OnPropertyChanged;
-
         Loaded += (_, _) =>
         {
             _scrollViewer ??= LogListBox.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
@@ -33,12 +29,6 @@ public partial class LogViewerView : UserControl
             if (DataContext is LogViewerViewModel { AutoScroll: true })
                 ScrollToBottomDeferred();
         };
-    }
-
-    private void OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        if (e.Property == IsVisibleProperty && e.NewValue is true)
-            ScrollToBottomDeferred();
     }
 
     private void OnLogEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
