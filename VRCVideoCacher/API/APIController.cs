@@ -192,10 +192,12 @@ public class ApiController : WebApiController
             return;
         }
 
-        // Testing: force every AVPro YouTube request through the SABR restream path. SABR serves HLS,
-        // which only AVPro can play — the Unity built-in player (avpro=false) can't, so it must take the
-        // legacy direct-URL path below instead.
-        if (ConfigManager.Config.SabrRestreamForce && avPro && videoInfo.UrlType == UrlType.YouTube)
+        // SABR-first (SabrPreferStreaming): route every AVPro YouTube request through the SABR restream
+        // path before trying the legacy direct URL. SABR serves HLS, which only AVPro can play — the Unity
+        // built-in player (avpro=false) can't, so it must take the legacy direct-URL path below instead.
+        // When off ("legacy-first"), skip this and let the legacy path run first; SABR-only videos still
+        // fall back to SABR via the rescue below.
+        if (ConfigManager.Config.SabrPreferStreaming && avPro && videoInfo.UrlType == UrlType.YouTube)
         {
             var forcedUrl = await SabrRestreamService.TryGetRestreamUrlAsync(videoInfo);
             if (!string.IsNullOrEmpty(forcedUrl))

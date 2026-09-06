@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Jeek.Avalonia.Localization;
 using Serilog;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Sabr;
@@ -54,6 +55,12 @@ public static class SabrRestreamService
     /// file can fall back to a normal download. See <see cref="EnsureCachedAsync"/>.
     /// </summary>
     private static readonly ConcurrentDictionary<string, VideoInfo> SessionVideos = new();
+
+    /// <summary>
+    /// The status-bar activity for each live session, created when the session is published and disposed on
+    /// teardown, so "Streaming …" shows for exactly the session's lifetime.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, StatusActivity> StreamActivities = new();
 
     /// <summary>
     /// Starts in flight. VRChat fires several getvideo requests for the same video within a second, and a
@@ -138,6 +145,15 @@ public static class SabrRestreamService
 
             Sessions[videoId] = session;
             SessionVideos[videoId] = videoInfo;
+            // Several getvideo requests can land for the same video; only the first should create the
+            // status activity (the losers dispose their own so nothing leaks).
+            if (!StreamActivities.ContainsKey(videoId))
+            {
+                var activity = StatusService.Begin(StatusCategory.Streaming,
+                    string.Format(Localizer.Get("StatusStreaming"), videoId));
+                if (!StreamActivities.TryAdd(videoId, activity))
+                    activity.Dispose();
+            }
             return session.PlaybackUrl;
         }
         catch (Exception ex)
@@ -347,11 +363,21 @@ public static class SabrRestreamService
                             session.IdleFor > TimeSpan.FromSeconds(10);
 
                 if (!ended && session.IdleFor <= (isLive ? LiveIdleTimeout : IdleTimeout))
+                {
+                    // The session is kept alive (for seeks / cache convergence) for the full idle window, but
+                    // the "Streaming" indicator should only show while we're actually pulling fragments over
+                    // SABR — otherwise it lingers on the status bar for the whole 2-minute reap after playback
+                    // stopped. Live streams continuously, so its indicator stays until the (short) reap.
+                    if (session is SabrHlsSession hls)
+                        SyncStreamIndicator(id, hls.IsFetching);
                     continue;
+                }
 
                 Log.Information("Tearing down SABR session for {VideoId} ({Reason}, idle {Idle:g})",
                     id, ended ? "broadcast ended" : "idle", session.IdleFor);
                 Sessions.TryRemove(id, out _);
+                if (StreamActivities.TryRemove(id, out var activity))
+                    activity.Dispose();
 
                 // Do this BEFORE Dispose: it deletes the session directory, and with it any chance of
                 // telling whether we actually got the video cached.
@@ -365,12 +391,35 @@ public static class SabrRestreamService
         }
     }
 
+    /// <summary>
+    /// Shows the "Streaming X" status while a VOD session is fetching over SABR and clears it when the fetch
+    /// stops — recreated if a later seek starts fetching again. Called from the reaper poll.
+    /// </summary>
+    private static void SyncStreamIndicator(string videoId, bool fetching)
+    {
+        if (fetching)
+        {
+            if (StreamActivities.ContainsKey(videoId))
+                return;
+            var activity = StatusService.Begin(StatusCategory.Streaming,
+                string.Format(Localizer.Get("StatusStreaming"), videoId));
+            if (!StreamActivities.TryAdd(videoId, activity))
+                activity.Dispose();
+        }
+        else if (StreamActivities.TryRemove(videoId, out var activity))
+        {
+            activity.Dispose();
+        }
+    }
+
     private static void ShutdownAll()
     {
         foreach (var (id, session) in Sessions)
         {
             Sessions.TryRemove(id, out _);
             SessionVideos.TryRemove(id, out _);
+            if (StreamActivities.TryRemove(id, out var activity))
+                activity.Dispose();
             session.Dispose(); // app is exiting; no point queueing a download
         }
     }

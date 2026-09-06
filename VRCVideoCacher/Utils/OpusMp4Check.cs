@@ -46,6 +46,26 @@ internal static class OpusMp4Check
     /// </summary>
     public static bool PreferAacAudio => _opusSupported == false;
 
+    /// <summary>
+    /// Cached result of the startup Opus-in-MP4 decode probe, for status display: true = decodes here,
+    /// false = broken (SABR uses the AAC fallback), null = not checked / not applicable (non-Windows).
+    /// </summary>
+    public static bool? Supported => _opusSupported;
+
+    private static Task? _probeTask;
+    private static readonly object ProbeGate = new();
+
+    /// <summary>
+    /// Runs the decode probe at most once (later callers await the same run) and completes when
+    /// <see cref="Supported"/> is populated. The dashboard awaits this before reading the result, so it
+    /// never shows a premature "unknown" just because the startup probe is still in flight.
+    /// </summary>
+    public static Task EnsureAsync()
+    {
+        lock (ProbeGate)
+            return _probeTask ??= Task.Run(Run);
+    }
+
     public static void Run()
     {
         try

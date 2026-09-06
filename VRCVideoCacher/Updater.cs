@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
+using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Semver;
 using Serilog;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
@@ -100,9 +102,13 @@ public class Updater
                     File.Delete(TempFilePath);
                 }
 
-                await using var stream = await HttpClient.GetStreamAsync(asset.browser_download_url);
-                await using var fileStream =
-                    new FileStream(TempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                using var activity = StatusService.Begin(StatusCategory.Provisioning,
+                    Localizer.Get("StatusUpdatingApp"));
+                using var response = await HttpClient.GetAsync(asset.browser_download_url,
+                    HttpCompletionOption.ResponseHeadersRead);
+                await using var stream = new ProgressStream(
+                    await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength, activity.Report);
+                await using var fileStream = new FileStream(TempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
                 await stream.CopyToAsync(fileStream);
                 fileStream.Close();
 

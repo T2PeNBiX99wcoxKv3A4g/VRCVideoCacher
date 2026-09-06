@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Jeek.Avalonia.Localization;
 using Newtonsoft.Json;
 using Serilog;
 using SharpCompress.Readers;
@@ -119,9 +120,59 @@ internal static class BgUtilPotProvider
     private static volatile bool _initFailed;
     private static Process? _server;
 
+    private static readonly StringComparison PathComparison =
+        OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
     static BgUtilPotProvider()
     {
         AppDomain.CurrentDomain.ProcessExit += (_, _) => StopServer();
+    }
+
+    /// <summary>
+    /// Kills leftover Deno processes from a previous run. A hard-killed app can leave the bgutil server (our
+    /// Deno) running and holding the port; this reaps them at launch. Only processes launched from OUR Deno
+    /// binary are touched — matched by full executable path — so a user's own Deno is never affected, and it
+    /// is skipped entirely when running against a global/system Deno (which is shared, not ours to kill).
+    /// Call ONCE at startup, before we start our own server.
+    /// </summary>
+    public static void KillOrphanedInstances()
+    {
+        if (LaunchArgs.UseGlobalPath)
+            return;
+
+        var denoPath = YtdlManager.DenoPath;
+        if (!File.Exists(denoPath))
+            return;
+
+        string fullDenoPath;
+        try { fullDenoPath = Path.GetFullPath(denoPath); }
+        catch { return; }
+
+        var processName = Path.GetFileNameWithoutExtension(denoPath);
+        foreach (var process in Process.GetProcessesByName(processName))
+        {
+            try
+            {
+                string? exePath;
+                try { exePath = process.MainModule?.FileName; }
+                catch { continue; } // access denied / different bitness — assume it isn't ours
+
+                if (exePath is null || !string.Equals(Path.GetFullPath(exePath), fullDenoPath, PathComparison))
+                    continue;
+
+                Log.Information("Killing leftover Deno process {Pid} from a previous run", process.Id);
+                process.Kill(entireProcessTree: true);
+                process.WaitForExit(3000);
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, "Could not kill Deno process {Pid}", process.Id);
+            }
+            finally
+            {
+                process.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -158,6 +209,12 @@ internal static class BgUtilPotProvider
 
         Ensure();
 
+        if (_isReady)
+            return true;
+
+        using var activity = StatusService.Begin(StatusCategory.Provisioning,
+            Localizer.Get("StatusProviderWaiting"), key: ToolVerifier.PotProviderKey);
+
         var deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
         {
@@ -176,6 +233,8 @@ internal static class BgUtilPotProvider
         if (IsAutoManaged)
         {
             ReassignPortIfInUse();
+            using var activity = StatusService.Begin(StatusCategory.Provisioning,
+                Localizer.Get("StatusProviderSetup"), key: ToolVerifier.PotProviderKey);
             try
             {
                 await EnsureInstalledAsync();
@@ -431,6 +490,12 @@ internal static class BgUtilPotProvider
             process.Dispose();
         }
     }
+
+    /// <summary>
+    /// Active health check for status display: pings the provider regardless of the SABR toggle — the
+    /// legacy yt-dlp path needs the PO token too — and returns whether it answered.
+    /// </summary>
+    public static Task<bool> IsRespondingAsync() => PingAsync();
 
     private static async Task<bool> PingAsync()
     {

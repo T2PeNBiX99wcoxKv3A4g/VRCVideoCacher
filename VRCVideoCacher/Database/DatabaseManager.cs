@@ -9,6 +9,7 @@ namespace VRCVideoCacher.Database;
 public static class DatabaseManager
 {
     public static event Action? OnPlayHistoryAdded;
+    public static event Action? OnPlayHistoryChanged;
     public static event Action? OnVideoInfoCacheUpdated;
 
     private static readonly PooledDbContextFactory<Database> ContextFactory;
@@ -41,7 +42,62 @@ public static class DatabaseManager
         using var db = ContextFactory.CreateDbContext();
         db.PlayHistory.Add(history);
         db.SaveChanges();
+        TrimPlayHistory(ConfigManager.Config.HistoryMaxSize, db);
         OnPlayHistoryAdded?.Invoke();
+    }
+
+    /// <summary>
+    /// Removes a video from history entirely — every play record for it. Identified by video Id when it
+    /// has one; otherwise (an entry with no parseable Id) by exact Url, so unrelated Id-less entries are
+    /// left alone rather than all deleted together.
+    /// </summary>
+    public static void DeletePlayHistoryForVideo(string? id, string url)
+    {
+        using var db = ContextFactory.CreateDbContext();
+        if (!string.IsNullOrEmpty(id))
+            db.PlayHistory.Where(h => h.Id == id).ExecuteDelete();
+        else
+            db.PlayHistory.Where(h => h.Url == url).ExecuteDelete();
+        OnPlayHistoryChanged?.Invoke();
+    }
+
+    /// <summary>Deletes every play record.</summary>
+    public static void ClearPlayHistory()
+    {
+        using var db = ContextFactory.CreateDbContext();
+        db.PlayHistory.ExecuteDelete();
+        OnPlayHistoryChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Enforces the retention cap: keeps the newest <paramref name="max"/> play records and deletes the
+    /// rest. Called after each insert (silently) and when the History max-size setting is lowered.
+    /// </summary>
+    public static void TrimPlayHistory(int max, Database? existing = null)
+    {
+        if (max <= 0)
+            return;
+
+        var db = existing ?? ContextFactory.CreateDbContext();
+        try
+        {
+            // Find the Timestamp of the Nth-newest row; anything strictly older is deleted. Delete by that
+            // boundary rather than materialising ids, so it stays one round-trip regardless of table size.
+            var cutoff = db.PlayHistory
+                .OrderByDescending(h => h.Timestamp)
+                .Skip(max)
+                .Select(h => (DateTime?)h.Timestamp)
+                .FirstOrDefault();
+            if (cutoff is null)
+                return; // fewer than max rows; nothing to trim
+
+            db.PlayHistory.Where(h => h.Timestamp <= cutoff.Value).ExecuteDelete();
+        }
+        finally
+        {
+            if (existing is null)
+                db.Dispose();
+        }
     }
 
     public static void AddVideoInfoCache(VideoInfoCache videoInfoCache)

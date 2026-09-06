@@ -1,17 +1,34 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
+using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private const string StatusNormalColor = "#CCCCCC";
+    private const string StatusWarningColor = "#FFB74D";
+
     [ObservableProperty]
     private ViewModelBase _currentView;
 
     [ObservableProperty]
     private string _statusText = Localizer.Get("ServerRunning");
+
+    [ObservableProperty]
+    private string _statusColor = StatusNormalColor;
+
+    [ObservableProperty]
+    private bool _statusShowBar;
+
+    [ObservableProperty]
+    private bool _statusIndeterminate;
+
+    [ObservableProperty]
+    private double _statusProgress;
 
     [ObservableProperty]
     private string _cacheStatusText = "Cache: 0 B";
@@ -43,8 +60,39 @@ public partial class MainWindowViewModel : ViewModelBase
         CacheManager.OnCacheChanged += (_, _) => UpdateCacheStatus();
         UpdateCacheStatus();
 
-        // Refresh localized strings when language changes
-        Localizer.LanguageChanged += (_, _) => StatusText = Localizer.Get("ServerRunning");
+        // Live activity status (downloads, streaming, provisioning, warnings).
+        StatusService.Changed += OnStatusChanged;
+        OnStatusChanged();
+
+        // Re-render the (localized) status text when the language changes.
+        Localizer.LanguageChanged += (_, _) => OnStatusChanged();
+    }
+
+    private void OnStatusChanged()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var snapshot = StatusService.Current;
+            if (!snapshot.IsBusy)
+            {
+                StatusText = Localizer.Get("ServerRunning");
+                StatusColor = StatusNormalColor;
+                StatusShowBar = false;
+                StatusIndeterminate = false;
+                StatusProgress = 0;
+                return;
+            }
+
+            var text = snapshot.Text;
+            if (snapshot.ExtraCount > 0)
+                text += string.Format(Localizer.Get("StatusMore"), snapshot.ExtraCount);
+
+            StatusText = text;
+            StatusColor = snapshot.Level == StatusLevel.Warning ? StatusWarningColor : StatusNormalColor;
+            StatusShowBar = snapshot.ShowBar;
+            StatusIndeterminate = snapshot.Indeterminate;
+            StatusProgress = snapshot.Progress;
+        });
     }
 
     private void UpdateCacheStatus()

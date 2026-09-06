@@ -49,6 +49,28 @@ public class FileSizeConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
+public class ResolutionLabelConverter : IValueConverter
+{
+    public static readonly ResolutionLabelConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not int height)
+            return value?.ToString();
+
+        return height switch
+        {
+            >= 4320 => $"{height}p (8K)",
+            >= 2160 => $"{height}p (4K)",
+            >= 1440 => $"{height}p (2K)",
+            _ => $"{height}p",
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
 public class GreaterThanZeroConverter : IValueConverter
 {
     public static readonly GreaterThanZeroConverter Instance = new();

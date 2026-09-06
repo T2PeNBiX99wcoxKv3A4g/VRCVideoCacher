@@ -205,6 +205,11 @@ internal sealed class Program
             _ = YtdlManager.TryDownloadFfmpeg();
         }
 
+        // Reap any Deno left running by a previous unclean exit (the bgutil server holds the port) before we
+        // start our own. Unconditional: a leftover can exist even if SABR is now disabled. Only kills Deno
+        // launched from our own binary.
+        BgUtilPotProvider.KillOrphanedInstances();
+
         // Warm the SABR PO token provider now (downloads/installs on first run, then supervises its Deno
         // server) so it is usually ready by the first SABR playback. Runs in the background; SABR waits on
         // its readiness and fails cleanly if it never comes up. Deno is provisioned just above.
@@ -215,7 +220,7 @@ internal sealed class Program
             // VRChat then shows as a video that never plays. Nothing in any log says so — hence the
             // explicit check. Runs off the startup path; it costs a decode of a ~1s clip.
             if (OperatingSystem.IsWindows())
-                _ = Task.Run(OpusMp4Check.Run);
+                _ = OpusMp4Check.EnsureAsync();
         }
 
         if (OperatingSystem.IsWindows())
