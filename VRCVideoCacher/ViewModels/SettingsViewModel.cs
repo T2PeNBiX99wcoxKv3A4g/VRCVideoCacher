@@ -53,15 +53,11 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
 
     // YouTube SABR Options
-    [ObservableProperty]
-    private bool _preferSabrStreaming;
+    [ObservableProperty] public partial bool PreferSabrStreaming { get; set; }
 
-    [ObservableProperty]
-    private int _sabrMaxResolution;
+    [ObservableProperty] public partial int SabrMaxResolution { get; set; }
 
-    [ObservableProperty]
-    private bool _sabrFilterDrcAudio;
-
+    [ObservableProperty] public partial bool SabrFilterDrcAudio { get; set; }
     [ObservableProperty] public partial bool SabrFilterSuperResolution { get; set; }
 
     [ObservableProperty] public partial bool SabrFilterVoiceBoostedAudio { get; set; }
@@ -124,8 +120,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     // Pure view state: reveals the advanced setting sections. Not a config value, so it is neither
     // loaded/saved nor tracked as an unsaved change.
-    [ObservableProperty]
-    private bool _showAdvanced;
+    [ObservableProperty] private bool _showAdvanced;
 
     // Language selection
     public static IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
