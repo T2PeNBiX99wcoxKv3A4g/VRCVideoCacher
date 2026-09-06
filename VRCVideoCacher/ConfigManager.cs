@@ -56,21 +56,23 @@ public class ConfigManager
     // Events for UI
     public static event Action? OnConfigChanged;
 
-    public static void TrySaveConfig()
+    public static void TrySaveConfig(bool infoLog = true)
     {
         var newConfig = JsonConvert.SerializeObject(Config, Formatting.Indented);
         var oldConfig = File.Exists(ConfigFilePath) ? File.ReadAllText(ConfigFilePath) : string.Empty;
         if (newConfig == oldConfig)
             return;
 
-        Log.Information("Config changed, saving...");
+        if (infoLog)
+            Log.Information("Config changed, saving...");
         File.WriteAllText(ConfigFilePath, JsonConvert.SerializeObject(Config, Formatting.Indented));
-        Log.Information("Config saved.");
+        if (infoLog)
+            Log.Information("Config saved.");
         OnConfigChanged?.Invoke();
         CacheManager.TryFlushCache();
     }
-    
-    public static void TrySaveConfigWithoutWait() => Task.Run(TrySaveConfig);
+
+    public static void TrySaveConfigWithoutWait(bool infoLog = true) => Task.Run(() => TrySaveConfig(infoLog));
 
     private static bool GetUserConfirmation(string prompt, bool defaultValue)
     {
