@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using VRCVideoCacher.ViewModels;
 
 namespace VRCVideoCacher.Views;
@@ -32,6 +33,11 @@ public partial class LogViewerView : UserControl
     {
         if (DataContext is LogViewerViewModel { AutoScroll: true } && e.Action == NotifyCollectionChangedAction.Add)
             ScrollToBottom();
+    }
+
+    private void ScrollToBottomButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ScrollToBottom();
     }
 
     private void ScrollToBottom()
