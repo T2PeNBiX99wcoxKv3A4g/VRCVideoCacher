@@ -9,6 +9,7 @@ publish/
 .vscode/
 .vs/
 *.DotSettings*
+.junie/
 
 # Runtime files
 *.log
