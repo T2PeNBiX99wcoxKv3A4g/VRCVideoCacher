@@ -229,4 +229,14 @@ public class ConfigModel
 
     // Localization
     public string Language = "en";
+
+#if DEBUG
+    public bool ShowDebug = true;
+#else
+    public bool ShowDebug = false;
+#endif
+    public bool ShowInfo = true;
+    public bool ShowWarning = true;
+    public bool ShowError = true;
+    public int MaxLogEntries = 1000;
 }

@@ -48,6 +48,18 @@ public partial class LogViewerViewModel : ViewModelBase
 
         // Subscribe to new log entries
         LogService.OnLogEntry += OnLogEntry;
+        ConfigManager.OnConfigChanged += LoadFromConfig;
+        LoadFromConfig();
+    }
+
+    private void LoadFromConfig()
+    {
+        var config = ConfigManager.Config;
+        ShowDebug = config.ShowDebug;
+        ShowInfo = config.ShowInfo;
+        ShowWarning = config.ShowWarning;
+        ShowError = config.ShowError;
+        MaxLogEntries = config.MaxLogEntries;
     }
 
     private void OnLogEntry(LogEntry entry)
@@ -100,15 +112,34 @@ public partial class LogViewerViewModel : ViewModelBase
 
     partial void OnShowDebugChanged(bool value)
     {
+        var config = ConfigManager.Config;
+        config.ShowDebug = value;
         // Capture Debug/trace only while the toggle is on, so it never spams the log file or buffer by
         // default. Information is the floor either way.
         LoggerUtils.LevelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
         ApplyFilter();
     }
 
-    partial void OnShowInfoChanged(bool value) => ApplyFilter();
-    partial void OnShowWarningChanged(bool value) => ApplyFilter();
-    partial void OnShowErrorChanged(bool value) => ApplyFilter();
+    partial void OnShowInfoChanged(bool value)
+    {
+        var config = ConfigManager.Config;
+        config.ShowInfo = value;
+        ApplyFilter();
+    }
+
+    partial void OnShowWarningChanged(bool value)
+    {
+        var config = ConfigManager.Config;
+        config.ShowWarning = value;
+        ApplyFilter();
+    }
+
+    partial void OnShowErrorChanged(bool value)
+    {
+        var config = ConfigManager.Config;
+        config.ShowError = value;
+        ApplyFilter();
+    }
 
     private void ApplyFilter()
     {
