@@ -35,7 +35,7 @@ public partial class LogViewerView : UserControl
             ScrollToBottom();
     }
 
-    private void ScrollToBottomButton_Click(object? sender, RoutedEventArgs e)
+    private void ScrollToBottomButton(object? sender, RoutedEventArgs e)
     {
         ScrollToBottom();
     }

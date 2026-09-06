@@ -12,7 +12,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,15">
             <TextBlock Text="{l:Localize LogViewer}" FontSize="24" FontWeight="Bold" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                <Button Click="ScrollToBottomButton_Click" ToolTip.Tip="{l:Localize ScrollToBottom}">
+                <Button Click="ScrollToBottomButton" ToolTip.Tip="{l:Localize ScrollToBottom}">
                     <mi:MaterialIcon Kind="ArrowCollapseDown" Width="20" Height="20" />
                 </Button>
                 <Button Command="{Binding ExportLogsCommand}" ToolTip.Tip="{l:Localize ExportLogs}">
