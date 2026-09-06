@@ -114,6 +114,7 @@ public partial class LogViewerViewModel : ViewModelBase
     {
         var config = ConfigManager.Config;
         config.ShowDebug = value;
+        ConfigManager.TrySaveConfigWithoutWait();
         // Capture Debug/trace only while the toggle is on, so it never spams the log file or buffer by
         // default. Information is the floor either way.
         LoggerUtils.LevelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
@@ -124,6 +125,7 @@ public partial class LogViewerViewModel : ViewModelBase
     {
         var config = ConfigManager.Config;
         config.ShowInfo = value;
+        ConfigManager.TrySaveConfigWithoutWait();
         ApplyFilter();
     }
 
@@ -131,6 +133,7 @@ public partial class LogViewerViewModel : ViewModelBase
     {
         var config = ConfigManager.Config;
         config.ShowWarning = value;
+        ConfigManager.TrySaveConfigWithoutWait();
         ApplyFilter();
     }
 
@@ -138,6 +141,7 @@ public partial class LogViewerViewModel : ViewModelBase
     {
         var config = ConfigManager.Config;
         config.ShowError = value;
+        ConfigManager.TrySaveConfigWithoutWait();
         ApplyFilter();
     }
 

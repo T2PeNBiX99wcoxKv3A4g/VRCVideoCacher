@@ -69,6 +69,8 @@ public class ConfigManager
         OnConfigChanged?.Invoke();
         CacheManager.TryFlushCache();
     }
+    
+    public static void TrySaveConfigWithoutWait() => Task.Run(TrySaveConfig);
 
     private static bool GetUserConfirmation(string prompt, bool defaultValue)
     {
