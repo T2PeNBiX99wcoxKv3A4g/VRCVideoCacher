@@ -17,9 +17,9 @@ public partial class LogViewerViewModel : ViewModelBase
     // Off by default: Debug/trace is not captured at all (keeping it out of the log file and buffer). Turning
     // it on lowers the live log level so debug output starts flowing — see OnShowDebugChanged.
 #if DEBUG
-    [ObservableProperty] public partial bool ShowDebug { get; set; } = true;
+     [ObservableProperty] public partial bool ShowDebug { get; set; } = true;
 #else
-    [ObservableProperty] public partial bool ShowDebug { get; set; };
+    [ObservableProperty] public partial bool ShowDebug { get; set; } = false;
 #endif
 
     [ObservableProperty] public partial bool ShowInfo { get; set; } = true;
