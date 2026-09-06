@@ -14,18 +14,28 @@ namespace VRCVideoCacher.YTDL;
 public class YtdlManager
 {
     private static readonly ILogger Log = Program.Logger.ForContext<YtdlManager>();
+
     private static readonly HttpClient HttpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
     };
+
     public static readonly string CookiesPath;
 
     public static readonly string YtdlPath =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
+
     public static readonly string DenoPath =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
+
     public static readonly string FfmpegPath =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
     // that worked before still works, and SABR-only videos now extract and download too — which mainline
     // cannot do at all.
@@ -53,8 +63,7 @@ public class YtdlManager
     /// </summary>
     private static async Task RetryAsync(Func<Task> attempt, string what)
     {
-        for (var i = 1; ; i++)
-        {
+        for (var i = 1;; i++)
             try
             {
                 await attempt();
@@ -67,7 +76,6 @@ public class YtdlManager
                     what, i, DownloadRetries, delay.TotalSeconds);
                 await Task.Delay(delay);
             }
-        }
     }
 
 
@@ -262,13 +270,15 @@ public class YtdlManager
         using var activity = StatusService.Begin(StatusCategory.Provisioning,
             string.Format(Localizer.Get("StatusDownloading"), "Deno"), key: ToolVerifier.DenoKey);
 
+        var report = activity.Report;
+
         async Task DownloadFromGithubAsync()
         {
             using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             await using var responseStream = new ProgressStream(
                 await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
-                activity.Report, DownloadStallTimeout);
+                report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
             try
             {
@@ -279,7 +289,8 @@ public class YtdlManager
 
                     Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
                     var path = Path.Join(Program.UtilsPath, reader.Entry.Key);
-                    await using var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using var outputStream =
+                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
@@ -288,7 +299,8 @@ public class YtdlManager
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
-                throw new Exception("Deno archive contained no files.");
+
+                throw new("Deno archive contained no files.");
             }
             finally
             {
@@ -337,7 +349,8 @@ public class YtdlManager
 
                     Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
                     var path = Path.Join(Program.UtilsPath, reader.Entry.Key);
-                    await using var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using var outputStream =
+                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
@@ -346,7 +359,8 @@ public class YtdlManager
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
-                throw new Exception("Deno fallback archive contained no files.");
+
+                throw new("Deno fallback archive contained no files.");
             }
             finally
             {
@@ -443,13 +457,15 @@ public class YtdlManager
         using var activity = StatusService.Begin(StatusCategory.Provisioning,
             string.Format(Localizer.Get("StatusDownloading"), "FFmpeg"), key: ToolVerifier.FfmpegKey);
 
+        var report = activity.Report;
+
         async Task DownloadAsync()
         {
             using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             await using var responseStream = new ProgressStream(
                 await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
-                activity.Report, DownloadStallTimeout);
+                report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
             var success = false;
             try
@@ -465,7 +481,8 @@ public class YtdlManager
                     var fileName = Path.GetFileName(reader.Entry.Key);
                     Log.Debug("Extracting file {Name} ({Size} bytes)", fileName, reader.Entry.Size);
                     var path = Path.Join(Program.UtilsPath, fileName);
-                    await using var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using var outputStream =
+                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
@@ -478,7 +495,7 @@ public class YtdlManager
             }
 
             if (!success)
-                throw new Exception("Failed to extract ffmpeg files.");
+                throw new("Failed to extract ffmpeg files.");
         }
 
         try
@@ -533,6 +550,8 @@ public class YtdlManager
             using var activity = StatusService.Begin(StatusCategory.Provisioning,
                 string.Format(Localizer.Get("StatusDownloading"), "yt-dlp"), key: ToolVerifier.YtDlpKey);
 
+            var report = activity.Report;
+
             async Task DownloadAsync()
             {
                 using var response = await HttpClient.GetAsync(assetVersion.browser_download_url,
@@ -540,7 +559,7 @@ public class YtdlManager
                 response.EnsureSuccessStatusCode();
                 await using var stream = new ProgressStream(
                     await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
-                    activity.Report, DownloadStallTimeout);
+                    report, DownloadStallTimeout);
                 await using var fileStream = new FileStream(YtdlPath, FileMode.Create, FileAccess.Write, FileShare.None);
                 await stream.CopyToAsync(fileStream);
             }
