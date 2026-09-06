@@ -116,6 +116,7 @@
   "QueueIsEmpty": "Queue is empty",
 
   "LogViewer": "Log Viewer",
+  "ScrollToBottom": "Scroll to Bottom",
   "ExportLogs": "Export Logs",
   "ClearLogs": "Clear Logs",
   "FilterLogsWatermark": "Filter logs...",
