@@ -12,42 +12,38 @@ namespace VRCVideoCacher.ViewModels;
 
 public partial class LogViewerViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private string _filterText = string.Empty;
+    [ObservableProperty] public partial string FilterText { get; set; } = string.Empty;
 
     // Off by default: Debug/trace is not captured at all (keeping it out of the log file and buffer). Turning
     // it on lowers the live log level so debug output starts flowing — see OnShowDebugChanged.
-    [ObservableProperty]
-    private bool _showDebug;
+#if DEBUG
+    [ObservableProperty] public partial bool ShowDebug { get; set; } = true;
+#else
+    [ObservableProperty] public partial bool ShowDebug { get; set; };
+#endif
 
-    [ObservableProperty]
-    private bool _showInfo = true;
+    [ObservableProperty] public partial bool ShowInfo { get; set; } = true;
 
-    [ObservableProperty]
-    private bool _showWarning = true;
+    [ObservableProperty] public partial bool ShowWarning { get; set; } = true;
 
-    [ObservableProperty]
-    private bool _showError = true;
+    [ObservableProperty] public partial bool ShowError { get; set; } = true;
 
-    [ObservableProperty]
-    private bool _autoScroll = true;
+    [ObservableProperty] public partial bool AutoScroll { get; set; } = true;
 
-    [ObservableProperty]
-    private int _maxLogEntries = 1000;
-
+    [ObservableProperty] private partial int MaxLogEntries { get; set; } = 1000;
     public ObservableCollection<LogEntry> LogEntries { get; } = [];
     public ObservableCollection<LogEntry> FilteredLogEntries { get; } = [];
 
     public LogViewerViewModel()
     {
+        LoggerUtils.LevelSwitch.MinimumLevel = ShowDebug ? LogEventLevel.Debug : LogEventLevel.Information;
+
         // Load buffered logs that occurred before UI was ready
         foreach (var entry in LogService.GetBufferedLogs())
         {
             LogEntries.Add(entry);
             if (ShouldShowEntry(entry))
-            {
                 FilteredLogEntries.Add(entry);
-            }
         }
 
         // Subscribe to new log entries
@@ -62,18 +58,14 @@ public partial class LogViewerViewModel : ViewModelBase
 
             // Trim old entries
             while (LogEntries.Count > MaxLogEntries)
-            {
                 LogEntries.RemoveAt(0);
-            }
 
             // Apply filter
             if (ShouldShowEntry(entry))
             {
                 FilteredLogEntries.Add(entry);
                 while (FilteredLogEntries.Count > MaxLogEntries)
-                {
                     FilteredLogEntries.RemoveAt(0);
-                }
             }
         });
     }
@@ -98,9 +90,7 @@ public partial class LogViewerViewModel : ViewModelBase
             var filter = FilterText.ToLowerInvariant();
             if (!entry.Message.Contains(filter, StringComparison.OrdinalIgnoreCase) &&
                 !entry.Source.Contains(filter, StringComparison.OrdinalIgnoreCase))
-            {
                 return false;
-            }
         }
 
         return true;
@@ -115,6 +105,7 @@ public partial class LogViewerViewModel : ViewModelBase
         LoggerUtils.LevelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
         ApplyFilter();
     }
+
     partial void OnShowInfoChanged(bool value) => ApplyFilter();
     partial void OnShowWarningChanged(bool value) => ApplyFilter();
     partial void OnShowErrorChanged(bool value) => ApplyFilter();
@@ -123,12 +114,8 @@ public partial class LogViewerViewModel : ViewModelBase
     {
         FilteredLogEntries.Clear();
         foreach (var entry in LogEntries)
-        {
             if (ShouldShowEntry(entry))
-            {
                 FilteredLogEntries.Add(entry);
-            }
-        }
     }
 
     [RelayCommand]
@@ -148,8 +135,6 @@ public partial class LogViewerViewModel : ViewModelBase
 
         // Open file location
         if (OperatingSystem.IsWindows())
-        {
             Process.Start("explorer.exe", $"/select,\"{logPath}\"");
-        }
     }
 }
