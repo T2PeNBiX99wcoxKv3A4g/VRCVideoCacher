@@ -14,7 +14,12 @@ public class FileTools
     private static readonly string? BackupPathVrc;
     private static readonly string? YtdlPathReso;
     private static readonly string? BackupPathReso;
-    private static readonly ImmutableList<string> SteamPaths = [".var/app/com.valvesoftware.Steam/data/Steam", ".steam/steam", ".steam/debian-installation", ".local/share/Steam"];
+
+    private static readonly ImmutableList<string> SteamPaths =
+    [
+        ".var/app/com.valvesoftware.Steam/data/Steam", ".steam/steam", ".steam/debian-installation", ".local/share/Steam"
+    ];
+
     private const string ResoniteAppId = "2519830";
     private const string VrcAppId = "438100";
 
@@ -22,16 +27,12 @@ public class FileTools
     {
         string? resoPath;
         if (!string.IsNullOrEmpty(ConfigManager.Config.ResonitePath))
-        {
             resoPath = ConfigManager.Config.ResonitePath;
-        }
         else
-        {
             resoPath = GetAppLibraryPath(ResoniteAppId)?
                 .Select(path => Path.Join(path, "steamapps", "common", "Resonite"))?
                 .Where(Path.Exists)?
                 .First();
-        }
         if (!string.IsNullOrEmpty(resoPath))
         {
             YtdlPathReso = Path.Join(resoPath, "RuntimeData", OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe");
@@ -43,12 +44,12 @@ public class FileTools
             localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
         else if (OperatingSystem.IsLinux())
         {
-            var compatPath = GetCompatPath(VrcAppId) ?? throw new Exception("Unable to find VRChat compat data");
+            var compatPath = GetCompatPath(VrcAppId) ?? throw new("Unable to find VRChat compat data");
             localLowPath = Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow");
         }
         else
             throw new NotImplementedException("Unknown platform");
-        
+
         var vrcPath = Path.Join(localLowPath, "VRChat", "VRChat", "Tools", "yt-dlp.exe");
         if (!File.Exists(vrcPath))
             Log.Warning("YT-DLP not found at expected VRChat path: {Path}", vrcPath);
@@ -81,12 +82,13 @@ public class FileTools
         string vdfPath;
         if (OperatingSystem.IsWindows())
         {
-            string? steamInstallPath = (string?)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", "");
+            var steamInstallPath = GetSteamInstallPathWindows();
             if (string.IsNullOrEmpty(steamInstallPath))
             {
                 Log.Error("GetAppLibraryPath: Unable to find Steam installation directory");
                 return null;
             }
+
             vdfPath = Path.Join(steamInstallPath, "steamapps", "libraryfolders.vdf");
         }
         else if (OperatingSystem.IsLinux())
@@ -96,18 +98,18 @@ public class FileTools
             var vdfPaths = SteamPaths
                 .Select(path => Path.Join(home, path, "steamapps", "libraryfolders.vdf"))
                 .Where(Path.Exists).ToArray();
-            if (vdfPaths.Count() == 0)
+            if (vdfPaths.Length == 0)
             {
                 Log.Error("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
                 return null;
             }
-    
 
             vdfPath = vdfPaths.First();
         }
         else
         {
-            Log.Error("GetAppLibraryPath: Unsupported operating system {OperatingSystem}", Environment.OSVersion.Platform);
+            Log.Error("GetAppLibraryPath: Unsupported operating system {OperatingSystem}",
+                Environment.OSVersion.Platform);
             return null;
         }
 
@@ -139,6 +141,7 @@ public class FileTools
             Log.Error("Failed to find library path for Steam app {AppId}.", appid);
             return null;
         }
+
         return libraryPaths;
     }
 
@@ -229,6 +232,7 @@ public class FileTools
             File.Move(ytdlPath, backupPath);
             Log.Information("Backed up YT-DLP.");
         }
+
         using var stream = Program.GetYtDlpStub(useLinuxStub);
         using var fileStream = File.Create(ytdlPath);
         stream.CopyTo(fileStream);
