@@ -185,9 +185,9 @@ internal sealed class Program
 
         if (Environment.CommandLine.Contains("--Hash"))
         {
-            Console.WriteLine(GetYtDlpHash(false));
+            Console.WriteLine(GetYtdlpHash(false));
             if (OperatingSystem.IsLinux())
-                Console.WriteLine(GetYtDlpHash(true));
+                Console.WriteLine(GetYtdlpHash(true));
             Environment.Exit(0);
         }
 
@@ -333,8 +333,11 @@ internal sealed class Program
         }
     }
 
-    public static Stream GetYtDlpStub(bool linux) =>
-        GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{(linux ? "_linux" : ".exe")}");
+    public static Stream GetYtDlpStub(bool useLinuxStub)
+    {
+        string prefix = useLinuxStub ? "_linux" : ".exe";
+        return GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{prefix}");
+    }
 
     [PublicAPI]
     public static Stream GetEmbeddedResource(string resourceName)
@@ -344,9 +347,9 @@ internal sealed class Program
         return stream ?? throw new($"{resourceName} not found in resources.");
     }
 
-    public static string GetYtDlpHash(bool linux)
+    public static string GetYtdlpHash(bool useLinuxStub)
     {
-        var stream = GetYtDlpStub(linux);
+        var stream = GetYtDlpStub(useLinuxStub);
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         stream.Dispose();
