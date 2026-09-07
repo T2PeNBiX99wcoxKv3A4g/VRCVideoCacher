@@ -139,7 +139,6 @@ internal sealed class Program
         Task.Run(async () =>
         {
             for (var i = 0; i < 3; i++)
-            {
                 try
                 {
                     await InitVrcVideoCacher();
@@ -149,7 +148,6 @@ internal sealed class Program
                 {
                     Logger.Error(ex, "Backend error: {Message}", ex.Message);
                 }
-            }
         });
     }
 
@@ -335,7 +333,7 @@ internal sealed class Program
 
     public static Stream GetYtDlpStub(bool useLinuxStub)
     {
-        string prefix = useLinuxStub ? "_linux" : ".exe";
+        var prefix = useLinuxStub ? "_linux" : ".exe";
         return GetEmbeddedResource($"VRCVideoCacher.yt-dlp-stub{prefix}");
     }
 
