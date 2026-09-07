@@ -7,17 +7,11 @@ namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
 public partial class YouTubeHandler : ISiteHandler
 {
-    private const string AVProFormat = "(mp4/best)[height<=?1080][height>=?64][width>=?64]";
-
-    private const string UnityPlayerFormat =
-        "(mp4/best)[vcodec!=av01][vcodec!=vp9.2][height<=?1080][height>=?64][width>=?64][protocol^=http]";
-
     private static readonly ILogger Log = Program.Logger.ForContext<YouTubeHandler>();
-
-    private static readonly string[] Hosts =
-        ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
-
-    private static readonly Regex IdRegex = YoutubeIdRegex();
+    private static readonly string[] Hosts = ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
+    private static readonly Regex IdRegex = new(@"(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|live\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})");
+    private const string AVProFormat = "(mp4/best)[height<=?1080][height>=?64][width>=?64]";
+    private const string UnityPlayerFormat = "(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?1080][height>=?64][width>=?64][protocol^=http]";
 
     public bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
 
@@ -82,7 +76,4 @@ public partial class YouTubeHandler : ISiteHandler
         return args;
     }
 
-    [GeneratedRegex(
-        @"(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|live\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})")]
-    private static partial Regex YoutubeIdRegex();
 }
