@@ -99,7 +99,7 @@
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
         <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
         <PackageReference Include="AsyncImageLoader.Avalonia" Version="3.8.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
         <!-- EF Core 10.0.8 pulls SQLitePCLRaw 2.1.11, whose bundled SQLite has a high-severity integer
              overflow (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q, affects <= 2.1.11). Pin the bundle forward to
              2.1.12, which lifts the whole family (core/lib/provider) onto a patched SQLite. Staying on
@@ -119,7 +119,7 @@
         <PackageReference Include="SharpCompress" Version="0.50.4" />
         <PackageReference Include="ValveKeyValue" Version="0.70.0.499"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.20" />
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.21" />
         <PackageReference Include="Jeek.Avalonia.Localization" Version="12.0.2" />
     </ItemGroup>
 
