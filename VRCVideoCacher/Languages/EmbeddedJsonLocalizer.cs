@@ -8,8 +8,10 @@ namespace VRCVideoCacher.Languages;
 public class EmbeddedJsonLocalizer : BaseLocalizer
 {
     private FrozenDictionary<string, string> _languageStrings = new Dictionary<string, string>().ToFrozenDictionary();
+#if !DEBUG
     private FrozenDictionary<string, string> _enLanguageStrings = new Dictionary<string, string>().ToFrozenDictionary();
     private bool _enLanguageLoaded;
+#endif
 
     private const string Prefix = "VRCVideoCacher.Languages.";
     private const string Suffix = ".loc.json";
@@ -39,6 +41,7 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
         UpdateDisplayLanguages();
     }
 
+#if !DEBUG
     private void EnglishLanguageLoad(Assembly assembly)
     {
         if (_enLanguageLoaded) return;
@@ -55,6 +58,7 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
 
         _enLanguageLoaded = true;
     }
+#endif
 
     protected override void OnLanguageChanged()
     {
@@ -62,7 +66,9 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
         var resourceName = assembly.GetManifestResourceNames()
             .First(r => r.Equals($"{Prefix}{_language}{Suffix}"));
 
+#if !DEBUG
         EnglishLanguageLoad(assembly);
+#endif
 
         using var stream = assembly.GetManifestResourceStream(resourceName)!;
         using var reader = new StreamReader(stream);
