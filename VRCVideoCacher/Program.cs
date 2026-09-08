@@ -29,7 +29,7 @@ internal sealed class Program
     public static readonly string Version =
         typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? "unknown";
-    
+
     public static ILogger Logger = Log.ForContext("SourceContext", "Core");
     public static readonly string CurrentProcessPath = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
 
@@ -208,13 +208,11 @@ internal sealed class Program
         // Readiness checks may have arrived already; only now may they start the provider.
         BgUtilPotProvider.EnableStartup();
         if (ConfigManager.Config.SabrRestreamEnabled)
-        {
             // SABR hands AVPro Opus-in-MP4, which an out-of-date Windows decodes as silent audio and
             // VRChat then shows as a video that never plays. Nothing in any log says so — hence the
             // explicit check. Runs off the startup path; it costs a decode of a ~1s clip.
             if (OperatingSystem.IsWindows())
                 _ = OpusMp4Check.EnsureAsync();
-        }
 
         if (OperatingSystem.IsWindows())
             AutoStartShortcut.TryUpdateShortcutPath();
