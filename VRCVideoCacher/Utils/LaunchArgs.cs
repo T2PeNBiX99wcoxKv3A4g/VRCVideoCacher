@@ -23,7 +23,6 @@ public class LaunchArgs
     public static bool OVR = true;
     public static bool CloseWithSteamVr;
     public static string? ConfigName;
-    private static bool _isConfigName;
 
     public static void SetupArguments(params string[] args)
     {
@@ -31,12 +30,6 @@ public class LaunchArgs
 
         foreach (var arg in args)
         {
-            if (_isConfigName)
-            {
-                ConfigName = arg;
-                _isConfigName = false;
-            }
-
             if (arg.Equals(AdminBypassArg, StringComparison.OrdinalIgnoreCase))
                 IsBypassArgumentPresent = true;
 
@@ -68,8 +61,11 @@ public class LaunchArgs
             if (arg.Equals(CloseWithSteamVrArg, StringComparison.OrdinalIgnoreCase))
                 CloseWithSteamVr = true;
 
-            if (arg.Equals(ConfigNameArg, StringComparison.OrdinalIgnoreCase))
-                _isConfigName = true;
+            if (arg.StartsWith(ConfigNameArg, StringComparison.OrdinalIgnoreCase))
+            {
+                var name = arg[(ConfigNameArg.Length + 1)..];
+                ConfigName = name;
+            }
         }
     }
 
