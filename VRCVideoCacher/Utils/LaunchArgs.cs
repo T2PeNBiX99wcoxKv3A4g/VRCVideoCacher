@@ -11,6 +11,7 @@ public class LaunchArgs
     private const string NoSteamArg = "--no-steam";
     private const string NoOvrArg = "--no-ovr";
     private const string CloseWithSteamVrArg = "--close-with-steamvr";
+    private const string ConfigNameArg = "--config-name";
 
     public static bool IsBypassArgumentPresent;
     public static bool HasGui = true;
@@ -21,6 +22,8 @@ public class LaunchArgs
     public static bool SteamSdk = true;
     public static bool OVR = true;
     public static bool CloseWithSteamVr;
+    public static string? ConfigName;
+    private static bool _isConfigName;
 
     public static void SetupArguments(params string[] args)
     {
@@ -28,6 +31,12 @@ public class LaunchArgs
 
         foreach (var arg in args)
         {
+            if (_isConfigName)
+            {
+                ConfigName = arg;
+                _isConfigName = false;
+            }
+
             if (arg.Equals(AdminBypassArg, StringComparison.OrdinalIgnoreCase))
                 IsBypassArgumentPresent = true;
 
@@ -42,7 +51,7 @@ public class LaunchArgs
 
             if (arg.StartsWith(OldPidArg, StringComparison.OrdinalIgnoreCase))
             {
-                var pidStr = arg.Substring(OldPidArg.Length + 1);
+                var pidStr = arg[(OldPidArg.Length + 1)..];
                 if (int.TryParse(pidStr, out var pid))
                     OldPid = pid;
             }
@@ -58,6 +67,9 @@ public class LaunchArgs
 
             if (arg.Equals(CloseWithSteamVrArg, StringComparison.OrdinalIgnoreCase))
                 CloseWithSteamVr = true;
+
+            if (arg.Equals(ConfigNameArg, StringComparison.OrdinalIgnoreCase))
+                _isConfigName = true;
         }
     }
 

@@ -15,7 +15,8 @@ public class ConfigManager
     static ConfigManager()
     {
         Log.Information("Loading config...");
-        ConfigFilePath = Path.Join(Program.DataPath, "Config.json");
+        ConfigFilePath = Path.Join(Program.DataPath,
+            $"{(!string.IsNullOrWhiteSpace(LaunchArgs.ConfigName) ? LaunchArgs.ConfigName : "Config")}.json");
         Log.Debug("Using config file path: {ConfigFilePath}", ConfigFilePath);
 
         ConfigModel? newConfig = null;
