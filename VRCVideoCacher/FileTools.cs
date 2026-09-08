@@ -29,7 +29,7 @@ public class FileTools
         if (!string.IsNullOrEmpty(ConfigManager.Config.ResonitePath))
             resoPath = ConfigManager.Config.ResonitePath;
         else
-            resoPath = GetAppLibraryPath(ResoniteAppId)?
+            resoPath = GetAppLibraryPath(ResoniteAppId, ConfigManager.Config.PatchResonite)?
                 .Select(path => Path.Join(path, "steamapps", "common", "Resonite"))?
                 .Where(Path.Exists)?
                 .First();
@@ -77,7 +77,7 @@ public class FileTools
             .FirstOrDefault(installPath => !string.IsNullOrWhiteSpace(installPath) && Directory.Exists(installPath));
     }
 
-    private static List<string>? GetAppLibraryPath(string appid)
+    private static List<string>? GetAppLibraryPath(string appid, bool isEnabled)
     {
         string vdfPath;
         if (OperatingSystem.IsWindows())
@@ -85,7 +85,14 @@ public class FileTools
             var steamInstallPath = GetSteamInstallPathWindows();
             if (string.IsNullOrEmpty(steamInstallPath))
             {
-                Log.Error("GetAppLibraryPath: Unable to find Steam installation directory");
+                if (isEnabled)
+                {
+                    Log.Error("GetAppLibraryPath: Unable to find Steam installation directory");
+                }
+                else
+                {
+                    Log.Warning("GetAppLibraryPath: Unable to find Steam installation directory");
+                }
                 return null;
             }
 
@@ -100,7 +107,14 @@ public class FileTools
                 .Where(Path.Exists).ToArray();
             if (vdfPaths.Length == 0)
             {
-                Log.Error("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
+                if (isEnabled)
+                {
+                    Log.Error("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
+                }
+                else
+                {
+                    Log.Warning("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
+                }
                 return null;
             }
 
@@ -129,7 +143,14 @@ public class FileTools
         }
         catch (Exception e)
         {
-            Log.Error("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", e.Message);
+            if(isEnabled)
+            {
+                Log.Error("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", e.Message);
+            }
+            else
+            { 
+                Log.Warning("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", e.Message);
+            }
             return null;
         }
 
@@ -138,7 +159,14 @@ public class FileTools
         // ReSharper disable once InvertIf
         if (libraryPaths.Count == 0)
         {
-            Log.Error("Failed to find library path for Steam app {AppId}.", appid);
+            if (isEnabled)
+            {
+                Log.Error("Failed to find library path for Steam app {AppId}.", appid);
+            }
+            else
+            {
+                Log.Warning("Failed to find library path for Steam app {AppId}.", appid);
+            }
             return null;
         }
 
@@ -148,7 +176,7 @@ public class FileTools
     [SupportedOSPlatform("linux")]
     private static string? GetCompatPath(string appid)
     {
-        var libraryPaths = GetAppLibraryPath(appid);
+        var libraryPaths = GetAppLibraryPath(appid, ConfigManager.Config.PatchVrChat);
         if (libraryPaths == null) return null;
 
         var paths = libraryPaths
