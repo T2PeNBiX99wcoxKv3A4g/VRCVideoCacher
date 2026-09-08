@@ -43,9 +43,7 @@ public partial class LogViewerView : UserControl
 
     private void ScrollToBottom()
     {
-        if (_scrollViewer == null)
-            return;
-
+        if (_scrollViewer == null) return;
         var maxOffset = Math.Max(0, _scrollViewer.Extent.Height - _scrollViewer.Viewport.Height);
         _scrollViewer.Offset = new(_scrollViewer.Offset.X, maxOffset);
     }
