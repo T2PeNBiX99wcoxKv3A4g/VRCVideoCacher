@@ -81,8 +81,10 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
         if (_languageStrings?.TryGetValue(key, out var value) == true)
             return value;
 
+#if !DEBUG
         if (_enLanguageStrings?.TryGetValue(key, out var enValue) == true)
             return enValue;
+#endif
 
         return Language + ":" + key;
     }
