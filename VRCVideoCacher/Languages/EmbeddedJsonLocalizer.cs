@@ -5,10 +5,12 @@ using Newtonsoft.Json.Linq;
 
 namespace VRCVideoCacher.Languages;
 
-public class EmbeddedJsonLocalizer : BaseLocalizer
+public sealed class EmbeddedJsonLocalizer : BaseLocalizer
 {
     private FrozenDictionary<string, string> _languageStrings = new Dictionary<string, string>().ToFrozenDictionary();
-    private FrozenDictionary<string, string> _enLanguageStrings = new Dictionary<string, string>().ToFrozenDictionary();
+#if !DEBUG
+    private readonly FrozenDictionary<string, string> _enLanguageStrings;
+#endif
 
     private const string Prefix = "VRCVideoCacher.Languages.";
     private const string Suffix = ".loc.json";
@@ -16,7 +18,9 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
     public EmbeddedJsonLocalizer()
     {
         Reload();
+#if !DEBUG
         _enLanguageStrings = LoadLanguage(FallbackLanguage);
+#endif
         OnLanguageChanged();
         FireLanguageChanged();
     }
@@ -28,18 +32,15 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
             .Where(r => r.StartsWith(Prefix) && r.EndsWith(Suffix))
             .ToList();
 
-        foreach (var resourceName in resources)
-        {
-            var langId = resourceName[Prefix.Length..^Suffix.Length];
+        foreach (var langId in resources.Select(resourceName => resourceName[Prefix.Length..^Suffix.Length]))
             _languages.Add(langId);
-        }
 
         ValidateLanguage();
         _hasLoaded = true;
         UpdateDisplayLanguages();
     }
 
-    private FrozenDictionary<string,string> LoadLanguage(string language)
+    private static FrozenDictionary<string, string> LoadLanguage(string language)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var resourceName = assembly.GetManifestResourceNames()
@@ -72,6 +73,6 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
             return enValue;
 #endif
 
-        return base.Language + ":" + key;
+        return Language + ":" + key;
     }
 }
