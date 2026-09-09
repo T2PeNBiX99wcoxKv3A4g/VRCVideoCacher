@@ -53,6 +53,7 @@ public class FileTools
                 Log.Error("Unable to find VRChat compatdata path, VRChat patching will not work.");
                 return;
             }
+
             localLowPath = Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow");
         }
         else
