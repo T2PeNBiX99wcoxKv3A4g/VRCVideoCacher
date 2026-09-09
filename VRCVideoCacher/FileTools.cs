@@ -47,7 +47,12 @@ public class FileTools
             localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
         else if (OperatingSystem.IsLinux())
         {
-            var compatPath = GetCompatPath(VrcAppId) ?? throw new("Unable to find VRChat compat data");
+            var compatPath = GetCompatPath(VrcAppId);
+            if (compatPath == null)
+            {
+                Log.Error("Unable to find VRChat compatdata path, VRChat patching will not work.");
+                return;
+            }
             localLowPath = Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow");
         }
         else

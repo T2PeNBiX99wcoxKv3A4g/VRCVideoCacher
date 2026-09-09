@@ -8,10 +8,7 @@ namespace VRCVideoCacher.Languages;
 public class EmbeddedJsonLocalizer : BaseLocalizer
 {
     private FrozenDictionary<string, string> _languageStrings = new Dictionary<string, string>().ToFrozenDictionary();
-#if !DEBUG
     private FrozenDictionary<string, string> _enLanguageStrings = new Dictionary<string, string>().ToFrozenDictionary();
-    private bool _enLanguageLoaded;
-#endif
 
     private const string Prefix = "VRCVideoCacher.Languages.";
     private const string Suffix = ".loc.json";
@@ -19,6 +16,7 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
     public EmbeddedJsonLocalizer()
     {
         Reload();
+        _enLanguageStrings = LoadLanguage(FallbackLanguage);
         OnLanguageChanged();
         FireLanguageChanged();
     }
@@ -41,42 +39,24 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
         UpdateDisplayLanguages();
     }
 
-#if !DEBUG
-    private void EnglishLanguageLoad(Assembly assembly)
-    {
-        if (_enLanguageLoaded) return;
-        var resourceName = assembly.GetManifestResourceNames()
-            .First(r => r.Equals($"{Prefix}{FallbackLanguage}{Suffix}"));
-
-        using var stream = assembly.GetManifestResourceStream(resourceName)!;
-        using var reader = new StreamReader(stream);
-        var json = JObject.Parse(reader.ReadToEnd());
-
-        _enLanguageStrings = json.Properties()
-            .ToDictionary(k => k.Name, v => v.Value?.ToString() ?? v.Name)
-            .ToFrozenDictionary();
-
-        _enLanguageLoaded = true;
-    }
-#endif
-
-    protected override void OnLanguageChanged()
+    private FrozenDictionary<string,string> LoadLanguage(string language)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var resourceName = assembly.GetManifestResourceNames()
-            .First(r => r.Equals($"{Prefix}{_language}{Suffix}"));
-
-#if !DEBUG
-        EnglishLanguageLoad(assembly);
-#endif
+            .First(r => r.Equals($"{Prefix}{language}{Suffix}"));
 
         using var stream = assembly.GetManifestResourceStream(resourceName)!;
         using var reader = new StreamReader(stream);
         var json = JObject.Parse(reader.ReadToEnd());
 
-        _languageStrings = json.Properties()
+        return json.Properties()
             .ToDictionary(k => k.Name, v => v.Value?.ToString() ?? v.Name)
             .ToFrozenDictionary();
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        _languageStrings = LoadLanguage(Language);
     }
 
     public override string Get(string key)
@@ -92,6 +72,6 @@ public class EmbeddedJsonLocalizer : BaseLocalizer
             return enValue;
 #endif
 
-        return Language + ":" + key;
+        return base.Language + ":" + key;
     }
 }
