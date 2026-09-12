@@ -11,13 +11,13 @@ public enum StatusCategory
 {
     Downloading = 0,
     Streaming = 1,
-    Provisioning = 2,
+    Provisioning = 2
 }
 
 public enum StatusLevel
 {
     Normal,
-    Warning,
+    Warning
 }
 
 /// <summary>
@@ -95,26 +95,27 @@ public static class StatusService
     private static long _seq;
 
     private sealed record FlashState(string Text, StatusLevel Level, DateTime Until);
+
     private static volatile FlashState? _flash;
     private static readonly TimeSpan FlashDuration = TimeSpan.FromSeconds(5);
 
     public static event Action? Changed;
 
-    static StatusService()
-    {
+    static StatusService() =>
         // Auto-surface warnings/errors without hand-wiring every failure site.
         LogService.OnLogEntry += OnLogEntry;
-    }
 
     /// <summary>Idempotent touch so the static constructor (and its log hook) runs even before the first activity.</summary>
-    public static void Init() { }
+    public static void Init()
+    {
+    }
 
     public static StatusActivity Begin(StatusCategory category, string text, double? progress = null, string? key = null)
     {
         var activity = new StatusActivity(category, text, progress)
         {
             Seq = Interlocked.Increment(ref _seq),
-            Key = key,
+            Key = key
         };
         Activities[activity.Id] = activity;
         NotifyChanged();
@@ -126,17 +127,15 @@ public static class StatusService
     {
         var keys = new HashSet<string>();
         foreach (var activity in Activities.Values)
-        {
             if (activity.Key is { } key)
                 keys.Add(key);
-        }
         return keys;
     }
 
     /// <summary>Briefly show a transient message (warning color for warnings/errors), then revert.</summary>
     public static void Flash(string text, StatusLevel level)
     {
-        _flash = new FlashState(text, level, DateTime.UtcNow + FlashDuration);
+        _flash = new(text, level, DateTime.UtcNow + FlashDuration);
         NotifyChanged();
         _ = ExpireFlashAsync();
     }
@@ -155,8 +154,8 @@ public static class StatusService
         {
             var flash = _flash;
             if (flash is not null && DateTime.UtcNow < flash.Until)
-                return new StatusSnapshot(flash.Text, flash.Level, IsBusy: true,
-                    ShowBar: false, Indeterminate: false, Progress: 0, ExtraCount: 0);
+                return new(flash.Text, flash.Level, true,
+                    false, false, 0, 0);
 
             if (Activities.IsEmpty)
                 return StatusSnapshot.Idle;
@@ -164,23 +163,21 @@ public static class StatusService
             // Highest-priority category, then the most recently started within it.
             StatusActivity? top = null;
             foreach (var a in Activities.Values)
-            {
                 if (top is null || a.Category > top.Category ||
-                    (a.Category == top.Category && a.Seq > top.Seq))
+                    a.Category == top.Category && a.Seq > top.Seq)
                     top = a;
-            }
             if (top is null)
                 return StatusSnapshot.Idle;
 
             var progress = top.Progress;
-            return new StatusSnapshot(
+            return new(
                 top.Text,
                 StatusLevel.Normal,
-                IsBusy: true,
-                ShowBar: true,
-                Indeterminate: progress is null,
-                Progress: progress ?? 0,
-                ExtraCount: Activities.Count - 1);
+                true,
+                true,
+                progress is null,
+                progress ?? 0,
+                Activities.Count - 1);
         }
     }
 
@@ -190,10 +187,13 @@ public static class StatusService
         NotifyChanged(); // let the bar revert once the flash has aged out
     }
 
+    private const int MaxMessageLength = 200;
+
     private static void OnLogEntry(LogEntry entry)
     {
         // entry.Level is the short code emitted by LogService ("WRN", "ERR", "FTL").
-        if (entry.Level is "WRN" or "ERR" or "FTL")
-            Flash(entry.Message, StatusLevel.Warning);
+        if (entry.Level is not ("WRN" or "ERR" or "FTL")) return;
+        var msg = entry.Message.Length > MaxMessageLength ? entry.Message[..MaxMessageLength] + "..." : entry.Message;
+        Flash(msg, StatusLevel.Warning);
     }
 }
