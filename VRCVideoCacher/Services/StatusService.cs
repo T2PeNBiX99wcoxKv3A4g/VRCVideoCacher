@@ -187,14 +187,12 @@ public static class StatusService
         NotifyChanged(); // let the bar revert once the flash has aged out
     }
 
-    private const int MaxMessageLength = 200;
-
-    private static string MessageCut(string msg) => msg.Length > MaxMessageLength ? msg[..MaxMessageLength] + "..." : msg;
+    private static string Truncate(string msg, int maxLength) => msg.Length > maxLength ? msg[..maxLength] + "..." : msg;
 
     private static void OnLogEntry(LogEntry entry)
     {
         // entry.Level is the short code emitted by LogService ("WRN", "ERR", "FTL").
         if (entry.Level is not ("WRN" or "ERR" or "FTL")) return;
-        Flash(MessageCut(entry.Message), StatusLevel.Warning);
+        Flash(Truncate(entry.Message, 200), StatusLevel.Warning);
     }
 }
