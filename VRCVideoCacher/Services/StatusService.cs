@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
+using Swan;
 using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.Services;
@@ -89,7 +91,7 @@ public sealed record StatusSnapshot(
 /// warning/error briefly by piggy-backing on <see cref="LogService.OnLogEntry"/>.
 /// Thread-safe; the UI marshals <see cref="Changed"/> onto the UI thread itself.
 /// </summary>
-public static class StatusService
+public static partial class StatusService
 {
     private static readonly ConcurrentDictionary<Guid, StatusActivity> Activities = new();
     private static long _seq;
@@ -187,12 +189,13 @@ public static class StatusService
         NotifyChanged(); // let the bar revert once the flash has aged out
     }
 
-    private static string Truncate(string msg, int maxLength) => msg.Length > maxLength ? msg[..maxLength] + "..." : msg;
-
     private static void OnLogEntry(LogEntry entry)
     {
         // entry.Level is the short code emitted by LogService ("WRN", "ERR", "FTL").
         if (entry.Level is not ("WRN" or "ERR" or "FTL")) return;
-        Flash(Truncate(entry.Message, 200), StatusLevel.Warning);
+        Flash(NewLineRegex().Replace(entry.Message, "").Truncate(200, "...") ?? "", StatusLevel.Warning);
     }
+
+    [GeneratedRegex(@"\r\n|\r|\n")]
+    private static partial Regex NewLineRegex();
 }
