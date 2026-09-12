@@ -189,11 +189,12 @@ public static class StatusService
 
     private const int MaxMessageLength = 200;
 
+    private static string MessageCut(string msg) => msg.Length > MaxMessageLength ? msg[..MaxMessageLength] + "..." : msg;
+
     private static void OnLogEntry(LogEntry entry)
     {
         // entry.Level is the short code emitted by LogService ("WRN", "ERR", "FTL").
         if (entry.Level is not ("WRN" or "ERR" or "FTL")) return;
-        var msg = entry.Message.Length > MaxMessageLength ? entry.Message[..MaxMessageLength] + "..." : entry.Message;
-        Flash(msg, StatusLevel.Warning);
+        Flash(MessageCut(entry.Message), StatusLevel.Warning);
     }
 }
