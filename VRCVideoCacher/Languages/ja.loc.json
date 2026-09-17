@@ -104,6 +104,8 @@
   "RedirectVRDancing": "EU の VRDancing を NA にリダイレクト",
  
  "OpenFolder": "フォルダーを開く",
+  "OpenUrl": "URLを開く",
+  "CopyUrl": "URLをコピー",
   "DeleteAllCache": "すべてのキャッシュを削除",
   "SearchVideosWatermark": "動画を検索...",
   "VideosCountFormat": "{1} 件中、{0} 件の動画",

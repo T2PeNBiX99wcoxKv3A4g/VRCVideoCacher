@@ -104,6 +104,8 @@
   "RedirectVRDancing": "将欧洲区 VRDancing 重定向至北美区",
 
   "OpenFolder": "打开文件夹",
+  "OpenUrl": "打开链接",
+  "CopyUrl": "复制链接",
   "DeleteAllCache": "删除全部缓存",
   "SearchVideosWatermark": "搜索视频...",
   "VideosCountFormat": "共 {1} 个视频，显示 {0} 个",

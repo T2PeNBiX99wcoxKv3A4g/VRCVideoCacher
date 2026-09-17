@@ -104,6 +104,8 @@
   "RedirectVRDancing": "Redirect EU VRDancing to NA",
 
   "OpenFolder": "Open Folder",
+  "OpenUrl": "Open URL",
+  "CopyUrl": "Copy URL",
   "DeleteAllCache": "Delete All Cache",
   "SearchVideosWatermark": "Search videos...",
   "VideosCountFormat": "{0} of {1} videos",

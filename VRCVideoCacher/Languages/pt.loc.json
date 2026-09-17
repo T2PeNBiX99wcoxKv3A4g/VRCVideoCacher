@@ -104,6 +104,8 @@
   "RedirectVRDancing": "Redirecionar VRDancing Europeu para Norte-Americano",
 
   "OpenFolder": "Abrir pasta",
+  "OpenUrl": "Abrir URL",
+  "CopyUrl": "Copiar URL",
   "DeleteAllCache": "Esvaziar o cachê",
   "SearchVideosWatermark": "Procurar vídeos...",
   "VideosCountFormat": "{0} de {1} vídeos",

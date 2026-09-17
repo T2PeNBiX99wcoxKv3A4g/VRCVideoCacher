@@ -104,6 +104,8 @@
   "RedirectVRDancing": "Перенаправлять EU VRDancing на NA",
 
   "OpenFolder": "Открыть папку..",
+  "OpenUrl": "Открыть URL",
+  "CopyUrl": "Скопировать URL",
   "DeleteAllCache": "Удалить весь кэш",
   "SearchVideosWatermark": "Поиск видео...",
   "VideosCountFormat": "{0} из {1} видео",

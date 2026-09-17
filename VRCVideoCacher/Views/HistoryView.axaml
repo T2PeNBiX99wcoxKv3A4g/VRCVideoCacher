@@ -91,10 +91,10 @@
 
                                 <!-- Action Buttons -->
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <Button Command="{Binding OpenUrlCommand}" Classes="icon-button" ToolTip.Tip="Open URL">
+                                    <Button Command="{Binding OpenUrlCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize OpenUrl}">
                                         <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </Button>
-                                    <Button Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="Copy URL">
+                                    <Button Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize CopyUrl}">
                                         <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </Button>
                                     <Button Command="{Binding DeleteCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize DeleteHistoryEntry}" Padding="8">

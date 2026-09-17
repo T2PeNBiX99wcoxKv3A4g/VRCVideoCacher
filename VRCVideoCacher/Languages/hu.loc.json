@@ -104,6 +104,8 @@
   "RedirectVRDancing": "EU VRDancing átirányítása NA-ra",
 
   "OpenFolder": "Mappa Megnyitás",
+  "OpenUrl": "URL Megnyitása",
+  "CopyUrl": "URL Másolása",
   "DeleteAllCache": "Összes gyorsítótár Törlése",
   "SearchVideosWatermark": "Videók Keresése...",
   "VideosCountFormat": "{0} az {1} videóból",

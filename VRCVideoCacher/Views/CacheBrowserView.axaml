@@ -108,13 +108,13 @@
 
                                 <!-- Action Buttons -->
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="6,0">
-                                    <Button Command="{Binding OpenOnYouTubeCommand}" Classes="icon-button" ToolTip.Tip="Open on YouTube">
+                                    <Button Command="{Binding OpenOnYouTubeCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize OpenUrl}">
                                         <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" Foreground="#ef4444"/>
                                     </Button>
-                                    <Button Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="Copy Local URL">
+                                    <Button Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize CopyUrl}">
                                         <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </Button>
-                                    <Button Command="{Binding DeleteCommand}" Classes="subtle-danger" ToolTip.Tip="Delete" Padding="8">
+                                    <Button Command="{Binding DeleteCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize DeleteHistoryEntry}" Padding="8">
                                         <mi:MaterialIcon Kind="DeleteOutline" Width="16" Height="16"/>
                                     </Button>
                                 </StackPanel>

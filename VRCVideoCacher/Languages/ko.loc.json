@@ -104,6 +104,8 @@
   "RedirectVRDancing": "EU VRDancing을 NA로 리다이렉트",
 
   "OpenFolder": "폴더 열기",
+  "OpenUrl": "URL 열기",
+  "CopyUrl": "URL 복사",
   "DeleteAllCache": "모든 캐시 삭제",
   "SearchVideosWatermark": "동영상 검색...",
   "VideosCountFormat": "동영상 {1}개 중 {0}개",
