@@ -123,7 +123,7 @@
                         <StackPanel Spacing="5" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize GitHubToken}"
                                        ToolTip.Tip="{l:Localize GitHubTokenTooltip}"/>
-                            <TextBox Text="{Binding GitHubToken}" PlaceholderText="ghp_..."/>
+                            <TextBox Text="{Binding GitHubToken}" PasswordChar="•" PlaceholderText="ghp_..."/>
                         </StackPanel>
 
                         <StackPanel Spacing="5">
