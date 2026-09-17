@@ -9,160 +9,247 @@
         x:DataType="viewModels:MainWindowViewModel"
         Title="{Binding Title}"
         Icon="avares://VRCVideoCacher/Assets/icon.ico"
-        Width="1040" Height="720"
-        MinWidth="840" MinHeight="520"
+        Width="1080" Height="740"
+        MinWidth="900" MinHeight="560"
         Background="{StaticResource AppBackgroundBrush}"
         WindowStartupLocation="CenterScreen">
 
     <Grid RowDefinitions="*, Auto">
-        <!-- Main Content -->
-        <Grid Grid.Row="0" ColumnDefinitions="240, *">
-            <!-- Sidebar Navigation -->
+        <!-- Main Body (Sidebar + Content View) -->
+        <Grid Grid.Row="0" ColumnDefinitions="250, *">
+            <!-- Sleek Sidebar Navigation -->
             <Border Grid.Column="0" 
                     Background="{StaticResource SidebarBackgroundBrush}" 
                     BorderBrush="{StaticResource DividerBrush}"
                     BorderThickness="0,0,1,0"
-                    Padding="14, 16, 14, 16">
-                <DockPanel>
-                    <!-- App Banner / Logo Header -->
-                    <Border DockPanel.Dock="Top" Margin="0,4,0,22" HorizontalAlignment="Stretch">
-                        <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png"
-                               MaxHeight="48"
-                               Stretch="Uniform"
-                               HorizontalAlignment="Center"/>
+                    Padding="14, 16, 14, 14">
+                <Grid RowDefinitions="Auto, *, Auto">
+                    <!-- Brand / App Banner Header -->
+                    <Border Grid.Row="0" Margin="0,2,0,18" HorizontalAlignment="Stretch">
+                        <StackPanel Spacing="10">
+                            <Border Background="#121624" 
+                                    BorderBrush="#222B40" 
+                                    BorderThickness="1" 
+                                    CornerRadius="12" 
+                                    Padding="10, 8">
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <Image Grid.Column="0" 
+                                           Source="avares://VRCVideoCacher/Assets/icon.ico" 
+                                           Width="32" Height="32" 
+                                           Margin="0,0,10,0"
+                                           VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="VRCVideoCacher" 
+                                                   FontWeight="Bold" 
+                                                   FontSize="14" 
+                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="Video Stream Proxy" 
+                                                   FontSize="11" 
+                                                   Foreground="{StaticResource PrimaryLightBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
                     </Border>
 
-                    <!-- Navigation Items -->
-                    <StackPanel Spacing="6" DockPanel.Dock="Top">
-                        <Button Command="{Binding NavigateToDashboardCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsDashboardActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="ViewDashboardOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize Dashboard}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
+                    <!-- Navigation Items List -->
+                    <ScrollViewer Grid.Row="1">
+                        <StackPanel Spacing="4">
+                            <!-- Category: MAIN -->
+                            <TextBlock Text="OVERVIEW" 
+                                       FontSize="10" 
+                                       FontWeight="Bold" 
+                                       Foreground="{StaticResource TextMutedBrush}" 
+                                       Margin="8,4,0,6"/>
 
-                        <Button Command="{Binding NavigateToHistoryCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsHistoryActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="History" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize History}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
+                            <Button Command="{Binding NavigateToDashboardCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsDashboardActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="ViewDashboardOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Dashboard}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
 
-                        <Button Command="{Binding NavigateToCacheBrowserCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsCacheBrowserActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="FolderPlayOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize CacheBrowser}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
+                            <!-- Category: MEDIA -->
+                            <TextBlock Text="MEDIA &amp; CACHE" 
+                                       FontSize="10" 
+                                       FontWeight="Bold" 
+                                       Foreground="{StaticResource TextMutedBrush}" 
+                                       Margin="8,12,0,6"/>
 
-                        <Button Command="{Binding NavigateToDownloadQueueCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsDownloadQueueActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="DownloadOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize Downloads}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
+                            <Button Command="{Binding NavigateToCacheBrowserCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsCacheBrowserActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="FolderPlayOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize CacheBrowser}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
 
-                        <Button Command="{Binding NavigateToSettingsCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsSettingsActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="CogOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize Settings}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
+                            <Button Command="{Binding NavigateToHistoryCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsHistoryActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="History" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize History}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
 
-                        <Button Command="{Binding NavigateToLogViewerCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsLogViewerActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="ConsoleLine" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize Logs}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
+                            <Button Command="{Binding NavigateToDownloadQueueCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsDownloadQueueActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="DownloadOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Downloads}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
 
-                        <Button Command="{Binding NavigateToAboutCommand}"
-                                Classes="nav-button"
-                                Classes.active="{Binding IsAboutActive}">
-                            <Grid ColumnDefinitions="26, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="InformationOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{l:Localize About}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                            </Grid>
-                        </Button>
-                    </StackPanel>
-                </DockPanel>
+                            <!-- Category: SYSTEM -->
+                            <TextBlock Text="SYSTEM" 
+                                       FontSize="10" 
+                                       FontWeight="Bold" 
+                                       Foreground="{StaticResource TextMutedBrush}" 
+                                       Margin="8,12,0,6"/>
+
+                            <Button Command="{Binding NavigateToSettingsCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsSettingsActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="CogOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Settings}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
+
+                            <Button Command="{Binding NavigateToLogViewerCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsLogViewerActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="ConsoleLine" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Logs}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
+
+                            <Button Command="{Binding NavigateToAboutCommand}"
+                                    Classes="nav-button"
+                                    Classes.active="{Binding IsAboutActive}">
+                                <Grid ColumnDefinitions="26, *">
+                                    <mi:MaterialIcon Grid.Column="0" Kind="InformationOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{l:Localize About}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Sidebar Bottom Quick Widget -->
+                    <Border Grid.Row="2" 
+                            Background="#0E121B" 
+                            BorderBrush="#1A2234" 
+                            BorderThickness="1" 
+                            CornerRadius="10" 
+                            Padding="10, 8" 
+                            Margin="0,10,0,0">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <Border Grid.Column="0" 
+                                    Background="#1A1E32" 
+                                    CornerRadius="8" 
+                                    Width="30" Height="30" 
+                                    Margin="0,0,8,0">
+                                <mi:MaterialIcon Kind="Harddisk" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="CACHE STORAGE" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="{Binding CacheStatusText}" 
+                                           FontSize="11" 
+                                           Foreground="{StaticResource TextSecondaryBrush}" 
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
             </Border>
 
-            <!-- Content Area -->
-            <ContentControl Grid.Column="1" Content="{Binding CurrentView}" Margin="16, 12, 16, 12">
-                <ContentControl.DataTemplates>
-                    <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
-                        <views:DashboardView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
-                        <views:SettingsView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:CacheBrowserViewModel}">
-                        <views:CacheBrowserView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:DownloadQueueViewModel}">
-                        <views:DownloadQueueView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:LogViewerViewModel}">
-                        <views:LogViewerView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
-                        <views:HistoryView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-                        <views:AboutView/>
-                    </DataTemplate>
-                </ContentControl.DataTemplates>
-            </ContentControl>
+            <!-- Content Area View Host -->
+            <Border Grid.Column="1" Background="{StaticResource AppBackgroundBrush}" Padding="18, 14, 18, 14">
+                <ContentControl Content="{Binding CurrentView}">
+                    <ContentControl.DataTemplates>
+                        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                            <views:DashboardView/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                            <views:SettingsView/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:CacheBrowserViewModel}">
+                            <views:CacheBrowserView/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:DownloadQueueViewModel}">
+                            <views:DownloadQueueView/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:LogViewerViewModel}">
+                            <views:LogViewerView/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
+                            <views:HistoryView/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+                            <views:AboutView/>
+                        </DataTemplate>
+                    </ContentControl.DataTemplates>
+                </ContentControl>
+            </Border>
         </Grid>
 
-        <!-- Status Bar -->
+        <!-- Modern High-Tech Status Bar -->
         <Border Grid.Row="1" 
                 Background="{StaticResource SidebarBackgroundBrush}" 
                 BorderBrush="{StaticResource DividerBrush}"
                 BorderThickness="0,1,0,0"
-                Padding="16, 7">
-            <Grid ColumnDefinitions="*, Auto">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <ProgressBar Width="120" Height="4" Minimum="0" Maximum="1"
-                                 CornerRadius="2"
-                                 Foreground="{StaticResource PrimaryBrush}"
-                                 VerticalAlignment="Center"
-                                 IsVisible="{Binding StatusShowBar}"
-                                 IsIndeterminate="{Binding StatusIndeterminate}"
-                                 Value="{Binding StatusProgress}"/>
+                Padding="16, 8">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Activity Status Indicator -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Border Background="#122819" 
+                            BorderBrush="#22C55E55" 
+                            BorderThickness="1" 
+                            CornerRadius="10" 
+                            Width="16" Height="16">
+                        <Border Background="#22C55E" CornerRadius="4" Width="6" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                     <TextBlock Text="{Binding StatusText}" 
                                Foreground="{Binding StatusColor}" 
                                FontSize="12"
+                               FontWeight="Medium"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <Border Grid.Column="1" 
-                        Background="{StaticResource SurfaceElevatedBackgroundBrush}"
-                        BorderBrush="{StaticResource CardBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="10, 3">
-                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <mi:MaterialIcon Kind="Harddisk" Width="14" Height="14" Foreground="{StaticResource PrimaryLightBrush}"/>
-                        <TextBlock Text="{Binding CacheStatusText}" 
-                                   Foreground="{StaticResource TextSecondaryBrush}" 
-                                   FontSize="12" 
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
+                <!-- Status Progress Bar (if active) -->
+                <ProgressBar Grid.Column="1" 
+                             Margin="20,0"
+                             Height="4" 
+                             Minimum="0" Maximum="1"
+                             CornerRadius="2"
+                             Foreground="{StaticResource PrimaryGradientBrush}"
+                             VerticalAlignment="Center"
+                             IsVisible="{Binding StatusShowBar}"
+                             IsIndeterminate="{Binding StatusIndeterminate}"
+                             Value="{Binding StatusProgress}"/>
+
+                <!-- Right Side Status Chips -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8, 3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <mi:MaterialIcon Kind="CheckCircleOutline" Width="13" Height="13" Foreground="{StaticResource SuccessBrush}"/>
+                            <TextBlock Text="Ready" 
+                                       Foreground="{StaticResource TextSecondaryBrush}" 
+                                       FontSize="11.5" 
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

@@ -8,51 +8,64 @@
              x:DataType="vm:CacheBrowserViewModel"
              x:CompileBindings="True">
 
-    <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="4,0,4,4">
-        <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,14">
-            <StackPanel Orientation="Vertical" Spacing="2">
-                <TextBlock Text="{l:Localize CacheBrowser}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+    <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="0,0,0,4">
+        <!-- Header & Action Bar -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,16">
+            <StackPanel Orientation="Vertical" Spacing="4">
+                <TextBlock Text="{l:Localize CacheBrowser}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Manage, search and inspect local video files cached by the proxy engine" 
+                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}"/>
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Command="{Binding OpenInExplorerCommand}" Classes="secondary" ToolTip.Tip="{l:Localize OpenFolder}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <mi:MaterialIcon Kind="FolderOpenOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                        <TextBlock Text="{l:Localize OpenFolder}" FontSize="12.5"/>
+                    </StackPanel>
+                </Button>
+                
                 <Button Command="{Binding RefreshCacheCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize Refresh}">
                     <mi:MaterialIcon Kind="Refresh" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </Button>
-                <Button Command="{Binding OpenInExplorerCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize OpenFolder}">
-                    <mi:MaterialIcon Kind="FolderOpenOutline" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
-                </Button>
+
                 <Button Command="{Binding DeleteAllCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize DeleteAllCache}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <mi:MaterialIcon Kind="DeleteSweepOutline" Width="16" Height="16"/>
-                        <TextBlock Text="{l:Localize DeleteAllCache}" FontSize="12"/>
+                        <TextBlock Text="{l:Localize DeleteAllCache}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Search -->
-        <Grid Grid.Row="1" Margin="0,0,0,12">
+        <!-- Search Bar with Accent Filter Box -->
+        <Grid Grid.Row="1" Margin="0,0,0,14">
             <TextBox Text="{Binding SearchFilter}" 
                      PlaceholderText="{l:Localize SearchVideosWatermark}"
-                     Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                     Background="#0D1017"
                      BorderBrush="{StaticResource CardBorderBrush}"
-                     Padding="10, 8">
+                     CornerRadius="10"
+                     Padding="12, 10">
                 <TextBox.InnerLeftContent>
-                    <mi:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="10,0,6,0" Foreground="{StaticResource TextMutedBrush}"/>
+                    <mi:MaterialIcon Kind="Magnify" Width="18" Height="18" Margin="12,0,8,0" Foreground="{StaticResource PrimaryLightBrush}"/>
                 </TextBox.InnerLeftContent>
             </TextBox>
         </Grid>
 
-        <!-- Video List -->
+        <!-- Video Cards List Container -->
         <Border Grid.Row="2" Classes="card" Padding="8">
             <ListBox ItemsSource="{Binding FilteredVideos}"
                      SelectedItem="{Binding SelectedItem}"
                      Background="Transparent">
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
-                        <Setter Property="Padding" Value="4"/>
-                        <Setter Property="Margin" Value="0,2"/>
-                        <Setter Property="CornerRadius" Value="8"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0,3"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="CornerRadius" Value="10"/>
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="Transparent"/>
                     </Style>
                 </ListBox.Styles>
                 <ListBox.ItemTemplate>
@@ -60,8 +73,9 @@
                         <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}" 
                                 BorderBrush="{StaticResource CardBorderBrush}" 
                                 BorderThickness="1" 
-                                CornerRadius="8" 
-                                Padding="10">
+                                CornerRadius="10" 
+                                Padding="12"
+                                Margin="0,2">
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="{l:Localize OpenUrl}" Command="{Binding OpenOnYouTubeCommand}">
@@ -82,34 +96,41 @@
                                     </MenuItem>
                                 </ContextMenu>
                             </Border.ContextMenu>
-                            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
-                                <!-- Thumbnail -->
-                                <Border Grid.Column="0" Width="120" Height="68" CornerRadius="6" ClipToBounds="True" Background="#1c1c24">
+                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                <!-- Thumbnail Cover -->
+                                <Border Grid.Column="0" Width="130" Height="74" CornerRadius="8" ClipToBounds="True" Background="#121624">
                                     <Image asyncImageLoader:ImageLoader.Source="{Binding ThumbnailSource}" Stretch="UniformToFill"/>
                                 </Border>
 
-                                <!-- Video Info -->
-                                <StackPanel Grid.Column="1" Margin="14,0,12,0" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="{Binding DisplayTitle}" FontSize="14" FontWeight="SemiBold" 
+                                <!-- Video Metadata Info -->
+                                <StackPanel Grid.Column="1" Margin="14,0,12,0" VerticalAlignment="Center" Spacing="5">
+                                    <TextBlock Text="{Binding DisplayTitle}" FontSize="13.5" FontWeight="SemiBold" 
                                                Foreground="{StaticResource TextPrimaryBrush}" 
-                                               TextTrimming="CharacterEllipsis" MaxWidth="420"/>
-                                    <TextBlock Text="{Binding VideoId}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Background="{StaticResource BadgeBackgroundBrush}" CornerRadius="4" Padding="6,2">
-                                            <TextBlock Text="{Binding Extension}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                               TextTrimming="CharacterEllipsis"/>
+                                    
+                                    <TextBlock Text="{Binding VideoId}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"/>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" 
+                                                BorderBrush="{StaticResource CardBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="5" Padding="6,2">
+                                            <TextBlock Text="{Binding Extension}" FontSize="10.5" FontWeight="Medium" Foreground="{StaticResource TextMutedBrush}"/>
                                         </Border>
-                                        <Border Background="{StaticResource InfoSubtleBrush}" BorderBrush="#0ea5e933" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                            <TextBlock Text="{Binding SizeFormatted}" FontSize="11" Foreground="{StaticResource InfoBrush}" FontWeight="Medium"/>
+                                        
+                                        <Border Background="{StaticResource InfoSubtleBrush}" BorderBrush="#38BDF844" BorderThickness="1" CornerRadius="5" Padding="6,2">
+                                            <TextBlock Text="{Binding SizeFormatted}" FontSize="10.5" Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold"/>
                                         </Border>
+
                                         <TextBlock Text="{Binding LastModified, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
-                                                   VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                                   VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="4,0,0,0"/>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <!-- Action Buttons -->
-                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="6,0">
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="6,0">
                                     <Button Command="{Binding OpenOnYouTubeCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize OpenUrl}">
-                                        <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" Foreground="#ef4444"/>
+                                        <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" Foreground="#EF4444"/>
                                     </Button>
                                     <Button Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize CopyUrl}">
                                         <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -126,11 +147,13 @@
         </Border>
 
         <!-- Status Summary Bar -->
-        <Border Grid.Row="3" Classes="card-subtle" Margin="0,10,0,0" Padding="12,8">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
-            </StackPanel>
+        <Border Grid.Row="3" Classes="card-subtle" Margin="0,12,0,0" Padding="14,8">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <mi:MaterialIcon Kind="FolderPlayOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

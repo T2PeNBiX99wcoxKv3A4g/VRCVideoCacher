@@ -7,54 +7,61 @@
              x:DataType="vm:AboutViewModel">
 
     <ScrollViewer>
-        <StackPanel Spacing="16" Margin="4,0,4,16">
+        <StackPanel Spacing="16" Margin="0,0,0,16">
             <!-- Header -->
-            <Grid ColumnDefinitions="*, Auto, Auto" Margin="0,0,0,10">
-                <TextBlock Text="{l:Localize About}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,14">
+                <StackPanel Orientation="Vertical" Spacing="4">
+                    <TextBlock Text="{l:Localize About}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Project information, release version, and community links" 
+                               FontSize="12.5" Foreground="{StaticResource TextMutedBrush}"/>
+                </StackPanel>
             </Grid>
             
-            <!-- App Details Card -->
-            <Border Classes="card">
+            <!-- App Hero Card -->
+            <Border Classes="hero-card">
                 <StackPanel Spacing="16">
-                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Border Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366f140" BorderThickness="1" CornerRadius="12" Width="44" Height="44">
-                            <mi:MaterialIcon Kind="PlayCircleOutline" Width="24" Height="24" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Grid ColumnDefinitions="Auto, *">
+                        <Border Grid.Column="0" Background="#1E1E38" BorderBrush="#6366F166" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
+                            <mi:MaterialIcon Kind="PlayCircleOutline" Width="30" Height="30" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="VRCVideoCacher" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Border Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366f133" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Version, StringFormat='{}v{0}'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="11" FontWeight="Medium"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="VRCVideoCacher" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Border Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366F155" BorderThickness="1" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Version, StringFormat='{}v{0}'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="12" FontWeight="SemiBold"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="{Binding CreatedBy}" Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                            <TextBlock Text="{Binding CreatedBy}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="A lightweight, high-performance local caching &amp; streaming proxy server designed specifically for VRChat video players."
+                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
 
                     <Separator Background="{StaticResource DividerBrush}" Margin="0,4"/>
 
-                    <TextBlock Text="Community &amp; Source" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="Official Community &amp; Links" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Click="OnDiscordClick" ToolTip.Tip="Discord" Padding="14, 8">
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Click="OnDiscordClick" Classes="secondary" ToolTip.Tip="Discord Community" Padding="14, 8" Margin="0,0,10,8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865f2"/>
+                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865F2"/>
                                 <TextBlock Text="Discord" VerticalAlignment="Center" FontSize="13"/>
                             </StackPanel>
                         </Button>
-                        <Button Click="OnGitHubClick" ToolTip.Tip="GitHub" Padding="14, 8">
+                        <Button Click="OnGitHubClick" Classes="secondary" ToolTip.Tip="GitHub Repository" Padding="14, 8" Margin="0,0,10,8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Github" Width="18" Height="18"/>
+                                <mi:MaterialIcon Kind="Github" Width="18" Height="18" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <TextBlock Text="GitHub" VerticalAlignment="Center" FontSize="13"/>
                             </StackPanel>
                         </Button>
-                        <Button Click="OnSteamClick" ToolTip.Tip="Steam" Padding="14, 8">
+                        <Button Click="OnSteamClick" Classes="secondary" ToolTip.Tip="Steam Page" Padding="14, 8" Margin="0,0,10,8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Steam" Width="18" Height="18" Foreground="#00adee"/>
+                                <mi:MaterialIcon Kind="Steam" Width="18" Height="18" Foreground="#00ADEE"/>
                                 <TextBlock Text="Steam" VerticalAlignment="Center" FontSize="13"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
             </Border>
 
@@ -62,23 +69,25 @@
             <Border Classes="card">
                 <StackPanel Spacing="14">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <mi:MaterialIcon Kind="BugOutline" Width="18" Height="18" Foreground="{StaticResource WarningBrush}"/>
-                        <TextBlock Text="{l:Localize ReportAnIssue}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Border Background="{StaticResource WarningSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                            <mi:MaterialIcon Kind="BugOutline" Width="16" Height="16" Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="{l:Localize ReportAnIssue}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
-                    <TextBlock Text="Found a bug or have a suggestion? Get in touch with us on GitHub or Discord."
+                    <TextBlock Text="Encountered an issue or have a feature suggestion? Connect with us on GitHub or Discord."
                                Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
-                        <Button ToolTip.Tip="{l:Localize OpenIssueOnGitHub}" Click="OnGitHubIssueClick" Padding="14, 8">
+                        <Button ToolTip.Tip="{l:Localize OpenIssueOnGitHub}" Click="OnGitHubIssueClick" Classes="secondary" Padding="14, 8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <mi:MaterialIcon Kind="Github" Width="18" Height="18"/>
                                 <TextBlock Text="{l:Localize OpenIssueOnGitHub}" VerticalAlignment="Center" FontSize="13"/>
                             </StackPanel>
                         </Button>
-                        <Button ToolTip.Tip="{l:Localize JoinOurDiscord}" Click="OnDiscordIssueClick" Padding="14, 8">
+                        <Button ToolTip.Tip="{l:Localize JoinOurDiscord}" Click="OnDiscordIssueClick" Classes="secondary" Padding="14, 8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865f2"/>
+                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865F2"/>
                                 <TextBlock Text="{l:Localize JoinOurDiscord}" VerticalAlignment="Center" FontSize="13"/>
                             </StackPanel>
                         </Button>

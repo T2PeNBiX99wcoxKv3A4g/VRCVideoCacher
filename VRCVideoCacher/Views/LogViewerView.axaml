@@ -7,97 +7,138 @@
              x:Class="VRCVideoCacher.Views.LogViewerView"
              x:DataType="vm:LogViewerViewModel">
 
-    <Grid RowDefinitions="Auto, Auto, *" Margin="4,0,4,4">
-        <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,14">
-            <TextBlock Text="{l:Localize LogViewer}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+    <Grid RowDefinitions="Auto, Auto, *" Margin="0,0,0,4">
+        <!-- Header & Top Action Controls -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,16">
+            <StackPanel Orientation="Vertical" Spacing="4">
+                <TextBlock Text="{l:Localize LogViewer}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Real-time proxy server logs, streaming requests, and diagnostic information" 
+                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <Button Click="ScrollToBottomButton" Classes="icon-button" ToolTip.Tip="{l:Localize ScrollToBottom}">
                     <mi:MaterialIcon Kind="ArrowCollapseDown" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </Button>
-                <Button Command="{Binding ExportLogsCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize ExportLogs}">
-                    <mi:MaterialIcon Kind="ExportVariant" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <Button Command="{Binding ExportLogsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize ExportLogs}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <mi:MaterialIcon Kind="ExportVariant" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                        <TextBlock Text="{l:Localize ExportLogs}" FontSize="12.5"/>
+                    </StackPanel>
                 </Button>
                 <Button Command="{Binding ClearLogsCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize ClearLogs}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <mi:MaterialIcon Kind="DeleteOutline" Width="16" Height="16"/>
-                        <TextBlock Text="{l:Localize ClearLogs}" FontSize="12"/>
+                        <TextBlock Text="{l:Localize ClearLogs}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Filters -->
-        <Border Grid.Row="1" Classes="card" Margin="0,0,0,12" Padding="14,12">
+        <!-- Search & Level Filters Toolbar -->
+        <Border Grid.Row="1" Classes="card" Margin="0,0,0,14" Padding="14,12">
             <Grid ColumnDefinitions="*, Auto">
                 <TextBox Grid.Column="0" Text="{Binding FilterText}" PlaceholderText="{l:Localize FilterLogsWatermark}"
-                         Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                         Background="#0D1017"
                          BorderBrush="{StaticResource CardBorderBrush}"
-                         Padding="10, 8"
+                         CornerRadius="8"
+                         Padding="12, 8"
                          Margin="0,0,16,0">
                     <TextBox.InnerLeftContent>
-                        <mi:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="10,0,6,0" Foreground="{StaticResource TextMutedBrush}"/>
+                        <mi:MaterialIcon Kind="Magnify" Width="18" Height="18" Margin="10,0,6,0" Foreground="{StaticResource PrimaryLightBrush}"/>
                     </TextBox.InnerLeftContent>
                 </TextBox>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                    <CheckBox IsChecked="{Binding ShowDebug}" Content="{l:Localize Debug}" Foreground="#38bdf8" />
-                    <CheckBox IsChecked="{Binding ShowInfo}" Content="{l:Localize Info}" Foreground="#22c55e" />
-                    <CheckBox IsChecked="{Binding ShowWarning}" Content="{l:Localize Warning}" Foreground="#f59e0b" />
-                    <CheckBox IsChecked="{Binding ShowError}" Content="{l:Localize Error}" Foreground="#ef4444" />
-                    <CheckBox IsChecked="{Binding AutoScroll}" Content="{l:Localize AutoScroll}" Foreground="{StaticResource PrimaryLightBrush}"/>
+                    <CheckBox IsChecked="{Binding ShowDebug}" Content="{l:Localize Debug}" Foreground="{StaticResource InfoBrush}" />
+                    <CheckBox IsChecked="{Binding ShowInfo}" Content="{l:Localize Info}" Foreground="{StaticResource SuccessBrush}" />
+                    <CheckBox IsChecked="{Binding ShowWarning}" Content="{l:Localize Warning}" Foreground="{StaticResource WarningBrush}" />
+                    <CheckBox IsChecked="{Binding ShowError}" Content="{l:Localize Error}" Foreground="{StaticResource DangerBrush}" />
+                    <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="4,0"/>
+                    <CheckBox IsChecked="{Binding AutoScroll}" Content="{l:Localize AutoScroll}" Foreground="{StaticResource PrimaryLightBrush}" FontWeight="Medium"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Log List -->
-        <Border Grid.Row="2" Background="#0c0c0f" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
-            <ListBox x:Name="LogListBox"
-                     ItemsSource="{Binding FilteredLogEntries}"
-                     Background="Transparent"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ListBox.Styles>
-                    <Style Selector="ListBoxItem">
-                        <Setter Property="Padding" Value="2,1"/>
-                        <Setter Property="Margin" Value="0"/>
-                    </Style>
-                </ListBox.Styles>
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:LogEntry}">
-                        <Grid ColumnDefinitions="75, 45, 110, *" Margin="4,2">
-                            <SelectableTextBlock Grid.Column="0"
-                                                 Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
-                                                 FontFamily="Cascadia Code, Consolas, monospace"
-                                                 Foreground="{StaticResource TextMutedBrush}"
-                                                 FontSize="12" 
-                                                 VerticalAlignment="Center"/>
-                            <SelectableTextBlock Grid.Column="1"
-                                                 Text="{Binding Level}"
-                                                 FontFamily="Cascadia Code, Consolas, monospace"
-                                                 FontWeight="Bold"
-                                                 FontSize="12"
-                                                 VerticalAlignment="Center">
-                                <SelectableTextBlock.Foreground>
-                                    <SolidColorBrush Color="{Binding LevelColor}" />
-                                </SelectableTextBlock.Foreground>
-                            </SelectableTextBlock>
-                            <SelectableTextBlock Grid.Column="2"
-                                                 Text="{Binding Source}"
-                                                 FontFamily="Cascadia Code, Consolas, monospace"
-                                                 Foreground="#c084fc"
-                                                 FontSize="12" 
-                                                 VerticalAlignment="Center"/>
-                            <SelectableTextBlock Grid.Column="3"
-                                                 Text="{Binding Message}"
-                                                 FontFamily="Cascadia Code, Consolas, monospace"
-                                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                                 TextWrapping="Wrap"
-                                                 FontSize="12" 
-                                                 VerticalAlignment="Center"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+        <!-- Professional Terminal Viewport -->
+        <Border Grid.Row="2" Background="#06070B" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="0">
+            <Grid RowDefinitions="Auto, *">
+                <!-- Terminal Top Bar -->
+                <Border Grid.Row="0" Background="#0A0D14" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1" CornerRadius="10,10,0,0" Padding="12,8">
+                    <Grid ColumnDefinitions="Auto, *, Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Border Width="10" Height="10" CornerRadius="5" Background="#EF4444"/>
+                            <Border Width="10" Height="10" CornerRadius="5" Background="#F59E0B"/>
+                            <Border Width="10" Height="10" CornerRadius="5" Background="#10B981"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Text="CONSOLE STREAM OUTPUT" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding FilteredLogEntries.Count, StringFormat='{}{0} lines'}" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Logs Stream -->
+                <ListBox Grid.Row="1" 
+                         x:Name="LogListBox"
+                         ItemsSource="{Binding FilteredLogEntries}"
+                         Background="Transparent"
+                         Padding="8"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="4,2"/>
+                            <Setter Property="Margin" Value="0,1"/>
+                            <Setter Property="CornerRadius" Value="4"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                            <Setter Property="Background" Value="#0F131D"/>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:LogEntry}">
+                            <Grid ColumnDefinitions="80, 50, 120, *" Margin="4,2">
+                                <SelectableTextBlock Grid.Column="0"
+                                                     Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                                     FontFamily="Cascadia Code, Consolas, monospace"
+                                                     Foreground="{StaticResource TextMutedBrush}"
+                                                     FontSize="12" 
+                                                     VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" 
+                                        Background="#121624" 
+                                        BorderBrush="{StaticResource CardBorderBrush}" 
+                                        BorderThickness="1" 
+                                        CornerRadius="4" 
+                                        Padding="4,1" 
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center">
+                                    <SelectableTextBlock Text="{Binding Level}"
+                                                         FontFamily="Cascadia Code, Consolas, monospace"
+                                                         FontWeight="Bold"
+                                                         FontSize="11"
+                                                         HorizontalAlignment="Center">
+                                        <SelectableTextBlock.Foreground>
+                                            <SolidColorBrush Color="{Binding LevelColor}" />
+                                        </SelectableTextBlock.Foreground>
+                                    </SelectableTextBlock>
+                                </Border>
+                                <SelectableTextBlock Grid.Column="2"
+                                                     Text="{Binding Source}"
+                                                     FontFamily="Cascadia Code, Consolas, monospace"
+                                                     Foreground="{StaticResource PrimaryLightBrush}"
+                                                     FontSize="12" 
+                                                     VerticalAlignment="Center"
+                                                     TextTrimming="CharacterEllipsis"/>
+                                <SelectableTextBlock Grid.Column="3"
+                                                     Text="{Binding Message}"
+                                                     FontFamily="Cascadia Code, Consolas, monospace"
+                                                     Foreground="{StaticResource TextPrimaryBrush}"
+                                                     TextWrapping="Wrap"
+                                                     FontSize="12" 
+                                                     VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

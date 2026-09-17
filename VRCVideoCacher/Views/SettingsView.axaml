@@ -7,45 +7,57 @@
              x:DataType="vm:SettingsViewModel">
 
     <Grid RowDefinitions="Auto, *">
-        <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto, Auto" Margin="4,0,4,14">
-            <TextBlock Text="{l:Localize Settings}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+        <!-- Top Sticky Action Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0,0,0,16">
+            <StackPanel Orientation="Vertical" Spacing="4">
+                <TextBlock Text="{l:Localize Settings}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Configure proxy endpoints, caching limits, authentication and playback behavior" 
+                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}"/>
+            </StackPanel>
 
-            <!-- Status Message -->
-            <Border Grid.Column="1" Background="{StaticResource SurfaceElevatedBackgroundBrush}" CornerRadius="6" Padding="10,4" Margin="12,0" VerticalAlignment="Center"
+            <!-- Status Indicator -->
+            <Border Grid.Column="1" Background="{StaticResource SurfaceElevatedBackgroundBrush}" 
+                    BorderBrush="{StaticResource CardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8" Padding="12,6" Margin="12,0" VerticalAlignment="Center"
                     IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" FontSize="12"
-                           Foreground="{Binding StatusMessageColor}"/>
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Border Background="{Binding StatusMessageColor}" CornerRadius="4" Width="8" Height="8"/>
+                    <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" FontSize="12"
+                               Foreground="{Binding StatusMessageColor}" FontWeight="Medium"/>
+                </StackPanel>
             </Border>
 
-            <Button Grid.Column="2" Command="{Binding ResetToDefaultsCommand}" Margin="0,0,10,0" Padding="12,7">
+            <Button Grid.Column="2" Command="{Binding ResetToDefaultsCommand}" Classes="secondary" Margin="0,0,10,0" Padding="14,8">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                    <mi:MaterialIcon Kind="Undo" Width="16" Height="16"/>
-                    <TextBlock Text="{l:Localize Reset}" FontSize="12"/>
+                    <mi:MaterialIcon Kind="Undo" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="{l:Localize Reset}" FontSize="12.5"/>
                 </StackPanel>
             </Button>
 
             <Button Grid.Column="3" Command="{Binding SaveSettingsCommand}"
-                    Classes="accent" Classes.pending="{Binding HasChanges}" Padding="16,7">
+                    Classes="primary" Classes.pending="{Binding HasChanges}" Padding="18,8">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <mi:MaterialIcon Kind="ContentSaveOutline" Width="16" Height="16"/>
-                    <TextBlock Text="{l:Localize Save}" FontSize="12"/>
+                    <TextBlock Text="{l:Localize Save}" FontSize="12.5"/>
                 </StackPanel>
             </Button>
         </Grid>
 
         <ScrollViewer Grid.Row="1">
-            <StackPanel Spacing="16" Margin="4,0,4,16">
-                <!-- General Settings -->
+            <StackPanel Spacing="16" Margin="0,0,0,16">
+                <!-- General & Localization Section -->
                 <Border Classes="card">
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="TuneVariant" Width="18" Height="18" Foreground="{StaticResource PrimaryLightBrush}"/>
-                            <TextBlock Text="{l:Localize General}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                <mi:MaterialIcon Kind="TuneVariant" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="{l:Localize General}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="140, *" VerticalAlignment="Center">
-                            <TextBlock Grid.Column="0" Text="{l:Localize Language}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize Language}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium"/>
                             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                                       ItemsSource="{Binding AvailableLanguageOptions}"
                                       SelectedItem="{Binding SelectedLanguageOption}">
@@ -57,24 +69,27 @@
                             </ComboBox>
                         </Grid>
 
-                        <!-- Compact two-column layout for the general toggles -->
-                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="16" RowSpacing="10" Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="16" RowSpacing="12" Margin="0,4,0,0">
                             <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding CloseToTray}" Content="{l:Localize CloseToTray}"/>
                             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding StartMinimized}" Content="{l:Localize StartMinimized}"/>
                             <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding StartWithSteamVr}" Content="{l:Localize StartWithSteamVr}"/>
                             <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding ErrorPopups}" Content="{l:Localize ErrorPopups}"/>
                         </Grid>
 
-                        <CheckBox IsChecked="{Binding ShowAdvanced}" Content="{l:Localize ShowAdvancedSettings}" Foreground="{StaticResource PrimaryLightBrush}"/>
+                        <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                            <CheckBox IsChecked="{Binding ShowAdvanced}" Content="{l:Localize ShowAdvancedSettings}" Foreground="{StaticResource PrimaryLightBrush}" FontWeight="Medium"/>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <!-- YouTube SABR Options -->
                 <Border Classes="card">
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" Foreground="#ef4444"/>
-                            <TextBlock Text="{l:Localize YouTubeSabrOptions}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Border Background="#2B1117" CornerRadius="6" Width="26" Height="26">
+                                <mi:MaterialIcon Kind="Youtube" Width="16" Height="16" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="{l:Localize YouTubeSabrOptions}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <CheckBox IsChecked="{Binding PreferSabrStreaming}"
@@ -82,7 +97,7 @@
                                   ToolTip.Tip="{l:Localize SabrPreferStreamingTooltip}"/>
 
                         <Grid ColumnDefinitions="180, *" VerticalAlignment="Center">
-                            <TextBlock Grid.Column="0" Text="{l:Localize SabrMaxResolution}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="0" Text="{l:Localize SabrMaxResolution}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium"/>
                             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                                       ItemsSource="{Binding ResolutionOptions}"
                                       SelectedItem="{Binding SabrMaxResolution}"
@@ -95,7 +110,7 @@
                             </ComboBox>
                         </Grid>
 
-                        <StackPanel Spacing="10" IsVisible="{Binding ShowAdvanced}">
+                        <StackPanel Spacing="12" IsVisible="{Binding ShowAdvanced}">
                             <CheckBox IsChecked="{Binding SabrFilterDrcAudio}"
                                       Content="{l:Localize SabrFilterDrcAudio}"
                                       ToolTip.Tip="{l:Localize SabrFilterDrcAudioTooltip}"/>
@@ -114,12 +129,14 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Download Settings -->
+                <!-- Download Settings (yt-dlp) -->
                 <Border Classes="card">
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="CloudDownloadOutline" Width="18" Height="18" Foreground="{StaticResource InfoBrush}"/>
-                            <TextBlock Text="{l:Localize DownloadSettings}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Border Background="{StaticResource InfoSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                <mi:MaterialIcon Kind="CloudDownloadOutline" Width="16" Height="16" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="{l:Localize DownloadSettings}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <Grid ColumnDefinitions="*, *" RowDefinitions="Auto" ColumnSpacing="16">
@@ -138,19 +155,21 @@
                             <TextBox Text="{Binding GitHubToken}" PasswordChar="•" PlaceholderText="ghp_..."/>
                         </StackPanel>
 
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="{l:Localize PreferredDubLanguage}" Foreground="{StaticResource TextSecondaryBrush}"/>
-                            <TextBox Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original"/>
-                        </StackPanel>
+                        <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize PreferredDubLanguage}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- Cache Settings -->
+                <!-- Cache Storage Settings -->
                 <Border Classes="card">
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="Harddisk" Width="18" Height="18" Foreground="{StaticResource WarningBrush}"/>
-                            <TextBlock Text="{l:Localize CacheSettings}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Border Background="{StaticResource WarningSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                <mi:MaterialIcon Kind="Harddisk" Width="16" Height="16" Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="{l:Localize CacheSettings}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
@@ -165,7 +184,7 @@
 
                         <CheckBox IsChecked="{Binding CacheYouTube}" Content="{l:Localize CacheYouTubeVideos}"/>
 
-                        <StackPanel Spacing="10" Margin="24,0,0,0" IsVisible="{Binding CacheYouTube}">
+                        <StackPanel Spacing="12" Margin="24,0,0,0" IsVisible="{Binding CacheYouTube}">
                             <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
                                 <TextBlock Grid.Column="0" Text="{l:Localize MaxYouTubeResolution}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding CacheYouTubeMaxResolution}">
@@ -183,7 +202,7 @@
                             </Grid>
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="16" RowSpacing="10" Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="16" RowSpacing="12" Margin="0,4,0,0">
                             <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding CachePyPyDance}" Content="{l:Localize CachePyPyDanceVideos}"/>
                             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding CacheVRDancing}" Content="{l:Localize CacheVRDancingVideos}"/>
                             <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding CacheGeneric}" Content="{l:Localize CacheGenericVideos}"/>
@@ -193,14 +212,16 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Advanced sections (revealed by the "Show advanced settings" toggle) -->
+                <!-- Advanced & Routing Sections (Revealed by ShowAdvanced) -->
                 <StackPanel Spacing="16" IsVisible="{Binding ShowAdvanced}">
                     <!-- Server Settings -->
                     <Border Classes="card">
                         <StackPanel Spacing="14">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <mi:MaterialIcon Kind="ServerNetwork" Width="18" Height="18" Foreground="{StaticResource PrimaryLightBrush}"/>
-                                <TextBlock Text="{l:Localize ServerSettings}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                    <mi:MaterialIcon Kind="ServerNetwork" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{l:Localize ServerSettings}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
@@ -214,8 +235,10 @@
                     <Border Classes="card">
                         <StackPanel Spacing="14">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <mi:MaterialIcon Kind="GamepadVariantOutline" Width="18" Height="18" Foreground="{StaticResource SuccessBrush}"/>
-                                <TextBlock Text="{l:Localize GamePatching}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Background="{StaticResource SuccessSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                    <mi:MaterialIcon Kind="GamepadVariantOutline" Width="16" Height="16" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{l:Localize GamePatching}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <Grid ColumnDefinitions="*, *" ColumnSpacing="16">
@@ -229,8 +252,10 @@
                     <Border Classes="card">
                         <StackPanel Spacing="14">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <mi:MaterialIcon Kind="Update" Width="18" Height="18" Foreground="{StaticResource InfoBrush}"/>
-                                <TextBlock Text="{l:Localize Updates}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Background="{StaticResource InfoSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                    <mi:MaterialIcon Kind="Update" Width="16" Height="16" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{l:Localize Updates}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <CheckBox IsChecked="{Binding AutoUpdate}" Content="{l:Localize AutoUpdateVRCVideoCacher}"/>
@@ -242,13 +267,15 @@
                         <StackPanel Spacing="14">
                             <Grid ColumnDefinitions="*, Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <mi:MaterialIcon Kind="Cancel" Width="18" Height="18" Foreground="{StaticResource DangerBrush}"/>
-                                    <TextBlock Text="{l:Localize BlockedUrls}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <Border Background="{StaticResource DangerSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                        <mi:MaterialIcon Kind="Cancel" Width="16" Height="16" Foreground="{StaticResource DangerBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{l:Localize BlockedUrls}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Command="{Binding AddBlockedUrlCommand}" Padding="10, 6">
+                                <Button Grid.Column="1" Command="{Binding AddBlockedUrlCommand}" Classes="secondary" Padding="12, 6">
                                     <StackPanel Orientation="Horizontal" Spacing="5">
                                         <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
-                                        <TextBlock Text="{l:Localize Add}" FontSize="12"/>
+                                        <TextBlock Text="{l:Localize Add}" FontSize="12.5"/>
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -279,13 +306,15 @@
                         <StackPanel Spacing="14">
                             <Grid ColumnDefinitions="*, Auto">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <mi:MaterialIcon Kind="DirectionsFork" Width="18" Height="18" Foreground="{StaticResource WarningBrush}"/>
-                                    <TextBlock Text="{l:Localize RedirectUrls}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <Border Background="{StaticResource WarningSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                        <mi:MaterialIcon Kind="DirectionsFork" Width="16" Height="16" Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="{l:Localize RedirectUrls}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Command="{Binding AddRedirectUrlCommand}" Padding="10, 6">
+                                <Button Grid.Column="1" Command="{Binding AddRedirectUrlCommand}" Classes="secondary" Padding="12, 6">
                                     <StackPanel Orientation="Horizontal" Spacing="5">
                                         <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
-                                        <TextBlock Text="{l:Localize Add}" FontSize="12"/>
+                                        <TextBlock Text="{l:Localize Add}" FontSize="12.5"/>
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -313,23 +342,16 @@
     </Grid>
 
     <UserControl.Styles>
-        <Style Selector="Button.accent">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="#ffffff"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="CornerRadius" Value="7"/>
-        </Style>
-
         <!-- Unsaved changes -> pulse the Save button so it's impossible to miss -->
-        <Style Selector="Button.accent.pending">
-            <Setter Property="Background" Value="#10b981"/>
+        <Style Selector="Button.primary.pending">
+            <Setter Property="Background" Value="#10B981"/>
             <Style.Animations>
                 <Animation Duration="0:0:1" IterationCount="INFINITE" PlaybackDirection="Alternate">
                     <KeyFrame Cue="0%">
                         <Setter Property="Opacity" Value="1.0"/>
                     </KeyFrame>
                     <KeyFrame Cue="100%">
-                        <Setter Property="Opacity" Value="0.65"/>
+                        <Setter Property="Opacity" Value="0.7"/>
                     </KeyFrame>
                 </Animation>
             </Style.Animations>
