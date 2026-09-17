@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
@@ -49,7 +50,10 @@ public class Updater
             return;
         }
 
-        using var response = await HttpClient.GetAsync(UpdateUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Get, UpdateUrl);
+        if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ConfigManager.Config.GitHubToken.Trim());
+        using var response = await HttpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             Log.Warning("Failed to check for updates.");

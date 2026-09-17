@@ -61,6 +61,8 @@
   "UseYouTubeCookies": "YouTube 쿠키 사용 (브라우저 확장 필요)",
   "AutoUpdateUtils": "유틸리티 자동 업데이트 (yt-dlp, FFmpeg, Deno)",
   "AdditionalYtdlpArgs": "추가 yt-dlp 인수",
+  "GitHubToken": "GitHub 개인용 액세스 토큰",
+  "GitHubTokenTooltip": "GitHub API 속도 제한을 방지하기 위한 선택적 개인용 액세스 토큰입니다.",
   "PreferredDubLanguage": "선호하는 음성 언어 (예시: 한국어는 'ko')",
   "YouTubeSabrOptions": "YouTube SABR 옵션",
   "SabrMaxResolution": "최대 스트리밍 해상도",

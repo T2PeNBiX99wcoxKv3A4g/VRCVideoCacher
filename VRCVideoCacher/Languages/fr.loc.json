@@ -61,6 +61,8 @@
   "UseYouTubeCookies": "Utiliser les cookies YouTube (nécessite une extension de navigateur)",
   "AutoUpdateUtils": "Mettre à jour automatiquement les utilitaires (yt-dlp, FFmpeg et Deno)",
   "AdditionalYtdlpArgs": "Arguments supplémentaires pour yt-dlp",
+  "GitHubToken": "Jeton d'accès personnel GitHub",
+  "GitHubTokenTooltip": "Jeton d'accès personnel optionnel pour éviter les limites de débit de l'API GitHub.",
   "PreferredDubLanguage": "Langue de doublage préférée (par exemple, « fr » pour le français)",
   "YouTubeSabrOptions": "Options SABR de YouTube",
   "SabrMaxResolution": "Résolution maximale de diffusion en continu",

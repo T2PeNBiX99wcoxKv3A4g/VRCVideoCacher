@@ -61,6 +61,8 @@
   "UseYouTubeCookies": "YouTube の Cookie を使用する (ブラウザーの拡張機能が必要)",
   "AutoUpdateUtils": "ユーティリティを自動更新する (yt-dlp、FFmpeg と Deno)",
   "AdditionalYtdlpArgs": "追加する yt-dlp の引数",
+  "GitHubToken": "GitHub 個人用アクセストークン",
+  "GitHubTokenTooltip": "GitHub API のレート制限を回避するための任意の個人用アクセストークンです。",
   "PreferredDubLanguage": "優先する吹き替えの言語 (例: ja で日本語)",
   "YouTubeSabrOptions": "YouTube SABR のオプション",
   "SabrMaxResolution": "ストリーミングの最大解像度",

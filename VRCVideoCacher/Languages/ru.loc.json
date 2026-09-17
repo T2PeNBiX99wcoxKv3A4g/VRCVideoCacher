@@ -61,6 +61,8 @@
   "UseYouTubeCookies": "Использовать Ютуб (YouTube) Cookie (Требуется Расширение Браузера)",
   "AutoUpdateUtils": "Автообновление утилит (yt-dlp, FFmpeg, and Deno)",
   "AdditionalYtdlpArgs": "Дополнительные аргументы для yt-dlp",
+  "GitHubToken": "Личный токен доступа GitHub",
+  "GitHubTokenTooltip": "Необязательный личный токен доступа для предотвращения ограничений скорости GitHub API.",
   "PreferredDubLanguage": "Предпочтитаемый язык дублирования (Ака, 'de' для Немецкого)",
   "YouTubeSabrOptions": "Параметры SABR для YouTube",
   "SabrMaxResolution": "Макс. разрешение потока",

@@ -120,6 +120,12 @@
                             <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="Optional arguments"/>
                         </StackPanel>
 
+                        <StackPanel Spacing="5" IsVisible="{Binding ShowAdvanced}">
+                            <TextBlock Text="{l:Localize GitHubToken}"
+                                       ToolTip.Tip="{l:Localize GitHubTokenTooltip}"/>
+                            <TextBox Text="{Binding GitHubToken}" PlaceholderText="ghp_..."/>
+                        </StackPanel>
+
                         <StackPanel Spacing="5">
                             <TextBlock Text="{l:Localize PreferredDubLanguage}"/>
                             <TextBox Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original"/>

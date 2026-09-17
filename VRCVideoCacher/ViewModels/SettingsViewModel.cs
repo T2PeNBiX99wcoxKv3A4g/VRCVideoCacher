@@ -52,6 +52,8 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial string YtdlDubLanguage { get; set; } = string.Empty;
 
+    [ObservableProperty] public partial string GitHubToken { get; set; } = string.Empty;
+
     // YouTube SABR Options
     [ObservableProperty] public partial bool PreferSabrStreaming { get; set; }
 
@@ -160,6 +162,7 @@ public partial class SettingsViewModel : ViewModelBase
         YtdlAutoUpdate = config.YtdlpAutoUpdate;
         YtdlAdditionalArgs = config.YtdlpAdditionalArgs;
         YtdlDubLanguage = config.YtdlpDubLanguage;
+        GitHubToken = config.GitHubToken;
         PreferSabrStreaming = config.SabrPreferStreaming;
         SabrMaxResolution = config.SabrMaxResolution;
         SabrFilterDrcAudio = config.SabrFilterDrcAudio;
@@ -235,6 +238,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
     partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
     partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
+    partial void OnGitHubTokenChanged(string value) => SetHasChanges();
     partial void OnPreferSabrStreamingChanged(bool value) => SetHasChanges();
     partial void OnSabrMaxResolutionChanged(int value) => SetHasChanges();
     partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
@@ -274,6 +278,7 @@ public partial class SettingsViewModel : ViewModelBase
         config.YtdlpAutoUpdate = YtdlAutoUpdate;
         config.YtdlpAdditionalArgs = YtdlAdditionalArgs;
         config.YtdlpDubLanguage = YtdlDubLanguage;
+        config.GitHubToken = GitHubToken;
         config.SabrPreferStreaming = PreferSabrStreaming;
         config.SabrMaxResolution = SabrMaxResolution;
         config.SabrFilterDrcAudio = SabrFilterDrcAudio;

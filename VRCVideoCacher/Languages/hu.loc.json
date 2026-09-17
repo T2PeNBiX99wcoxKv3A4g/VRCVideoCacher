@@ -62,6 +62,8 @@
   "UseYouTubeCookies": "YouTube Sütik Használata (böngésző kiegészítő szükséges)",
   "AutoUpdateUtils": "Automatikus frissítés segédprogramoknak (yt-dlp, FFmpeg és Deno)",
   "AdditionalYtdlpArgs": "Kiegészítő yt-dlp Paraméterek",
+  "GitHubToken": "GitHub Személyes Hozzáférési Token",
+  "GitHubTokenTooltip": "Opcionális személyes hozzáférési token a GitHub API sebességkorlátozásának elkerüléséhez.",
   "PreferredDubLanguage": "Előnyben részesített szinkron (pl. 'hu' a magyar nyelv esetében)",
   "YouTubeSabrOptions": "YouTube SABR beállítások",
   "SabrMaxResolution": "Max. streamelési felbontás",

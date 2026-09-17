@@ -139,6 +139,7 @@ public class ConfigModel
     public bool YtdlpAutoUpdate = true;
     public string YtdlpAdditionalArgs = string.Empty;
     public string YtdlpDubLanguage = string.Empty;
+    public string GitHubToken = string.Empty;
 
     // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
     // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.

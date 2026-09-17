@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text;
 using Jeek.Avalonia.Localization;
@@ -145,13 +146,21 @@ public class YtdlManager
         // ReSharper disable once FunctionNeverReturns
     }
 
+    private static async Task<HttpResponseMessage> SendGitHubApiRequestAsync(string url)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ConfigManager.Config.GitHubToken.Trim());
+        return await HttpClient.SendAsync(request);
+    }
+
     public static async Task TryDownloadYtdlp()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
 
         Log.Information("Checking for YT-DLP updates...");
-        using var response = await HttpClient.GetAsync(YtdlpApiUrl);
+        using var response = await SendGitHubApiRequestAsync(YtdlpApiUrl);
         if (!response.IsSuccessStatusCode)
         {
             Log.Warning("Failed to check for YT-DLP updates.");
@@ -197,7 +206,7 @@ public class YtdlManager
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
 
-        using var apiResponse = await HttpClient.GetAsync(DenoApiUrl);
+        using var apiResponse = await SendGitHubApiRequestAsync(DenoApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
         {
             Log.Warning("Failed to get latest deno release: {ResponseStatusCode}", apiResponse.StatusCode);
@@ -384,7 +393,7 @@ public class YtdlManager
             throw new("Failed to get Utils path");
 
         using var apiResponse =
-            await HttpClient.GetAsync(OperatingSystem.IsWindows() ? FfmpegApiUrl : FfmpegNightlyApiUrl);
+            await SendGitHubApiRequestAsync(OperatingSystem.IsWindows() ? FfmpegApiUrl : FfmpegNightlyApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
         {
             Log.Warning("Failed to get latest ffmpeg release: {ResponseStatusCode}", apiResponse.StatusCode);

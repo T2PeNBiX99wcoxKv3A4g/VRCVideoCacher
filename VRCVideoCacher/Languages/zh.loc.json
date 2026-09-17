@@ -61,6 +61,8 @@
   "UseYouTubeCookies": "使用 YouTube Cookie（需要浏览器扩展）",
   "AutoUpdateUtils": "自动更新工具（yt-dlp、FFmpeg 和 Deno）",
   "AdditionalYtdlpArgs": "yt-dlp 附加参数",
+  "GitHubToken": "GitHub 个人访问令牌",
+  "GitHubTokenTooltip": "可选的 GitHub Personal Access Token，用于避免检查更新时触发 GitHub API 速率限制。",
   "PreferredDubLanguage": "首选配音语言（例如：中文填写「zh」）",
   "YouTubeSabrOptions": "YouTube SABR 选项",
   "SabrMaxResolution": "最大流式传输分辨率",
