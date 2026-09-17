@@ -150,7 +150,7 @@ public class YtdlManager
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ConfigManager.Config.GitHubToken.Trim());
+            request.Headers.Authorization = new("Bearer", ConfigManager.Config.GitHubToken.Trim());
         return await HttpClient.SendAsync(request);
     }
 
