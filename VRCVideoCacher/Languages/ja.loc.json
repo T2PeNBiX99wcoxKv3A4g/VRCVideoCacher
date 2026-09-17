@@ -94,6 +94,7 @@
   "ErrorPopups": "エラーポップアップを表示",
   "BlockedUrls": "ブロックする URL",
   "BlockedUrlRedirect": "ブロックした URL のリダイレクト",
+  "RedirectUrls": "リダイレクト URL",
   "SettingsSaved": "設定を保存しました！",
   "SettingsReset": "設定を最後に保存した値にリセットしました。",
   "SettingsUnsavedChanges": "保存していない変更があります。",
@@ -113,6 +114,7 @@
   "QueueIsEmpty": "キューは空です",
 
   "LogViewer": "ログビューアー",
+  "ScrollToBottom": "一番下にスクロール",
   "ExportLogs": "ログをエクスポート",
   "ClearLogs": "ログを消去",
   "FilterLogsWatermark": "ログをフィルター...",

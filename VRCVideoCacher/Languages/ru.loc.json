@@ -94,9 +94,11 @@
   "ErrorPopups": "Всплывающие окна ошибок",
   "BlockedUrls": "Заблокированный URL",
   "BlockedUrlRedirect": "Перенаправление заблокированного URL",
+  "RedirectUrls": "URL-адреса перенаправления",
   "SettingsSaved": "Настройки сохранены!",
   "SettingsReset": "Настройки сброшенны до последнего сохранения",
   "SettingsUnsavedChanges": "У вас есть несохраненные изменения!",
+  "RedirectVRDancing": "Перенаправлять EU VRDancing на NA",
 
   "OpenFolder": "Открыть папку..",
   "DeleteAllCache": "Удалить весь кэш",
@@ -113,6 +115,7 @@
   "QueueIsEmpty": "Очередь пуста..",
 
   "LogViewer": "Просмотр логов",
+  "ScrollToBottom": "Прокрутить вниз",
   "ExportLogs": "Экспортировать логи",
   "ClearLogs": "Очистить логи",
   "FilterLogsWatermark": "Фильтр логов...",

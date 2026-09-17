@@ -94,9 +94,11 @@
   "ErrorPopups": "错误弹窗",
   "BlockedUrls": "屏蔽的 URL",
   "BlockedUrlRedirect": "屏蔽 URL 重定向地址",
+  "RedirectUrls": "重定向 URL",
   "SettingsSaved": "设置已保存！",
   "SettingsReset": "设置已重置为上次保存的值。",
   "SettingsUnsavedChanges": "有未保存的设置更改。",
+  "RedirectVRDancing": "将欧洲区 VRDancing 重定向至北美区",
 
   "OpenFolder": "打开文件夹",
   "DeleteAllCache": "删除全部缓存",
@@ -113,6 +115,7 @@
   "QueueIsEmpty": "队列为空",
 
   "LogViewer": "日志查看器",
+  "ScrollToBottom": "滚动到底部",
   "ExportLogs": "导出日志",
   "ClearLogs": "清除日志",
   "FilterLogsWatermark": "过滤日志...",

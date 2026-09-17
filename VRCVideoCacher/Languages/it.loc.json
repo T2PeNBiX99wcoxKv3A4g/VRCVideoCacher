@@ -94,6 +94,7 @@
   "ErrorPopups": "Error Popups",
   "BlockedUrls": "URL Bloccati",
   "BlockedUrlRedirect": "Reindirizzamento URL bloccati",
+  "RedirectUrls": "URL di reindirizzamento",
   "SettingsSaved": "Impostazioni salvate!",
   "SettingsReset": "Impostazioni ripristinate ai valori salvati l'ultima volta.",
   "SettingsUnsavedChanges": "Hai modifiche non salvate.",
@@ -114,6 +115,7 @@
   "QueueIsEmpty": "La coda è vuota",
 
   "LogViewer": "Visualizzatore Logs",
+  "ScrollToBottom": "Scorri fino in fondo",
   "ExportLogs": "Esporta Logs",
   "ClearLogs": "Svuota Logs",
   "FilterLogsWatermark": "Filtra logs...",

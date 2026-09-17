@@ -95,9 +95,11 @@
   "ErrorPopups": "Hiba felugró ablakok",
   "BlockedUrls": "Letiltott Linkek",
   "BlockedUrlRedirect": "Blokkolt Link Átirányítás",
+  "RedirectUrls": "Átirányítási URL-ek",
   "SettingsSaved": "Beállítások Mentve!",
   "SettingsReset": "Beállítások visszaállnak az utoljára mentett értékekre.",
   "SettingsUnsavedChanges": "Vannak mentetlen változások.",
+  "RedirectVRDancing": "EU VRDancing átirányítása NA-ra",
 
   "OpenFolder": "Mappa Megnyitás",
   "DeleteAllCache": "Összes gyorsítótár Törlése",
@@ -114,6 +116,7 @@
   "QueueIsEmpty": "A sor üres",
 
   "LogViewer": "Napló Néző",
+  "ScrollToBottom": "Görgetés az aljára",
   "ExportLogs": "Napló Exportálás",
   "ClearLogs": "Naplók Törlése",
   "FilterLogsWatermark": "Napló szürés...",

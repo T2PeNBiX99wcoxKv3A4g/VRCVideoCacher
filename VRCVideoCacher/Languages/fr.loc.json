@@ -94,6 +94,7 @@
   "ErrorPopups": "Fenêtres d’erreur",
   "BlockedUrls": "URL bloquées",
   "BlockedUrlRedirect": "Redirection des URL bloquées",
+  "RedirectUrls": "URL de redirection",
   "SettingsSaved": "Paramètres enregistrés !",
   "SettingsReset": "Les dernières valeurs enregistrées des paramètres ont été restaurées.",
   "SettingsUnsavedChanges": "Vous avez des modifications non enregistrées.",
@@ -114,6 +115,7 @@
   "QueueIsEmpty": "La file d’attente est vide",
 
   "LogViewer": "Visionneuse de journaux",
+  "ScrollToBottom": "Faire défiler vers le bas",
   "ExportLogs": "Exporter les journaux",
   "ClearLogs": "Effacer les journaux",
   "FilterLogsWatermark": "Filtrer les journaux…",

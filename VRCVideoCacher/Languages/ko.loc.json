@@ -94,6 +94,7 @@
   "ErrorPopups": "오류 팝업",
   "BlockedUrls": "차단된 URL",
   "BlockedUrlRedirect": "차단된 URL 리디렉션",
+  "RedirectUrls": "리디렉션 URL",
   "SettingsSaved": "설정이 저장되었습니다!",
   "SettingsReset": "설정이 마지막 저장된 상태로 재설정되었습니다.",
   "SettingsUnsavedChanges": "저장되지 않은 변경 사항이 있습니다.",
@@ -114,6 +115,7 @@
   "QueueIsEmpty": "대기열이 비었음",
 
   "LogViewer": "로그 뷰어",
+  "ScrollToBottom": "맨 아래로 스크롤",
   "ExportLogs": "로그 내보내기",
   "ClearLogs": "로그 지우기",
   "FilterLogsWatermark": "로그 검색...",
