@@ -15,6 +15,25 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private ViewModelBase _currentView;
 
+    partial void OnCurrentViewChanged(ViewModelBase value)
+    {
+        OnPropertyChanged(nameof(IsDashboardActive));
+        OnPropertyChanged(nameof(IsHistoryActive));
+        OnPropertyChanged(nameof(IsCacheBrowserActive));
+        OnPropertyChanged(nameof(IsDownloadQueueActive));
+        OnPropertyChanged(nameof(IsSettingsActive));
+        OnPropertyChanged(nameof(IsLogViewerActive));
+        OnPropertyChanged(nameof(IsAboutActive));
+    }
+
+    public bool IsDashboardActive => CurrentView == Dashboard;
+    public bool IsHistoryActive => CurrentView == History;
+    public bool IsCacheBrowserActive => CurrentView == CacheBrowser;
+    public bool IsDownloadQueueActive => CurrentView == DownloadQueue;
+    public bool IsSettingsActive => CurrentView == Settings;
+    public bool IsLogViewerActive => CurrentView == LogViewer;
+    public bool IsAboutActive => CurrentView == About;
+
     [ObservableProperty]
     private string _statusText = Localizer.Get("ServerRunning");
 

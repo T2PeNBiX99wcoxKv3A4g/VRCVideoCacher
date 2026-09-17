@@ -6,184 +6,207 @@
              xmlns:ctl="using:VRCVideoCacher.Controls"
              x:Class="VRCVideoCacher.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
-<Grid RowDefinitions="Auto, *">
-
-    <Border
-        Grid.Row="0"
-        Background="#1a73e8"
-        IsVisible="{Binding HasMotd}"
-        BorderBrush="#8ab4f8"
-        BorderThickness="0,0,0,2"
-        Padding="16,12">
-        <!-- The MOTD is remote text rendered as markdown so it can carry clickable links.
-             HyperlinkButton's themed accent colour is unreadable on this blue, so links are
-             restyled to white + underline to read as links against the banner.
-
-             The hover/pressed states MUST be overridden on the template's ContentPresenter, not on
-             the control: Fluent paints its own near-white hover fill there, which a Background setter
-             at this level never reaches — leaving white text on a white fill, i.e. invisible. -->
-        <Border.Styles>
-            <Style Selector="HyperlinkButton">
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="TextBlock.TextDecorations" Value="Underline"/>
-                <Setter Property="Cursor" Value="Hand"/>
-            </Style>
-            <Style Selector="HyperlinkButton:pointerover /template/ ContentPresenter">
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="#d6e4ff"/>
-            </Style>
-            <Style Selector="HyperlinkButton:pressed /template/ ContentPresenter">
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="#b9d0ff"/>
-            </Style>
-        </Border.Styles>
-        <Grid ColumnDefinitions="Auto, *">
-            <mi:MaterialIcon Grid.Column="0" Kind="Bullhorn" Width="28" Height="28"
-                             Foreground="White" VerticalAlignment="Center" Margin="0,0,14,0"/>
-            <TextBlock Grid.Column="1"
-                       Foreground="White"
-                       ctl:MarkdownText.Text="{Binding Motd}"
-                       TextWrapping="Wrap"
-                       VerticalAlignment="Center"
-                       FontSize="16"
-                       FontWeight="Bold" />
-        </Grid>
-    </Border>
-    <ScrollViewer Grid.Row="1">
-        
-        <StackPanel Spacing="20" Margin="10">
-            <!-- Header -->
-            <Grid ColumnDefinitions="*, Auto">
-                <TextBlock Text="{l:Localize Dashboard}" FontSize="24" FontWeight="Bold"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                    <Button Command="{Binding RefreshDataCommand}" ToolTip.Tip="{l:Localize Refresh}">
-                        <mi:MaterialIcon Kind="Refresh" Width="20" Height="20"/>
-                    </Button>
-                    <Button Command="{Binding ToggleHostCommand}" ToolTip.Tip="{l:Localize ToggleHostTooltip}">
-                        <mi:MaterialIcon Kind="ToggleSwitch" Width="20" Height="20" Foreground="{Binding HostState, Converter={x:Static vm:BoolToStatusColorConverter.Instance}}"/>
-                    </Button>
-                </StackPanel>
+    <Grid RowDefinitions="Auto, *">
+        <!-- Remote MOTD Notification Banner -->
+        <Border Grid.Row="0"
+                Background="#1e293b"
+                BorderBrush="#38bdf8"
+                BorderThickness="0,0,0,2"
+                CornerRadius="8"
+                Margin="4,4,4,12"
+                IsVisible="{Binding HasMotd}"
+                Padding="16,12">
+            <Border.Styles>
+                <Style Selector="HyperlinkButton">
+                    <Setter Property="Foreground" Value="#38bdf8"/>
+                    <Setter Property="TextBlock.TextDecorations" Value="Underline"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Style>
+                <Style Selector="HyperlinkButton:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#7dd3fc"/>
+                </Style>
+                <Style Selector="HyperlinkButton:pressed /template/ ContentPresenter">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#0284c7"/>
+                </Style>
+            </Border.Styles>
+            <Grid ColumnDefinitions="Auto, *">
+                <Border Grid.Column="0" Background="#0284c733" CornerRadius="20" Width="36" Height="36" Margin="0,0,12,0">
+                    <mi:MaterialIcon Kind="BullhornOutline" Width="20" Height="20" Foreground="#38bdf8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Grid.Column="1"
+                           Foreground="#f1f5f9"
+                           ctl:MarkdownText.Text="{Binding Motd}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           FontWeight="Medium" />
             </Grid>
+        </Border>
 
-            <!-- Stats Cards -->
-            <Grid ColumnDefinitions="*, *, *, *" ColumnSpacing="15">
-                <!-- Server Status -->
-                <Border Grid.Column="0" Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <mi:MaterialIcon Kind="Server" Width="24" Height="24" Foreground="#81C784"/>
-                            <TextBlock Text="{l:Localize ServerStatus}" FontWeight="SemiBold" FontSize="14"/>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="16" Margin="4,0,4,10">
+                <!-- Header -->
+                <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <TextBlock Text="{l:Localize Dashboard}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <Button Command="{Binding RefreshDataCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize Refresh}">
+                            <mi:MaterialIcon Kind="Refresh" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding ToggleHostCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize ToggleHostTooltip}">
+                            <mi:MaterialIcon Kind="ToggleSwitchOutline" Width="18" Height="18" Foreground="{Binding HostState, Converter={x:Static vm:BoolToStatusColorConverter.Instance}}"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Stats Cards -->
+                <Grid ColumnDefinitions="*, *, *, *" ColumnSpacing="12">
+                    <!-- Server Status -->
+                    <Border Grid.Column="0" Classes="stat-card">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{l:Localize ServerStatus}" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Background="{StaticResource SuccessSubtleBrush}" BorderBrush="#22c55e40" BorderThickness="1" CornerRadius="14" Width="28" Height="28">
+                                    <mi:MaterialIcon Kind="Server" Width="16" Height="16" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="{Binding ServerRunning, Converter={x:Static vm:BoolToStatusConverter.Instance}}"
+                                       FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding ServerUrl}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
-                        <TextBlock Text="{Binding ServerRunning, Converter={x:Static vm:BoolToStatusConverter.Instance}}"
-                                   FontSize="20" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding ServerUrl}" Foreground="#888888" FontSize="12" Margin="0,5,0,0"/>
+                    </Border>
+
+                    <!-- Cache Stats -->
+                    <Border Grid.Column="1" Classes="stat-card">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{l:Localize Cache}" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Background="{StaticResource InfoSubtleBrush}" BorderBrush="#0ea5e940" BorderThickness="1" CornerRadius="14" Width="28" Height="28">
+                                    <mi:MaterialIcon Kind="DatabaseOutline" Width="16" Height="16" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="{Binding CachedVideoCount, StringFormat='{}{0} videos'}"
+                                       FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding TotalCacheSize, Converter={x:Static vm:FileSizeConverter.Instance}}"
+                                           Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                                <TextBlock Text="/" Foreground="{StaticResource TextMutedBrush}" FontSize="12" IsVisible="{Binding MaxCacheSize, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}"/>
+                                <TextBlock Text="{Binding MaxCacheSize, StringFormat='{}{0} GB'}"
+                                           Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                                           IsVisible="{Binding MaxCacheSize, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Download Queue -->
+                    <Border Grid.Column="2" Classes="stat-card">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{l:Localize Downloads}" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Background="{StaticResource WarningSubtleBrush}" BorderBrush="#f59e0b40" BorderThickness="1" CornerRadius="14" Width="28" Height="28">
+                                    <mi:MaterialIcon Kind="DownloadOutline" Width="16" Height="16" Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="{Binding DownloadQueueCount, StringFormat='{}{0} in queue'}"
+                                       FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding CurrentDownloadText}" Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Cookies Status -->
+                    <Border Grid.Column="3" Classes="stat-card">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{l:Localize YouTubeCookies}" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366f140" BorderThickness="1" CornerRadius="14" Width="28" Height="28">
+                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="{Binding CookieStatus}"
+                                       FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="YouTube / SABR" Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Required Tools -->
+                <Border Classes="card">
+                    <StackPanel Spacing="14">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <mi:MaterialIcon Kind="Tools" Width="18" Height="18" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                <TextBlock Text="{l:Localize RequiredTools}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding VerifyToolsCommand}" ToolTip.Tip="{l:Localize VerifyTools}" Padding="10, 6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="ShieldCheckOutline" Width="16" Height="16"/>
+                                    <TextBlock Text="{l:Localize VerifyTools}" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        
+                        <ItemsControl ItemsSource="{Binding Tools}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ToolStatusItem">
+                                    <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}" 
+                                            BorderBrush="{StaticResource CardBorderBrush}" 
+                                            BorderThickness="1" 
+                                            CornerRadius="7" 
+                                            Padding="12, 9" 
+                                            Margin="0, 3">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <mi:MaterialIcon Grid.Column="0" Width="18" Height="18" VerticalAlignment="Center"
+                                                             Kind="{Binding IconKind}" Foreground="{Binding StatusBrush}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="10,0,0,0" 
+                                                       FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" 
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Detail}" Foreground="{StaticResource TextMutedBrush}"
+                                                       FontSize="12" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" MaxWidth="320"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 
-                <!-- Cache Stats -->
-                <Border Grid.Column="1" Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <mi:MaterialIcon Kind="Database" Width="24" Height="24" Foreground="#64B5F6"/>
-                            <TextBlock Text="{l:Localize Cache}" FontWeight="SemiBold" FontSize="14"/>
+                <!-- Quick Actions -->
+                <Border Classes="card">
+                    <StackPanel Spacing="14">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <mi:MaterialIcon Kind="FlashOutline" Width="18" Height="18" Foreground="{StaticResource PrimaryLightBrush}"/>
+                            <TextBlock Text="{l:Localize QuickActions}" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
-                        <TextBlock Text="{Binding CachedVideoCount, StringFormat='{}{0} videos'}"
-                                   FontSize="20" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,5,0,0">
-                            <TextBlock Text="{Binding TotalCacheSize, Converter={x:Static vm:FileSizeConverter.Instance}}"
-                                       Foreground="#888888" FontSize="12"/>
-                            <TextBlock Text="/" Foreground="#888888" FontSize="12" IsVisible="{Binding MaxCacheSize, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}"/>
-                            <TextBlock Text="{Binding MaxCacheSize, StringFormat='{}{0} GB'}"
-                                       Foreground="#888888" FontSize="12"
-                                       IsVisible="{Binding MaxCacheSize, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}"/>
-                        </StackPanel>
+                        <WrapPanel Orientation="Horizontal">
+                            <Button Command="{Binding OpenCacheFolderCommand}" Margin="0,0,10,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="FolderOpenOutline" Width="16" Height="16"/>
+                                    <TextBlock Text="{l:Localize OpenCacheFolder}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding SetupCookieExtensionCommand}" Margin="0,0,10,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16"/>
+                                    <TextBlock Text="{l:Localize SetupYouTubeCookieExtension}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ClearCookiesCommand}" Margin="0,0,10,8" 
+                                    Classes="subtle-danger"
+                                    IsEnabled="{Binding CookiesFileExists}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                                    <TextBlock Text="{l:Localize ClearCookies}"/>
+                                </StackPanel>
+                            </Button>
+                        </WrapPanel>
                     </StackPanel>
                 </Border>
-
-                <!-- Download Queue -->
-                <Border Grid.Column="2" Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <mi:MaterialIcon Kind="Download" Width="24" Height="24" Foreground="#FFB74D"/>
-                            <TextBlock Text="{l:Localize Downloads}" FontWeight="SemiBold" FontSize="14"/>
-                        </StackPanel>
-                        <TextBlock Text="{Binding DownloadQueueCount, StringFormat='{}{0} in queue'}"
-                                   FontSize="20" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="{Binding CurrentDownloadText}" Foreground="#888888" FontSize="12" Margin="0,5,0,0"
-                                   TextTrimming="CharacterEllipsis" MaxWidth="180"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Cookies Status -->
-                <Border Grid.Column="3" Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <mi:MaterialIcon Kind="Cookie" Width="24" Height="24" Foreground="#CE93D8"/>
-                            <TextBlock Text="{l:Localize YouTubeCookies}" FontWeight="SemiBold" FontSize="14"/>
-                        </StackPanel>
-                        <TextBlock Text="{Binding CookieStatus}"
-                                   FontSize="20" FontWeight="Bold" Margin="0,10,0,0"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Required Tools -->
-            <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                <StackPanel Spacing="15">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Text="{l:Localize RequiredTools}" FontWeight="SemiBold" FontSize="16"/>
-                        <Button Grid.Column="1" Command="{Binding VerifyToolsCommand}" ToolTip.Tip="{l:Localize VerifyTools}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="ShieldCheck" Width="16" Height="16"/>
-                                <TextBlock Text="{l:Localize VerifyTools}"/>
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-                    <ItemsControl ItemsSource="{Binding Tools}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:ToolStatusItem">
-                                <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,4">
-                                    <mi:MaterialIcon Grid.Column="0" Width="20" Height="20" VerticalAlignment="Center"
-                                                     Kind="{Binding IconKind}" Foreground="{Binding StatusBrush}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Detail}" Foreground="#888888"
-                                               FontSize="12" VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis" MaxWidth="260"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-
-            <!-- Quick Actions -->
-            <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                <StackPanel Spacing="15">
-                    <TextBlock Text="{l:Localize QuickActions}" FontWeight="SemiBold" FontSize="16"/>
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Command="{Binding OpenCacheFolderCommand}" Margin="0,0,10,10">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="FolderOpen" Width="16" Height="16"/>
-                                <TextBlock Text="{l:Localize OpenCacheFolder}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Command="{Binding SetupCookieExtensionCommand}" Margin="0,0,10,10">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Cookie" Width="16" Height="16"/>
-                                <TextBlock Text="{l:Localize SetupYouTubeCookieExtension}"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Command="{Binding ClearCookiesCommand}" Margin="0,0,10,10" IsEnabled="{Binding CookiesFileExists}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Delete" Width="16" Height="16"/>
-                                <TextBlock Text="{l:Localize ClearCookies}"/>
-                            </StackPanel>
-                        </Button>
-                    </WrapPanel>
-                </StackPanel>
-            </Border>
-
-        </StackPanel>
-    </ScrollViewer>
-</Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

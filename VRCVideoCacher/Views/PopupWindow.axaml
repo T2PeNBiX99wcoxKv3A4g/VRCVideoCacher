@@ -2,17 +2,25 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="VRCVideoCacher.Views.PopupWindow"
         Title="VRCVideoCacher"
-        Width="600"
+        Width="540"
         CanResize="False"
         SizeToContent="Height"
+        Background="{StaticResource AppBackgroundBrush}"
         WindowStartupLocation="CenterScreen">
-    <StackPanel Margin="20">
-        <TextBlock x:Name="ErrorTextBlock"
-                   TextWrapping="Wrap"
-                   Margin="0,0,0,20"/>
-        <Button Content="OK"
-                Width="80"
-                HorizontalAlignment="Right"
-                Click="OkButton_Click"/>
-    </StackPanel>
+    <Border Classes="card" Margin="14" Padding="18">
+        <StackPanel Spacing="16">
+            <TextBlock x:Name="ErrorTextBlock"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontSize="13"
+                       LineHeight="20"
+                       TextWrapping="Wrap"/>
+            <Button Content="OK"
+                    Classes="primary"
+                    Width="90"
+                    Padding="12,7"
+                    HorizontalContentAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Click="OkButton_Click"/>
+        </StackPanel>
+    </Border>
 </Window>

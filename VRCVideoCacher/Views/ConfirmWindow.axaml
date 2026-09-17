@@ -5,19 +5,16 @@
         Width="460"
         CanResize="False"
         SizeToContent="Height"
+        Background="{StaticResource AppBackgroundBrush}"
         WindowStartupLocation="CenterOwner">
-    <StackPanel Margin="20" Spacing="15">
-        <TextBlock x:Name="TitleTextBlock" FontSize="16" FontWeight="SemiBold"/>
-        <TextBlock x:Name="MessageTextBlock" TextWrapping="Wrap"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-            <Button x:Name="CancelButton" Width="90" Click="Cancel_Click"/>
-            <Button x:Name="ConfirmButton" Width="90" Classes="danger" Click="Confirm_Click"/>
+    <Border Classes="card" Margin="14" Padding="18">
+        <StackPanel Spacing="16">
+            <TextBlock x:Name="TitleTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock x:Name="MessageTextBlock" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="20"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,4,0,0">
+                <Button x:Name="CancelButton" Width="95" Padding="12,7" HorizontalContentAlignment="Center" Click="Cancel_Click"/>
+                <Button x:Name="ConfirmButton" Width="95" Classes="danger" HorizontalContentAlignment="Center" Click="Confirm_Click"/>
+            </StackPanel>
         </StackPanel>
-    </StackPanel>
-
-    <Window.Styles>
-        <Style Selector="Button.danger">
-            <Setter Property="Background" Value="#E57373"/>
-        </Style>
-    </Window.Styles>
+    </Border>
 </Window>

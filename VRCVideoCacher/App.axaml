@@ -4,8 +4,196 @@
              xmlns:l="using:Jeek.Avalonia.Localization"
              x:Class="VRCVideoCacher.App"
              RequestedThemeVariant="Dark">
+    <Application.Resources>
+        <!-- Backgrounds -->
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#101014" />
+        <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#0c0c0f" />
+        <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="#16161c" />
+        <SolidColorBrush x:Key="SurfaceElevatedBackgroundBrush" Color="#1e1e26" />
+        <SolidColorBrush x:Key="SurfaceSubtleBackgroundBrush" Color="#141418" />
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#181820" />
+        <SolidColorBrush x:Key="CardHoverBackgroundBrush" Color="#20202c" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#282836" />
+        <SolidColorBrush x:Key="CardBorderHoverBrush" Color="#3a3a4e" />
+        <SolidColorBrush x:Key="DividerBrush" Color="#22222d" />
+        
+        <!-- Accents & Themes -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#6366f1" />
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#4f46e5" />
+        <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#4338ca" />
+        <SolidColorBrush x:Key="PrimaryLightBrush" Color="#818cf8" />
+        <SolidColorBrush x:Key="PrimarySubtleBrush" Color="#1e1e36" />
+        
+        <SolidColorBrush x:Key="SuccessBrush" Color="#22c55e" />
+        <SolidColorBrush x:Key="SuccessSubtleBrush" Color="#122819" />
+        <SolidColorBrush x:Key="WarningBrush" Color="#f59e0b" />
+        <SolidColorBrush x:Key="WarningSubtleBrush" Color="#2b200e" />
+        <SolidColorBrush x:Key="DangerBrush" Color="#ef4444" />
+        <SolidColorBrush x:Key="DangerHoverBrush" Color="#dc2626" />
+        <SolidColorBrush x:Key="DangerSubtleBrush" Color="#2b1418" />
+        <SolidColorBrush x:Key="InfoBrush" Color="#0ea5e9" />
+        <SolidColorBrush x:Key="InfoSubtleBrush" Color="#0e2233" />
+        
+        <!-- Typography -->
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#f4f4f5" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#a1a1aa" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#71717a" />
+        
+        <!-- Badge -->
+        <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#22222e" />
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
         <materialIcons:MaterialIconStyles />
+
+        <!-- Card Styles -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+
+        <Style Selector="Border.card-subtle">
+            <Setter Property="Background" Value="{StaticResource SurfaceSubtleBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14" />
+        </Style>
+
+        <Style Selector="Border.stat-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <!-- Badge Styles -->
+        <Style Selector="Border.badge">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="Background" Value="{StaticResource BadgeBackgroundBrush}" />
+        </Style>
+        <Style Selector="Border.badge-success">
+            <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="#22c55e44" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.badge-warning">
+            <Setter Property="Background" Value="{StaticResource WarningSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="#f59e0b44" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.badge-danger">
+            <Setter Property="Background" Value="{StaticResource DangerSubtleBrush}" />
+            <Setter Property="BorderBrush" Value="#ef444444" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.badge-primary">
+            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
+            <Setter Property="BorderBrush" Value="#6366f144" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <!-- Navigation Button -->
+        <Style Selector="Button.nav-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.nav-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1c1c24" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.nav-button.active">
+            <Setter Property="Background" Value="#222238" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="BorderBrush" Value="#6366f144" />
+        </Style>
+        <Style Selector="Button.nav-button.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#222238" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+        </Style>
+
+        <!-- Accent/Primary Button -->
+        <Style Selector="Button.primary, Button.accent">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="#ffffff" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+            <Setter Property="Foreground" Value="#ffffff" />
+        </Style>
+
+        <!-- Danger Button -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="{StaticResource DangerBrush}" />
+            <Setter Property="Foreground" Value="#ffffff" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerHoverBrush}" />
+            <Setter Property="Foreground" Value="#ffffff" />
+        </Style>
+
+        <!-- Subtle Danger Button -->
+        <Style Selector="Button.subtle-danger">
+            <Setter Property="Background" Value="{StaticResource DangerSubtleBrush}" />
+            <Setter Property="Foreground" Value="#f87171" />
+            <Setter Property="BorderBrush" Value="#4a181e" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.subtle-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#38161c" />
+            <Setter Property="Foreground" Value="#fca5a5" />
+            <Setter Property="BorderBrush" Value="#5e1f26" />
+        </Style>
+
+        <!-- Icon Button -->
+        <Style Selector="Button.icon-button">
+            <Setter Property="Background" Value="#1a1a22" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.icon-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#242430" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
+        </Style>
+
+        <!-- Form controls default rounding -->
+        <Style Selector="TextBox">
+            <Setter Property="CornerRadius" Value="7" />
+        </Style>
+        <Style Selector="NumericUpDown">
+            <Setter Property="CornerRadius" Value="7" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="CornerRadius" Value="7" />
+        </Style>
     </Application.Styles>
 </Application>

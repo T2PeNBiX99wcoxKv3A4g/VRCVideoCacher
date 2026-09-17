@@ -7,76 +7,93 @@
              x:Class="VRCVideoCacher.Views.LogViewerView"
              x:DataType="vm:LogViewerViewModel">
 
-    <Grid RowDefinitions="Auto, Auto, *" Margin="10">
+    <Grid RowDefinitions="Auto, Auto, *" Margin="4,0,4,4">
         <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,15">
-            <TextBlock Text="{l:Localize LogViewer}" FontSize="24" FontWeight="Bold" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                <Button Click="ScrollToBottomButton" ToolTip.Tip="{l:Localize ScrollToBottom}">
-                    <mi:MaterialIcon Kind="ArrowCollapseDown" Width="20" Height="20" />
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,14">
+            <TextBlock Text="{l:Localize LogViewer}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Click="ScrollToBottomButton" Classes="icon-button" ToolTip.Tip="{l:Localize ScrollToBottom}">
+                    <mi:MaterialIcon Kind="ArrowCollapseDown" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </Button>
-                <Button Command="{Binding ExportLogsCommand}" ToolTip.Tip="{l:Localize ExportLogs}">
-                    <mi:MaterialIcon Kind="Export" Width="20" Height="20" />
+                <Button Command="{Binding ExportLogsCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize ExportLogs}">
+                    <mi:MaterialIcon Kind="ExportVariant" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </Button>
-                <Button Command="{Binding ClearLogsCommand}" ToolTip.Tip="{l:Localize ClearLogs}" Background="#CF6679">
-                    <mi:MaterialIcon Kind="Delete" Width="20" Height="20" />
+                <Button Command="{Binding ClearLogsCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize ClearLogs}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <mi:MaterialIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                        <TextBlock Text="{l:Localize ClearLogs}" FontSize="12"/>
+                    </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
         <!-- Filters -->
-        <Border Grid.Row="1" Background="#2d2d2d" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+        <Border Grid.Row="1" Classes="card" Margin="0,0,0,12" Padding="14,12">
             <Grid ColumnDefinitions="*, Auto">
                 <TextBox Grid.Column="0" Text="{Binding FilterText}" PlaceholderText="{l:Localize FilterLogsWatermark}"
-                         Margin="0,0,15,0">
+                         Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                         BorderBrush="{StaticResource CardBorderBrush}"
+                         Padding="10, 8"
+                         Margin="0,0,16,0">
                     <TextBox.InnerLeftContent>
-                        <mi:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="5,0" />
+                        <mi:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="10,0,6,0" Foreground="{StaticResource TextMutedBrush}"/>
                     </TextBox.InnerLeftContent>
                 </TextBox>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15">
-                    <CheckBox IsChecked="{Binding ShowDebug}" Content="{l:Localize Debug}" Foreground="#64B5F6" />
-                    <CheckBox IsChecked="{Binding ShowInfo}" Content="{l:Localize Info}" Foreground="#81C784" />
-                    <CheckBox IsChecked="{Binding ShowWarning}" Content="{l:Localize Warning}" Foreground="#FFB74D" />
-                    <CheckBox IsChecked="{Binding ShowError}" Content="{l:Localize Error}" Foreground="#CF6679" />
-                    <CheckBox IsChecked="{Binding AutoScroll}" Content="{l:Localize AutoScroll}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                    <CheckBox IsChecked="{Binding ShowDebug}" Content="{l:Localize Debug}" Foreground="#38bdf8" />
+                    <CheckBox IsChecked="{Binding ShowInfo}" Content="{l:Localize Info}" Foreground="#22c55e" />
+                    <CheckBox IsChecked="{Binding ShowWarning}" Content="{l:Localize Warning}" Foreground="#f59e0b" />
+                    <CheckBox IsChecked="{Binding ShowError}" Content="{l:Localize Error}" Foreground="#ef4444" />
+                    <CheckBox IsChecked="{Binding AutoScroll}" Content="{l:Localize AutoScroll}" Foreground="{StaticResource PrimaryLightBrush}"/>
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- Log List -->
-        <Border Grid.Row="2" Background="#1a1a1a" CornerRadius="8" Padding="10">
+        <Border Grid.Row="2" Background="#0c0c0f" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
             <ListBox x:Name="LogListBox"
                      ItemsSource="{Binding FilteredLogEntries}"
                      Background="Transparent"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="2,1"/>
+                        <Setter Property="Margin" Value="0"/>
+                    </Style>
+                </ListBox.Styles>
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:LogEntry}">
-                        <Grid ColumnDefinitions="80, 40, 100, *" Margin="5,2">
+                        <Grid ColumnDefinitions="75, 45, 110, *" Margin="4,2">
                             <SelectableTextBlock Grid.Column="0"
                                                  Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
-                                                 FontFamily="Consolas"
-                                                 Foreground="#888888"
-                                                 FontSize="12" />
+                                                 FontFamily="Cascadia Code, Consolas, monospace"
+                                                 Foreground="{StaticResource TextMutedBrush}"
+                                                 FontSize="12" 
+                                                 VerticalAlignment="Center"/>
                             <SelectableTextBlock Grid.Column="1"
                                                  Text="{Binding Level}"
-                                                 FontFamily="Consolas"
+                                                 FontFamily="Cascadia Code, Consolas, monospace"
                                                  FontWeight="Bold"
-                                                 FontSize="12">
+                                                 FontSize="12"
+                                                 VerticalAlignment="Center">
                                 <SelectableTextBlock.Foreground>
                                     <SolidColorBrush Color="{Binding LevelColor}" />
                                 </SelectableTextBlock.Foreground>
                             </SelectableTextBlock>
                             <SelectableTextBlock Grid.Column="2"
                                                  Text="{Binding Source}"
-                                                 FontFamily="Consolas"
-                                                 Foreground="#CE93D8"
-                                                 FontSize="12" />
+                                                 FontFamily="Cascadia Code, Consolas, monospace"
+                                                 Foreground="#c084fc"
+                                                 FontSize="12" 
+                                                 VerticalAlignment="Center"/>
                             <SelectableTextBlock Grid.Column="3"
                                                  Text="{Binding Message}"
-                                                 FontFamily="Consolas"
+                                                 FontFamily="Cascadia Code, Consolas, monospace"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
                                                  TextWrapping="Wrap"
-                                                 FontSize="12" />
+                                                 FontSize="12" 
+                                                 VerticalAlignment="Center"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
