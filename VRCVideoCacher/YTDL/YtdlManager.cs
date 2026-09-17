@@ -200,7 +200,7 @@ public class YtdlManager
         using var apiResponse = await HttpClient.GetAsync(DenoApiUrl);
         if (!apiResponse.IsSuccessStatusCode)
         {
-            Log.Warning("Failed to get latest ffmpeg release: {ResponseStatusCode}", apiResponse.StatusCode);
+            Log.Warning("Failed to get latest deno release: {ResponseStatusCode}", apiResponse.StatusCode);
             return;
         }
 
