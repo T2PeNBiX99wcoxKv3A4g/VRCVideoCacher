@@ -84,6 +84,7 @@
   "MaxVideoLength": "最大视频时长（分钟）",
   "CachePyPyDanceVideos": "缓存 PyPyDance 视频",
   "CacheVRDancingVideos": "缓存 VRDancing 视频",
+  "CacheGenericVideos": "缓存通用视频",
   "OnlyServeCachedVideos": "仅提供已缓存的视频",
   "GamePatching": "游戏补丁",
   "PatchVRChat": "为 VRChat 应用补丁",

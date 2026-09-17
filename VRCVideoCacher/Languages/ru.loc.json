@@ -84,6 +84,7 @@
   "MaxVideoLength": "Максимальная длина видео (В минутах)",
   "CachePyPyDanceVideos": "Кэшировать PyPyDance видео",
   "CacheVRDancingVideos": "Кэшировать VrDancing видео",
+  "CacheGenericVideos": "Кэшировать общие видео",
   "OnlyServeCachedVideos": "Только серверныйе кэшированные видео",
   "GamePatching": "Патч игры",
   "PatchVRChat": "Патч VrChat",

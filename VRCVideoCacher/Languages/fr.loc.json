@@ -84,6 +84,7 @@
   "MaxVideoLength": "Durée maximale des vidéos (minutes)",
   "CachePyPyDanceVideos": "Mettre en cache les vidéos PyPyDance",
   "CacheVRDancingVideos": "Mettre en cache les vidéos VRDancing",
+  "CacheGenericVideos": "Mettre en cache les vidéos génériques",
   "OnlyServeCachedVideos": "Diffuser uniquement les vidéos en cache",
   "GamePatching": "Application de correctifs aux jeux",
   "PatchVRChat": "Appliquer le correctif à VRChat",
