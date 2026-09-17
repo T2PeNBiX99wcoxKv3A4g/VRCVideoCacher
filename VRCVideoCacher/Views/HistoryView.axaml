@@ -48,6 +48,26 @@
                                 BorderThickness="1" 
                                 CornerRadius="8" 
                                 Padding="10">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="{l:Localize OpenUrl}" Command="{Binding OpenUrlCommand}">
+                                        <MenuItem.Icon>
+                                            <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CopyUrlCommand}">
+                                        <MenuItem.Icon>
+                                            <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="{l:Localize DeleteHistoryEntry}" Command="{Binding DeleteCommand}">
+                                        <MenuItem.Icon>
+                                            <mi:MaterialIcon Kind="DeleteOutline" Width="16" Height="16" Foreground="{StaticResource DangerBrush}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Border.ContextMenu>
                             <Grid ColumnDefinitions="Auto, *, Auto, Auto">
                                 <!-- Thumbnail -->
                                 <Border Grid.Column="0" Width="120" Height="68" CornerRadius="6" ClipToBounds="True" Background="#1c1c24">

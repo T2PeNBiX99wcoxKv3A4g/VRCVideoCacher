@@ -16,7 +16,7 @@
 
     <Grid RowDefinitions="*, Auto">
         <!-- Main Content -->
-        <Grid Grid.Row="0" ColumnDefinitions="220, *">
+        <Grid Grid.Row="0" ColumnDefinitions="240, *">
             <!-- Sidebar Navigation -->
             <Border Grid.Column="0" 
                     Background="{StaticResource SidebarBackgroundBrush}" 
@@ -25,9 +25,9 @@
                     Padding="14, 16, 14, 16">
                 <DockPanel>
                     <!-- App Banner / Logo Header -->
-                    <Border DockPanel.Dock="Top" Margin="0,4,0,20" HorizontalAlignment="Center">
+                    <Border DockPanel.Dock="Top" Margin="0,4,0,22" HorizontalAlignment="Stretch">
                         <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png"
-                               MaxWidth="180"
+                               MaxHeight="48"
                                Stretch="Uniform"
                                HorizontalAlignment="Center"/>
                     </Border>
@@ -37,8 +37,8 @@
                         <Button Command="{Binding NavigateToDashboardCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsDashboardActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="ViewDashboardOutline" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="ViewDashboardOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize Dashboard}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>
@@ -46,8 +46,8 @@
                         <Button Command="{Binding NavigateToHistoryCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsHistoryActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="History" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="History" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize History}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>
@@ -55,8 +55,8 @@
                         <Button Command="{Binding NavigateToCacheBrowserCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsCacheBrowserActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="FolderPlayOutline" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="FolderPlayOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize CacheBrowser}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>
@@ -64,8 +64,8 @@
                         <Button Command="{Binding NavigateToDownloadQueueCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsDownloadQueueActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="DownloadOutline" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="DownloadOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize Downloads}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>
@@ -73,8 +73,8 @@
                         <Button Command="{Binding NavigateToSettingsCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsSettingsActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="CogOutline" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="CogOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize Settings}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>
@@ -82,8 +82,8 @@
                         <Button Command="{Binding NavigateToLogViewerCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsLogViewerActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="ConsoleLine" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="ConsoleLine" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize Logs}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>
@@ -91,8 +91,8 @@
                         <Button Command="{Binding NavigateToAboutCommand}"
                                 Classes="nav-button"
                                 Classes.active="{Binding IsAboutActive}">
-                            <Grid ColumnDefinitions="24, *">
-                                <mi:MaterialIcon Grid.Column="0" Kind="InformationOutline" Width="19" Height="19" VerticalAlignment="Center"/>
+                            <Grid ColumnDefinitions="26, *">
+                                <mi:MaterialIcon Grid.Column="0" Kind="InformationOutline" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{l:Localize About}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </Grid>
                         </Button>

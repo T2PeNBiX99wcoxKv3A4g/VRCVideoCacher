@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,12 +10,25 @@ using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.ViewModels;
 
-public class DownloadItemViewModel : ViewModelBase
+public partial class DownloadItemViewModel : ViewModelBase
 {
     public string VideoUrl { get; init; } = string.Empty;
     public string VideoId { get; init; } = string.Empty;
     public string UrlType { get; init; } = string.Empty;
     public string Format { get; init; } = string.Empty;
+
+    [RelayCommand]
+    private async Task CopyUrl()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var clipboard = desktop.MainWindow?.Clipboard;
+            if (clipboard != null && !string.IsNullOrEmpty(VideoUrl))
+            {
+                await clipboard.SetTextAsync(VideoUrl);
+            }
+        }
+    }
 }
 
 public partial class DownloadQueueViewModel : ViewModelBase

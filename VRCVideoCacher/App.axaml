@@ -104,7 +104,9 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
             <Setter Property="Padding" Value="12,10" />
+            <Setter Property="MinHeight" Value="40" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="FontSize" Value="13.5" />
             <Setter Property="FontWeight" Value="Normal" />
@@ -125,6 +127,49 @@
         <Style Selector="Button.nav-button.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#222238" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+        </Style>
+
+        <!-- ContextMenu & Menu Modern Dark Styles -->
+        <Style Selector="ContextMenu">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="4" />
+        </Style>
+
+        <Style Selector="MenuFlyoutPresenter">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="4" />
+        </Style>
+
+        <Style Selector="MenuItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+        </Style>
+        <Style Selector="MenuItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+        </Style>
+        <Style Selector="MenuItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        </Style>
+
+        <Style Selector="Separator">
+            <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+            <Setter Property="Margin" Value="4,4" />
+            <Setter Property="Height" Value="1" />
         </Style>
 
         <!-- Accent/Primary Button -->

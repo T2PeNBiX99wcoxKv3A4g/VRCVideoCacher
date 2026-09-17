@@ -39,6 +39,15 @@
                         CornerRadius="8" 
                         Padding="14"
                         IsVisible="{Binding CurrentDownload, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Border.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CurrentDownload.CopyUrlCommand}">
+                                <MenuItem.Icon>
+                                    <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </Border.ContextMenu>
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Background="{StaticResource InfoSubtleBrush}" BorderBrush="#0ea5e933" BorderThickness="1" CornerRadius="20" Width="40" Height="40">
                             <mi:MaterialIcon Kind="Download" Width="20" Height="20" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -135,6 +144,15 @@
                                     BorderThickness="1" 
                                     CornerRadius="8" 
                                     Padding="12">
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CopyUrlCommand}">
+                                            <MenuItem.Icon>
+                                                <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Border.ContextMenu>
                                 <Grid ColumnDefinitions="Auto, *, Auto">
                                     <Border Grid.Column="0" Background="{StaticResource WarningSubtleBrush}" BorderBrush="#f59e0b33" BorderThickness="1" CornerRadius="16" Width="32" Height="32">
                                         <mi:MaterialIcon Kind="ClockOutline" Width="16" Height="16" Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
