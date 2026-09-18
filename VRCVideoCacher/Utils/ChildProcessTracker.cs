@@ -16,6 +16,7 @@ public partial class ChildProcessTracker
     private static readonly List<Process> TrackedProcesses = [];
     private static readonly Lock Lock = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
+    private static bool _terminating;
 
     static ChildProcessTracker()
     {
@@ -91,7 +92,10 @@ public partial class ChildProcessTracker
         if (process == null) return;
 
         lock (Lock)
+        {
+            if (_terminating) return;
             TrackedProcesses.Add(process);
+        }
 
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
         try
@@ -123,6 +127,7 @@ public partial class ChildProcessTracker
         List<Process> toKill;
         lock (Lock)
         {
+            _terminating = true;
             toKill = [.. TrackedProcesses];
             TrackedProcesses.Clear();
         }
