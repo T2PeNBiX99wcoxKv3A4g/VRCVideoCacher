@@ -44,8 +44,8 @@ public partial class ChildProcessTracker
     [SupportedOSPlatform("windows")]
     private static void InitJobObject()
     {
-        _jobHandle = CreateJobObject(IntPtr.Zero, null);
-        if (_jobHandle == IntPtr.Zero)
+        var jobHandle = CreateJobObject(IntPtr.Zero, null);
+        if (jobHandle == IntPtr.Zero)
         {
             Log.Debug("CreateJobObject failed with error {Error}", Marshal.GetLastWin32Error());
             return;
@@ -63,10 +63,12 @@ public partial class ChildProcessTracker
 
         var length = Marshal.SizeOf<JobObjectExtendedLimitInformation>();
         var extendedInfoPtr = Marshal.AllocHGlobal(length);
+
         try
         {
             Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
-            if (!SetInformationJobObject(_jobHandle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr,
+
+            if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr,
                     (uint)length))
             {
                 Log.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastWin32Error());
@@ -74,13 +76,22 @@ public partial class ChildProcessTracker
             }
 
             using var currentProcess = Process.GetCurrentProcess();
-            if (AssignProcessToJobObject(_jobHandle, currentProcess.Handle)) return;
-            Log.Debug("AssignProcessToJobObject failed with error {Error}", Marshal.GetLastWin32Error());
-            _jobHandle = IntPtr.Zero;
+
+            if (!AssignProcessToJobObject(jobHandle, currentProcess.Handle))
+            {
+                Log.Debug("AssignProcessToJobObject failed with error {Error}", Marshal.GetLastWin32Error());
+                return;
+            }
+
+            _jobHandle = jobHandle;
+            jobHandle = IntPtr.Zero;
         }
         finally
         {
             Marshal.FreeHGlobal(extendedInfoPtr);
+
+            if (jobHandle != IntPtr.Zero && !CloseHandle(jobHandle))
+                Log.Debug("CloseHandle failed with error {Error}", Marshal.GetLastWin32Error());
         }
     }
 
@@ -162,6 +173,10 @@ public partial class ChildProcessTracker
 
     [LibraryImport("kernel32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     private static partial IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool CloseHandle(IntPtr hObject);
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
