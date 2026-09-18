@@ -32,6 +32,12 @@
                                     BorderThickness="1" 
                                     CornerRadius="12" 
                                     Padding="10, 8">
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                                        <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                                    </Transitions>
+                                </Border.Transitions>
                                 <Grid ColumnDefinitions="Auto, *">
                                     <Image Grid.Column="0" 
                                            Source="avares://VRCVideoCacher/Assets/icon.ico" 
@@ -149,6 +155,12 @@
                             CornerRadius="10" 
                             Padding="10, 8" 
                             Margin="0,10,0,0">
+                        <Border.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                            </Transitions>
+                        </Border.Transitions>
                         <Grid ColumnDefinitions="Auto, *">
                             <Border Grid.Column="0" 
                                     Background="{StaticResource SidebarWidgetIconBackgroundBrush}" 
@@ -169,10 +181,13 @@
                 </Grid>
             </Border>
 
-            <!-- Content Area View Host -->
+            <!-- Content Area View Host with Smooth CrossFade Transition -->
             <Border Grid.Column="1" Background="{StaticResource AppBackgroundBrush}" Padding="18, 14, 18, 14">
-                <ContentControl Content="{Binding CurrentView}">
-                    <ContentControl.DataTemplates>
+                <TransitioningContentControl Content="{Binding CurrentView}">
+                    <TransitioningContentControl.PageTransition>
+                        <CrossFade Duration="0:0:0.2"/>
+                    </TransitioningContentControl.PageTransition>
+                    <TransitioningContentControl.DataTemplates>
                         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
                             <views:DashboardView/>
                         </DataTemplate>
@@ -194,8 +209,8 @@
                         <DataTemplate DataType="{x:Type vm:AboutViewModel}">
                             <views:AboutView/>
                         </DataTemplate>
-                    </ContentControl.DataTemplates>
-                </ContentControl>
+                    </TransitioningContentControl.DataTemplates>
+                </TransitioningContentControl>
             </Border>
         </Grid>
 

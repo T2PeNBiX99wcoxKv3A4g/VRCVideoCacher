@@ -28,10 +28,7 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center" Margin="0,16,0,0">
                     <Button Command="{Binding SelectChromeCommand}" Width="200" Height="140" 
-                            Background="{StaticResource SurfaceSubtleBackgroundBrush}"
-                            BorderBrush="{StaticResource CardBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
+                            Classes="secondary"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <mi:MaterialIcon Kind="GoogleChrome" Width="36" Height="36" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"/>
@@ -40,10 +37,7 @@
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding SelectFirefoxCommand}" Width="200" Height="140" 
-                            Background="{StaticResource SurfaceSubtleBackgroundBrush}"
-                            BorderBrush="{StaticResource CardBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
+                            Classes="secondary"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <mi:MaterialIcon Kind="Firefox" Width="36" Height="36" Foreground="{StaticResource BrandFirefoxBrush}" HorizontalAlignment="Center"/>

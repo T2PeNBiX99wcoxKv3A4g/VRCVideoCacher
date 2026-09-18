@@ -233,6 +233,11 @@
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
             <Setter Property="Padding" Value="8,5" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
         </Style>
 
         <!-- Card Styles -->
@@ -242,6 +247,14 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="18" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
 
         <Style Selector="Border.card-subtle">
@@ -250,6 +263,12 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Padding" Value="14" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
 
         <Style Selector="Border.hero-card">
@@ -258,6 +277,12 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="20" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.25" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
 
         <Style Selector="Border.stat-card">
@@ -266,6 +291,18 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="16" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.stat-card:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverColor}" />
+            <Setter Property="RenderTransform" Value="translateY(-2px)" />
         </Style>
 
         <Style Selector="Border.media-card">
@@ -274,6 +311,18 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="12" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.media-card:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverColor}" />
+            <Setter Property="RenderTransform" Value="translateY(-2px)" />
         </Style>
 
         <Style Selector="Border.terminal-box">
@@ -282,6 +331,12 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Padding" Value="12" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
 
         <!-- Badge Styles -->
@@ -291,6 +346,12 @@
             <Setter Property="Background" Value="{StaticResource BadgeBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Border.badge-success">
             <Setter Property="Background" Value="{StaticResource SuccessSubtleBrush}" />
@@ -318,6 +379,20 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
 
+        <!-- Button Base Transitions -->
+        <Style Selector="Button">
+            <Setter Property="RenderTransform" Value="none" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.97)" />
+        </Style>
+
         <!-- Navigation Button -->
         <Style Selector="Button.nav-button">
             <Setter Property="Background" Value="Transparent" />
@@ -332,6 +407,24 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderTransform" Value="none" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.nav-button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.nav-button:pointerover">
+            <Setter Property="RenderTransform" Value="translateX(3px)" />
         </Style>
         <Style Selector="Button.nav-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource NavButtonHoverBrush}" />
@@ -343,6 +436,7 @@
             <Setter Property="Foreground" Value="{StaticResource TextWhiteBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+            <Setter Property="RenderTransform" Value="none" />
         </Style>
         <Style Selector="Button.nav-button.active /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource ActiveNavPillBrush}" />
@@ -375,6 +469,14 @@
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
+        <Style Selector="MenuItem /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
         <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
@@ -404,6 +506,14 @@
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="MinHeight" Value="34" />
         </Style>
+        <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter, Button.accent /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
         <Style
             Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PrimaryGradientHoverBrush}" />
@@ -422,6 +532,14 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="MinHeight" Value="34" />
         </Style>
+        <Style Selector="Button.secondary /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
         <Style Selector="Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
@@ -437,6 +555,14 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style Selector="Button.danger /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerHoverBrush}" />
@@ -455,6 +581,15 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="MinHeight" Value="34" />
         </Style>
+        <Style Selector="Button.subtle-danger /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
         <Style Selector="Button.subtle-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerSubtleHoverBrush}" />
             <Setter Property="Foreground" Value="{StaticResource DangerLightHoverBrush}" />
@@ -472,6 +607,14 @@
             <Setter Property="MinHeight" Value="34" />
             <Setter Property="MinWidth" Value="34" />
         </Style>
+        <Style Selector="Button.icon-button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
         <Style Selector="Button.icon-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
@@ -485,6 +628,14 @@
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.ghost /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource SurfaceElevatedBackgroundBrush}" />
@@ -507,6 +658,12 @@
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
@@ -534,6 +691,12 @@
         <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner">
             <Setter Property="Background" Value="Transparent" />
@@ -558,6 +721,12 @@
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="ComboBox:pointerover /template/ Border#Background">
             <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
@@ -592,6 +761,38 @@
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- CheckBox Transitions -->
+        <Style Selector="CheckBox">
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="CheckBox /template/ Border#NormalRectangle">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- ListBoxItem Base Transitions -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- HyperlinkButton Transitions -->
+        <Style Selector="HyperlinkButton">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
                 </Transitions>
             </Setter>
         </Style>
