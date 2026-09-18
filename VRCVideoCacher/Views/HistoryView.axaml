@@ -26,7 +26,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <TextBlock Text="{l:Localize HistoryMaxSize}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
                         <NumericUpDown Value="{Binding MaxSize}" Minimum="1" Maximum="1000000" Increment="100"
-                                       FormatString="0" Width="100" VerticalAlignment="Center"/>
+                                       FormatString="0" Width="200" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
                 
