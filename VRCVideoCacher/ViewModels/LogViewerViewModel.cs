@@ -114,9 +114,11 @@ public partial class LogViewerViewModel : ViewModelBase
 
     partial void OnShowDebugChanged(bool value)
     {
+#if !DEBUG
         var config = ConfigManager.Config;
         config.ShowDebug = value;
         ConfigManager.TrySaveConfigWithoutWait(false);
+#endif
         // Capture Debug/trace only while the toggle is on, so it never spams the log file or buffer by
         // default. Information is the floor either way.
         LoggerUtils.LevelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
