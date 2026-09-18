@@ -20,7 +20,7 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <Button Command="{Binding OpenInExplorerCommand}" Classes="secondary" ToolTip.Tip="{l:Localize OpenFolder}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <mi:MaterialIcon Kind="FolderOpenOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                        <mi:MaterialIcon Kind="FolderOpenOutline" Width="18" Height="18" Foreground="{StaticResource PrimaryLightBrush}"/>
                         <TextBlock Text="{l:Localize OpenFolder}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
