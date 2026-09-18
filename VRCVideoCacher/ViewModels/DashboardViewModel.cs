@@ -40,9 +40,13 @@ public partial class DashboardViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasMotd))]
     public partial string? Motd { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMotd))]
+    public partial bool IsMotdDismissed { get; set; }
+
     [ObservableProperty] public partial bool CookiesFileExists { get; set; }
 
-    public bool HasMotd => !string.IsNullOrWhiteSpace(Motd);
+    public bool HasMotd => !string.IsNullOrWhiteSpace(Motd) && !IsMotdDismissed;
 
     // Required-tools verification (present AND functioning).
     private readonly ToolStatusItem _ytdlpTool = new("yt-dlp");
@@ -110,12 +114,23 @@ public partial class DashboardViewModel : ViewModelBase
         // (MarkdownText renders it as inlines), so this must happen on the UI thread.
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Motd = VvcConfigService.CurrentConfig.Motd;
+            var newMotd = VvcConfigService.CurrentConfig.Motd;
 #if DEBUG
-            if (string.IsNullOrEmpty(Motd))
-                Motd = "Test Motd";
+            if (string.IsNullOrEmpty(newMotd))
+                newMotd = "Test Motd";
 #endif
+            if (Motd != newMotd)
+            {
+                Motd = newMotd;
+                IsMotdDismissed = false;
+            }
         });
+    }
+
+    [RelayCommand]
+    private void DismissMotd()
+    {
+        IsMotdDismissed = true;
     }
 
     private void OnCacheChanged(string fileName, CacheChangeType changeType)
