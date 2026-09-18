@@ -323,7 +323,7 @@
         <Style Selector="Button.subtle-danger">
             <Setter Property="Background" Value="{StaticResource DangerSubtleBrush}" />
             <Setter Property="Foreground" Value="#F87171" />
-            <Setter Property="BorderBrush" Value="#EF444433" />
+            <Setter Property="BorderBrush" Value="#541414" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="14,8" />
@@ -334,7 +334,7 @@
         <Style Selector="Button.subtle-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#451822" />
             <Setter Property="Foreground" Value="#FCA5A5" />
-            <Setter Property="BorderBrush" Value="#EF444477" />
+            <Setter Property="BorderBrush" Value="{StaticResource DangerHoverBrush}" />
         </Style>
 
         <!-- Icon Button -->
