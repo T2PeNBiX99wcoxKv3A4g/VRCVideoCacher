@@ -18,39 +18,29 @@ public partial class MainWindowViewModel;
 
 public partial class DashboardViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private bool _serverRunning = true;
+    [ObservableProperty] public partial bool ServerRunning { get; set; } = true;
 
-    [ObservableProperty]
-    private string _serverUrl = "http://localhost:9696";
+    [ObservableProperty] public partial string ServerUrl { get; set; } = "http://localhost:9696";
 
-    [ObservableProperty]
-    private long _totalCacheSize;
+    [ObservableProperty] public partial long TotalCacheSize { get; set; }
 
-    [ObservableProperty]
-    private float _maxCacheSize;
+    [ObservableProperty] public partial float MaxCacheSize { get; set; }
 
-    [ObservableProperty]
-    private int _cachedVideoCount;
+    [ObservableProperty] public partial int CachedVideoCount { get; set; }
 
-    [ObservableProperty]
-    private int _downloadQueueCount;
+    [ObservableProperty] public partial int DownloadQueueCount { get; set; }
 
-    [ObservableProperty]
-    private string _cookieStatus = Localizer.Get("NotSet");
+    [ObservableProperty] public partial string CookieStatus { get; set; } = Localizer.Get("NotSet");
 
-    [ObservableProperty]
-    private string _currentDownloadText = Localizer.Get("None");
+    [ObservableProperty] public partial string CurrentDownloadText { get; set; } = Localizer.Get("None");
 
-    [ObservableProperty]
-    private bool _hostState;
+    [ObservableProperty] public partial bool HostState { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMotd))]
-    private string? _motd;
+    public partial string? Motd { get; set; }
 
-    [ObservableProperty]
-    private bool _cookiesFileExists;
+    [ObservableProperty] public partial bool CookiesFileExists { get; set; }
 
     public bool HasMotd => !string.IsNullOrWhiteSpace(Motd);
 
@@ -118,7 +108,14 @@ public partial class DashboardViewModel : ViewModelBase
     {
         // Fires on the hourly YtdlUpdaterTask thread. Setting Motd now builds HyperlinkButton controls
         // (MarkdownText renders it as inlines), so this must happen on the UI thread.
-        Dispatcher.UIThread.InvokeAsync(() => Motd = VvcConfigService.CurrentConfig.Motd);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            Motd = VvcConfigService.CurrentConfig.Motd;
+#if DEBUG
+            if (string.IsNullOrEmpty(Motd))
+                Motd = "Test Motd";
+#endif
+        });
     }
 
     private void OnCacheChanged(string fileName, CacheChangeType changeType)
@@ -128,26 +125,17 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void OnDownloadStarted(VideoInfo video)
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            CurrentDownloadText = $"{video.UrlType}: {video.VideoId}";
-        });
+        Dispatcher.UIThread.InvokeAsync(() => { CurrentDownloadText = $"{video.UrlType}: {video.VideoId}"; });
     }
 
     private void OnDownloadCompleted(VideoInfo video, bool success)
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            CurrentDownloadText = Localizer.Get("None");
-        });
+        Dispatcher.UIThread.InvokeAsync(() => { CurrentDownloadText = Localizer.Get("None"); });
     }
 
     private void OnQueueChanged()
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            DownloadQueueCount = VideoDownloader.GetQueueCount();
-        });
+        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.GetQueueCount(); });
     }
 
     private void OnConfigChanged()
@@ -202,6 +190,7 @@ public partial class DashboardViewModel : ViewModelBase
             MarkDownloading(key);
             return;
         }
+
         await VerifyOneAsync(key);
     }
 
@@ -243,7 +232,7 @@ public partial class DashboardViewModel : ViewModelBase
         ToolVerifier.FfmpegKey => _ffmpegTool,
         ToolVerifier.DenoKey => _denoTool,
         ToolVerifier.PotProviderKey => _potTool,
-        _ => null,
+        _ => null
     };
 
     private void OnToolActivityChanged()
@@ -332,13 +321,9 @@ public partial class DashboardViewModel : ViewModelBase
     {
         var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
-        {
             Process.Start("explorer.exe", cachePath);
-        }
         else if (OperatingSystem.IsLinux())
-        {
             Process.Start("xdg-open", cachePath);
-        }
     }
 
     private async Task ValidateCookiesAsync()
