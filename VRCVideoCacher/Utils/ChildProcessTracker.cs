@@ -9,7 +9,7 @@ namespace VRCVideoCacher.Utils;
 /// On Windows, binds the application process tree to a Win32 Job Object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
 /// so the OS kernel guarantees cleanup even on abnormal termination or crash.
 /// </summary>
-public static class ChildProcessTracker
+public static partial class ChildProcessTracker
 {
     private static readonly List<Process> TrackedProcesses = [];
     private static readonly Lock Lock = new();
@@ -150,15 +150,17 @@ public static class ChildProcessTracker
 
     private const uint JobObjectLimitKillOnJobClose = 0x2000;
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
+    [LibraryImport("kernel32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetInformationJobObject(IntPtr hJob, JobObjectInfoType jobObjectInformationClass,
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetInformationJobObject(IntPtr hJob, JobObjectInfoType jobObjectInformationClass,
         IntPtr lpJobObjectInformation, uint cbJobObjectInformationLength);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool AssignProcessToJobObject(IntPtr hJob, IntPtr hProcess);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AssignProcessToJobObject(IntPtr hJob, IntPtr hProcess);
 
     private enum JobObjectInfoType
     {
