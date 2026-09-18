@@ -45,7 +45,10 @@ public partial class ChildProcessTracker
     {
         _jobHandle = CreateJobObject(IntPtr.Zero, null);
         if (_jobHandle == IntPtr.Zero)
+        {
+            Log.Debug("CreateJobObject failed with error {Error}", Marshal.GetLastWin32Error());
             return;
+        }
 
         var info = new JobObjectBasicLimitInformation
         {
@@ -72,7 +75,6 @@ public partial class ChildProcessTracker
             using var currentProcess = Process.GetCurrentProcess();
             if (AssignProcessToJobObject(_jobHandle, currentProcess.Handle)) return;
             Log.Debug("AssignProcessToJobObject failed with error {Error}", Marshal.GetLastWin32Error());
-
             _jobHandle = IntPtr.Zero;
         }
         finally
