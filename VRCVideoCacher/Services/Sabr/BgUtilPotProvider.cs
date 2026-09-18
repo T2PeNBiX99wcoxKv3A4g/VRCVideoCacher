@@ -114,7 +114,8 @@ internal static class BgUtilPotProvider
             {
                 try
                 {
-                    if (process.Id == Environment.ProcessId)
+                    var pid = process.Id;
+                    if (pid == Environment.ProcessId)
                         continue;
 
                     string? exePath = null;
@@ -131,13 +132,13 @@ internal static class BgUtilPotProvider
                     if (!matches)
                         continue;
 
-                    Log.Information("Killing leftover Deno process {Pid} from a previous run", process.Id);
+                    Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
                     process.Kill(entireProcessTree: true);
                     process.WaitForExit(3000);
                 }
                 catch (Exception ex)
                 {
-                    Log.Debug(ex, "Could not kill Deno process {Pid}", process.Id);
+                    Log.Debug(ex, "Could not kill Deno process");
                 }
                 finally
                 {
@@ -267,13 +268,27 @@ internal static class BgUtilPotProvider
             preferred, who, free);
     }
 
+    private static bool HasProcessExited(Process? proc)
+    {
+        if (proc is null)
+            return true;
+        try
+        {
+            return proc.HasExited;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
     private static async Task SuperviseAsync()
     {
         while (true)
         {
             try
             {
-                if (IsAutoManaged && (_server is null || _server.HasExited))
+                if (IsAutoManaged && (_server is null || HasProcessExited(_server)))
                 {
                     _isReady = false;
                     StartServer();
@@ -402,11 +417,15 @@ internal static class BgUtilPotProvider
         ChildProcessTracker.Untrack(process);
         try
         {
-            if (!process.HasExited)
+            if (!HasProcessExited(process))
             {
                 process.Kill(entireProcessTree: true);
                 process.WaitForExit(3000);
             }
+        }
+        catch (InvalidOperationException)
+        {
+            // Process already exited, not associated, or disposed
         }
         catch (Exception ex)
         {
@@ -414,7 +433,14 @@ internal static class BgUtilPotProvider
         }
         finally
         {
-            process.Dispose();
+            try
+            {
+                process.Dispose();
+            }
+            catch
+            {
+                /* Ignore */
+            }
         }
     }
 
