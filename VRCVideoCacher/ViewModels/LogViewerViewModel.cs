@@ -19,18 +19,18 @@ public partial class LogViewerViewModel : ViewModelBase
 #if DEBUG
      [ObservableProperty] public partial bool ShowDebug { get; set; } = true;
 #else
-    [ObservableProperty] public partial bool ShowDebug { get; set; } = false;
+    [ObservableProperty] public partial bool ShowDebug { get; set; } = ConfigManager.Config.ShowDebug;
 #endif
 
-    [ObservableProperty] public partial bool ShowInfo { get; set; } = true;
+    [ObservableProperty] public partial bool ShowInfo { get; set; } = ConfigManager.Config.ShowInfo;
 
-    [ObservableProperty] public partial bool ShowWarning { get; set; } = true;
+    [ObservableProperty] public partial bool ShowWarning { get; set; } = ConfigManager.Config.ShowWarning;
 
-    [ObservableProperty] public partial bool ShowError { get; set; } = true;
+    [ObservableProperty] public partial bool ShowError { get; set; } = ConfigManager.Config.ShowError;
 
     [ObservableProperty] public partial bool AutoScroll { get; set; } = true;
 
-    [ObservableProperty] private partial int MaxLogEntries { get; set; } = 1000;
+    [ObservableProperty] private partial int MaxLogEntries { get; set; } = ConfigManager.Config.MaxLogEntries;
     public ObservableCollection<LogEntry> LogEntries { get; } = [];
     public ObservableCollection<LogEntry> FilteredLogEntries { get; } = [];
 
@@ -48,18 +48,15 @@ public partial class LogViewerViewModel : ViewModelBase
 
         // Subscribe to new log entries
         LogService.OnLogEntry += OnLogEntry;
-        ConfigManager.OnConfigChanged += LoadFromConfig;
-        LoadFromConfig();
     }
 
-    private void LoadFromConfig()
+    partial void OnMaxLogEntriesChanged(int value)
     {
-        var config = ConfigManager.Config;
-        ShowDebug = config.ShowDebug;
-        ShowInfo = config.ShowInfo;
-        ShowWarning = config.ShowWarning;
-        ShowError = config.ShowError;
-        MaxLogEntries = config.MaxLogEntries;
+        if (value <= 0)
+            return;
+
+        ConfigManager.Config.MaxLogEntries = value;
+        ConfigManager.TrySaveConfigWithoutWait(false);
     }
 
     private void OnLogEntry(LogEntry entry)
