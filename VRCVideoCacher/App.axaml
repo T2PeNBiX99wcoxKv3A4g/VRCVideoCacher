@@ -655,7 +655,8 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="MinHeight" Value="36" />
         </Style>
-        <Style Selector="TextBox /template/ Border#PART_BorderElement">
+        <!-- https://github.com/AvaloniaUI/Avalonia/issues/15419 -->
+        <Style Selector="TextBox:not(#PART_TextBox) /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="{StaticResource TextControlBackground}" />
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
@@ -674,35 +675,6 @@
         <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="{StaticResource TextControlBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
-        </Style>
-
-        <!-- https://github.com/AvaloniaUI/Avalonia/issues/15419 -->
-        <Style Selector="NumericUpDown">
-            <Setter Property="Transitions" Value="{x:Null}" />
-        </Style>
-
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox">
-            <Setter Property="Transitions" Value="{x:Null}" />
-        </Style>
-
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
-            <Setter Property="Transitions" Value="{x:Null}" />
-        </Style>
-
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox:pointerover">
-            <Setter Property="Transitions" Value="{x:Null}" />
-        </Style>
-
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Transitions" Value="{x:Null}" />
-        </Style>
-
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox:focus">
-            <Setter Property="Transitions" Value="{x:Null}" />
-        </Style>
-
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Transitions" Value="{x:Null}" />
         </Style>
 
         <!-- ComboBox Styles -->

@@ -34,12 +34,10 @@ public class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        
+
 #if DEBUG
-        this.AttachDeveloperTools(options =>
-        {
-            options.AutoConnectFromDesignMode = true;
-        });
+        // I need to pay to debug this shit??? hallo???
+        this.AttachDeveloperTools(options => options.AutoConnectFromDesignMode = true);
 #endif
     }
 
