@@ -86,8 +86,8 @@
                                 <TextBlock Text="{Binding ServerUrl}" FontSize="12" Foreground="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <TextBlock Text="VRChat Video Cacher is Active" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Intercepting media requests and seamlessly streaming cached video files to VRChat." 
+                            <TextBlock Text="VRChat Video Cacher is Active" HorizontalAlignment="Left" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Intercepting media requests and seamlessly streaming cached video files to VRChat." HorizontalAlignment="Left"
                                        FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" MaxWidth="600" TextWrapping="Wrap"/>
                         </StackPanel>
 
