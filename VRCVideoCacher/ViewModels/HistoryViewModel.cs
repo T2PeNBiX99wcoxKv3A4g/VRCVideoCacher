@@ -150,13 +150,15 @@ public partial class HistoryViewModel : ViewModelBase
     public partial string StatusText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial int MaxSize { get; set; } = ConfigManager.Config.HistoryMaxSize;
+    public partial int MaxSize { get; set; } = 1000;
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
 
     public HistoryViewModel()
     {
         DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.Post(Refresh);
         DatabaseManager.OnPlayHistoryChanged += () => Dispatcher.UIThread.Post(Refresh);
+        ConfigManager.OnConfigChanged += LoadFromConfig;
+        LoadFromConfig();
 
         // NB: deliberately NOT subscribing to OnVideoInfoCacheUpdated. The background metadata load writes
         // to VideoInfoCache, which raises that event — refreshing on it looped endlessly, and the old fix
@@ -164,6 +166,12 @@ public partial class HistoryViewModel : ViewModelBase
         // Metadata is applied to the rows in place by LoadMetadata, so a full reload here isn't needed.
 
         Dispatcher.UIThread.Post(Refresh);
+    }
+    
+    private void LoadFromConfig()
+    {
+        var config = ConfigManager.Config;
+        MaxSize = config.HistoryMaxSize;
     }
 
     partial void OnMaxSizeChanged(int value)
