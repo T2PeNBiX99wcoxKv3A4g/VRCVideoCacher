@@ -7,83 +7,85 @@
              x:Class="VRCVideoCacher.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
     <Grid RowDefinitions="Auto, *">
-        <!-- Remote MOTD Notification Banner -->
-        <Border Grid.Row="0"
-                Background="{StaticResource MotdBackgroundBrush}"
-                BorderBrush="{StaticResource InfoBrush}"
-                BorderThickness="1"
-                CornerRadius="10"
-                Margin="0,0,0,14"
-                IsVisible="{Binding HasMotd}"
-                Padding="16,12">
-            <Border.Styles>
-                <Style Selector="HyperlinkButton">
-                    <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
-                    <Setter Property="TextBlock.TextDecorations" Value="Underline" />
-                    <Setter Property="Cursor" Value="Hand" />
-                </Style>
-                <Style Selector="HyperlinkButton:pointerover /template/ ContentPresenter">
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="Foreground" Value="{StaticResource LinkHoverBrush}" />
-                </Style>
-                <Style Selector="HyperlinkButton:pressed /template/ ContentPresenter">
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="Foreground" Value="{StaticResource LinkPressedBrush}" />
-                </Style>
-            </Border.Styles>
-            <Grid ColumnDefinitions="Auto, *">
-                <Border Grid.Column="0" Background="{StaticResource InfoSubtleBrush}" CornerRadius="20" Width="36" Height="36" Margin="0,0,12,0">
-                    <mi:MaterialIcon Kind="BullhornOutline" Width="20" Height="20"
-                                     Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"
-                                     VerticalAlignment="Center" />
-                </Border>
-                <TextBlock Grid.Column="1"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           ctl:MarkdownText.Text="{Binding Motd}"
-                           TextWrapping="Wrap"
-                           VerticalAlignment="Center"
-                           FontSize="13.5"
-                           FontWeight="Medium" />
-            </Grid>
-        </Border>
+        <!-- Top Header & Action Controls -->
+        <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,14">
+            <StackPanel Orientation="Vertical" Spacing="4">
+                <TextBlock Text="{l:Localize Dashboard}" FontSize="24" FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Monitor proxy status, cache storage, and video download operations"
+                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <Button Command="{Binding ToggleHostCommand}"
+                        Classes="secondary"
+                        ToolTip.Tip="{l:Localize ToggleHostTooltip}"
+                        Padding="12, 7">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="DnsOutline" Width="16" Height="16"
+                                         Foreground="{Binding HostState, Converter={x:Static vm:BoolToStatusColorConverter.Instance}}" />
+                        <TextBlock Text="Host Proxy Mode" FontSize="12.5" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding RefreshDataCommand}" Classes="icon-button"
+                        ToolTip.Tip="{l:Localize Refresh}">
+                    <mi:MaterialIcon Kind="Refresh" Width="18" Height="18"
+                                     Foreground="{StaticResource TextSecondaryBrush}" />
+                </Button>
+            </StackPanel>
+        </Grid>
 
         <ScrollViewer Grid.Row="1">
             <StackPanel Spacing="18" Margin="0,0,0,12">
-                <!-- Top Header & Action Controls -->
-                <Grid ColumnDefinitions="*, Auto">
-                    <StackPanel Orientation="Vertical" Spacing="4">
-                        <TextBlock Text="{l:Localize Dashboard}" FontSize="24" FontWeight="Bold"
-                                   Foreground="{StaticResource TextPrimaryBrush}" />
-                        <TextBlock Text="Monitor proxy status, cache storage, and video download operations"
-                                   FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Button Command="{Binding ToggleHostCommand}"
-                                Classes="secondary"
-                                ToolTip.Tip="{l:Localize ToggleHostTooltip}"
-                                Padding="12, 7">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="DnsOutline" Width="16" Height="16"
-                                                 Foreground="{Binding HostState, Converter={x:Static vm:BoolToStatusColorConverter.Instance}}" />
-                                <TextBlock Text="Host Proxy Mode" FontSize="12.5" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button Command="{Binding RefreshDataCommand}" Classes="icon-button"
-                                ToolTip.Tip="{l:Localize Refresh}">
-                            <mi:MaterialIcon Kind="Refresh" Width="18" Height="18"
-                                             Foreground="{StaticResource TextSecondaryBrush}" />
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                <!-- Remote MOTD Notification Banner -->
+                <Border
+                    Background="{StaticResource MotdBackgroundBrush}"
+                    BorderBrush="{StaticResource InfoBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Margin="0,0,0,0"
+                    IsVisible="{Binding HasMotd}"
+                    Padding="16,12">
+                    <Border.Styles>
+                        <Style Selector="HyperlinkButton">
+                            <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
+                            <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+                            <Setter Property="Cursor" Value="Hand" />
+                        </Style>
+                        <Style Selector="HyperlinkButton:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{StaticResource LinkHoverBrush}" />
+                        </Style>
+                        <Style Selector="HyperlinkButton:pressed /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{StaticResource LinkPressedBrush}" />
+                        </Style>
+                    </Border.Styles>
+                    <Grid ColumnDefinitions="Auto, *">
+                        <Border Grid.Column="0" Background="{StaticResource InfoSubtleBrush}" CornerRadius="20"
+                                Width="36" Height="36" Margin="0,0,12,0">
+                            <mi:MaterialIcon Kind="BullhornOutline" Width="20" Height="20"
+                                             Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"
+                                             VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   ctl:MarkdownText.Text="{Binding Motd}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"
+                                   FontSize="13.5"
+                                   FontWeight="Medium" />
+                    </Grid>
+                </Border>
 
                 <!-- Hero Status Card -->
                 <Border Classes="hero-card">
                     <Grid ColumnDefinitions="*, Auto">
                         <StackPanel Grid.Column="0" Spacing="8" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Border Background="{StaticResource LiveBadgeBackgroundBrush}" BorderBrush="{StaticResource LiveBadgeBorderBrush}" BorderThickness="1"
+                                <Border Background="{StaticResource LiveBadgeBackgroundBrush}"
+                                        BorderBrush="{StaticResource LiveBadgeBorderBrush}" BorderThickness="1"
                                         CornerRadius="6" Padding="6,2">
                                     <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
                                         <Border Background="{StaticResource SuccessBrush}" CornerRadius="3" Width="6"
@@ -195,8 +197,10 @@
                             <Grid ColumnDefinitions="*, Auto">
                                 <TextBlock Text="{l:Localize YouTubeCookies}" FontWeight="SemiBold" FontSize="12"
                                            Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                                <Border Grid.Column="1" Background="{StaticResource DangerSubtleBrush}" CornerRadius="8" Width="30" Height="30">
-                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="{StaticResource DangerBrush}"
+                                <Border Grid.Column="1" Background="{StaticResource DangerSubtleBrush}"
+                                        CornerRadius="8" Width="30" Height="30">
+                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16"
+                                                     Foreground="{StaticResource DangerBrush}"
                                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                             </Grid>
