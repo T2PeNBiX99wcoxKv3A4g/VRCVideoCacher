@@ -11,8 +11,8 @@ namespace VRCVideoCacher.Utils;
 /// </summary>
 public static class ChildProcessTracker
 {
-    private static readonly List<Process> TrackedProcesses = new();
-    private static readonly object Lock = new();
+    private static readonly List<Process> TrackedProcesses = [];
+    private static readonly Lock Lock = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
 
     static ChildProcessTracker()
@@ -47,17 +47,17 @@ public static class ChildProcessTracker
         if (_jobHandle == IntPtr.Zero)
             return;
 
-        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION
+        var info = new JobObjectBasicLimitInformation
         {
-            LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+            LimitFlags = JobObjectLimitKillOnJobClose
         };
 
-        var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+        var extendedInfo = new JobObjectExtendedLimitInformation
         {
             BasicLimitInformation = info
         };
 
-        var length = Marshal.SizeOf<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>();
+        var length = Marshal.SizeOf<JobObjectExtendedLimitInformation>();
         var extendedInfoPtr = Marshal.AllocHGlobal(length);
         try
         {
@@ -80,7 +80,7 @@ public static class ChildProcessTracker
     /// <summary>
     /// Registers a child process to be tracked and terminated when the application exits.
     /// </summary>
-    public static void Track(Process process)
+    public static void Track(Process? process)
     {
         if (process == null) return;
 
@@ -89,24 +89,22 @@ public static class ChildProcessTracker
             TrackedProcesses.Add(process);
         }
 
-        if (OperatingSystem.IsWindows() && _jobHandle != IntPtr.Zero)
+        if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
+        try
         {
-            try
-            {
-                if (!process.HasExited)
-                    AssignProcessToJobObject(_jobHandle, process.Handle);
-            }
-            catch
-            {
-                // Process may have already exited or handle cannot be assigned
-            }
+            if (!process.HasExited)
+                AssignProcessToJobObject(_jobHandle, process.Handle);
+        }
+        catch
+        {
+            // Process may have already exited or handle cannot be assigned
         }
     }
 
     /// <summary>
     /// Unregisters a tracked child process once it has exited normally.
     /// </summary>
-    public static void Untrack(Process process)
+    public static void Untrack(Process? process)
     {
         if (process == null) return;
         lock (Lock)
@@ -150,13 +148,13 @@ public static class ChildProcessTracker
 
     #region Win32 P/Invoke
 
-    private const uint JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000;
+    private const uint JobObjectLimitKillOnJobClose = 0x2000;
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetInformationJobObject(IntPtr hJob, JobObjectInfoType JobObjectInformationClass,
+    private static extern bool SetInformationJobObject(IntPtr hJob, JobObjectInfoType jobObjectInformationClass,
         IntPtr lpJobObjectInformation, uint cbJobObjectInformationLength);
 
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -168,7 +166,7 @@ public static class ChildProcessTracker
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct JOBOBJECT_BASIC_LIMIT_INFORMATION
+    private struct JobObjectBasicLimitInformation
     {
         public long PerProcessUserTimeLimit;
         public long PerJobUserTimeLimit;
@@ -182,7 +180,7 @@ public static class ChildProcessTracker
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct IO_COUNTERS
+    private struct IoCounters
     {
         public ulong ReadOperationCount;
         public ulong WriteOperationCount;
@@ -193,10 +191,10 @@ public static class ChildProcessTracker
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+    private struct JobObjectExtendedLimitInformation
     {
-        public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation;
-        public IO_COUNTERS IoInfo;
+        public JobObjectBasicLimitInformation BasicLimitInformation;
+        public IoCounters IoInfo;
         public UIntPtr ProcessMemoryLimit;
         public UIntPtr JobMemoryLimit;
         public UIntPtr PeakProcessMemoryLimit;
