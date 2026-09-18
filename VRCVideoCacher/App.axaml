@@ -74,6 +74,14 @@
         <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#1E2638" />
         <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#1E2638" />
         <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#384566" />
+        <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#1E2638" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#6366F1" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="#4F46E5" />
+        <SolidColorBrush x:Key="ComboBoxItemForeground" Color="#F8FAFC" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="#FFFFFF" />
 
         <SolidColorBrush x:Key="TextControlBackground" Color="#0D1017" />
         <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#181E2E" />
@@ -479,17 +487,30 @@
             <Setter Property="Margin" Value="4,1" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
-        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
-            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+        <Style Selector="ComboBoxItem:pointerover">
+            <Setter Property="Background" Value="#1E2638" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
         </Style>
-        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark2}" />
+        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1E2638" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected">
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushLight1}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
         <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark1}" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushLight1}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
         </Style>
 
