@@ -51,7 +51,7 @@
                         <ContextMenu>
                             <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CurrentDownload.CopyUrlCommand}">
                                 <MenuItem.Icon>
-                                    <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
+                                    <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                         </ContextMenu>
@@ -68,7 +68,7 @@
                                 </Border>
                                 <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2"
                                         IsVisible="{Binding CurrentDownload.Format, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                    <TextBlock Text="{Binding CurrentDownload.Format}" Foreground="{DynamicResource SystemAccentBrushLight2}" FontSize="11"/>
+                                    <TextBlock Text="{Binding CurrentDownload.Format}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="11"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -97,8 +97,8 @@
         <Border Grid.Row="2" Classes="card" Margin="0,0,0,14">
             <StackPanel Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Background="{DynamicResource SystemAccentBrushDark3}" CornerRadius="6" Width="26" Height="26">
-                        <mi:MaterialIcon Kind="LinkPlus" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                        <mi:MaterialIcon Kind="LinkPlus" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Text="{l:Localize AddManualDownload}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -134,14 +134,14 @@
             <Grid RowDefinitions="Auto, *">
                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,12">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Border Background="{DynamicResource SystemAccentBrushDark3}" CornerRadius="6" Width="26" Height="26">
-                            <mi:MaterialIcon Kind="FormatListNumbered" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                            <mi:MaterialIcon Kind="FormatListNumbered" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <TextBlock Text="{l:Localize QueuedDownloads}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <Border Grid.Column="1" Background="{DynamicResource SystemAccentBrushDark3}" BorderBrush="{DynamicResource SystemControlHighlightAccentBrush}" BorderThickness="1" CornerRadius="10" Padding="10,3"
+                    <Border Grid.Column="1" Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366F144" BorderThickness="1" CornerRadius="10" Padding="10,3"
                             IsVisible="{Binding QueuedDownloads.Count, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}">
-                        <TextBlock Text="{Binding QueuedDownloads.Count, StringFormat='{}{0} tasks'}" Foreground="{DynamicResource SystemAccentBrushLight2}" FontSize="11" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding QueuedDownloads.Count, StringFormat='{}{0} tasks'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="11" FontWeight="Bold"/>
                     </Border>
                 </Grid>
 
@@ -172,7 +172,7 @@
                                     <ContextMenu>
                                         <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CopyUrlCommand}">
                                             <MenuItem.Icon>
-                                                <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
+                                                <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
                                             </MenuItem.Icon>
                                         </MenuItem>
                                     </ContextMenu>

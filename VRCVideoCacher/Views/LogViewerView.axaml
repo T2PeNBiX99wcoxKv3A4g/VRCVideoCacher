@@ -22,7 +22,7 @@
                 </Button>
                 <Button Command="{Binding ExportLogsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize ExportLogs}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <mi:MaterialIcon Kind="ExportVariant" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
+                        <mi:MaterialIcon Kind="ExportVariant" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
                         <TextBlock Text="{l:Localize ExportLogs}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
@@ -45,7 +45,7 @@
                          Padding="12, 8"
                          Margin="0,0,16,0">
                     <TextBox.InnerLeftContent>
-                        <mi:MaterialIcon Kind="Magnify" Width="18" Height="18" Margin="10,0,6,0" Foreground="{DynamicResource SystemAccentBrushLight2}"/>
+                        <mi:MaterialIcon Kind="Magnify" Width="18" Height="18" Margin="10,0,6,0" Foreground="{StaticResource PrimaryLightBrush}"/>
                     </TextBox.InnerLeftContent>
                 </TextBox>
 
@@ -55,7 +55,7 @@
                     <CheckBox IsChecked="{Binding ShowWarning}" Content="{l:Localize Warning}" Foreground="{StaticResource WarningBrush}" />
                     <CheckBox IsChecked="{Binding ShowError}" Content="{l:Localize Error}" Foreground="{StaticResource DangerBrush}" />
                     <Border Width="1" Height="18" Background="{StaticResource DividerBrush}" Margin="4,0"/>
-                    <CheckBox IsChecked="{Binding AutoScroll}" Content="{l:Localize AutoScroll}" Foreground="{DynamicResource SystemAccentBrushLight2}" FontWeight="Medium"/>
+                    <CheckBox IsChecked="{Binding AutoScroll}" Content="{l:Localize AutoScroll}" Foreground="{StaticResource PrimaryLightBrush}" FontWeight="Medium"/>
                 </StackPanel>
             </Grid>
         </Border>

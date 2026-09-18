@@ -83,7 +83,7 @@
                                         <TextBlock Text="LIVE ENGINE" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
                                     </StackPanel>
                                 </Border>
-                                <TextBlock Text="{Binding ServerUrl}" FontSize="12" Foreground="{DynamicResource SystemAccentBrushLight2}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ServerUrl}" FontSize="12" Foreground="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <TextBlock Text="VRChat Video Cacher is Active" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -162,8 +162,8 @@
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*, Auto">
                                 <TextBlock Text="{l:Localize YouTubeCookies}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                <Border Grid.Column="1" Background="{DynamicResource SystemAccentBrushDark3}" BorderBrush="{DynamicResource SystemControlHighlightAccentBrush}" BorderThickness="1" CornerRadius="8" Width="30" Height="30">
-                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366F155" BorderThickness="1" CornerRadius="8" Width="30" Height="30">
+                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </Grid>
                             <TextBlock Text="{Binding CookieStatus}"
@@ -178,14 +178,14 @@
                     <StackPanel Spacing="14">
                         <Grid ColumnDefinitions="*, Auto">
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Border Background="{DynamicResource SystemAccentBrushDark3}" CornerRadius="6" Width="26" Height="26">
-                                    <mi:MaterialIcon Kind="CogSyncOutline" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                    <mi:MaterialIcon Kind="CogSyncOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <TextBlock Text="{l:Localize RequiredTools}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button Grid.Column="1" Command="{Binding VerifyToolsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize VerifyTools}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <mi:MaterialIcon Kind="ShieldCheckOutline" Width="15" Height="15" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
+                                    <mi:MaterialIcon Kind="ShieldCheckOutline" Width="15" Height="15" Foreground="{StaticResource PrimaryLightBrush}"/>
                                     <TextBlock Text="{l:Localize VerifyTools}" FontSize="12.5"/>
                                 </StackPanel>
                             </Button>
@@ -229,8 +229,8 @@
                 <Border Classes="card">
                     <StackPanel Spacing="14">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Border Background="{DynamicResource SystemAccentBrushDark3}" CornerRadius="6" Width="26" Height="26">
-                                <mi:MaterialIcon Kind="FlashOutline" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                <mi:MaterialIcon Kind="FlashOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="{l:Localize QuickActions}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -238,14 +238,14 @@
                         <WrapPanel Orientation="Horizontal">
                             <Button Command="{Binding OpenCacheFolderCommand}" Classes="secondary" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <mi:MaterialIcon Kind="FolderOpenOutline" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
+                                    <mi:MaterialIcon Kind="FolderOpenOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
                                     <TextBlock Text="{l:Localize OpenCacheFolder}"/>
                                 </StackPanel>
                             </Button>
                             
                             <Button Command="{Binding SetupCookieExtensionCommand}" Classes="secondary" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
+                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
                                     <TextBlock Text="{l:Localize SetupYouTubeCookieExtension}"/>
                                 </StackPanel>
                             </Button>
