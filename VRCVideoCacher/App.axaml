@@ -414,15 +414,6 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.nav-button /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" />
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
-                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
-                </Transitions>
-            </Setter>
-        </Style>
         <Style Selector="Button.nav-button:pointerover">
             <Setter Property="RenderTransform" Value="translateX(3px)" />
         </Style>
@@ -674,34 +665,54 @@
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
         </Style>
 
-        <Style Selector="NumericUpDown">
-            <Setter Property="Background" Value="{StaticResource TextControlBackground}" />
-            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-            <Setter Property="MinHeight" Value="36" />
-        </Style>
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="10,8" />
-            <Setter Property="MinHeight" Value="34" />
-        </Style>
-        <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.2" />
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
+        <!-- <Style Selector="NumericUpDown"> -->
+        <!--     <Setter Property="Background" Value="{StaticResource TextControlBackground}" /> -->
+        <!--     <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" /> -->
+        <!--     <Setter Property="BorderThickness" Value="1" /> -->
+        <!--     <Setter Property="CornerRadius" Value="8" /> -->
+        <!--     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" /> -->
+        <!--     <Setter Property="MinHeight" Value="36" /> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="NumericUpDown /template/ Border#PART_BorderElement"> -->
+        <!--     <Setter Property="Background" Value="{StaticResource TextControlBackground}" /> -->
+        <!--     <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" /> -->
+        <!--     <Setter Property="BorderThickness" Value="1" /> -->
+        <!--     <Setter Property="CornerRadius" Value="8" /> -->
+        <!--     <Setter Property="Transitions"> -->
+        <!--         <Transitions> -->
+        <!--             <BrushTransition Property="Background" Duration="0:0:0.2" /> -->
+        <!--             <BrushTransition Property="BorderBrush" Duration="0:0:0.2" /> -->
+        <!--         </Transitions> -->
+        <!--     </Setter> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="NumericUpDown:pointerover /template/ Border#PART_BorderElement"> -->
+        <!--     <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" /> -->
+        <!--     <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" /> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="NumericUpDown:focus /template/ Border#PART_BorderElement"> -->
+        <!--     <Setter Property="Background" Value="{StaticResource TextControlBackground}" /> -->
+        <!--     <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" /> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox"> -->
+        <!--     <Setter Property="Background" Value="Transparent" /> -->
+        <!--     <Setter Property="BorderThickness" Value="0" /> -->
+        <!--     <Setter Property="Padding" Value="10,8" /> -->
+        <!--     <Setter Property="MinHeight" Value="34" /> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement"> -->
+        <!--     <Setter Property="Background" Value="Transparent" /> -->
+        <!--     <Setter Property="BorderThickness" Value="0" /> -->
+        <!--     <Setter Property="Transitions"> -->
+        <!--         <Transitions> -->
+        <!--             <BrushTransition Property="Background" Duration="0:0:0.2" /> -->
+        <!--             <BrushTransition Property="BorderBrush" Duration="0:0:0.2" /> -->
+        <!--         </Transitions> -->
+        <!--     </Setter> -->
+        <!-- </Style> -->
+        <!-- <Style Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner"> -->
+        <!--     <Setter Property="Background" Value="Transparent" /> -->
+        <!--     <Setter Property="BorderThickness" Value="0" /> -->
+        <!-- </Style> -->
 
         <!-- ComboBox Styles -->
         <Style Selector="ComboBox">
