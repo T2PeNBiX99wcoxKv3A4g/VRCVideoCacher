@@ -17,52 +17,75 @@
                 </StackPanel>
             </Grid>
             
-            <!-- App Hero Card -->
-            <Border Classes="hero-card">
-                <StackPanel Spacing="16">
-                    <Grid ColumnDefinitions="Auto, *">
-                        <Border Grid.Column="0" Background="#1E1E38" BorderBrush="#6366F166" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
-                            <mi:MaterialIcon Kind="PlayCircleOutline" Width="30" Height="30" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="VRCVideoCacher" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <Border Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366F155" BorderThickness="1" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Version, StringFormat='{}v{0}'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="12" FontWeight="SemiBold"/>
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="{Binding CreatedBy}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
-                        </StackPanel>
-                    </Grid>
+            <!-- App Hero Card with Banner -->
+            <Border Classes="hero-card" Padding="0">
+                <Grid RowDefinitions="Auto, Auto">
+                    <!-- Top Artwork Banner -->
+                    <Border Grid.Row="0" CornerRadius="14,14,0,0" ClipToBounds="True" Background="#0A0C14">
+                        <Grid>
+                            <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png" 
+                                   Stretch="Uniform" 
+                                   MaxHeight="170" 
+                                   HorizontalAlignment="Center"
+                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+                            <!-- Subtle bottom gradient overlay for smooth transition into card content -->
+                            <Border VerticalAlignment="Bottom" Height="36">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                        <GradientStop Color="#000F1424" Offset="0.0"/>
+                                        <GradientStop Color="#CC0F1424" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </Border>
 
-                    <TextBlock Text="A lightweight, high-performance local caching &amp; streaming proxy server designed specifically for VRChat video players."
-                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
-
-                    <Separator Background="{StaticResource DividerBrush}" Margin="0,4"/>
-
-                    <TextBlock Text="Official Community &amp; Links" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
-
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Click="OnDiscordClick" Classes="secondary" ToolTip.Tip="Discord Community" Padding="14, 8" Margin="0,0,10,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865F2"/>
-                                <TextBlock Text="Discord" VerticalAlignment="Center" FontSize="13"/>
+                    <!-- Content Details -->
+                    <StackPanel Grid.Row="1" Spacing="16" Margin="22,18,22,22">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <Border Grid.Column="0" Background="#1E1E38" BorderBrush="#6366F166" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
+                                <mi:MaterialIcon Kind="PlayCircleOutline" Width="30" Height="30" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="VRCVideoCacher" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                    <Border Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366F155" BorderThickness="1" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Version, StringFormat='{}v{0}'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="12" FontWeight="SemiBold"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding CreatedBy}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
                             </StackPanel>
-                        </Button>
-                        <Button Click="OnGitHubClick" Classes="secondary" ToolTip.Tip="GitHub Repository" Padding="14, 8" Margin="0,0,10,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Github" Width="18" Height="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="GitHub" VerticalAlignment="Center" FontSize="13"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Click="OnSteamClick" Classes="secondary" ToolTip.Tip="Steam Page" Padding="14, 8" Margin="0,0,10,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Steam" Width="18" Height="18" Foreground="#00ADEE"/>
-                                <TextBlock Text="Steam" VerticalAlignment="Center" FontSize="13"/>
-                            </StackPanel>
-                        </Button>
-                    </WrapPanel>
-                </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="A lightweight, high-performance local caching &amp; streaming proxy server designed specifically for VRChat video players."
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+
+                        <Separator Background="{StaticResource DividerBrush}" Margin="0,4"/>
+
+                        <TextBlock Text="Official Community &amp; Links" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                        <WrapPanel Orientation="Horizontal">
+                            <Button Click="OnDiscordClick" Classes="secondary" ToolTip.Tip="Discord Community" Padding="14, 8" Margin="0,0,10,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865F2"/>
+                                    <TextBlock Text="Discord" VerticalAlignment="Center" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Click="OnGitHubClick" Classes="secondary" ToolTip.Tip="GitHub Repository" Padding="14, 8" Margin="0,0,10,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="Github" Width="18" Height="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="GitHub" VerticalAlignment="Center" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Click="OnSteamClick" Classes="secondary" ToolTip.Tip="Steam Page" Padding="14, 8" Margin="0,0,10,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="Steam" Width="18" Height="18" Foreground="#00ADEE"/>
+                                    <TextBlock Text="Steam" VerticalAlignment="Center" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Feedback & Issues Card -->
