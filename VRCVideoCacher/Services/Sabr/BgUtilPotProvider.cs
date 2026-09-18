@@ -78,45 +78,71 @@ internal static class BgUtilPotProvider
     }
 
     /// <summary>
-    /// Kills leftover processes matching the bundled Deno path; skips global Deno.
+    /// Kills leftover processes matching the bundled Deno path or holding the pot server port; skips global Deno.
     /// Call once at startup, before starting the server.
     /// </summary>
     public static void KillOrphanedInstances()
     {
-        if (LaunchArgs.UseGlobalPath)
-            return;
-
-        var denoPath = YtdlManager.DenoPath;
-        if (!File.Exists(denoPath))
-            return;
-
-        string fullDenoPath;
-        try { fullDenoPath = Path.GetFullPath(denoPath); }
-        catch { return; }
-
-        var processName = Path.GetFileNameWithoutExtension(denoPath);
-        foreach (var process in Process.GetProcessesByName(processName))
+        // 1. If auto-managed, check if our preferred port is currently held by an orphaned deno/node process
+        if (IsAutoManaged)
         {
-            try
+            var preferredPort = Port;
+            if (PortAudit.IsInUse(preferredPort))
             {
-                string? exePath;
-                try { exePath = process.MainModule?.FileName; }
-                catch { continue; } // Skip processes whose ownership cannot be verified.
-
-                if (exePath is null || !string.Equals(Path.GetFullPath(exePath), fullDenoPath, PathComparison))
-                    continue;
-
-                Log.Information("Killing leftover Deno process {Pid} from a previous run", process.Id);
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit(3000);
+                if (PortAudit.TryKillListener(preferredPort, "deno"))
+                {
+                    Log.Information("Freed POT server port {Port} by terminating leftover Deno process", preferredPort);
+                }
             }
-            catch (Exception ex)
+        }
+
+        // 2. Kill leftover Deno processes originating from our bundled/utils path
+        var denoPath = YtdlManager.DenoPath;
+        var processNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "deno" };
+        if (!string.IsNullOrEmpty(denoPath))
+            processNames.Add(Path.GetFileNameWithoutExtension(denoPath));
+
+        string? fullDenoPath = null;
+        try { if (!string.IsNullOrEmpty(denoPath)) fullDenoPath = Path.GetFullPath(denoPath); } catch { /* Ignore */ }
+
+        string? fullUtilsPath = null;
+        try { fullUtilsPath = Path.GetFullPath(Program.UtilsPath); } catch { /* Ignore */ }
+
+        foreach (var processName in processNames)
+        {
+            foreach (var process in Process.GetProcessesByName(processName))
             {
-                Log.Debug(ex, "Could not kill Deno process {Pid}", process.Id);
-            }
-            finally
-            {
-                process.Dispose();
+                try
+                {
+                    if (process.Id == Environment.ProcessId)
+                        continue;
+
+                    string? exePath = null;
+                    try { exePath = process.MainModule?.FileName; }
+                    catch { continue; } // Skip processes whose ownership cannot be verified.
+
+                    if (string.IsNullOrEmpty(exePath))
+                        continue;
+
+                    var fullExePath = Path.GetFullPath(exePath);
+                    var matches = (!string.IsNullOrEmpty(fullDenoPath) && string.Equals(fullExePath, fullDenoPath, PathComparison)) ||
+                                  (!string.IsNullOrEmpty(fullUtilsPath) && fullExePath.StartsWith(fullUtilsPath, PathComparison));
+
+                    if (!matches)
+                        continue;
+
+                    Log.Information("Killing leftover Deno process {Pid} from a previous run", process.Id);
+                    process.Kill(entireProcessTree: true);
+                    process.WaitForExit(3000);
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(ex, "Could not kill Deno process {Pid}", process.Id);
+                }
+                finally
+                {
+                    process.Dispose();
+                }
             }
         }
     }
@@ -219,6 +245,13 @@ internal static class BgUtilPotProvider
         var preferred = Port;
         if (!PortAudit.IsInUse(preferred))
             return;
+
+        // Try killing leftover deno listener first
+        if (PortAudit.TryKillListener(preferred, "deno"))
+        {
+            Log.Information("Freed bgutil port {Port} after terminating leftover process", preferred);
+            return;
+        }
 
         var who = PortAudit.DescribeListener(preferred);
         var free = PortAudit.FindFreePort(preferred);
@@ -327,6 +360,12 @@ internal static class BgUtilPotProvider
     {
         StopServer();
 
+        // Check if port is still in use before spawning
+        if (PortAudit.IsInUse(Port))
+        {
+            PortAudit.TryKillListener(Port, "deno");
+        }
+
         // Keep the compiled entrypoint and bundled dependencies within the cwd-scoped permissions.
         var process = new Process
         {
@@ -348,21 +387,26 @@ internal static class BgUtilPotProvider
         process.ErrorDataReceived += (_, e) => { if (e.Data is not null) Log.Debug("[bgutil] {Line}", e.Data); };
 
         process.Start();
+        ChildProcessTracker.Track(process);
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         _server = process;
         Log.Information("Started bgutil PO token server on port {Port} (pid {Pid})", Port, process.Id);
     }
 
-    private static void StopServer()
+    public static void StopServer()
     {
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
+        ChildProcessTracker.Untrack(process);
         try
         {
             if (!process.HasExited)
+            {
                 process.Kill(entireProcessTree: true);
+                process.WaitForExit(3000);
+            }
         }
         catch (Exception ex)
         {
@@ -413,21 +457,29 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        var stdout = process.StandardOutput.ReadToEndAsync();
-        var stderr = process.StandardError.ReadToEndAsync();
-        using var cts = new CancellationTokenSource(timeout);
+        ChildProcessTracker.Track(process);
         try
         {
-            await process.WaitForExitAsync(cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            try { process.Kill(entireProcessTree: true); } catch { /* best effort */ }
-            throw new SabrException($"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
-        }
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            using var cts = new CancellationTokenSource(timeout);
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+                throw new SabrException($"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
+            }
 
-        var output = string.Join(Environment.NewLine, await stdout, await stderr);
-        return (process.ExitCode, output);
+            var output = string.Join(Environment.NewLine, await stdout, await stderr);
+            return (process.ExitCode, output);
+        }
+        finally
+        {
+            ChildProcessTracker.Untrack(process);
+        }
     }
 
     private static void SafeDelete(string dir)

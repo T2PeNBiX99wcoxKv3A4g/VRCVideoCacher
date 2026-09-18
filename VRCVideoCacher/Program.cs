@@ -72,6 +72,8 @@ internal sealed class Program
             return;
         }
 
+        ChildProcessTracker.Initialize();
+
         var processes = Process.GetProcessesByName("VRCVideoCacher");
         if (processes.Length > 1)
         {
@@ -81,7 +83,8 @@ internal sealed class Program
                     if (process.Id != Environment.ProcessId)
                         try
                         {
-                            process.Kill();
+                            process.Kill(entireProcessTree: true);
+                            process.WaitForExit(3000);
                             Logger.Information(
                                 "Killed existing instance with PID {Pid} due to kill existing instance argument.",
                                 process.Id);
@@ -347,6 +350,12 @@ internal sealed class Program
 
     private static void OnAppQuit()
     {
+        try
+        {
+            BgUtilPotProvider.StopServer();
+            ChildProcessTracker.TerminateAll();
+        }
+        catch { /* best effort */ }
         FileTools.RestoreAllYtdl();
         Logger.Information("Exiting...");
     }

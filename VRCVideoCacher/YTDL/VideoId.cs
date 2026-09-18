@@ -5,6 +5,7 @@ using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL.SiteHandlers;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -45,7 +46,7 @@ public class VideoId
 
     private static async Task<(string Output, string Error, int ExitCode)> RunYtdlpAsync(List<string> args, string url)
     {
-        var ytdlpProcess = GetYtdlpProcess();
+        using var ytdlpProcess = GetYtdlpProcess();
         ytdlpProcess.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"");
 
         // yt-dlp rewrites the cookie jar on exit; overlapping it with the download queue corrupts the
@@ -54,11 +55,29 @@ public class VideoId
 
         Log.Information("Starting yt-dlp with args: {args:l}", ytdlpProcess.StartInfo.Arguments);
         ytdlpProcess.Start();
-        var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
-        var error = await ytdlpProcess.StandardError.ReadToEndAsync();
-        await ytdlpProcess.WaitForExitAsync();
-        Log.Information("Finished yt-dlp");
-        return (output.Trim(), error.Trim(), ytdlpProcess.ExitCode);
+        ChildProcessTracker.Track(ytdlpProcess);
+        try
+        {
+            var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
+            var error = await ytdlpProcess.StandardError.ReadToEndAsync();
+            await ytdlpProcess.WaitForExitAsync();
+            Log.Information("Finished yt-dlp");
+            return (output.Trim(), error.Trim(), ytdlpProcess.ExitCode);
+        }
+        catch
+        {
+            try
+            {
+                if (!ytdlpProcess.HasExited)
+                    ytdlpProcess.Kill(entireProcessTree: true);
+            }
+            catch { /* best effort */ }
+            throw;
+        }
+        finally
+        {
+            ChildProcessTracker.Untrack(ytdlpProcess);
+        }
     }
 
     public static async Task<VideoInfo?> GetVideoId(string url, bool avPro)

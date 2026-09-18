@@ -72,17 +72,31 @@ public static class ToolVerifier
                 },
             };
             process.Start();
-            var stdout = process.StandardOutput.ReadToEndAsync();
-            var stderr = process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            Utils.ChildProcessTracker.Track(process);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            try
+            {
+                var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);
+                var stderr = process.StandardError.ReadToEndAsync(cts.Token);
+                await process.WaitForExitAsync(cts.Token);
 
-            if (process.ExitCode != 0)
+                if (process.ExitCode != 0)
+                    return new ToolCheck(false, true, string.Empty);
+
+                var raw = await stdout;
+                if (string.IsNullOrWhiteSpace(raw))
+                    raw = await stderr;
+                return new ToolCheck(true, true, ExtractVersion(raw));
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* ignore */ }
                 return new ToolCheck(false, true, string.Empty);
-
-            var raw = await stdout;
-            if (string.IsNullOrWhiteSpace(raw))
-                raw = await stderr;
-            return new ToolCheck(true, true, ExtractVersion(raw));
+            }
+            finally
+            {
+                Utils.ChildProcessTracker.Untrack(process);
+            }
         }
         catch
         {

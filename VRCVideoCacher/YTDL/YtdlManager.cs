@@ -599,12 +599,13 @@ public class YtdlManager
         var processName = Path.GetFileNameWithoutExtension(path);
         try
         {
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo = new()
                 {
                     FileName = path,
                     Arguments = arg,
+                    UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
@@ -613,13 +614,28 @@ public class YtdlManager
                 }
             };
             process.Start();
-            await process.WaitForExitAsync();
-            if (process.ExitCode != 0)
+            ChildProcessTracker.Track(process);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            try
             {
-                var output = await process.StandardOutput.ReadToEndAsync();
-                var error = await process.StandardError.ReadToEndAsync();
-                Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
+                await process.WaitForExitAsync(cts.Token);
+                if (process.ExitCode != 0)
+                {
+                    var output = await process.StandardOutput.ReadToEndAsync(cts.Token);
+                    var error = await process.StandardError.ReadToEndAsync(cts.Token);
+                    Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
+                    return false;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* ignore */ }
+                Log.Error("Process {ProcessName} timed out during startup check", processName);
                 return false;
+            }
+            finally
+            {
+                ChildProcessTracker.Untrack(process);
             }
         }
         catch (Exception ex)

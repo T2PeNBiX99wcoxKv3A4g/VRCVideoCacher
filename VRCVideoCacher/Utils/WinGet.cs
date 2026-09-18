@@ -49,7 +49,7 @@ public class WinGet
     {
         try
         {
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo =
                 {
@@ -64,8 +64,16 @@ public class WinGet
                 }
             };
             process.Start();
-            process.WaitForExit();
-            return process.ExitCode == 0;
+            ChildProcessTracker.Track(process);
+            try
+            {
+                process.WaitForExit(10_000);
+                return process.ExitCode == 0;
+            }
+            finally
+            {
+                ChildProcessTracker.Untrack(process);
+            }
         }
         catch (Exception ex)
         {
@@ -86,7 +94,7 @@ public class WinGet
     {
         try
         {
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo =
                 {
@@ -101,20 +109,28 @@ public class WinGet
                 }
             };
             process.Start();
-            string? line;
-            while ((line = await process.StandardOutput.ReadLineAsync()) != null)
+            ChildProcessTracker.Track(process);
+            try
             {
-                if (!string.IsNullOrEmpty(line.Trim()))
-                    Log.Debug("{Winget}: {Line}", "winget", line);
-            }
-            var error = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
-            if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))
-                throw new($"Installation failed with exit code {process.ExitCode}. Error: {error}");
+                string? line;
+                while ((line = await process.StandardOutput.ReadLineAsync()) != null)
+                {
+                    if (!string.IsNullOrEmpty(line.Trim()))
+                        Log.Debug("{Winget}: {Line}", "winget", line);
+                }
+                var error = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+                if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))
+                    throw new($"Installation failed with exit code {process.ExitCode}. Error: {error}");
 
-            var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
-            if (process.ExitCode == 0)
-                Log.Information("Successfully installed package: {PackageName}", packageName);
+                var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
+                if (process.ExitCode == 0)
+                    Log.Information("Successfully installed package: {PackageName}", packageName);
+            }
+            finally
+            {
+                ChildProcessTracker.Untrack(process);
+            }
         }
         catch (Exception ex)
         {

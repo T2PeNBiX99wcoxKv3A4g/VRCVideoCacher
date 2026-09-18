@@ -51,6 +51,77 @@ public static class PortAudit
     }
 
     /// <summary>
+    /// Finds the PID of the process currently listening on <paramref name="port"/>, or null if unknown / not found.
+    /// </summary>
+    public static int? FindOwningPid(int port)
+    {
+        try
+        {
+            return OperatingSystem.IsWindows() ? FindOwningPidWindows(port)
+                : OperatingSystem.IsLinux() ? FindOwningPidLinux(port)
+                : null;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Could not identify owning PID for port {Port}", port);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to identify and terminate any leftover process listening on the specified port.
+    /// Returns true if a process was terminated and the port became free.
+    /// </summary>
+    public static bool TryKillListener(int port, string? expectedProcessNameSubstring = null, int timeoutMs = 3000)
+    {
+        try
+        {
+            var pid = FindOwningPid(port);
+            if (pid is not { } id || id == Environment.ProcessId)
+                return false;
+
+            using var proc = Process.GetProcessById(id);
+            var procName = proc.ProcessName;
+
+            if (!string.IsNullOrEmpty(expectedProcessNameSubstring))
+            {
+                var matchesName = procName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
+                string? exeName = null;
+                try { exeName = proc.MainModule?.FileName; } catch { /* Ignore */ }
+                var matchesExe = !string.IsNullOrEmpty(exeName) && exeName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
+
+                if (!matchesName && !matchesExe)
+                {
+                    Log.Warning("Port {Port} is in use by {Process} (PID {Pid}), not matching expected filter '{Filter}'; skipping kill",
+                        port, procName, id, expectedProcessNameSubstring);
+                    return false;
+                }
+            }
+
+            Log.Information("Killing leftover process {Process} (PID {Pid}) holding port {Port}",
+                procName, id, port);
+            proc.Kill(entireProcessTree: true);
+            proc.WaitForExit(timeoutMs);
+
+            // Wait for OS to release the socket
+            var sw = Stopwatch.StartNew();
+            while (sw.ElapsedMilliseconds < timeoutMs)
+            {
+                if (!IsInUse(port))
+                    return true;
+                Thread.Sleep(100);
+            }
+
+            return !IsInUse(port);
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to kill listener on port {Port}", port);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// A human description of what's listening on <paramref name="port"/>, e.g. "deno (PID 1234)", or
     /// "an unknown process" when it can't be attributed.
     /// </summary>
@@ -58,9 +129,7 @@ public static class PortAudit
     {
         try
         {
-            var pid = OperatingSystem.IsWindows() ? FindOwningPidWindows(port)
-                : OperatingSystem.IsLinux() ? FindOwningPidLinux(port)
-                : null;
+            var pid = FindOwningPid(port);
             if (pid is not { } id)
                 return "an unknown process";
 
@@ -235,6 +304,15 @@ public static class PortAudit
 
         if (!IsInUse(port))
             return;
+
+        if (LaunchArgs.KillExistingInstance)
+        {
+            if (TryKillListener(port, "VRCVideoCacher"))
+            {
+                Log.Information("Freed web server port {Port} by terminating existing VRCVideoCacher instance", port);
+                return;
+            }
+        }
 
         var who = DescribeListener(port);
         Log.Error(

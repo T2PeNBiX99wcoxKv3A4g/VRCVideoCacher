@@ -152,7 +152,7 @@ public class VideoDownloader
             "-q"
         };
 
-        var process = new Process
+        using var process = new Process
         {
             StartInfo =
             {
@@ -198,8 +198,21 @@ public class VideoDownloader
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            await process.WaitForExitAsync();
-            error = (await process.StandardError.ReadToEndAsync()).Trim();
+            ChildProcessTracker.Track(process);
+            try
+            {
+                await process.WaitForExitAsync();
+                error = (await process.StandardError.ReadToEndAsync()).Trim();
+            }
+            catch
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+                throw;
+            }
+            finally
+            {
+                ChildProcessTracker.Untrack(process);
+            }
         }
 
         if (process.ExitCode != 0)
@@ -255,7 +268,7 @@ public class VideoDownloader
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
-        var process = new Process
+        using var process = new Process
         {
             StartInfo =
             {
@@ -271,9 +284,23 @@ public class VideoDownloader
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        await process.WaitForExitAsync();
-        var error = await process.StandardError.ReadToEndAsync();
-        error = error.Trim();
+        ChildProcessTracker.Track(process);
+        string error;
+        try
+        {
+            await process.WaitForExitAsync();
+            error = (await process.StandardError.ReadToEndAsync()).Trim();
+        }
+        catch
+        {
+            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            throw;
+        }
+        finally
+        {
+            ChildProcessTracker.Untrack(process);
+        }
+
         if (process.ExitCode != 0)
         {
             Log.Error("Failed to download VRDancing Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
@@ -379,7 +406,7 @@ public class VideoDownloader
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
-        var process = new Process
+        using var process = new Process
         {
             StartInfo =
             {
@@ -395,9 +422,23 @@ public class VideoDownloader
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        await process.WaitForExitAsync();
-        var error = await process.StandardError.ReadToEndAsync();
-        error = error.Trim();
+        ChildProcessTracker.Track(process);
+        string error;
+        try
+        {
+            await process.WaitForExitAsync();
+            error = (await process.StandardError.ReadToEndAsync()).Trim();
+        }
+        catch
+        {
+            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            throw;
+        }
+        finally
+        {
+            ChildProcessTracker.Untrack(process);
+        }
+
         if (process.ExitCode != 0)
         {
             Log.Error("Failed to download Generic Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
