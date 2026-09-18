@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Serilog;
 
 namespace VRCVideoCacher.Utils;
 
@@ -9,8 +10,9 @@ namespace VRCVideoCacher.Utils;
 /// On Windows, binds the application process tree to a Win32 Job Object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
 /// so the OS kernel guarantees cleanup even on abnormal termination or crash.
 /// </summary>
-public static partial class ChildProcessTracker
+public partial class ChildProcessTracker
 {
+    private static readonly ILogger Log = Program.Logger.ForContext<ChildProcessTracker>();
     private static readonly List<Process> TrackedProcesses = [];
     private static readonly Lock Lock = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
@@ -24,7 +26,7 @@ public static partial class ChildProcessTracker
             }
             catch (Exception ex)
             {
-                Program.Logger.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
+                Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
             }
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll();
@@ -63,12 +65,15 @@ public static partial class ChildProcessTracker
             if (!SetInformationJobObject(_jobHandle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr,
                     (uint)length))
             {
-                Program.Logger.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastWin32Error());
+                Log.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastWin32Error());
                 return;
             }
 
             using var currentProcess = Process.GetCurrentProcess();
-            AssignProcessToJobObject(_jobHandle, currentProcess.Handle);
+            if (AssignProcessToJobObject(_jobHandle, currentProcess.Handle)) return;
+            Log.Debug("AssignProcessToJobObject failed with error {Error}", Marshal.GetLastWin32Error());
+
+            _jobHandle = IntPtr.Zero;
         }
         finally
         {
