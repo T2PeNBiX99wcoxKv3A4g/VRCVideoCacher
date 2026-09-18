@@ -184,9 +184,11 @@
                         </StackPanel>
 
                         <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
-                            <TextBlock Grid.Column="0" Text="{l:Localize PreferredDubLanguage}" VerticalAlignment="Center"
+                            <TextBlock Grid.Column="0" Text="{l:Localize PreferredDubLanguage}"
+                                       VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original" />
+                            <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}"
+                                     PlaceholderText="Leave empty for original" />
                         </Grid>
                     </StackPanel>
                 </Border>
