@@ -48,7 +48,6 @@ public class ConfigManager
         if (Config.YtdlpWebServerUrl.EndsWith('/'))
             Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
 
-        Log.Information("Loaded config.");
         TrySaveConfig(false);
     }
 
@@ -139,6 +138,7 @@ public class ConfigModel
     public bool YtdlpAutoUpdate = true;
     public string YtdlpAdditionalArgs = string.Empty;
     public string YtdlpDubLanguage = string.Empty;
+
     [JsonConverter(typeof(ProtectedStringConverter))]
     public string GitHubToken = string.Empty;
 
