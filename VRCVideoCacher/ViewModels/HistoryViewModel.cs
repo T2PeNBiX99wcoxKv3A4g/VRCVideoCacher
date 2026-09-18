@@ -20,7 +20,7 @@ public partial class HistoryItemViewModel : ViewModelBase
 {
     public int Key { get; init; }
     public DateTime Timestamp { get; init; }
-    public string Url { get; init; } = string.Empty;
+    public string Url { get; init; }
     public string? Id { get; init; }
     public UrlType Type { get; init; }
     public string? Author { get; init; }
@@ -147,11 +147,10 @@ public partial class HistoryItemViewModel : ViewModelBase
 public partial class HistoryViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _statusText = string.Empty;
+    public partial string StatusText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private int _maxSize = ConfigManager.Config.HistoryMaxSize;
-
+    public partial int MaxSize { get; set; } = ConfigManager.Config.HistoryMaxSize;
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
 
     public HistoryViewModel()
@@ -290,7 +289,7 @@ public partial class HistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ClearAll()
+    private static async Task ClearAll()
     {
         if (Application.Current?.ApplicationLifetime is not
             IClassicDesktopStyleApplicationLifetime desktop)
