@@ -156,8 +156,8 @@ public partial class HistoryViewModel : ViewModelBase
 
     public HistoryViewModel()
     {
-        DatabaseManager.OnPlayHistoryAdded += () => Avalonia.Threading.Dispatcher.UIThread.Post(Refresh);
-        DatabaseManager.OnPlayHistoryChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(Refresh);
+        DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.Post(Refresh);
+        DatabaseManager.OnPlayHistoryChanged += () => Dispatcher.UIThread.Post(Refresh);
 
         // NB: deliberately NOT subscribing to OnVideoInfoCacheUpdated. The background metadata load writes
         // to VideoInfoCache, which raises that event — refreshing on it looped endlessly, and the old fix
@@ -276,7 +276,7 @@ public partial class HistoryViewModel : ViewModelBase
                 }
             }
 
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 _isLoadingMetadata = false;
                 if (_pendingMetadata.Count > 0)
@@ -292,8 +292,8 @@ public partial class HistoryViewModel : ViewModelBase
     [RelayCommand]
     private async Task ClearAll()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is not
-            Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is not
+            IClassicDesktopStyleApplicationLifetime desktop)
             return;
 
         var confirmed = await ConfirmWindow.ShowAsync(
