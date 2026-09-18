@@ -275,10 +275,11 @@
             <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="16,9" />
+            <Setter Property="Padding" Value="14,8" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="MinHeight" Value="34" />
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource SystemAccentBrushLight1}" />
@@ -299,6 +300,7 @@
             <Setter Property="Padding" Value="14,8" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinHeight" Value="34" />
         </Style>
         <Style Selector="Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
@@ -314,6 +316,7 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="MinHeight" Value="34" />
         </Style>
         <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource DangerHoverBrush}" />
@@ -327,8 +330,10 @@
             <Setter Property="BorderBrush" Value="#EF444433" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinHeight" Value="34" />
         </Style>
         <Style Selector="Button.subtle-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#451822" />
@@ -344,6 +349,8 @@
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="8" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="MinWidth" Value="34" />
         </Style>
         <Style Selector="Button.icon-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />

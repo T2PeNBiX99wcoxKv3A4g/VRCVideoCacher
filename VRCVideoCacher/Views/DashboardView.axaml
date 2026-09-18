@@ -183,7 +183,7 @@
                                 </Border>
                                 <TextBlock Text="{l:Localize RequiredTools}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <Button Grid.Column="1" Command="{Binding VerifyToolsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize VerifyTools}" Padding="12, 6">
+                            <Button Grid.Column="1" Command="{Binding VerifyToolsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize VerifyTools}">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <mi:MaterialIcon Kind="ShieldCheckOutline" Width="15" Height="15" Foreground="{DynamicResource SystemControlHighlightAccentBrush}"/>
                                     <TextBlock Text="{l:Localize VerifyTools}" FontSize="12.5"/>

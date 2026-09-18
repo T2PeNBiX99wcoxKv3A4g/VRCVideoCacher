@@ -123,7 +123,7 @@
                                 <SelectableTextBlock Grid.Column="2"
                                                      Text="{Binding Source}"
                                                      FontFamily="Cascadia Code, Consolas, monospace"
-                                                     Foreground="{DynamicResource SystemAccentBrushLight2}"
+                                                     Foreground="{StaticResource PrimaryLightBrush}"
                                                      FontSize="12" 
                                                      VerticalAlignment="Center"
                                                      TextTrimming="CharacterEllipsis"/>
