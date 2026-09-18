@@ -34,11 +34,6 @@ public class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-
-#if DEBUG
-        // I need to pay to debug this shit??? hallo???
-        this.AttachDeveloperTools(options => options.AutoConnectFromDesignMode = true);
-#endif
     }
 
     private static async void OnMainWindowOpened(object? sender, EventArgs e)
