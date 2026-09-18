@@ -27,7 +27,6 @@ public partial class HistoryItemViewModel : ViewModelBase
     public bool HasAuthor => !string.IsNullOrEmpty(Author);
 
     private string? _title;
-    private string? _thumbnailUrl;
 
     public string DisplayTitle
     {
@@ -54,7 +53,7 @@ public partial class HistoryItemViewModel : ViewModelBase
         _ => new SolidColorBrush(Color.Parse("#555555"))
     };
 
-    public string? ThumbnailUrl => _thumbnailUrl;
+    public string? ThumbnailUrl { get; private set; }
 
     public HistoryItemViewModel(History history, VideoInfoCache? meta)
     {
@@ -74,9 +73,10 @@ public partial class HistoryItemViewModel : ViewModelBase
             _title = title;
             OnPropertyChanged(nameof(DisplayTitle));
         }
+
         if (!string.IsNullOrEmpty(thumbnailUrl))
         {
-            _thumbnailUrl = thumbnailUrl;
+            ThumbnailUrl = thumbnailUrl;
             OnPropertyChanged(nameof(ThumbnailUrl));
         }
     }
@@ -101,7 +101,7 @@ public partial class HistoryItemViewModel : ViewModelBase
 
             if (!string.IsNullOrEmpty(thumbnailPath))
             {
-                _thumbnailUrl = thumbnailPath;
+                ThumbnailUrl = thumbnailPath;
                 OnPropertyChanged(nameof(ThumbnailUrl));
             }
         }
@@ -120,7 +120,10 @@ public partial class HistoryItemViewModel : ViewModelBase
                 UseShellExecute = true
             });
         }
-        catch { /* Ignore errors */ }
+        catch
+        {
+            /* Ignore errors */
+        }
     }
 
     [RelayCommand]
@@ -146,11 +149,9 @@ public partial class HistoryItemViewModel : ViewModelBase
 
 public partial class HistoryViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial string StatusText { get; set; } = string.Empty;
+    [ObservableProperty] public partial string StatusText { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial int MaxSize { get; set; } = 1000;
+    [ObservableProperty] public partial int MaxSize { get; set; } = 1000;
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
 
     public HistoryViewModel()
@@ -167,7 +168,7 @@ public partial class HistoryViewModel : ViewModelBase
 
         Dispatcher.UIThread.Post(Refresh);
     }
-    
+
     private void LoadFromConfig()
     {
         var config = ConfigManager.Config;
@@ -193,7 +194,7 @@ public partial class HistoryViewModel : ViewModelBase
     private void Refresh()
     {
         var fresh = DatabaseManager
-            .GetVideoHistoryAsCache(limit: ConfigManager.Config.HistoryMaxSize, distinctOnly: true)
+            .GetVideoHistoryAsCache(ConfigManager.Config.HistoryMaxSize, true)
             .OrderByDescending(h => h.Timestamp)
             .ToList();
 
@@ -204,25 +205,19 @@ public partial class HistoryViewModel : ViewModelBase
         var desired = new List<HistoryItemViewModel>(fresh.Count);
         var newItems = new List<HistoryItemViewModel>();
         foreach (var item in fresh)
-        {
             if (existing.TryGetValue(item.Key, out var reused))
-            {
                 desired.Add(reused);
-            }
             else
             {
                 desired.Add(item);
                 newItems.Add(item);
             }
-        }
 
         // Apply as an in-place diff rather than Clear()+re-add, so unchanged containers are never torn down.
         var desiredKeys = new HashSet<int>(desired.Select(d => d.Key));
         for (var i = HistoryItems.Count - 1; i >= 0; i--)
-        {
             if (!desiredKeys.Contains(HistoryItems[i].Key))
                 HistoryItems.RemoveAt(i);
-        }
         for (var i = 0; i < desired.Count; i++)
         {
             if (i < HistoryItems.Count && ReferenceEquals(HistoryItems[i], desired[i]))
@@ -230,13 +225,12 @@ public partial class HistoryViewModel : ViewModelBase
 
             var found = -1;
             for (var j = i + 1; j < HistoryItems.Count; j++)
-            {
                 if (ReferenceEquals(HistoryItems[j], desired[i]))
                 {
                     found = j;
                     break;
                 }
-            }
+
             if (found >= 0)
                 HistoryItems.Move(found, i);
             else
@@ -258,6 +252,7 @@ public partial class HistoryViewModel : ViewModelBase
             _pendingMetadata.AddRange(items);
             return;
         }
+
         LoadMetadata(items);
     }
 
@@ -271,16 +266,10 @@ public partial class HistoryViewModel : ViewModelBase
             {
                 (string? DisplayTitle, string? ThumbnailUrl)? metadata = null;
                 foreach (var item in groupedItems)
-                {
                     if (metadata == null)
-                    {
                         metadata = await item.LoadMetadataAsync();
-                    }
                     else
-                    {
                         item.SetMetadata(metadata.Value.DisplayTitle, metadata.Value.ThumbnailUrl);
-                    }
-                }
             }
 
             Dispatcher.UIThread.Post(() =>
