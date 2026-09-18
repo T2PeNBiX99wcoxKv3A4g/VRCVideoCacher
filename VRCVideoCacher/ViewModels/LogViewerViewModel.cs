@@ -17,31 +17,41 @@ public partial class LogViewerViewModel : ViewModelBase
     // Off by default: Debug/trace is not captured at all (keeping it out of the log file and buffer). Turning
     // it on lowers the live log level so debug output starts flowing — see OnShowDebugChanged.
 #if DEBUG
-     [ObservableProperty] public partial bool ShowDebug { get; set; } = true;
+    [ObservableProperty] public partial bool ShowDebug { get; set; } = true;
 #else
-    [ObservableProperty] public partial bool ShowDebug { get; set; } = ConfigManager.Config.ShowDebug;
+    [ObservableProperty] public partial bool ShowDebug { get; set; } = false;
 #endif
 
-    [ObservableProperty] public partial bool ShowInfo { get; set; } = ConfigManager.Config.ShowInfo;
+    [ObservableProperty] public partial bool ShowInfo { get; set; } = true;
 
-    [ObservableProperty] public partial bool ShowWarning { get; set; } = ConfigManager.Config.ShowWarning;
+    [ObservableProperty] public partial bool ShowWarning { get; set; } = true;
 
-    [ObservableProperty] public partial bool ShowError { get; set; } = ConfigManager.Config.ShowError;
+    [ObservableProperty] public partial bool ShowError { get; set; } = true;
 
     [ObservableProperty] public partial bool AutoScroll { get; set; } = true;
 
-    [ObservableProperty] private partial int MaxLogEntries { get; set; } = ConfigManager.Config.MaxLogEntries;
+    [ObservableProperty] private partial int MaxLogEntries { get; set; } = 1000;
     public ObservableCollection<LogEntry> LogEntries { get; } = [];
     public ObservableCollection<LogEntry> FilteredLogEntries { get; } = [];
 
     public LogViewerViewModel()
     {
-        LoggerUtils.LevelSwitch.MinimumLevel = ShowDebug ? LogEventLevel.Debug : LogEventLevel.Information;
-
-        Refresh();
-
         // Subscribe to new log entries
         LogService.OnLogEntry += OnLogEntry;
+        ConfigManager.OnConfigChanged += LoadFromConfig;
+        LoadFromConfig();
+        Refresh();
+    }
+
+    private void LoadFromConfig()
+    {
+        var config = ConfigManager.Config;
+        ShowDebug = config.ShowDebug;
+        ShowInfo = config.ShowInfo;
+        ShowWarning = config.ShowWarning;
+        ShowError = config.ShowError;
+        MaxLogEntries = config.MaxLogEntries;
+        LoggerUtils.LevelSwitch.MinimumLevel = ShowDebug ? LogEventLevel.Debug : LogEventLevel.Information;
     }
 
     partial void OnMaxLogEntriesChanged(int value)
@@ -51,6 +61,7 @@ public partial class LogViewerViewModel : ViewModelBase
 
         ConfigManager.Config.MaxLogEntries = value;
         ConfigManager.TrySaveConfigWithoutWait(false);
+        Refresh();
     }
 
     private void OnLogEntry(LogEntry entry)
@@ -64,12 +75,10 @@ public partial class LogViewerViewModel : ViewModelBase
                 LogEntries.RemoveAt(0);
 
             // Apply filter
-            if (ShouldShowEntry(entry))
-            {
-                FilteredLogEntries.Add(entry);
-                while (FilteredLogEntries.Count > MaxLogEntries)
-                    FilteredLogEntries.RemoveAt(0);
-            }
+            if (!ShouldShowEntry(entry)) return;
+            FilteredLogEntries.Add(entry);
+            while (FilteredLogEntries.Count > MaxLogEntries)
+                FilteredLogEntries.RemoveAt(0);
         });
     }
 
@@ -150,12 +159,8 @@ public partial class LogViewerViewModel : ViewModelBase
         var buffered = LogService.GetBufferedLogs().ToList();
         var existing = new HashSet<LogEntry>(LogEntries);
         foreach (var entry in buffered)
-        {
             if (existing.Add(entry))
-            {
                 LogEntries.Add(entry);
-            }
-        }
 
         while (LogEntries.Count > MaxLogEntries)
             LogEntries.RemoveAt(0);
