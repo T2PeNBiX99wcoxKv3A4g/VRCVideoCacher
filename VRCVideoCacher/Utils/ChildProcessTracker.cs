@@ -89,10 +89,13 @@ public partial class ChildProcessTracker
     /// </summary>
     public static void Track(Process? process)
     {
-        if (process == null || _terminating) return;
+        if (process == null) return;
 
         lock (Lock)
+        {
+            if (_terminating) return;
             TrackedProcesses.Add(process);
+        }
 
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
         try
