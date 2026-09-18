@@ -32,6 +32,9 @@
                 <Button Click="ScrollToBottomButton" Classes="icon-button" ToolTip.Tip="{l:Localize ScrollToBottom}">
                     <mi:MaterialIcon Kind="ArrowCollapseDown" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </Button>
+                <Button Command="{Binding RefreshCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize Refresh}">
+                    <mi:MaterialIcon Kind="Refresh" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </Button>
                 <Button Command="{Binding ExportLogsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize ExportLogs}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <mi:MaterialIcon Kind="ExportVariant" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>

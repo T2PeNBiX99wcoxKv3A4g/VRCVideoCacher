@@ -38,13 +38,7 @@ public partial class LogViewerViewModel : ViewModelBase
     {
         LoggerUtils.LevelSwitch.MinimumLevel = ShowDebug ? LogEventLevel.Debug : LogEventLevel.Information;
 
-        // Load buffered logs that occurred before UI was ready
-        foreach (var entry in LogService.GetBufferedLogs())
-        {
-            LogEntries.Add(entry);
-            if (ShouldShowEntry(entry))
-                FilteredLogEntries.Add(entry);
-        }
+        Refresh();
 
         // Subscribe to new log entries
         LogService.OnLogEntry += OnLogEntry;
@@ -148,6 +142,25 @@ public partial class LogViewerViewModel : ViewModelBase
         foreach (var entry in LogEntries)
             if (ShouldShowEntry(entry))
                 FilteredLogEntries.Add(entry);
+    }
+
+    [RelayCommand]
+    private void Refresh()
+    {
+        var buffered = LogService.GetBufferedLogs().ToList();
+        var existing = new HashSet<LogEntry>(LogEntries);
+        foreach (var entry in buffered)
+        {
+            if (existing.Add(entry))
+            {
+                LogEntries.Add(entry);
+            }
+        }
+
+        while (LogEntries.Count > MaxLogEntries)
+            LogEntries.RemoveAt(0);
+
+        ApplyFilter();
     }
 
     [RelayCommand]
