@@ -140,11 +140,9 @@ public partial class ChildProcessTracker
         {
             try
             {
-                if (!proc.HasExited)
-                {
-                    proc.Kill(true);
-                    proc.WaitForExit(1000);
-                }
+                if (proc.HasExited) return;
+                proc.Kill(true);
+                proc.WaitForExit(1000);
             }
             catch
             {
