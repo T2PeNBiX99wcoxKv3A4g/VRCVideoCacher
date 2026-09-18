@@ -36,7 +36,7 @@
 
                 <Button Command="{Binding ClearAllCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize ClearAllHistory}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <mi:MaterialIcon Kind="DeleteSweepOutline" Width="16" Height="16"/>
+                        <mi:MaterialIcon Kind="DeleteSweepOutline" Width="18" Height="18"/>
                         <TextBlock Text="{l:Localize ClearAllHistory}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
