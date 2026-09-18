@@ -30,7 +30,7 @@ public partial class LogViewerViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool AutoScroll { get; set; } = true;
 
-    [ObservableProperty] private partial int MaxLogEntries { get; set; } = 1000;
+    [ObservableProperty] public partial int MaxLogEntries { get; set; } = 1000;
     public ObservableCollection<LogEntry> LogEntries { get; } = [];
     public ObservableCollection<LogEntry> FilteredLogEntries { get; } = [];
 
