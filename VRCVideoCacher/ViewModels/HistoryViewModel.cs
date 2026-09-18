@@ -163,7 +163,7 @@ public partial class HistoryViewModel : ViewModelBase
         // (a guard that dropped refreshes while metadata loaded) also swallowed delete-triggered refreshes.
         // Metadata is applied to the rows in place by LoadMetadata, so a full reload here isn't needed.
 
-        Refresh();
+        Dispatcher.UIThread.Post(Refresh);
     }
 
     partial void OnMaxSizeChanged(int value)
@@ -175,7 +175,7 @@ public partial class HistoryViewModel : ViewModelBase
         ConfigManager.TrySaveConfigWithoutWait(false);
         // Apply the new cap immediately (trims the DB if it was lowered), then reload the list.
         DatabaseManager.TrimPlayHistory(value);
-        Refresh();
+        Dispatcher.UIThread.Post(Refresh);
     }
 
     private bool _isLoadingMetadata;

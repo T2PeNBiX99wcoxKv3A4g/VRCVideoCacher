@@ -40,7 +40,7 @@ public partial class LogViewerViewModel : ViewModelBase
         LogService.OnLogEntry += OnLogEntry;
         ConfigManager.OnConfigChanged += LoadFromConfig;
         LoadFromConfig();
-        Refresh();
+        Dispatcher.UIThread.Post(Refresh);
     }
 
     private void LoadFromConfig()
@@ -61,7 +61,7 @@ public partial class LogViewerViewModel : ViewModelBase
 
         ConfigManager.Config.MaxLogEntries = value;
         ConfigManager.TrySaveConfigWithoutWait(false);
-        Refresh();
+        Dispatcher.UIThread.Post(Refresh);
     }
 
     private void OnLogEntry(LogEntry entry)
