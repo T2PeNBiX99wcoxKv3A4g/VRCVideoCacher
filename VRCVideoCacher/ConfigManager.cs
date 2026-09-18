@@ -49,7 +49,7 @@ public class ConfigManager
             Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
 
         Log.Information("Loaded config.");
-        TrySaveConfig();
+        TrySaveConfig(false);
     }
 
     public static ConfigModel Config { get; }

@@ -137,7 +137,7 @@ public partial class SettingsViewModel : ViewModelBase
         if (value is null) return;
         Localizer.Language = value.Code;
         ConfigManager.Config.Language = value.Code;
-        ConfigManager.TrySaveConfig();
+        ConfigManager.TrySaveConfig(false);
     }
 
     private static string GetLanguageDisplayName(string code)
