@@ -43,14 +43,14 @@
                     <!-- Content Details -->
                     <StackPanel Grid.Row="1" Spacing="16" Margin="22,18,22,22">
                         <Grid ColumnDefinitions="Auto, *">
-                            <Border Grid.Column="0" Background="#1E1E38" BorderBrush="#6366F166" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
-                                <mi:MaterialIcon Kind="PlayCircleOutline" Width="30" Height="30" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Grid.Column="0" Background="{DynamicResource SystemAccentBrushDark3}" BorderBrush="{DynamicResource SystemControlHighlightAccentBrush}" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
+                                <mi:MaterialIcon Kind="PlayCircleOutline" Width="30" Height="30" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <TextBlock Text="VRCVideoCacher" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    <Border Background="{StaticResource PrimarySubtleBrush}" BorderBrush="#6366F155" BorderThickness="1" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Version, StringFormat='{}v{0}'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="12" FontWeight="SemiBold"/>
+                                    <Border Background="{DynamicResource SystemAccentBrushDark3}" BorderBrush="{DynamicResource SystemControlHighlightAccentBrush}" BorderThickness="1" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Version, StringFormat='{}v{0}'}" Foreground="{DynamicResource SystemAccentBrushLight2}" FontSize="12" FontWeight="SemiBold"/>
                                     </Border>
                                 </StackPanel>
                                 <TextBlock Text="{Binding CreatedBy}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>

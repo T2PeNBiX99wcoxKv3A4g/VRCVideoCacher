@@ -185,8 +185,8 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.badge-primary">
-            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
-            <Setter Property="BorderBrush" Value="#6366f155" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark3}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.badge-info">
@@ -216,15 +216,15 @@
             <Setter Property="BorderBrush" Value="#222B40" />
         </Style>
         <Style Selector="Button.nav-button.active">
-            <Setter Property="Background" Value="{StaticResource ActiveNavPillBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark3}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="BorderBrush" Value="#6366F177" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
         </Style>
         <Style Selector="Button.nav-button.active /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource ActiveNavPillBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark3}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#6366F177" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
         </Style>
 
         <!-- ContextMenu & Menu Modern Dark Styles -->
@@ -253,12 +253,12 @@
             <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
-            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark3}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentBrushLight2}" />
         </Style>
         <Style Selector="MenuItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
-            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark3}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentBrushLight2}" />
         </Style>
         <Style Selector="MenuItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
@@ -272,7 +272,7 @@
 
         <!-- Accent/Primary Button -->
         <Style Selector="Button.primary, Button.accent">
-            <Setter Property="Background" Value="{StaticResource PrimaryGradientBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="16,9" />
@@ -281,7 +281,11 @@
             <Setter Property="BorderThickness" Value="0" />
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource PrimaryGradientHoverBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushLight1}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+        <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark1}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
         </Style>
 
@@ -370,7 +374,7 @@
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         </Style>
         <Style Selector="TextBox:focus">
-            <Setter Property="BorderBrush" Value="{StaticResource PrimaryLightBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
         </Style>
 
         <Style Selector="NumericUpDown">
@@ -390,7 +394,7 @@
         <Style Selector="ProgressBar">
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Background" Value="#1A2030" />
-            <Setter Property="Foreground" Value="{StaticResource PrimaryGradientBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
         </Style>
     </Application.Styles>
 </Application>
