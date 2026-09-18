@@ -63,7 +63,7 @@
                                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                             <TextBlock Grid.Column="0" Text="{l:Localize Language}" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
                             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
@@ -114,7 +114,7 @@
                                   Content="{l:Localize SabrPreferStreaming}"
                                   ToolTip.Tip="{l:Localize SabrPreferStreamingTooltip}" />
 
-                        <Grid ColumnDefinitions="180, *" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                             <TextBlock Grid.Column="0" Text="{l:Localize SabrMaxResolution}" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
                             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
@@ -183,11 +183,11 @@
                             <TextBox Text="{Binding GitHubToken}" PasswordChar="•" PlaceholderText="ghp_..." />
                         </StackPanel>
 
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="{l:Localize PreferredDubLanguage}"
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize PreferredDubLanguage}" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original" />
-                        </StackPanel>
+                            <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}" PlaceholderText="Leave empty for original" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
@@ -205,13 +205,13 @@
                                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                             <TextBlock Grid.Column="0" Text="{l:Localize CachePathLabel}" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
                             <TextBox Grid.Column="1" Text="{Binding CachedAssetPath}" PlaceholderText="CachedAssets" />
                         </Grid>
 
-                        <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                             <TextBlock Grid.Column="0" Text="{l:Localize MaxCacheSizeLabel}" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
                             <NumericUpDown Grid.Column="1" Value="{Binding CacheMaxSizeInGb}" Minimum="0"
@@ -221,7 +221,7 @@
                         <CheckBox IsChecked="{Binding CacheYouTube}" Content="{l:Localize CacheYouTubeVideos}" />
 
                         <StackPanel Spacing="12" Margin="24,0,0,0" IsVisible="{Binding CacheYouTube}">
-                            <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                                 <TextBlock Grid.Column="0" Text="{l:Localize MaxYouTubeResolution}"
                                            VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
                                 <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
@@ -236,7 +236,7 @@
                                 </ComboBox>
                             </Grid>
 
-                            <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                                 <TextBlock Grid.Column="0" Text="{l:Localize MaxVideoLength}"
                                            VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
                                 <NumericUpDown Grid.Column="1" Value="{Binding CacheYouTubeMaxLength}" Minimum="1"
@@ -276,7 +276,7 @@
                                            Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                             </StackPanel>
 
-                            <Grid ColumnDefinitions="160, *" VerticalAlignment="Center">
+                            <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                                 <TextBlock Grid.Column="0" Text="{l:Localize WebServerUrl}" VerticalAlignment="Center"
                                            Foreground="{StaticResource TextSecondaryBrush}" />
                                 <TextBox Grid.Column="1" Text="{Binding WebServerUrl}"
