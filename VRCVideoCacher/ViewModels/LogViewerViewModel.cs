@@ -46,7 +46,9 @@ public partial class LogViewerViewModel : ViewModelBase
     private void LoadFromConfig()
     {
         var config = ConfigManager.Config;
+#if !DEBUG
         ShowDebug = config.ShowDebug;
+#endif
         ShowInfo = config.ShowInfo;
         ShowWarning = config.ShowWarning;
         ShowError = config.ShowError;
