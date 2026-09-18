@@ -16,7 +16,7 @@ public partial class ChildProcessTracker
     private static readonly ILogger Log = Program.Logger.ForContext<ChildProcessTracker>();
     private static readonly ConcurrentDictionary<Process, byte> TrackedProcesses = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
-    private static volatile bool _terminating;
+    private static bool _terminating;
 
     static ChildProcessTracker()
     {
@@ -100,9 +100,21 @@ public partial class ChildProcessTracker
     /// </summary>
     public static void Track(Process? process)
     {
-        if (process == null || _terminating) return;
+        if (process == null) return;
+        if (Volatile.Read(ref _terminating))
+        {
+            KillProcess(process);
+            return;
+        }
 
-        TrackedProcesses.TryAdd(process, 0);
+        if (!TrackedProcesses.TryAdd(process, 0)) return;
+
+        if (Volatile.Read(ref _terminating))
+        {
+            if (TrackedProcesses.TryRemove(process, out _))
+                KillProcess(process);
+            return;
+        }
 
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
         try
@@ -113,6 +125,31 @@ public partial class ChildProcessTracker
         catch
         {
             // Process may have already exited or handle cannot be assigned
+        }
+    }
+
+    private static void KillProcess(Process proc)
+    {
+        try
+        {
+            if (proc.HasExited) return;
+            proc.Kill(true);
+            proc.WaitForExit(1000);
+        }
+        catch
+        {
+            // Best-effort cleanup
+        }
+        finally
+        {
+            try
+            {
+                proc.Dispose();
+            }
+            catch
+            {
+                // Ignore
+            }
         }
     }
 
@@ -130,36 +167,10 @@ public partial class ChildProcessTracker
     /// </summary>
     public static void TerminateAll()
     {
-        _terminating = true;
+        if (Interlocked.Exchange(ref _terminating, true)) return;
         var toKill = TrackedProcesses.Keys.ToList();
         TrackedProcesses.Clear();
-
-        if (toKill.Count == 0) return;
-
-        Parallel.ForEach(toKill, proc =>
-        {
-            try
-            {
-                if (proc.HasExited) return;
-                proc.Kill(true);
-                proc.WaitForExit(1000);
-            }
-            catch
-            {
-                // Best-effort cleanup
-            }
-            finally
-            {
-                try
-                {
-                    proc.Dispose();
-                }
-                catch
-                {
-                    /* Ignore */
-                }
-            }
-        });
+        Parallel.ForEach(toKill, KillProcess);
     }
 
     #region Win32 P/Invoke
