@@ -21,19 +21,19 @@
             <Border Classes="hero-card" Padding="0">
                 <Grid RowDefinitions="Auto, Auto">
                     <!-- Top Artwork Banner -->
-                    <Border Grid.Row="0" CornerRadius="14,14,0,0" ClipToBounds="True" Background="#0A0C14">
+                    <Border Grid.Row="0" CornerRadius="14,14,0,0" ClipToBounds="True" Background="#0A0C14" Height="150">
                         <Grid>
                             <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png" 
-                                   Stretch="Uniform" 
-                                   MaxHeight="170" 
-                                   HorizontalAlignment="Center"
+                                   Stretch="UniformToFill" 
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center"
                                    RenderOptions.BitmapInterpolationMode="HighQuality" />
                             <!-- Subtle bottom gradient overlay for smooth transition into card content -->
-                            <Border VerticalAlignment="Bottom" Height="36">
+                            <Border VerticalAlignment="Bottom" Height="40">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                         <GradientStop Color="#000F1424" Offset="0.0"/>
-                                        <GradientStop Color="#CC0F1424" Offset="1.0"/>
+                                        <GradientStop Color="#EE0F1424" Offset="1.0"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                             </Border>
