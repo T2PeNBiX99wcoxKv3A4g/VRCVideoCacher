@@ -417,11 +417,9 @@ internal static class BgUtilPotProvider
         ChildProcessTracker.Untrack(process);
         try
         {
-            if (!HasProcessExited(process))
-            {
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit(3000);
-            }
+            if (HasProcessExited(process)) return;
+            process.Kill(entireProcessTree: true);
+            process.WaitForExit(3000);
         }
         catch (InvalidOperationException)
         {
