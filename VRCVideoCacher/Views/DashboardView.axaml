@@ -195,10 +195,8 @@
                             <Grid ColumnDefinitions="*, Auto">
                                 <TextBlock Text="{l:Localize YouTubeCookies}" FontWeight="SemiBold" FontSize="12"
                                            Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                                <Border Grid.Column="1" Background="{StaticResource DangerSubtleBrush}"
-                                        CornerRadius="8" Width="30" Height="30">
-                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16"
-                                                     Foreground="{StaticResource DangerBrush}"
+                                <Border Grid.Column="1" Background="#2B1117" CornerRadius="8" Width="30" Height="30">
+                                    <mi:MaterialIcon Kind="CookieOutline" Width="16" Height="16" Foreground="#EF4444"
                                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                             </Grid>
