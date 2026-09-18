@@ -387,11 +387,50 @@
             <Setter Property="CornerRadius" Value="8" />
         </Style>
 
+        <!-- ComboBox Styles -->
         <Style Selector="ComboBox">
             <Setter Property="Background" Value="#0D1017" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="ComboBox:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
+        </Style>
+        <Style Selector="ComboBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+        </Style>
+        <Style Selector="ComboBox:dropdownopen">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+        </Style>
+
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Margin" Value="4,1" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource PrimarySubtleBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryLightBrush}" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark2}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark1}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
         </Style>
 
         <Style Selector="ProgressBar">
