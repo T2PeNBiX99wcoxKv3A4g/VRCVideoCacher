@@ -1,7 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             xmlns:l="using:Jeek.Avalonia.Localization"
              x:Class="VRCVideoCacher.App"
              RequestedThemeVariant="Dark">
     <Application.Resources>
@@ -297,7 +296,8 @@
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="MinHeight" Value="34" />
         </Style>
-        <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Style
+            Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{StaticResource PrimaryGradientHoverBrush}" />
             <Setter Property="Foreground" Value="#FFFFFF" />
         </Style>
