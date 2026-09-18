@@ -74,12 +74,6 @@
         <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#1E2638" />
         <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#1E2638" />
         <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#384566" />
-        <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
-        <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#1E2638" />
-        <SolidColorBrush x:Key="ComboBoxItemForeground" Color="#F8FAFC" />
-        <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="#FFFFFF" />
 
         <SolidColorBrush x:Key="TextControlBackground" Color="#0D1017" />
         <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#181E2E" />
@@ -492,22 +486,6 @@
                     <BrushTransition Property="Background" Duration="0:0:0.1" />
                 </Transitions>
             </Setter>
-        </Style>
-        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#1E2638" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-        </Style>
-        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-        </Style>
-        <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushLight1}" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-        </Style>
-        <Style Selector="ComboBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SystemAccentBrushDark1}" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
         </Style>
 
         <Style Selector="ProgressBar">
