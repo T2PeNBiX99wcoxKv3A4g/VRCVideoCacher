@@ -131,7 +131,7 @@ public partial class ChildProcessTracker
     }
 
     /// <summary>
-    /// Forces termination of all currently tracked child processes.
+    /// Forces termination of all currently tracked child processes in parallel.
     /// </summary>
     public static void TerminateAll()
     {
@@ -143,12 +143,17 @@ public partial class ChildProcessTracker
             TrackedProcesses.Clear();
         }
 
-        foreach (var proc in toKill)
+        if (toKill.Count == 0) return;
+
+        Parallel.ForEach(toKill, proc =>
+        {
             try
             {
-                if (proc.HasExited) continue;
-                proc.Kill(true);
-                proc.WaitForExit(1000);
+                if (!proc.HasExited)
+                {
+                    proc.Kill(true);
+                    proc.WaitForExit(1000);
+                }
             }
             catch
             {
@@ -165,6 +170,7 @@ public partial class ChildProcessTracker
                     /* Ignore */
                 }
             }
+        });
     }
 
     #region Win32 P/Invoke
