@@ -18,7 +18,6 @@ public static partial class ChildProcessTracker
     static ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
-        {
             try
             {
                 InitJobObject();
@@ -27,7 +26,6 @@ public static partial class ChildProcessTracker
             {
                 Program.Logger.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
             }
-        }
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll();
     }
@@ -62,7 +60,8 @@ public static partial class ChildProcessTracker
         try
         {
             Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
-            if (!SetInformationJobObject(_jobHandle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr, (uint)length))
+            if (!SetInformationJobObject(_jobHandle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr,
+                    (uint)length))
             {
                 Program.Logger.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastWin32Error());
                 return;
@@ -85,9 +84,7 @@ public static partial class ChildProcessTracker
         if (process == null) return;
 
         lock (Lock)
-        {
             TrackedProcesses.Add(process);
-        }
 
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
         try
@@ -108,9 +105,7 @@ public static partial class ChildProcessTracker
     {
         if (process == null) return;
         lock (Lock)
-        {
             TrackedProcesses.Remove(process);
-        }
     }
 
     /// <summary>
@@ -126,14 +121,11 @@ public static partial class ChildProcessTracker
         }
 
         foreach (var proc in toKill)
-        {
             try
             {
-                if (!proc.HasExited)
-                {
-                    proc.Kill(entireProcessTree: true);
-                    proc.WaitForExit(1000);
-                }
+                if (proc.HasExited) continue;
+                proc.Kill(true);
+                proc.WaitForExit(1000);
             }
             catch
             {
@@ -141,9 +133,15 @@ public static partial class ChildProcessTracker
             }
             finally
             {
-                try { proc.Dispose(); } catch { /* Ignore */ }
+                try
+                {
+                    proc.Dispose();
+                }
+                catch
+                {
+                    /* Ignore */
+                }
             }
-        }
     }
 
     #region Win32 P/Invoke
