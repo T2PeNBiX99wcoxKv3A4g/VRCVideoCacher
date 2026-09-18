@@ -34,7 +34,7 @@
                             CornerRadius="8"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="GoogleChrome" Width="36" Height="36" Foreground="#38bdf8" HorizontalAlignment="Center"/>
+                            <mi:MaterialIcon Kind="GoogleChrome" Width="36" Height="36" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="{l:Localize Chrome}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="{l:Localize ChromeBased}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
@@ -46,7 +46,7 @@
                             CornerRadius="8"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="Firefox" Width="36" Height="36" Foreground="#f97316" HorizontalAlignment="Center"/>
+                            <mi:MaterialIcon Kind="Firefox" Width="36" Height="36" Foreground="{StaticResource BrandFirefoxBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="{l:Localize Firefox}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="{l:Localize FirefoxBased}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
@@ -137,7 +137,7 @@
         <Border Grid.Row="1" Classes="card"
                 IsVisible="{Binding IsStep5}">
             <StackPanel Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Border Background="{StaticResource SuccessSubtleBrush}" BorderBrush="#22c55e44" BorderThickness="1" CornerRadius="36" Width="72" Height="72" HorizontalAlignment="Center">
+                <Border Background="{StaticResource SuccessSubtleBrush}" BorderBrush="{StaticResource BadgeSuccessBorderBrush}" BorderThickness="1" CornerRadius="36" Width="72" Height="72" HorizontalAlignment="Center">
                     <mi:MaterialIcon Kind="CheckCircleOutline" Width="44" Height="44" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <TextBlock Text="{l:Localize CookieSetupComplete}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>

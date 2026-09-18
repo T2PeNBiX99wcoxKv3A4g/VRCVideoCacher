@@ -102,8 +102,8 @@
                 <Border Classes="card">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Border Background="#2B1117" CornerRadius="6" Width="26" Height="26">
-                                <mi:MaterialIcon Kind="Youtube" Width="16" Height="16" Foreground="#EF4444"
+                            <Border Background="{StaticResource DangerSubtleBrush}" CornerRadius="6" Width="26" Height="26">
+                                <mi:MaterialIcon Kind="Youtube" Width="16" Height="16" Foreground="{StaticResource DangerBrush}"
                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="{l:Localize YouTubeSabrOptions}" FontWeight="Bold" FontSize="15"
@@ -428,7 +428,7 @@
     <UserControl.Styles>
         <!-- Unsaved changes -> pulse the Save button so it's impossible to miss -->
         <Style Selector="Button.primary.pending">
-            <Setter Property="Background" Value="#10B981" />
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
             <Style.Animations>
                 <Animation Duration="0:0:1" IterationCount="INFINITE" PlaybackDirection="Alternate">
                     <KeyFrame Cue="0%">

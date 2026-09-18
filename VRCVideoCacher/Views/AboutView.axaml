@@ -21,7 +21,7 @@
             <Border Classes="hero-card" Padding="0">
                 <Grid RowDefinitions="Auto, Auto">
                     <!-- Top Artwork Banner Container -->
-                    <Border Grid.Row="0" CornerRadius="14,14,0,0" ClipToBounds="True" Background="#0A0C14">
+                    <Border Grid.Row="0" CornerRadius="14,14,0,0" ClipToBounds="True" Background="{StaticResource HeroBannerBackgroundBrush}">
                         <Grid>
                             <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png" 
                                    Stretch="Uniform" 
@@ -29,21 +29,14 @@
                                    HorizontalAlignment="Center"
                                    RenderOptions.BitmapInterpolationMode="HighQuality" />
                             <!-- Subtle bottom gradient overlay for smooth transition into card content -->
-                            <Border VerticalAlignment="Bottom" Height="36">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                        <GradientStop Color="#000F1424" Offset="0.0"/>
-                                        <GradientStop Color="#EE0F1424" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                            </Border>
+                            <Border VerticalAlignment="Bottom" Height="36" Background="{StaticResource HeroBannerOverlayGradientBrush}" />
                         </Grid>
                     </Border>
 
                     <!-- Content Details -->
                     <StackPanel Grid.Row="1" Spacing="16" Margin="22,18,22,22">
                         <Grid ColumnDefinitions="Auto, *">
-                            <Border Grid.Column="0" Background="#1E1E38" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
+                            <Border Grid.Column="0" Background="{StaticResource PrimarySubtleBrush}" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
                                 <Image Source="avares://VRCVideoCacher/Assets/icon.ico" Width="32" Height="32" Margin="0,0,0,0" VerticalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
@@ -67,7 +60,7 @@
                         <WrapPanel Orientation="Horizontal">
                             <Button Click="OnDiscordClick" Classes="secondary" ToolTip.Tip="Discord Community" Padding="14, 8" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865F2"/>
+                                    <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="{StaticResource BrandDiscordBrush}"/>
                                     <TextBlock Text="Discord" VerticalAlignment="Center" FontSize="13"/>
                                 </StackPanel>
                             </Button>
@@ -79,7 +72,7 @@
                             </Button>
                             <Button Click="OnSteamClick" Classes="secondary" ToolTip.Tip="Steam Page" Padding="14, 8" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <mi:MaterialIcon Kind="Steam" Width="18" Height="18" Foreground="#00ADEE"/>
+                                    <mi:MaterialIcon Kind="Steam" Width="18" Height="18" Foreground="{StaticResource BrandSteamBrush}"/>
                                     <TextBlock Text="Steam" VerticalAlignment="Center" FontSize="13"/>
                                 </StackPanel>
                             </Button>
@@ -110,7 +103,7 @@
                         </Button>
                         <Button ToolTip.Tip="{l:Localize JoinOurDiscord}" Click="OnDiscordIssueClick" Classes="secondary" Padding="14, 8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="#5865F2"/>
+                                <mi:MaterialIcon Kind="Forum" Width="18" Height="18" Foreground="{StaticResource BrandDiscordBrush}"/>
                                 <TextBlock Text="{l:Localize JoinOurDiscord}" VerticalAlignment="Center" FontSize="13"/>
                             </StackPanel>
                         </Button>

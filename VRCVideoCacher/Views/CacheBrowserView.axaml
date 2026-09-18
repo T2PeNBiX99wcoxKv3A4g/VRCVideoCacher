@@ -42,7 +42,7 @@
         <Grid Grid.Row="1" Margin="0,0,0,14">
             <TextBox Text="{Binding SearchFilter}" 
                      PlaceholderText="{l:Localize SearchVideosWatermark}"
-                     Background="#0D1017"
+                     Background="{StaticResource TextControlBackground}"
                      BorderBrush="{StaticResource CardBorderBrush}"
                      CornerRadius="10"
                      Padding="12, 10">
@@ -80,7 +80,7 @@
                                 <ContextMenu>
                                     <MenuItem Header="{l:Localize OpenUrl}" Command="{Binding OpenOnYouTubeCommand}">
                                         <MenuItem.Icon>
-                                            <mi:MaterialIcon Kind="Youtube" Width="16" Height="16" Foreground="#ef4444"/>
+                                            <mi:MaterialIcon Kind="Youtube" Width="16" Height="16" Foreground="{StaticResource DangerBrush}"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CopyUrlCommand}">
@@ -98,7 +98,7 @@
                             </Border.ContextMenu>
                             <Grid ColumnDefinitions="Auto, *, Auto">
                                 <!-- Thumbnail Cover -->
-                                <Border Grid.Column="0" Width="130" Height="74" CornerRadius="8" ClipToBounds="True" Background="#121624">
+                                <Border Grid.Column="0" Width="130" Height="74" CornerRadius="8" ClipToBounds="True" Background="{StaticResource MediaThumbnailBackgroundBrush}">
                                     <Image asyncImageLoader:ImageLoader.Source="{Binding ThumbnailSource}" Stretch="UniformToFill"/>
                                 </Border>
 
@@ -118,7 +118,7 @@
                                             <TextBlock Text="{Binding Extension}" FontSize="10.5" FontWeight="Medium" Foreground="{StaticResource TextMutedBrush}"/>
                                         </Border>
                                         
-                                        <Border Background="{StaticResource InfoSubtleBrush}" BorderBrush="#38BDF844" BorderThickness="1" CornerRadius="5" Padding="6,2">
+                                        <Border Background="{StaticResource InfoSubtleBrush}" BorderBrush="{StaticResource BadgeInfoBorderBrush}" BorderThickness="1" CornerRadius="5" Padding="6,2">
                                             <TextBlock Text="{Binding SizeFormatted}" FontSize="10.5" Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold"/>
                                         </Border>
 
@@ -130,7 +130,7 @@
                                 <!-- Action Buttons -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="6,0">
                                     <Button Command="{Binding OpenOnYouTubeCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize OpenUrl}">
-                                        <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" Foreground="#EF4444"/>
+                                        <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" Foreground="{StaticResource DangerBrush}"/>
                                     </Button>
                                     <Button Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize CopyUrl}">
                                         <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>

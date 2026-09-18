@@ -27,8 +27,8 @@
                     <!-- Brand / App Banner Header -->
                     <Border Grid.Row="0" Margin="0,2,0,18" HorizontalAlignment="Stretch">
                         <StackPanel Spacing="10">
-                            <Border Background="#121624" 
-                                    BorderBrush="#222B40" 
+                            <Border Background="{StaticResource MediaThumbnailBackgroundBrush}" 
+                                    BorderBrush="{StaticResource NavButtonHoverBorderBrush}" 
                                     BorderThickness="1" 
                                     CornerRadius="12" 
                                     Padding="10, 8">
@@ -143,15 +143,15 @@
 
                     <!-- Sidebar Bottom Quick Widget -->
                     <Border Grid.Row="2" 
-                            Background="#0E121B" 
-                            BorderBrush="#1A2234" 
+                            Background="{StaticResource SidebarWidgetBackgroundBrush}" 
+                            BorderBrush="{StaticResource SidebarWidgetBorderBrush}" 
                             BorderThickness="1" 
                             CornerRadius="10" 
                             Padding="10, 8" 
                             Margin="0,10,0,0">
                         <Grid ColumnDefinitions="Auto, *">
                             <Border Grid.Column="0" 
-                                    Background="#1A1E32" 
+                                    Background="{StaticResource SidebarWidgetIconBackgroundBrush}" 
                                     CornerRadius="8" 
                                     Width="30" Height="30" 
                                     Margin="0,0,8,0">
@@ -208,12 +208,12 @@
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <!-- Activity Status Indicator -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Background="#122819" 
-                            BorderBrush="#22C55E55" 
+                    <Border Background="{StaticResource StatusIndicatorSuccessSubtleBrush}" 
+                            BorderBrush="{StaticResource StatusIndicatorSuccessBorderBrush}" 
                             BorderThickness="1" 
                             CornerRadius="10" 
                             Width="16" Height="16">
-                        <Border Background="#22C55E" CornerRadius="4" Width="6" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{StaticResource StatusIndicatorSuccessDotBrush}" CornerRadius="4" Width="6" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Text="{Binding StatusText}" 
                                Foreground="{Binding StatusColor}" 
