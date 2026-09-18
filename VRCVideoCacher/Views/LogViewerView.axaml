@@ -37,13 +37,13 @@
                 </Button>
                 <Button Command="{Binding ExportLogsCommand}" Classes="secondary" ToolTip.Tip="{l:Localize ExportLogs}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <mi:MaterialIcon Kind="ExportVariant" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                        <mi:MaterialIcon Kind="ExportVariant" Width="18" Height="18" Foreground="{StaticResource PrimaryLightBrush}"/>
                         <TextBlock Text="{l:Localize ExportLogs}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding ClearLogsCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize ClearLogs}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <mi:MaterialIcon Kind="DeleteOutline" Width="16" Height="16"/>
+                        <mi:MaterialIcon Kind="DeleteOutline" Width="18" Height="18"/>
                         <TextBlock Text="{l:Localize ClearLogs}" FontSize="12.5"/>
                     </StackPanel>
                 </Button>
