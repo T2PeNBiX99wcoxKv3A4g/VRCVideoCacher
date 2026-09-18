@@ -17,31 +17,31 @@
                 </StackPanel>
             </Grid>
             
-            <!-- App Hero Card with Background Banner -->
-            <Border Classes="hero-card" Padding="0" ClipToBounds="True">
-                <Grid>
-                    <!-- Background Banner aligned from top downwards -->
-                    <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png" 
-                           Stretch="UniformToFill" 
-                           HorizontalAlignment="Stretch"
-                           VerticalAlignment="Top"
-                           Opacity="0.38"
-                           RenderOptions.BitmapInterpolationMode="HighQuality" />
-
-                    <!-- Top-to-Bottom Gradient Overlay for smooth text readability -->
-                    <Border>
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                <GradientStop Color="#400A0E1A" Offset="0.0"/>
-                                <GradientStop Color="#BA0F1424" Offset="0.45"/>
-                                <GradientStop Color="#F40F1424" Offset="0.8"/>
-                                <GradientStop Color="#FF0F1424" Offset="1.0"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
+            <!-- App Hero Card with Banner -->
+            <Border Classes="hero-card" Padding="0">
+                <Grid RowDefinitions="Auto, Auto">
+                    <!-- Top Artwork Banner Container -->
+                    <Border Grid.Row="0" CornerRadius="14,14,0,0" ClipToBounds="True" Background="#0A0C14">
+                        <Grid>
+                            <Image Source="avares://VRCVideoCacher/Assets/SmallBanner.png" 
+                                   Stretch="Uniform" 
+                                   MaxHeight="170" 
+                                   HorizontalAlignment="Center"
+                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+                            <!-- Subtle bottom gradient overlay for smooth transition into card content -->
+                            <Border VerticalAlignment="Bottom" Height="36">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                        <GradientStop Color="#000F1424" Offset="0.0"/>
+                                        <GradientStop Color="#EE0F1424" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
                     </Border>
 
                     <!-- Content Details -->
-                    <StackPanel Spacing="16" Margin="22,20,22,22">
+                    <StackPanel Grid.Row="1" Spacing="16" Margin="22,18,22,22">
                         <Grid ColumnDefinitions="Auto, *">
                             <Border Grid.Column="0" Background="#1E1E38" BorderBrush="#6366F166" BorderThickness="1" CornerRadius="14" Width="52" Height="52" Margin="0,0,14,0">
                                 <mi:MaterialIcon Kind="PlayCircleOutline" Width="30" Height="30" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
