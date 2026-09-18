@@ -128,6 +128,26 @@ public partial class ChildProcessTracker
         }
     }
 
+    /// <summary>
+    /// Unregisters a tracked child process once it has exited normally.
+    /// </summary>
+    public static void Untrack(Process? process)
+    {
+        if (process == null) return;
+        TrackedProcesses.TryRemove(process, out _);
+    }
+
+    /// <summary>
+    /// Forces termination of all currently tracked child processes in parallel.
+    /// </summary>
+    public static void TerminateAll()
+    {
+        if (Interlocked.Exchange(ref _terminating, true)) return;
+        var toKill = TrackedProcesses.Keys.ToList();
+        TrackedProcesses.Clear();
+        Parallel.ForEach(toKill, KillProcess);
+    }
+
     private static void KillProcess(Process proc)
     {
         try
@@ -151,26 +171,6 @@ public partial class ChildProcessTracker
                 // Ignore
             }
         }
-    }
-
-    /// <summary>
-    /// Unregisters a tracked child process once it has exited normally.
-    /// </summary>
-    public static void Untrack(Process? process)
-    {
-        if (process == null) return;
-        TrackedProcesses.TryRemove(process, out _);
-    }
-
-    /// <summary>
-    /// Forces termination of all currently tracked child processes in parallel.
-    /// </summary>
-    public static void TerminateAll()
-    {
-        if (Interlocked.Exchange(ref _terminating, true)) return;
-        var toKill = TrackedProcesses.Keys.ToList();
-        TrackedProcesses.Clear();
-        Parallel.ForEach(toKill, KillProcess);
     }
 
     #region Win32 P/Invoke
