@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -13,10 +14,9 @@ namespace VRCVideoCacher.Utils;
 public partial class ChildProcessTracker
 {
     private static readonly ILogger Log = Program.Logger.ForContext<ChildProcessTracker>();
-    private static readonly List<Process> TrackedProcesses = [];
-    private static readonly Lock Lock = new();
+    private static readonly ConcurrentDictionary<Process, byte> TrackedProcesses = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
-    private static bool _terminating;
+    private static volatile bool _terminating;
 
     static ChildProcessTracker()
     {
@@ -100,13 +100,9 @@ public partial class ChildProcessTracker
     /// </summary>
     public static void Track(Process? process)
     {
-        if (process == null) return;
+        if (process == null || _terminating) return;
 
-        lock (Lock)
-        {
-            if (_terminating) return;
-            TrackedProcesses.Add(process);
-        }
+        TrackedProcesses.TryAdd(process, 0);
 
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
         try
@@ -126,8 +122,7 @@ public partial class ChildProcessTracker
     public static void Untrack(Process? process)
     {
         if (process == null) return;
-        lock (Lock)
-            TrackedProcesses.Remove(process);
+        TrackedProcesses.TryRemove(process, out _);
     }
 
     /// <summary>
@@ -135,13 +130,9 @@ public partial class ChildProcessTracker
     /// </summary>
     public static void TerminateAll()
     {
-        List<Process> toKill;
-        lock (Lock)
-        {
-            _terminating = true;
-            toKill = [.. TrackedProcesses];
-            TrackedProcesses.Clear();
-        }
+        _terminating = true;
+        var toKill = TrackedProcesses.Keys.ToList();
+        TrackedProcesses.Clear();
 
         if (toKill.Count == 0) return;
 
