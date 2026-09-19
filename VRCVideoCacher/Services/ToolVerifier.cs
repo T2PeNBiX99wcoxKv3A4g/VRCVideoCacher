@@ -105,7 +105,7 @@ public static class ToolVerifier
             }
             finally
             {
-                ChildProcessTracker.Instance.Untrack(process);
+                ChildProcessTracker.Untrack(process);
             }
         }
         catch

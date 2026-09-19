@@ -123,13 +123,15 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// <summary>
     /// Unregisters a tracked child process once it has exited normally.
     /// </summary>
-    public void Untrack(Process? process)
+    [PublicAPI]
+    public void Untrack2(Process? process)
     {
         if (process == null) return;
         _trackedProcesses.TryRemove(process, out _);
     }
 
-    public void TrackWhile(Process? process, Action<Process> callback)
+    [PublicAPI]
+    public void TrackWhile2(Process? process, Action<Process> callback)
     {
         if (process == null) return;
         Track(process);
@@ -154,7 +156,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         Parallel.ForEach(toKill, KillProcess);
     }
 
-    private void KillProcess(Process proc)
+    private static void KillProcess(Process proc)
     {
         try
         {

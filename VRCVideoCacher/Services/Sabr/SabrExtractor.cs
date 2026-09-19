@@ -467,7 +467,7 @@ internal static class SabrExtractor
         }
         finally
         {
-            ChildProcessTracker.Instance.Untrack(process);
+            ChildProcessTracker.Untrack(process);
         }
     }
 }

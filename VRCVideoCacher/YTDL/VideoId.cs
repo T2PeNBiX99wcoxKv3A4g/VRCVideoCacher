@@ -80,7 +80,7 @@ public class VideoId
         }
         finally
         {
-            ChildProcessTracker.Instance.Untrack(ytdlpProcess);
+            ChildProcessTracker.Untrack(ytdlpProcess);
         }
     }
 

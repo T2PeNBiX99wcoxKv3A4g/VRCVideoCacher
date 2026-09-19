@@ -223,7 +223,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             }
             finally
             {
-                ChildProcessTracker.Instance.Untrack(process);
+                ChildProcessTracker.Untrack(process);
             }
         }
 
@@ -316,7 +316,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         }
         finally
         {
-            ChildProcessTracker.Instance.Untrack(process);
+            ChildProcessTracker.Untrack(process);
         }
 
         if (process.ExitCode != 0)
@@ -461,7 +461,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         }
         finally
         {
-            ChildProcessTracker.Instance.Untrack(process);
+            ChildProcessTracker.Untrack(process);
         }
 
         if (process.ExitCode != 0)

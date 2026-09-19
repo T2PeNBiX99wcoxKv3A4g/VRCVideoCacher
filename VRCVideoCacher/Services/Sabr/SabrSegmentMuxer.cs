@@ -379,7 +379,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         }
         finally
         {
-            ChildProcessTracker.Instance.Untrack(process);
+            ChildProcessTracker.Untrack(process);
         }
     }
 }

@@ -77,7 +77,7 @@ public partial class WinGet : Singleton<WinGet>
             }
             finally
             {
-                ChildProcessTracker.Instance.Untrack(process);
+                ChildProcessTracker.Untrack(process);
             }
         }
         catch (Exception ex)
@@ -127,7 +127,7 @@ public partial class WinGet : Singleton<WinGet>
             }
             finally
             {
-                ChildProcessTracker.Instance.Untrack(process);
+                ChildProcessTracker.Untrack(process);
             }
         }
         catch (Exception ex)

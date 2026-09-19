@@ -444,7 +444,7 @@ internal static class BgUtilPotProvider
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
-        ChildProcessTracker.Instance.Untrack(process);
+        ChildProcessTracker.Untrack(process);
         try
         {
             if (HasProcessExited(process)) return;
@@ -539,7 +539,7 @@ internal static class BgUtilPotProvider
         }
         finally
         {
-            ChildProcessTracker.Instance.Untrack(process);
+            ChildProcessTracker.Untrack(process);
         }
     }
 

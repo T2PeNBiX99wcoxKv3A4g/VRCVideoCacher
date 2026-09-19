@@ -641,7 +641,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             }
             finally
             {
-                ChildProcessTracker.Instance.Untrack(process);
+                ChildProcessTracker.Untrack(process);
             }
         }
         catch (Exception ex)
