@@ -53,14 +53,10 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         };
 
         var length = Marshal.SizeOf<JobObjectExtendedLimitInformation>();
-        var extendedInfoPtr = Marshal.AllocHGlobal(length);
 
         try
         {
-            Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
-
-            if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr,
-                    (uint)length))
+            if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, ref extendedInfo, (uint)length))
             {
                 Log.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastWin32Error());
                 return;
@@ -79,8 +75,6 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         }
         finally
         {
-            Marshal.FreeHGlobal(extendedInfoPtr);
-
             if (jobHandle != IntPtr.Zero && !CloseHandle(jobHandle))
                 Log.Debug("CloseHandle failed with error {Error}", Marshal.GetLastWin32Error());
         }
@@ -196,7 +190,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetInformationJobObject(IntPtr hJob, JobObjectInfoType jobObjectInformationClass,
-        IntPtr lpJobObjectInformation, uint cbJobObjectInformationLength);
+        ref JobObjectExtendedLimitInformation lpJobObjectInformation, uint cbJobObjectInformationLength);
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
