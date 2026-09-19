@@ -3,17 +3,14 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using Serilog;
 using Valve.VR;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public class OpenVRService
+public class OpenVRService : Singleton<OpenVRService>
 {
-    private static readonly ILogger Logger = Program.Logger.ForContext<OpenVRService>();
-
-    public static void Start(string dataPath)
+    public void Start(string dataPath)
     {
         if (!LaunchArgs.OVR)
             return;
@@ -40,20 +37,20 @@ public class OpenVRService
                             var manifestError = OpenVR.Applications.AddApplicationManifest(manifestPath, false);
                             if (manifestError != EVRApplicationError.None)
                             {
-                                Logger.Warning("Failed to register startup manifest: {Error}", manifestError);
+                                Log.Warning("Failed to register startup manifest: {Error}", manifestError);
                             }
                             else
                             {
                                 if (OpenVR.Applications.IsApplicationInstalled("com.github.ellyvr.vrcvideocacher"))
                                 {
-                                    Logger.Information("Startup manifest registered successfully");
+                                    Log.Information("Startup manifest registered successfully");
 
-                                    Logger.Information("{AutoLaunchState} steamvr auto-launch", ConfigManager.Config.StartWithSteamVr ? "Enabling" : "Disabling");
+                                    Log.Information("{AutoLaunchState} steamvr auto-launch", ConfigManager.Config.StartWithSteamVr ? "Enabling" : "Disabling");
                                     OpenVR.Applications.SetApplicationAutoLaunch("com.github.ellyvr.vrcvideocacher", ConfigManager.Config.StartWithSteamVr);
                                 }
                                 else
                                 {
-                                    Logger.Warning("Failed to register startup manifest");
+                                    Log.Warning("Failed to register startup manifest");
                                 }
                             }
                             if (LaunchArgs.CloseWithSteamVr || true)
@@ -67,13 +64,13 @@ public class OpenVRService
                             retry = true;
                             break;
                         default:
-                            Logger.Information("Not available: {Error}", initError);
+                            Log.Information("Not available: {Error}", initError);
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warning("Exception during init: {Msg}", ex.Message);
+                    Log.Warning("Exception during init: {Msg}", ex.Message);
                     return;
                 }
 
@@ -83,14 +80,14 @@ public class OpenVRService
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warning("Exception during shutdown: {Msg}", ex.Message);
+                    Log.Warning("Exception during shutdown: {Msg}", ex.Message);
                     return;
                 }
             }
         });
     }
 
-    private static async Task PollEventsUntilQuit()
+    private async Task PollEventsUntilQuit()
     {
         var vrEvent = new VREvent_t();
         var eventSize = (uint)Marshal.SizeOf<VREvent_t>();
@@ -102,7 +99,7 @@ public class OpenVRService
 
             if (OpenVR.System == null)
             {
-                Logger.Warning("OpenVR system became unavailable, assuming SteamVR closed");
+                Log.Warning("OpenVR system became unavailable, assuming SteamVR closed");
                 quitApp = true;
             }
             else
@@ -111,7 +108,7 @@ public class OpenVRService
                 {
                     if ((EVREventType)vrEvent.eventType == EVREventType.VREvent_Quit)
                     {
-                        Logger.Information("Received VREvent_Quit, shutting down");
+                        Log.Information("Received VREvent_Quit, shutting down");
                         quitApp = true;
                     }
                 }

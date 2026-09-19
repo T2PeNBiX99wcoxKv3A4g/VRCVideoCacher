@@ -25,7 +25,7 @@ public class ApiController : WebApiController
         }
     };
 
-    private static int YoutubePrefetchMaxRetries => VvcConfigService.CurrentConfig.RetryCount;
+    private static int YoutubePrefetchMaxRetries => VvcConfigService.Instance.CurrentConfig.RetryCount;
 
     [Route(HttpVerbs.Post, "/youtube-cookies")]
     [PublicAPI]
@@ -272,14 +272,14 @@ public class ApiController : WebApiController
             videoInfo.VideoUrl.StartsWith("https://manifest.googlevideo.com") ||
             videoInfo.VideoUrl.Contains("googlevideo.com"))
         {
-            var isPrefetchSuccessful = await VideoTools.Prefetch(response, YoutubePrefetchMaxRetries);
+            var isPrefetchSuccessful = await VideoTools.Instance.Prefetch(response, YoutubePrefetchMaxRetries);
 
             if (!isPrefetchSuccessful && avPro)
             {
                 Log.Warning("Prefetch failed with AVPro, retrying without AVPro.");
                 avPro = false;
                 (response, _) = await VideoId.GetUrl(videoInfo, avPro);
-                await VideoTools.Prefetch(response, YoutubePrefetchMaxRetries);
+                await VideoTools.Instance.Prefetch(response, YoutubePrefetchMaxRetries);
             }
         }
 

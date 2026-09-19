@@ -1,13 +1,11 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
-using Serilog;
 
 namespace VRCVideoCacher.Utils;
 
-public class WinGet
+public class WinGet : Singleton<WinGet>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<WinGet>();
     private static readonly string WingetPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\WindowsApps\winget.exe");
     private static readonly Dictionary<string, string> WingetPackages = new()
     {
@@ -21,7 +19,7 @@ public class WinGet
     };
 
     [SupportedOSPlatform("windows")]
-    public static async Task TryInstallPackages()
+    public async Task TryInstallPackages()
     {
         Log.Information("Checking for missing codec packages...");
         if (!IsOurPackagesInstalled())
@@ -31,7 +29,7 @@ public class WinGet
         }
     }
 
-    private static bool IsOurPackagesInstalled()
+    private bool IsOurPackagesInstalled()
     {
         foreach (var package in WingetPackages.Values)
         {
@@ -45,7 +43,7 @@ public class WinGet
         return true;
     }
 
-    private static bool IsPackageInstalled(string packageId)
+    private bool IsPackageInstalled(string packageId)
     {
         try
         {
@@ -82,7 +80,7 @@ public class WinGet
         }
     }
 
-    private static async Task InstallAllPackages()
+    private async Task InstallAllPackages()
     {
         foreach (var package in WingetPackages.Values)
         {
@@ -90,7 +88,7 @@ public class WinGet
         }
     }
 
-    private static async Task InstallPackage(string packageId)
+    private async Task InstallPackage(string packageId)
     {
         try
         {

@@ -5,14 +5,13 @@ using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Semver;
-using Serilog;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public class Updater
+public class Updater : Singleton<Updater>
 {
     private const string UpdateUrl = "https://api.github.com/repos/EllyVR/VRCVideoCacher/releases/latest";
 #if DEBUG
@@ -21,7 +20,7 @@ public class Updater
     private const bool IsDebug = false;
 #endif
 
-    private static readonly HttpClient HttpClient = new()
+    private readonly HttpClient _httpClient = new()
     {
         DefaultRequestHeaders =
         {
@@ -31,7 +30,6 @@ public class Updater
         }
     };
 
-    private static readonly ILogger Log = Program.Logger.ForContext<Updater>();
     private static readonly string FileName = OperatingSystem.IsWindows() ? "VRCVideoCacher.exe" : "VRCVideoCacher";
     private static readonly string FilePath = Path.Join(Program.CurrentProcessPath, FileName);
     private static readonly string BackupFilePath = Path.Join(Program.CurrentProcessPath, "VRCVideoCacher.bkp");
@@ -40,7 +38,7 @@ public class Updater
         OperatingSystem.IsWindows() ? "VRCVideoCacher.Temp.exe" : "VRCVideoCacher.Temp");
 
     [PublicAPI]
-    public static async Task CheckForUpdates()
+    public async Task CheckForUpdates()
     {
         Log.Information("Checking for updates...");
 
@@ -53,7 +51,7 @@ public class Updater
         using var request = new HttpRequestMessage(HttpMethod.Get, UpdateUrl);
         if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ConfigManager.Config.GitHubToken.Trim());
-        using var response = await HttpClient.SendAsync(request);
+        using var response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             Log.Warning("Failed to check for updates.");
@@ -88,14 +86,14 @@ public class Updater
             "Auto Update is disabled. Please update manually from the releases page. https://github.com/EllyVR/VRCVideoCacher/releases");
     }
 
-    public static void Cleanup()
+    public void Cleanup()
     {
         if (!File.Exists(BackupFilePath)) return;
         Log.Information("Leftover temp file found, deleting.");
         File.Delete(BackupFilePath);
     }
 
-    private static async Task UpdateAsync(GitHubRelease release)
+    private async Task UpdateAsync(GitHubRelease release)
     {
         foreach (var asset in release.assets.Where(asset => asset.name == FileName))
             try
@@ -108,7 +106,7 @@ public class Updater
 
                 using var activity = StatusService.Begin(StatusCategory.Provisioning,
                     Localizer.Get("StatusUpdatingApp"));
-                using var response = await HttpClient.GetAsync(asset.browser_download_url,
+                using var response = await _httpClient.GetAsync(asset.browser_download_url,
                     HttpCompletionOption.ResponseHeadersRead);
                 await using var stream = new ProgressStream(
                     await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength, activity.Report);
@@ -155,7 +153,7 @@ public class Updater
             }
     }
 
-    private static async Task<bool> HashCheck(string githubHash)
+    private async Task<bool> HashCheck(string githubHash)
     {
         using var sha256 = SHA256.Create();
         await using var stream = File.Open(TempFilePath, FileMode.Open);
@@ -168,7 +166,7 @@ public class Updater
         return hashMatches;
     }
 
-    private static bool FilesHashMatch(string pathA, string pathB)
+    private bool FilesHashMatch(string pathA, string pathB)
     {
         using var sha = SHA256.Create();
         using var a = File.OpenRead(pathA);
@@ -181,7 +179,7 @@ public class Updater
         return match;
     }
 
-    public static bool RunUpdateHandler()
+    public bool RunUpdateHandler()
     {
         if (LaunchArgs.OldPid == null)
         {

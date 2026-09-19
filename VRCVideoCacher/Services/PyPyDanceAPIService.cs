@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
@@ -31,19 +31,18 @@ internal partial class PyPyDanceBundleContext : JsonSerializerContext
 {
 }
 
-public class PyPyDanceApiService
+public class PyPyDanceApiService : Singleton<PyPyDanceApiService>
 {
     private const string PyPyDanceApiUrl = "https://api.pypy.dance/bundle";
-    private static readonly ILogger Logger = Program.Logger.ForContext<PyPyDanceApiService>();
-    private static DateTime _lastFetch = DateTime.MinValue;
-    private static List<PyPyDanceSong> _songs = [];
-    private static readonly HttpClient HttpClient = new()
+    private DateTime _lastFetch = DateTime.MinValue;
+    private List<PyPyDanceSong> _songs = [];
+    private readonly HttpClient _httpClient = new()
     {
         DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher {Program.Version}" } },
         Timeout = TimeSpan.FromSeconds(10)
     };
 
-    private static async Task<PyPyDanceSong?> GetVideoInfo(int? videoId)
+    private async Task<PyPyDanceSong?> GetVideoInfo(int? videoId)
     {
         if (videoId == 0 || videoId == null)
             return null;
@@ -61,16 +60,16 @@ public class PyPyDanceApiService
         }
     }
 
-    private static async Task FetchBundle()
+    private async Task FetchBundle()
     {
         _lastFetch = DateTime.Now;
-        var req = await HttpClient.GetStringAsync(PyPyDanceApiUrl);
+        var req = await _httpClient.GetStringAsync(PyPyDanceApiUrl);
         var bundle = JsonSerializer.Deserialize(req, PyPyDanceBundleContext.Default.PyPyDanceBundle);
         if (bundle?.Songs != null)
             _songs = bundle.Songs;
     }
 
-    public static async Task DownloadMetadata(int idInt, string videoId)
+    public async Task DownloadMetadata(int idInt, string videoId)
     {
         try
         {
@@ -95,7 +94,7 @@ public class PyPyDanceApiService
         }
         catch (Exception ex)
         {
-            Logger.Error("Failed to download video metadata: {Ex}", ex.ToString());
+            Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
         }
     }
 }

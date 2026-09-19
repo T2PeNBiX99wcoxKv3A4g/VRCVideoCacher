@@ -38,7 +38,7 @@ public class PyPyDanceHandler : ISiteHandler
                 return null;
             }
 
-            _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
+            _ = Task.Run(async () => await PyPyDanceApiService.Instance.DownloadMetadata(idInt, videoId));
 
             return new()
             {

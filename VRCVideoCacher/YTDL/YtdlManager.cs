@@ -140,7 +140,7 @@ public class YtdlManager
         while (true)
         {
             await Task.Delay(interval);
-            await VvcConfigService.GetConfig();
+            await VvcConfigService.Instance.GetConfig();
             await TryDownloadYtdlp();
         }
         // ReSharper disable once FunctionNeverReturns

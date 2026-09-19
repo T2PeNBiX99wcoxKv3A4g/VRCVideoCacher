@@ -1,16 +1,14 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using Serilog;
 using VRCVideoCacher.API;
 
 namespace VRCVideoCacher.Utils;
 
-public class ElevatorManager
+public class ElevatorManager : Singleton<ElevatorManager>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<ElevatorManager>();
-    public static bool HasHostsLine = HostsManager.IsHostAdded();
+    public bool HasHostsLine = HostsManager.Instance.IsHostAdded();
 
-    private static readonly bool InPressureVessel = Directory.Exists("/run/pressure-vessel");
+    private readonly bool _inPressureVessel = Directory.Exists("/run/pressure-vessel");
 
     private static string? FindLaunchClient()
     {
@@ -30,16 +28,16 @@ public class ElevatorManager
         var paths = new[] { $"/usr/bin/{name}", $"/bin/{name}", $"/usr/local/bin/{name}" };
         foreach (var p in paths)
         {
-            var check = InPressureVessel ? $"/run/host{p}" : p;
+            var check = Directory.Exists("/run/pressure-vessel") ? $"/run/host{p}" : p;
             if (File.Exists(check)) return p;
         }
         return null;
     }
 
-    private static Process? MakeLinuxElevatedProcess(string flag)
+    private Process? MakeLinuxElevatedProcess(string flag)
     {
-        var launchClient = InPressureVessel ? FindLaunchClient() : null;
-        Log.Debug("InPressureVessel={InPressureVessel} launch-client={LC}", InPressureVessel, launchClient ?? "n/a");
+        var launchClient = _inPressureVessel ? FindLaunchClient() : null;
+        Log.Debug("InPressureVessel={InPressureVessel} launch-client={LC}", _inPressureVessel, launchClient ?? "n/a");
 
         var appPath = Environment.ProcessPath!;
 
@@ -67,7 +65,7 @@ public class ElevatorManager
         ];
         foreach (var askpass in askpassCandidates)
         {
-            var check = InPressureVessel ? $"/run/host{askpass}" : askpass;
+            var check = _inPressureVessel ? $"/run/host{askpass}" : askpass;
             if (!File.Exists(check)) continue;
             Log.Debug("Using sudo -A with askpass: {Askpass}", askpass);
             var psi = MakeStartInfo("/usr/bin/sudo", $"-A {appPath} {flag}");
@@ -94,7 +92,7 @@ public class ElevatorManager
         return null;
     }
 
-    public static void ToggleHostLine()
+    public void ToggleHostLine()
     {
         if (HasHostsLine)
             RemoveHostFile();
@@ -102,7 +100,7 @@ public class ElevatorManager
             AddHostFile();
     }
 
-    private static void AddHostFile()
+    private void AddHostFile()
     {
         Process? proc;
         if (OperatingSystem.IsWindows())
@@ -130,7 +128,7 @@ public class ElevatorManager
 
         proc.WaitForExit();
 
-        if (HostsManager.IsHostAdded())
+        if (HostsManager.Instance.IsHostAdded())
         {
             Log.Information("Host entry added successfully.");
             HasHostsLine = true;
@@ -144,7 +142,7 @@ public class ElevatorManager
         }
     }
 
-    private static void RemoveHostFile()
+    private void RemoveHostFile()
     {
         Process? proc;
         if (OperatingSystem.IsWindows())
@@ -172,7 +170,7 @@ public class ElevatorManager
 
         proc.WaitForExit();
 
-        if (!HostsManager.IsHostAdded())
+        if (!HostsManager.Instance.IsHostAdded())
         {
             Log.Information("Host entry removed successfully.");
             HasHostsLine = false;

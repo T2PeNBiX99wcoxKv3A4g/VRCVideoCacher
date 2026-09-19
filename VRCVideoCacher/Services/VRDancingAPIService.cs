@@ -1,29 +1,28 @@
 ﻿using Newtonsoft.Json;
-using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public class VRDancingAPIService
+public class VRDancingAPIService : Singleton<VRDancingAPIService>
 {
     private const string VRDancingAPIBaseURL = "https://dbapi.vrdancing.club/";
-    private static readonly ILogger Logger = Program.Logger.ForContext<VRDancingAPIService>();
-    private static readonly HttpClient HttpClient = new()
+    private readonly HttpClient _httpClient = new()
     {
         BaseAddress = new(VRDancingAPIBaseURL),
         DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher {Program.Version}" } },
         Timeout = TimeSpan.FromSeconds(10)
     };
 
-    private static async Task<VRDSongInfo?> GetVideoInfo(string code)
+    private async Task<VRDSongInfo?> GetVideoInfo(string code)
     {
-        var req = await HttpClient.GetAsync($"/api/v1/public/getsong?code={code}");
+        var req = await _httpClient.GetAsync($"/api/v1/public/getsong?code={code}");
         var str = await req.Content.ReadAsStringAsync();
         return JsonConvert.DeserializeObject<VRDSongInfo>(str);
     }
 
-    public static async Task DownloadMetadata(string code, string videoId)
+    public async Task DownloadMetadata(string code, string videoId)
     {
         try
         {
@@ -42,7 +41,7 @@ public class VRDancingAPIService
         }
         catch (Exception ex)
         {
-            Logger.Error("Failed to download video metadata: {Ex}", ex.ToString());
+            Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
         }
     }
 }

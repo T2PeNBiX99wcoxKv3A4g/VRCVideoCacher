@@ -1,13 +1,12 @@
-﻿using Serilog;
+﻿using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public class VideoTools
+public class VideoTools : Singleton<VideoTools>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<VideoTools>();
-    private static readonly HttpClient HttpClient = new();
+    private readonly HttpClient _httpClient = new();
 
-    public static async Task<bool> Prefetch(string videoUrl, int maxRetryCount = 7)
+    public async Task<bool> Prefetch(string videoUrl, int maxRetryCount = 7)
     {
         // If the URL is invalid, skip prefetching
         if (string.IsNullOrWhiteSpace(videoUrl) || !Uri.IsWellFormedUriString(videoUrl, UriKind.RelativeOrAbsolute))
@@ -24,7 +23,7 @@ public class VideoTools
         // - Use GET for M3U8 to extract the direct stream URL
         string? firstM3U8Url = null;
         using var prefetchRequest = new HttpRequestMessage(isM3U8 ? HttpMethod.Get : HttpMethod.Head, videoUrl);
-        using var prefetchResponse = await HttpClient.SendAsync(prefetchRequest);
+        using var prefetchResponse = await _httpClient.SendAsync(prefetchRequest);
         Log.Information("Video prefetch request returned status code {status}.", (int)prefetchResponse.StatusCode);
 
         if (prefetchRequest.Method == HttpMethod.Get && prefetchResponse.Content.Headers.ContentType?.MediaType == "application/vnd.apple.mpegurl")
@@ -42,7 +41,7 @@ public class VideoTools
         for (var i = 0; i < maxRetryCount; i++)
         {
             using var m3u8Request = new HttpRequestMessage(HttpMethod.Head, firstM3U8Url);
-            using var m3u8Response = await HttpClient.SendAsync(m3u8Request);
+            using var m3u8Response = await _httpClient.SendAsync(m3u8Request);
             statusCode = (int)m3u8Response.StatusCode;
 
             if (statusCode >= 400)

@@ -44,7 +44,7 @@ internal sealed class Program
     {
         LaunchArgs.SetupArguments(args);
         // Must run before Steam API init — this process may be a privileged subprocess invoked by ElevatorManager
-        HostsManager.TryRun();
+        HostsManager.Instance.TryRun();
 
 #if STEAMRELEASE
         if (LaunchArgs.SteamSdk)
@@ -66,7 +66,7 @@ internal sealed class Program
         }
 #endif
 
-        if (Updater.RunUpdateHandler())
+        if (Updater.Instance.RunUpdateHandler())
         {
             Environment.Exit(0);
             return;
@@ -164,7 +164,7 @@ internal sealed class Program
             /* GUI mode, no console */
         }
 
-        OpenVRService.Start(CurrentProcessPath);
+        OpenVRService.Instance.Start(CurrentProcessPath);
 
         // Surface a fixed-port (9696) conflict up front — with the offending process — before WebServer
         // throws an opaque bind error. Reassignable ports (bgutil) handle themselves when they start.
@@ -173,9 +173,9 @@ internal sealed class Program
         // so the updater would consider mainline "newer" and overwrite the test build. Never self-update
         // a feature-branch build.
 #if !STEAMRELEASE && !SABRRELEASE
-        await Updater.CheckForUpdates();
+        await Updater.Instance.CheckForUpdates();
 #endif
-        Updater.Cleanup();
+        Updater.Instance.Cleanup();
         if (Environment.CommandLine.Contains("--Reset"))
         {
             FileTools.RestoreAllYtdl();
@@ -193,7 +193,7 @@ internal sealed class Program
         Console.CancelKeyPress += (_, _) => Environment.Exit(0);
         AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAppQuit();
 
-        await VvcConfigService.GetConfig();
+        await VvcConfigService.Instance.GetConfig();
         if (ConfigManager.Config.YtdlpAutoUpdate && !LaunchArgs.UseGlobalPath)
         {
             await Task.WhenAll(
@@ -217,7 +217,7 @@ internal sealed class Program
             AutoStartShortcut.Instance.TryUpdateShortcutPath();
         WebServer.Init();
         FileTools.BackupAllYtdl();
-        await BulkPreCache.DownloadFileList();
+        await BulkPreCache.Instance.DownloadFileList();
 
         if (ConfigManager.Config.YtdlpUseCookies && !IsCookiesEnabledAndValid())
             Logger.Warning(
@@ -227,7 +227,7 @@ internal sealed class Program
 
         // run after init to avoid text spam blocking user input
         if (OperatingSystem.IsWindows())
-            _ = WinGet.TryInstallPackages();
+            _ = WinGet.Instance.TryInstallPackages();
 
         await Task.Delay(-1);
     }

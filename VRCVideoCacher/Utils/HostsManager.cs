@@ -1,18 +1,14 @@
-﻿using Serilog;
+﻿namespace VRCVideoCacher.Utils;
 
-namespace VRCVideoCacher.Utils;
-
-public class HostsManager
+public class HostsManager : Singleton<HostsManager>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<HostsManager>();
-
     private static readonly string Header = $"{Environment.NewLine}# ----- BEGIN VRCVIDEOCACHER -----{Environment.NewLine}";
     private static readonly string Footer = $"{Environment.NewLine}# ----- END VRCVIDEOCACHER -----{Environment.NewLine}";
     private static readonly string HostsPath = OperatingSystem.IsWindows()
         ? $"{Environment.GetFolderPath(Environment.SpecialFolder.System)}/drivers/etc/hosts"
         : "/etc/hosts";
 
-    public static void TryRun()
+    public void TryRun()
     {
         if (Environment.CommandLine.Contains("--addhost"))
         {
@@ -44,7 +40,7 @@ public class HostsManager
         }
     }
 
-    private static void Add()
+    private void Add()
     {
         CreateHostsIfNotExists();
         var hostsFile = File.ReadAllText(HostsPath);
@@ -55,7 +51,7 @@ public class HostsManager
             $"{Header}127.0.0.1 localhost.youtube.com{Footer}");
     }
 
-    private static void Remove()
+    private void Remove()
     {
         CreateHostsIfNotExists();
         var hostsFile = File.ReadAllText(HostsPath);
@@ -68,7 +64,7 @@ public class HostsManager
         File.WriteAllText(HostsPath, newHostsFile);
     }
 
-    public static bool IsHostAdded()
+    public bool IsHostAdded()
     {
         if (!File.Exists(HostsPath))
             return false;
@@ -77,7 +73,7 @@ public class HostsManager
         return hostsFile.Contains(Header);
     }
 
-    private static void CreateHostsIfNotExists()
+    private void CreateHostsIfNotExists()
     {
         if (!File.Exists(HostsPath))
         {

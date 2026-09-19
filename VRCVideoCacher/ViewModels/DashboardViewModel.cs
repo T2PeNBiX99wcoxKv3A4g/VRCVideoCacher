@@ -67,14 +67,14 @@ public partial class DashboardViewModel : ViewModelBase
     {
         ServerUrl = ConfigManager.Config.YtdlpWebServerUrl;
         MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
-        HostState = ElevatorManager.HasHostsLine;
+        HostState = ElevatorManager.Instance.HasHostsLine;
 
         Tools = [_ytdlpTool, _ffmpegTool, _denoTool, _potTool, _opusTool];
 
         // Initial data load
         RefreshData();
 
-        Motd = VvcConfigService.CurrentConfig.Motd;
+        Motd = VvcConfigService.Instance.CurrentConfig.Motd;
 
         // Subscribe to language changes to refresh localized strings
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedStrings);
@@ -86,7 +86,7 @@ public partial class DashboardViewModel : ViewModelBase
         VideoDownloader.OnQueueChanged += OnQueueChanged;
         ConfigManager.OnConfigChanged += OnConfigChanged;
         Program.OnCookiesUpdated += OnCookiesUpdated;
-        VvcConfigService.OnApiConfigChanged += OnApiConfigChanged;
+        VvcConfigService.Instance.OnApiConfigChanged += OnApiConfigChanged;
 
         // Reflect tool downloads live: mark a tool "downloading" while its activity is active, and
         // re-verify it the moment the download finishes.
@@ -114,7 +114,7 @@ public partial class DashboardViewModel : ViewModelBase
         // (MarkdownText renders it as inlines), so this must happen on the UI thread.
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var newMotd = VvcConfigService.CurrentConfig.Motd;
+            var newMotd = VvcConfigService.Instance.CurrentConfig.Motd;
 #if DEBUG
             if (string.IsNullOrEmpty(newMotd))
                 newMotd = "Test Motd";
@@ -316,8 +316,8 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleHost()
     {
-        ElevatorManager.ToggleHostLine();
-        Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.HasHostsLine; });
+        ElevatorManager.Instance.ToggleHostLine();
+        Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.Instance.HasHostsLine; });
     }
 
     private void RefreshCacheStats()

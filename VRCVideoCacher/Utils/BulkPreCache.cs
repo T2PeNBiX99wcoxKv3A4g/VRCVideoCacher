@@ -1,12 +1,10 @@
 using Newtonsoft.Json;
-using Serilog;
 
 namespace VRCVideoCacher.Utils;
 
-public class BulkPreCache
+public class BulkPreCache : Singleton<BulkPreCache>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<BulkPreCache>();
-    private static readonly HttpClient HttpClient = new()
+    private readonly HttpClient _httpClient = new()
     {
         DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
     };
@@ -28,11 +26,11 @@ public class BulkPreCache
         public string FilePath => Path.Join(CacheManager.CachePath, FileName);
     }
 
-    public static async Task DownloadFileList()
+    public async Task DownloadFileList()
     {
         foreach (var url in ConfigManager.Config.PreCacheUrls)
         {
-            using var response = await HttpClient.GetAsync(url);
+            using var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
                 Log.Information("Failed to download {Url}: {ResponseStatusCode}", url, response.StatusCode);
@@ -51,7 +49,7 @@ public class BulkPreCache
         }
     }
 
-    private static async Task DownloadVideos(List<DownloadInfo> files)
+    private async Task DownloadVideos(List<DownloadInfo> files)
     {
         var fileCount = files.Count;
         for (var index = 0; index < files.Count; index++)
@@ -90,9 +88,9 @@ public class BulkPreCache
         }
     }
 
-    private static async Task DownloadFile(DownloadInfo fileInfo)
+    private async Task DownloadFile(DownloadInfo fileInfo)
     {
-        using var response = await HttpClient.GetAsync(fileInfo.Url);
+        using var response = await _httpClient.GetAsync(fileInfo.Url);
         if (!response.IsSuccessStatusCode)
         {
             Log.Information("Failed to download {Url}: {ResponseStatusCode}", fileInfo.Url, response.StatusCode);

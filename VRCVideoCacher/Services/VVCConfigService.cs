@@ -1,30 +1,25 @@
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Serilog;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public class VvcConfigService
+public class VvcConfigService : Singleton<VvcConfigService>
 {
-    private static readonly HttpClient HttpClient;
-
-    [PublicAPI] public static readonly ILogger Logger = Log.ForContext<VvcConfigService>();
-
-    static VvcConfigService()
+    private readonly HttpClient _httpClient = new()
     {
-        HttpClient = new();
-        HttpClient.DefaultRequestHeaders.Add("User-Agent", $"VRCVideoCacher v{Program.Version}");
-    }
+        DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher v{Program.Version}" } }
+    };
 
-    public static VvcConfig CurrentConfig { get; private set; } = new();
-    public static event Action? OnApiConfigChanged;
+    public VvcConfig CurrentConfig { get; private set; } = new();
+    public event Action? OnApiConfigChanged;
 
-    public static async Task GetConfig()
+    public async Task GetConfig()
     {
         try
         {
-            var req = await HttpClient.GetAsync("https://vvc.ellyvr.dev/api/v1/config");
+            var req = await _httpClient.GetAsync("https://vvc.ellyvr.dev/api/v1/config");
             if (req.IsSuccessStatusCode)
             {
                 var deserialized = JsonConvert.DeserializeObject<VvcConfig>(await req.Content.ReadAsStringAsync());
@@ -37,7 +32,7 @@ public class VvcConfigService
         }
         catch (Exception ex)
         {
-            Logger.Warning(ex, "Failed to get config from Video Cacher API.");
+            Log.Warning(ex, "Failed to get config from Video Cacher API.");
         }
     }
 }

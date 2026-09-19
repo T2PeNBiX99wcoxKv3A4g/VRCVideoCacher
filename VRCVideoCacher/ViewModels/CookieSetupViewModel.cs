@@ -90,7 +90,7 @@ public partial class CookieSetupViewModel : ViewModelBase
     {
         Program.OnCookiesUpdated += OnCookiesUpdated;
         CookiesReceived = Program.IsCookiesEnabledAndValid();
-        _hostState = ElevatorManager.HasHostsLine;
+        _hostState = ElevatorManager.Instance.HasHostsLine;
 
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedComputedProperties);
         DontShowAgainChecked = false;
@@ -178,10 +178,10 @@ public partial class CookieSetupViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleHost()
     {
-        ElevatorManager.ToggleHostLine();
+        ElevatorManager.Instance.ToggleHostLine();
         Dispatcher.UIThread.Post(() =>
         {
-            HostState = ElevatorManager.HasHostsLine;
+            HostState = ElevatorManager.Instance.HasHostsLine;
             OnPropertyChanged(nameof(HostButtonText));
             OnPropertyChanged(nameof(HostStatusText));
             OnPropertyChanged(nameof(HostStatusIcon));
