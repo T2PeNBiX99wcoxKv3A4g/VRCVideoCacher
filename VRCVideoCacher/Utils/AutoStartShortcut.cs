@@ -151,7 +151,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
         ];
     }
 
-    private bool IsShortcutFile(string filePath)
+    private static bool IsShortcutFile(string filePath)
     {
         var headerBytes = new byte[4];
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
