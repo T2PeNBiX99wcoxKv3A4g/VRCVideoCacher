@@ -29,26 +29,19 @@ public sealed class SingletonStaticProxyAttribute : Attribute
 /// Customizes the static proxy name for a specific member, or overrides the default naming rule.
 /// </summary>
 [PublicAPI]
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event, Inherited = false)]
-public sealed class StaticMemberAttribute : Attribute
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
+    Inherited = false)]
+public sealed class StaticMemberAttribute(string name) : Attribute
 {
-    public string? Name { get; set; }
-
-    public StaticMemberAttribute()
-    {
-    }
-
-    public StaticMemberAttribute(string name)
-    {
-        Name = name;
-    }
+    public string? Name { get; set; } = name;
 }
 
 /// <summary>
 /// Explicitly includes a non-public (or public) member to generate a static proxy.
 /// </summary>
 [PublicAPI]
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event, Inherited = false)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
+    Inherited = false)]
 public sealed class StaticIncludeAttribute : Attribute
 {
     public string? Name { get; set; }
@@ -57,17 +50,15 @@ public sealed class StaticIncludeAttribute : Attribute
     {
     }
 
-    public StaticIncludeAttribute(string name)
-    {
-        Name = name;
-    }
+    public StaticIncludeAttribute(string name) => Name = name;
 }
 
 /// <summary>
 /// Ignores generating a static proxy for this specific member.
 /// </summary>
 [PublicAPI]
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event, Inherited = false)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
+    Inherited = false)]
 public sealed class StaticIgnoreAttribute : Attribute
 {
 }
