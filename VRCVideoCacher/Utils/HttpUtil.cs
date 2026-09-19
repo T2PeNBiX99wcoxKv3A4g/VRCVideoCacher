@@ -1,9 +1,14 @@
 ﻿namespace VRCVideoCacher.Utils;
 
-public class HttpUtil
+public static class HttpUtil
 {
     internal static readonly HttpClient HttpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
     };
 }
