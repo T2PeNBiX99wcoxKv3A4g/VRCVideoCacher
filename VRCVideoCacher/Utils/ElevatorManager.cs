@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using VRCVideoCacher.API;
 
 namespace VRCVideoCacher.Utils;

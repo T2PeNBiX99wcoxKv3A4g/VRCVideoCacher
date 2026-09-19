@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace VRCVideoCacher.Utils;
+﻿namespace VRCVideoCacher.Utils;
 
 public partial class HostsManager : Singleton<HostsManager>
 {
