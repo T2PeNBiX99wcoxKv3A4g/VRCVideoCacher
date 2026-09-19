@@ -69,7 +69,7 @@ public class ConfigManager
         if (infoLog)
             Log.Information("Config saved.");
         OnConfigChanged?.Invoke();
-        CacheManager.TryFlushCache();
+        CacheManager.Instance.TryFlushCache();
     }
 
     public static void TrySaveConfigWithoutWait(bool infoLog = true) => Task.Run(() => TrySaveConfig(infoLog));

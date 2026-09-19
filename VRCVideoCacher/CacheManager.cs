@@ -3,6 +3,7 @@ using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
@@ -13,13 +14,12 @@ public enum CacheChangeType
     Cleared
 }
 
-public class CacheManager
+public class CacheManager : Singleton<CacheManager>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<CacheManager>();
-    private static readonly ConcurrentDictionary<string, VideoCache> CachedAssets = new();
-    public static readonly string CachePath;
+    private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
+    public readonly string CachePath;
 
-    static CacheManager()
+    public CacheManager()
     {
         if (string.IsNullOrEmpty(ConfigManager.Config.CachedAssetPath))
             CachePath = Path.Join(GetSystemCacheFolder(), "CachedAssets");
@@ -30,6 +30,7 @@ public class CacheManager
 
         Log.Debug("Using cache path {CachePath}", CachePath);
         BuildCache();
+        TryFlushCache();
     }
 
     // Events for UI
@@ -47,14 +48,9 @@ public class CacheManager
         return Path.Join(cachePath, "VRCVideoCacher");
     }
 
-    public static void Init()
+    private void BuildCache()
     {
-        TryFlushCache();
-    }
-
-    private static void BuildCache()
-    {
-        CachedAssets.Clear();
+        _cachedAssets.Clear();
         Directory.CreateDirectory(CachePath);
         var files = Directory.GetFiles(CachePath);
         foreach (var path in files)
@@ -64,7 +60,7 @@ public class CacheManager
         }
     }
 
-    public static void TryFlushCache()
+    public void TryFlushCache()
     {
         if (ConfigManager.Config.CacheMaxSizeInGb <= 0f)
             return;
@@ -75,7 +71,7 @@ public class CacheManager
             return;
 
         var recentPlayHistory = DatabaseManager.GetPlayHistory();
-        var oldestFiles = CachedAssets.OrderBy(x => x.Value.LastModified).ToList();
+        var oldestFiles = _cachedAssets.OrderBy(x => x.Value.LastModified).ToList();
         while (cacheSize >= maxCacheSize && oldestFiles.Count > 0)
         {
             var oldestFile = oldestFiles.First();
@@ -95,12 +91,12 @@ public class CacheManager
                 }
             }
 
-            CachedAssets.TryRemove(oldestFile.Key, out _);
+            _cachedAssets.TryRemove(oldestFile.Key, out _);
             oldestFiles.RemoveAt(0);
         }
     }
 
-    public static void AddToCache(string fileName)
+    public void AddToCache(string fileName)
     {
         var filePath = Path.Join(CachePath, fileName);
         if (!File.Exists(filePath))
@@ -114,7 +110,7 @@ public class CacheManager
             LastModified = fileInfo.LastWriteTimeUtc
         };
 
-        var existingCache = CachedAssets.GetOrAdd(videoCache.FileName, videoCache);
+        var existingCache = _cachedAssets.GetOrAdd(videoCache.FileName, videoCache);
         existingCache.Size = fileInfo.Length;
         existingCache.LastModified = fileInfo.LastWriteTimeUtc;
 
@@ -122,35 +118,35 @@ public class CacheManager
         TryFlushCache();
     }
 
-    private static long GetCacheSize()
+    private long GetCacheSize()
     {
-        return CachedAssets.Sum(cache => cache.Value.Size);
+        return _cachedAssets.Sum(cache => cache.Value.Size);
     }
 
     // Public accessors for UI
-    public static IReadOnlyDictionary<string, VideoCache> GetCachedAssets()
-        => CachedAssets.ToDictionary(k => k.Key, v => v.Value);
+    public IReadOnlyDictionary<string, VideoCache> GetCachedAssets()
+        => _cachedAssets.ToDictionary(k => k.Key, v => v.Value);
 
-    public static long GetTotalCacheSize() => GetCacheSize();
+    public long GetTotalCacheSize() => GetCacheSize();
 
-    public static int GetCachedVideoCount() => CachedAssets.Count;
+    public int GetCachedVideoCount() => _cachedAssets.Count;
 
-    public static void DeleteCacheItem(string fileName)
+    public void DeleteCacheItem(string fileName)
     {
         var filePath = Path.Join(CachePath, fileName);
         if (!File.Exists(filePath))
             return;
 
         File.Delete(filePath);
-        CachedAssets.TryRemove(fileName, out _);
+        _cachedAssets.TryRemove(fileName, out _);
         OnCacheChanged?.Invoke(fileName, CacheChangeType.Removed);
         Log.Information("Deleted cached video: {FileName}", fileName);
     }
 
-    public static void ClearCache()
+    public void ClearCache()
     {
         var recentPlayHistory = DatabaseManager.GetPlayHistory();
-        var files = CachedAssets.Keys.ToList();
+        var files = _cachedAssets.Keys.ToList();
         foreach (var fileName in files)
         {
             var filePath = Path.Join(CachePath, fileName);
@@ -176,7 +172,7 @@ public class CacheManager
             }
         }
 
-        CachedAssets.Clear();
+        _cachedAssets.Clear();
         OnCacheChanged?.Invoke(string.Empty, CacheChangeType.Cleared);
         Log.Information("Cache cleared");
     }

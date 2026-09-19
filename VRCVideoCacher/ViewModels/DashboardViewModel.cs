@@ -322,10 +322,10 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void RefreshCacheStats()
     {
-        TotalCacheSize = CacheManager.GetTotalCacheSize();
+        TotalCacheSize = CacheManager.Instance.GetTotalCacheSize();
         // Subtract 1 for index.html if it exists in the cache
-        var count = CacheManager.GetCachedVideoCount();
-        var assets = CacheManager.GetCachedAssets();
+        var count = CacheManager.Instance.GetCachedVideoCount();
+        var assets = CacheManager.Instance.GetCachedAssets();
         if (assets.ContainsKey("index.html"))
             count--;
         CachedVideoCount = count;
@@ -334,7 +334,7 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private static void OpenCacheFolder()
     {
-        var cachePath = CacheManager.CachePath;
+        var cachePath = CacheManager.Instance.CachePath;
         if (OperatingSystem.IsWindows())
             Process.Start("explorer.exe", cachePath);
         else if (OperatingSystem.IsLinux())

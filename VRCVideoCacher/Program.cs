@@ -223,7 +223,7 @@ internal sealed class Program
             Logger.Warning(
                 "No cookies found, please use the browser extension to send cookies or disable \"ytdlUseCookies\" in config.");
 
-        CacheManager.Init();
+        _ = CacheManager.Instance;
 
         // run after init to avoid text spam blocking user input
         if (OperatingSystem.IsWindows())

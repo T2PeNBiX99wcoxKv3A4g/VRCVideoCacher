@@ -238,7 +238,7 @@ public class App : Application
 
     private static void OpenCacheFolder()
     {
-        var cachePath = CacheManager.CachePath;
+        var cachePath = CacheManager.Instance.CachePath;
         if (OperatingSystem.IsWindows())
             Process.Start("explorer.exe", cachePath);
         else if (OperatingSystem.IsLinux())
