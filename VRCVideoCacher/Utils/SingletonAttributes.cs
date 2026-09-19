@@ -31,9 +31,15 @@ public sealed class SingletonStaticProxyAttribute : Attribute
 [PublicAPI]
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
     Inherited = false)]
-public sealed class StaticMemberAttribute(string name) : Attribute
+public sealed class StaticMemberAttribute : Attribute
 {
-    public string? Name { get; set; } = name;
+    public string? Name { get; set; }
+
+    public StaticMemberAttribute()
+    {
+    }
+
+    public StaticMemberAttribute(string name) => Name = name;
 }
 
 /// <summary>
