@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using Serilog;
 
@@ -24,7 +23,7 @@ namespace VRCVideoCacher.Utils;
 /// or extraction problem. Diagnosing it from scratch took hours; this turns it into one line at startup.
 /// </summary>
 [SupportedOSPlatform("windows")]
-internal static partial class OpusMp4Check
+internal static class OpusMp4Check
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(OpusMp4Check));
 
@@ -262,28 +261,28 @@ internal static partial class OpusMp4Check
     private static readonly Guid MfMediaTypeAudio = new("73647561-0000-0010-8000-00aa00389b71");
     private static readonly Guid MfAudioFormatPcm = new("00000001-0000-0010-8000-00aa00389b71");
 
-    [LibraryImport("mfplat.dll")]
-    private static partial int MFStartup(uint version, uint flags);
+    [DllImport("mfplat.dll", ExactSpelling = true)]
+    private static extern int MFStartup(uint version, uint flags);
 
-    [LibraryImport("mfplat.dll")]
-    private static partial int MFShutdown();
+    [DllImport("mfplat.dll", ExactSpelling = true)]
+    private static extern int MFShutdown();
 
-    [LibraryImport("mfplat.dll")]
-    private static partial int MFCreateMediaType(out IMFMediaType type);
+    [DllImport("mfplat.dll", ExactSpelling = true)]
+    private static extern int MFCreateMediaType(out IMFMediaType type);
 
-    [LibraryImport("mfreadwrite.dll", StringMarshalling = StringMarshalling.Utf16)]
-    private static partial int MFCreateSourceReaderFromURL(string url, IntPtr attributes, out IMFSourceReader reader);
+    [DllImport("mfreadwrite.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+    private static extern int MFCreateSourceReaderFromURL(string url, IntPtr attributes, out IMFSourceReader reader);
 
-    [GeneratedComInterface]
+    [ComImport]
     [Guid("70ae66f2-c809-4e4f-8915-bdcb406b7993")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal partial interface IMFSourceReader
+    private interface IMFSourceReader
     {
         [PreserveSig]
-        int GetStreamSelection(uint streamIndex, [MarshalAs(UnmanagedType.VariantBool)] out bool selected);
+        int GetStreamSelection(uint streamIndex, out bool selected);
 
         [PreserveSig]
-        int SetStreamSelection(uint streamIndex, [MarshalAs(UnmanagedType.VariantBool)] bool selected);
+        int SetStreamSelection(uint streamIndex, bool selected);
 
         [PreserveSig]
         int GetNativeMediaType(uint streamIndex, uint mediaTypeIndex, out IMFMediaType type);
@@ -313,10 +312,10 @@ internal static partial class OpusMp4Check
 
     // Only the vtable slots up to what we call need to be correct, but IMFMediaType derives from
     // IMFAttributes — so every inherited method has to be declared, in order, to keep them lined up.
-    [GeneratedComInterface]
+    [ComImport]
     [Guid("44ae0fa8-ea31-4109-8d2e-4cae4997c555")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal partial interface IMFMediaType
+    private interface IMFMediaType
     {
         [PreserveSig]
         int GetItem(ref Guid key, IntPtr value);
@@ -325,10 +324,10 @@ internal static partial class OpusMp4Check
         int GetItemType(ref Guid key, out int type);
 
         [PreserveSig]
-        int CompareItem(ref Guid key, IntPtr value, [MarshalAs(UnmanagedType.VariantBool)] out bool result);
+        int CompareItem(ref Guid key, IntPtr value, out bool result);
 
         [PreserveSig]
-        int Compare(IntPtr attributes, int matchType, [MarshalAs(UnmanagedType.VariantBool)] out bool result);
+        int Compare(IntPtr attributes, int matchType, out bool result);
 
         [PreserveSig]
         int GetUINT32(ref Guid key, out uint value);
@@ -412,10 +411,10 @@ internal static partial class OpusMp4Check
         int GetMajorType(out Guid majorType);
     }
 
-    [GeneratedComInterface]
+    [ComImport]
     [Guid("c40a00f2-b93a-4d80-ae8c-5a1c634f58e4")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal partial interface IMFSample
+    private interface IMFSample
     {
         [PreserveSig]
         int GetItem(ref Guid key, IntPtr value);
@@ -424,10 +423,10 @@ internal static partial class OpusMp4Check
         int GetItemType(ref Guid key, out int type);
 
         [PreserveSig]
-        int CompareItem(ref Guid key, IntPtr value, [MarshalAs(UnmanagedType.VariantBool)] out bool result);
+        int CompareItem(ref Guid key, IntPtr value, out bool result);
 
         [PreserveSig]
-        int Compare(IntPtr attributes, int matchType, [MarshalAs(UnmanagedType.VariantBool)] out bool result);
+        int Compare(IntPtr attributes, int matchType, out bool result);
 
         [PreserveSig]
         int GetUINT32(ref Guid key, out uint value);
