@@ -20,7 +20,7 @@ public partial class DashboardViewModel : ViewModelBase
 {
     [ObservableProperty] public partial bool ServerRunning { get; set; } = true;
 
-    [ObservableProperty] public partial string ServerUrl { get; set; } = "http://localhost:9696";
+    [ObservableProperty] public partial string ServerUrl { get; set; }
 
     [ObservableProperty] public partial long TotalCacheSize { get; set; }
 
@@ -99,7 +99,7 @@ public partial class DashboardViewModel : ViewModelBase
         OnPropertyChanged(nameof(ServerRunning));
 
         // Refresh directly-assigned localized strings
-        if (VideoDownloader.Instance.GetCurrentDownload() == null)
+        if (VideoDownloader.GetCurrentDownload() == null)
             CurrentDownloadText = Localizer.Get("None");
     }
 
@@ -150,7 +150,7 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void OnQueueChanged()
     {
-        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.Instance.GetQueueCount(); });
+        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.GetQueueCount(); });
     }
 
     private void OnConfigChanged()
@@ -167,9 +167,9 @@ public partial class DashboardViewModel : ViewModelBase
     private void RefreshData()
     {
         RefreshCacheStats();
-        DownloadQueueCount = VideoDownloader.Instance.GetQueueCount();
+        DownloadQueueCount = VideoDownloader.GetQueueCount();
 
-        var currentDownload = VideoDownloader.Instance.GetCurrentDownload();
+        var currentDownload = VideoDownloader.GetCurrentDownload();
         CurrentDownloadText = currentDownload != null
             ? $"{currentDownload.UrlType}: {currentDownload.VideoId}"
             : Localizer.Get("None");
@@ -263,10 +263,15 @@ public partial class DashboardViewModel : ViewModelBase
             {
                 var isActive = active.Contains(key);
                 var wasActive = _activeToolKeys.Contains(key);
-                if (isActive && !wasActive)
-                    MarkDownloading(key);
-                else if (!isActive && wasActive)
-                    await VerifyOneAsync(key); // download finished -> re-verify just this tool
+                switch (isActive)
+                {
+                    case true when !wasActive:
+                        MarkDownloading(key);
+                        break;
+                    case false when wasActive:
+                        await VerifyOneAsync(key); // download finished -> re-verify just this tool
+                        break;
+                }
             }
 
             _activeToolKeys = active;

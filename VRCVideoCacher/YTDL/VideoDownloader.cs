@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using Jeek.Avalonia.Localization;
+using JetBrains.Annotations;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -87,10 +87,11 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         }
     }
 
-    public void QueueDownload(VideoInfo videoInfo)
+    [PublicAPI]
+    public void QueueDownload2(VideoInfo videoInfo)
     {
         if (_downloadQueue.Any(x => x.VideoId == videoInfo.VideoId &&
-                                   x.DownloadFormat == videoInfo.DownloadFormat))
+                                    x.DownloadFormat == videoInfo.DownloadFormat))
             // Log.Information("URL is already in the download queue.");
             return;
         if (_currentDownload != null &&
@@ -103,16 +104,22 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         OnQueueChanged?.Invoke();
     }
 
-    public void ClearQueue()
+    [PublicAPI]
+    public void ClearQueue2()
     {
         _downloadQueue.Clear();
         OnQueueChanged?.Invoke();
     }
 
     // Public accessors for UI
-    public IReadOnlyList<VideoInfo> GetQueueSnapshot() => _downloadQueue.ToArray();
-    public int GetQueueCount() => _downloadQueue.Count;
-    public VideoInfo? GetCurrentDownload() => _currentDownload;
+    [PublicAPI]
+    public IReadOnlyList<VideoInfo> GetQueueSnapshot2() => [.. _downloadQueue];
+
+    [PublicAPI]
+    public int GetQueueCount2() => _downloadQueue.Count;
+
+    [PublicAPI]
+    public VideoInfo? GetCurrentDownload2() => _currentDownload;
 
     private async Task<bool> DownloadYouTubeVideo(VideoInfo videoInfo)
     {

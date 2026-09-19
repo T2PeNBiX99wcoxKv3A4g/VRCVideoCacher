@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using VRCVideoCacher.Utils;
+﻿using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 

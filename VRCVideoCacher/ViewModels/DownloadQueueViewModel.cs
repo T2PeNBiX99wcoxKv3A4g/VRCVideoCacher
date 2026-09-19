@@ -24,26 +24,20 @@ public partial class DownloadItemViewModel : ViewModelBase
         {
             var clipboard = desktop.MainWindow?.Clipboard;
             if (clipboard != null && !string.IsNullOrEmpty(VideoUrl))
-            {
                 await clipboard.SetTextAsync(VideoUrl);
-            }
         }
     }
 }
 
 public partial class DownloadQueueViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private DownloadItemViewModel? _currentDownload;
+    [ObservableProperty] private DownloadItemViewModel? _currentDownload;
 
-    [ObservableProperty]
-    private string _currentStatus = "Idle";
+    [ObservableProperty] private string _currentStatus = "Idle";
 
-    [ObservableProperty]
-    private string _manualUrl = string.Empty;
+    [ObservableProperty] private string _manualUrl = string.Empty;
 
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    [ObservableProperty] private string _statusMessage = string.Empty;
 
     public ObservableCollection<DownloadItemViewModel> QueuedDownloads { get; } = [];
 
@@ -95,9 +89,8 @@ public partial class DownloadQueueViewModel : ViewModelBase
     {
         QueuedDownloads.Clear();
 
-        var queue = VideoDownloader.Instance.GetQueueSnapshot();
+        var queue = VideoDownloader.GetQueueSnapshot();
         foreach (var video in queue)
-        {
             QueuedDownloads.Add(new()
             {
                 VideoUrl = video.VideoUrl,
@@ -105,9 +98,8 @@ public partial class DownloadQueueViewModel : ViewModelBase
                 UrlType = video.UrlType.ToString(),
                 Format = video.DownloadFormat.ToString()
             });
-        }
 
-        var current = VideoDownloader.Instance.GetCurrentDownload();
+        var current = VideoDownloader.GetCurrentDownload();
         if (current != null)
         {
             CurrentDownload = new()
@@ -123,9 +115,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
         {
             CurrentDownload = null;
             if (QueuedDownloads.Count == 0)
-            {
                 CurrentStatus = "Idle";
-            }
         }
     }
 
@@ -143,14 +133,12 @@ public partial class DownloadQueueViewModel : ViewModelBase
             var videoInfo = await VideoId.GetVideoId(ManualUrl, true);
             if (videoInfo != null)
             {
-                VideoDownloader.Instance.QueueDownload(videoInfo);
+                VideoDownloader.QueueDownload(videoInfo);
                 StatusMessage = $"Added to queue: {videoInfo.VideoId}";
                 ManualUrl = string.Empty;
             }
             else
-            {
                 StatusMessage = "Could not parse URL";
-            }
         }
         catch (Exception ex)
         {
@@ -161,7 +149,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
     [RelayCommand]
     private void ClearQueue()
     {
-        VideoDownloader.Instance.ClearQueue();
+        VideoDownloader.ClearQueue();
         StatusMessage = "Download queue cleared";
     }
 }
