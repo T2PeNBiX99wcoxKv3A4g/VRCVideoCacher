@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using Jeek.Avalonia.Localization;
-using Serilog;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -151,19 +150,14 @@ public class VideoDownloader : Singleton<VideoDownloader>
             "-q"
         };
 
-        using var process = new Process
-        {
-            StartInfo =
-            {
-                FileName = YtdlManager.YtdlPath,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            }
-        };
+        using var process = new Process();
+        process.StartInfo.FileName = YtdlManager.Instance.YtdlPath;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
 
         if (videoInfo.DownloadFormat == DownloadFormat.Webm)
         {
@@ -188,7 +182,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
             // $@"-f best/bestvideo[height<=?720]+bestaudio {url} " %(id)s.%(ext)s
         }
 
-        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
+        process.StartInfo.Arguments = YtdlManager.Instance.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
@@ -279,7 +273,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
         {
             StartInfo =
             {
-                FileName = YtdlManager.YtdlPath,
+                FileName = YtdlManager.Instance.YtdlPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -422,7 +416,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
 
         var url = videoInfo.VideoUrl;
         using var process = new Process();
-        process.StartInfo.FileName = YtdlManager.YtdlPath;
+        process.StartInfo.FileName = YtdlManager.Instance.YtdlPath;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.RedirectStandardError = true;

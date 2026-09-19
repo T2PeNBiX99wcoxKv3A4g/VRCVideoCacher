@@ -98,7 +98,7 @@ internal static class BgUtilPotProvider
         }
 
         // 2. Kill leftover Deno processes originating from our bundled/utils path
-        var denoPath = YtdlManager.DenoPath;
+        var denoPath = YtdlManager.Instance.DenoPath;
         var processNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "deno"
@@ -341,9 +341,9 @@ internal static class BgUtilPotProvider
 
     private static void EnsureInstalled()
     {
-        if (!File.Exists(YtdlManager.DenoPath))
+        if (!File.Exists(YtdlManager.Instance.DenoPath))
             throw new SabrException(
-                $"Deno runtime not found at {YtdlManager.DenoPath}; cannot run the PO token provider");
+                $"Deno runtime not found at {YtdlManager.Instance.DenoPath}; cannot run the PO token provider");
 
         if (RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
             !OperatingSystem.IsWindows() && !OperatingSystem.IsLinux())
@@ -413,7 +413,7 @@ internal static class BgUtilPotProvider
         {
             StartInfo =
             {
-                FileName = YtdlManager.DenoPath,
+                FileName = YtdlManager.Instance.DenoPath,
                 Arguments =
                     $"run --no-config --no-lock --node-modules-dir=manual --cached-only --allow-env --allow-net --allow-ffi=. --allow-read=. build/main.js -p {Port}",
                 WorkingDirectory = ServerPath,

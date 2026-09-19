@@ -1,10 +1,8 @@
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text;
 using Jeek.Avalonia.Localization;
 using Newtonsoft.Json;
-using Serilog;
 using SharpCompress.Readers;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
@@ -12,10 +10,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public class YtdlManager
+public class YtdlManager: Singleton<YtdlManager>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<YtdlManager>();
-
     private static readonly HttpClient HttpClient = new()
     {
         DefaultRequestHeaders =
@@ -26,16 +22,10 @@ public class YtdlManager
         }
     };
 
-    public static readonly string CookiesPath;
-
-    public static readonly string YtdlPath =
-        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
-
-    public static readonly string DenoPath =
-        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
-
-    public static readonly string FfmpegPath =
-        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+    public readonly string CookiesPath= Path.Join(Program.DataPath, "youtube_cookies.txt");
+    public readonly string YtdlPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
+    public readonly string DenoPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
+    public readonly string FfmpegPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
     // that worked before still works, and SABR-only videos now extract and download too — which mainline
@@ -62,7 +52,7 @@ public class YtdlManager
     /// rethrowing the last failure so the caller can fall back to another source (or log and move on). A
     /// download is safe to retry — each attempt writes to a fresh file.
     /// </summary>
-    private static async Task RetryAsync(Func<Task> attempt, string what)
+    private async Task RetryAsync(Func<Task> attempt, string what)
     {
         for (var i = 1;; i++)
             try
@@ -80,10 +70,8 @@ public class YtdlManager
     }
 
 
-    static YtdlManager()
+    public YtdlManager()
     {
-        CookiesPath = Path.Join(Program.DataPath, "youtube_cookies.txt");
-
         // try to locate in PATH
         if (LaunchArgs.UseGlobalPath)
         {
@@ -98,7 +86,7 @@ public class YtdlManager
         Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath);
     }
 
-    public static string GenerateYtdlArgs(List<string> args, string urlArg)
+    public string GenerateYtdlArgs(List<string> args, string urlArg)
     {
         var globalArgs = new List<string>
         {
@@ -129,12 +117,12 @@ public class YtdlManager
         return string.Join(' ', args);
     }
 
-    public static void StartYtdlUpdaterThread()
+    public void StartYtdlUpdaterThread()
     {
         Task.Run(YtdlUpdaterTask);
     }
 
-    private static async Task YtdlUpdaterTask()
+    private async Task YtdlUpdaterTask()
     {
         const int interval = 60 * 60 * 1000; // 1 hour
         while (true)
@@ -154,7 +142,7 @@ public class YtdlManager
         return await HttpClient.SendAsync(request);
     }
 
-    public static async Task TryDownloadYtdlp()
+    public async Task TryDownloadYtdlp()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -201,7 +189,7 @@ public class YtdlManager
         await DownloadYtdl(json);
     }
 
-    public static async Task TryDownloadDeno()
+    public async Task TryDownloadDeno()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -328,7 +316,7 @@ public class YtdlManager
         }
     }
 
-    private static async Task TryDownloadDenoFallback(string assetName, StatusActivity activity)
+    private async Task TryDownloadDenoFallback(string assetName, StatusActivity activity)
     {
         Log.Warning("Falling back to Deno version check via text file.");
         using var response = await HttpClient.GetAsync(DenoFallBackVersionURL);
@@ -387,7 +375,7 @@ public class YtdlManager
         }
     }
 
-    public static async Task TryDownloadFfmpeg()
+    public async Task TryDownloadFfmpeg()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -522,7 +510,7 @@ public class YtdlManager
         Log.Information("FFmpeg downloaded and extracted.");
     }
 
-    private static async Task DownloadYtdl(GitHubRelease json)
+    private async Task DownloadYtdl(GitHubRelease json)
     {
         if (File.Exists(YtdlPath) && File.GetAttributes(YtdlPath).HasFlag(FileAttributes.ReadOnly))
         {
@@ -594,7 +582,7 @@ public class YtdlManager
         throw new("Failed to download YT-DLP");
     }
 
-    private static async Task<bool> CheckIfProcessStarts(string path, string arg = "--version")
+    private async Task<bool> CheckIfProcessStarts(string path, string arg = "--version")
     {
         var processName = Path.GetFileNameWithoutExtension(path);
         try

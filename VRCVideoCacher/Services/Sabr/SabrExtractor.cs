@@ -379,8 +379,8 @@ internal static class SabrExtractor
         args.Append("-J --no-playlist --no-warnings --extractor-args \"youtube:formats=duplicate;player_client=web\" ");
         // The web client's streaming URL carries an 'n' challenge yt-dlp must descramble during extraction,
         // which needs a JS runtime. (android_vr didn't — REQUIRE_JS_PLAYER was false there.)
-        if (File.Exists(YtdlManager.DenoPath))
-            args.Append($"--js-runtimes deno:\"{YtdlManager.DenoPath}\" ");
+        if (File.Exists(YtdlManager.Instance.DenoPath))
+            args.Append($"--js-runtimes deno:\"{YtdlManager.Instance.DenoPath}\" ");
         // The bgutil PO token plugin: point yt-dlp at the plugin search dir (--plugin-dirs; yt-dlp finds
         // <dir>/yt-dlp-plugins/yt_dlp_plugins under it) and tell the plugin where the server is. We pass
         // base_url explicitly rather than relying on the plugin's auto-detect default (127.0.0.1) — the

@@ -241,7 +241,7 @@ internal sealed class MediaHeader
                 case 10 when wire == 0: result.BitrateBps = (long)r.ReadVarint(); break;
                 case 11 when wire == 0: result.StartMs = (long)r.ReadVarint(); break;
                 case 12 when wire == 0: result.DurationMs = (long)r.ReadVarint(); result.DurationKnown = true; break;
-                case 13 when wire == 2: result.FormatId = Sabr.FormatId.Decode(r.ReadBytes()); break;
+                case 13 when wire == 2: result.FormatId = FormatId.Decode(r.ReadBytes()); break;
                 case 14 when wire == 0: result.ContentLength = (long)r.ReadVarint(); break;
                 case 15 when wire == 2: result.ReadTimeRange(r.ReadBytes()); break;
                 default: r.Skip(wire); break;
@@ -294,7 +294,7 @@ internal sealed class FormatInitializationMetadata
         {
             switch (field)
             {
-                case 2 when wire == 2: result.FormatId = Sabr.FormatId.Decode(r.ReadBytes()); break;
+                case 2 when wire == 2: result.FormatId = FormatId.Decode(r.ReadBytes()); break;
                 case 3 when wire == 0: result.EndTimeMs = (long)r.ReadVarint(); break;
                 case 4 when wire == 0: result.TotalSegments = (long)r.ReadVarint(); break;
                 case 5 when wire == 2: result.MimeType = r.ReadString(); break;

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Sabr;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.Services;
@@ -26,14 +27,14 @@ public static class ToolVerifier
         // Run --version to confirm it actually works, but display the tracked release NAME instead: we ship
         // the bashonly SABR build and its name carries the "sabr" marker ("sabr 2026.08.19.233452"), which
         // `yt-dlp --version` alone omits (it prints just the date).
-        var check = await RunVersionAsync(YtdlManager.YtdlPath, "--version");
+        var check = await RunVersionAsync(YtdlManager.Instance.YtdlPath, "--version");
         if (check.Ok && !string.IsNullOrWhiteSpace(Versions.CurrentVersion.Ytdlp))
             return check with { Detail = Versions.CurrentVersion.Ytdlp };
         return check;
     }
 
-    public static Task<ToolCheck> VerifyDenoAsync() => RunVersionAsync(YtdlManager.DenoPath, "--version");
-    public static Task<ToolCheck> VerifyFfmpegAsync() => RunVersionAsync(YtdlManager.FfmpegPath, "-version");
+    public static Task<ToolCheck> VerifyDenoAsync() => RunVersionAsync(YtdlManager.Instance.DenoPath, "--version");
+    public static Task<ToolCheck> VerifyFfmpegAsync() => RunVersionAsync(YtdlManager.Instance.FfmpegPath, "-version");
 
     public static async Task<ToolCheck> VerifyPotProviderAsync()
     {
@@ -47,32 +48,30 @@ public static class ToolVerifier
             ? await BgUtilPotProvider.WaitReadyAsync(TimeSpan.FromSeconds(20))
             : await BgUtilPotProvider.IsRespondingAsync();
         // A failed health check means "not working", not that the provider is missing.
-        return new ToolCheck(ok, true, $"bgutil-ytdlp-pot-provider {Program.BgUtilsVersion} *:{BgUtilPotProvider.Port}");
+        return new(ok, true, $"bgutil-ytdlp-pot-provider {Program.BgUtilsVersion} *:{BgUtilPotProvider.Port}");
     }
 
     private static async Task<ToolCheck> RunVersionAsync(string path, string arg)
     {
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            return new ToolCheck(false, false, string.Empty);
+            return new(false, false, string.Empty);
 
         try
         {
-            using var process = new Process
+            using var process = new Process();
+            process.StartInfo = new()
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = path,
-                    Arguments = arg,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
-                },
+                FileName = path,
+                Arguments = arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8,
             };
             process.Start();
-            Utils.ChildProcessTracker.Track(process);
+            ChildProcessTracker.Track(process);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             try
             {
@@ -81,26 +80,26 @@ public static class ToolVerifier
                 await process.WaitForExitAsync(cts.Token);
 
                 if (process.ExitCode != 0)
-                    return new ToolCheck(false, true, string.Empty);
+                    return new(false, true, string.Empty);
 
                 var raw = await stdout;
                 if (string.IsNullOrWhiteSpace(raw))
                     raw = await stderr;
-                return new ToolCheck(true, true, ExtractVersion(raw));
+                return new(true, true, ExtractVersion(raw));
             }
             catch (OperationCanceledException)
             {
                 try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* ignore */ }
-                return new ToolCheck(false, true, string.Empty);
+                return new(false, true, string.Empty);
             }
             finally
             {
-                Utils.ChildProcessTracker.Untrack(process);
+                ChildProcessTracker.Untrack(process);
             }
         }
         catch
         {
-            return new ToolCheck(false, true, string.Empty);
+            return new(false, true, string.Empty);
         }
     }
 
