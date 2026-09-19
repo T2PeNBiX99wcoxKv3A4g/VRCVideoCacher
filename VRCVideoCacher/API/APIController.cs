@@ -201,7 +201,7 @@ public class ApiController : WebApiController
                 // thread, so one live job blocks every other cache download indefinitely.
                 if (ConfigManager.Config.CacheYouTube && !SabrRestreamService.CacheConverges
                                                       && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
-                    VideoDownloader.QueueDownload(videoInfo);
+                    VideoDownloader.Instance.QueueDownload(videoInfo);
                 return;
             }
 
@@ -245,7 +245,7 @@ public class ApiController : WebApiController
                         // Still cache in the background so the next play is a direct cache hit — unless it
                         // is a live broadcast, which can never be "fully" downloaded.
                         if (ConfigManager.Config.CacheYouTube && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
-                            VideoDownloader.QueueDownload(videoInfo);
+                            VideoDownloader.Instance.QueueDownload(videoInfo);
                         return;
                     }
                 }
@@ -287,7 +287,7 @@ public class ApiController : WebApiController
             videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
             videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing) ||
             videoInfo.UrlType == UrlType.Other && ConfigManager.Config.CacheGeneric)
-            VideoDownloader.QueueDownload(videoInfo);
+            VideoDownloader.Instance.QueueDownload(videoInfo);
     }
 
     /// <summary>

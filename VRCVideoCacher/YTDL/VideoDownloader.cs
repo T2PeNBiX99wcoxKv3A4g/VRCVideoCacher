@@ -24,10 +24,10 @@ public class VideoDownloader : Singleton<VideoDownloader>
         }
     };
 
-    private static readonly ConcurrentQueue<VideoInfo> DownloadQueue = new();
+    private readonly ConcurrentQueue<VideoInfo> _downloadQueue = new();
 
     // Current download tracking
-    private static VideoInfo? _currentDownload;
+    private VideoInfo? _currentDownload;
 
     public VideoDownloader()
     {
@@ -44,13 +44,13 @@ public class VideoDownloader : Singleton<VideoDownloader>
         while (true)
         {
             await Task.Delay(100);
-            if (DownloadQueue.IsEmpty)
+            if (_downloadQueue.IsEmpty)
             {
                 _currentDownload = null;
                 continue;
             }
 
-            DownloadQueue.TryDequeue(out var queueItem);
+            _downloadQueue.TryDequeue(out var queueItem);
             if (queueItem == null)
                 continue;
 
@@ -86,9 +86,9 @@ public class VideoDownloader : Singleton<VideoDownloader>
         }
     }
 
-    public static void QueueDownload(VideoInfo videoInfo)
+    public void QueueDownload(VideoInfo videoInfo)
     {
-        if (DownloadQueue.Any(x => x.VideoId == videoInfo.VideoId &&
+        if (_downloadQueue.Any(x => x.VideoId == videoInfo.VideoId &&
                                    x.DownloadFormat == videoInfo.DownloadFormat))
             // Log.Information("URL is already in the download queue.");
             return;
@@ -98,20 +98,20 @@ public class VideoDownloader : Singleton<VideoDownloader>
             // Log.Information("URL is already being downloaded.");
             return;
 
-        DownloadQueue.Enqueue(videoInfo);
+        _downloadQueue.Enqueue(videoInfo);
         OnQueueChanged?.Invoke();
     }
 
-    public static void ClearQueue()
+    public void ClearQueue()
     {
-        DownloadQueue.Clear();
+        _downloadQueue.Clear();
         OnQueueChanged?.Invoke();
     }
 
     // Public accessors for UI
-    public static IReadOnlyList<VideoInfo> GetQueueSnapshot() => DownloadQueue.ToArray();
-    public static int GetQueueCount() => DownloadQueue.Count;
-    public static VideoInfo? GetCurrentDownload() => _currentDownload;
+    public IReadOnlyList<VideoInfo> GetQueueSnapshot() => _downloadQueue.ToArray();
+    public int GetQueueCount() => _downloadQueue.Count;
+    public VideoInfo? GetCurrentDownload() => _currentDownload;
 
     private async Task<bool> DownloadYouTubeVideo(VideoInfo videoInfo)
     {

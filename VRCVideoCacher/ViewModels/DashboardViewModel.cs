@@ -99,7 +99,7 @@ public partial class DashboardViewModel : ViewModelBase
         OnPropertyChanged(nameof(ServerRunning));
 
         // Refresh directly-assigned localized strings
-        if (VideoDownloader.GetCurrentDownload() == null)
+        if (VideoDownloader.Instance.GetCurrentDownload() == null)
             CurrentDownloadText = Localizer.Get("None");
     }
 
@@ -150,7 +150,7 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void OnQueueChanged()
     {
-        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.GetQueueCount(); });
+        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.Instance.GetQueueCount(); });
     }
 
     private void OnConfigChanged()
@@ -167,9 +167,9 @@ public partial class DashboardViewModel : ViewModelBase
     private void RefreshData()
     {
         RefreshCacheStats();
-        DownloadQueueCount = VideoDownloader.GetQueueCount();
+        DownloadQueueCount = VideoDownloader.Instance.GetQueueCount();
 
-        var currentDownload = VideoDownloader.GetCurrentDownload();
+        var currentDownload = VideoDownloader.Instance.GetCurrentDownload();
         CurrentDownloadText = currentDownload != null
             ? $"{currentDownload.UrlType}: {currentDownload.VideoId}"
             : Localizer.Get("None");

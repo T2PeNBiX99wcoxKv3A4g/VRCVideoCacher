@@ -95,7 +95,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
     {
         QueuedDownloads.Clear();
 
-        var queue = VideoDownloader.GetQueueSnapshot();
+        var queue = VideoDownloader.Instance.GetQueueSnapshot();
         foreach (var video in queue)
         {
             QueuedDownloads.Add(new()
@@ -107,7 +107,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
             });
         }
 
-        var current = VideoDownloader.GetCurrentDownload();
+        var current = VideoDownloader.Instance.GetCurrentDownload();
         if (current != null)
         {
             CurrentDownload = new()
@@ -143,7 +143,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
             var videoInfo = await VideoId.GetVideoId(ManualUrl, true);
             if (videoInfo != null)
             {
-                VideoDownloader.QueueDownload(videoInfo);
+                VideoDownloader.Instance.QueueDownload(videoInfo);
                 StatusMessage = $"Added to queue: {videoInfo.VideoId}";
                 ManualUrl = string.Empty;
             }
@@ -161,7 +161,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
     [RelayCommand]
     private void ClearQueue()
     {
-        VideoDownloader.ClearQueue();
+        VideoDownloader.Instance.ClearQueue();
         StatusMessage = "Download queue cleared";
     }
 }
