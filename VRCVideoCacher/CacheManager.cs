@@ -61,7 +61,8 @@ public partial class CacheManager : Singleton<CacheManager>
         }
     }
 
-    public void TryFlushCache()
+    [PublicAPI]
+    public void TryFlushCache2()
     {
         if (ConfigManager.Config.CacheMaxSizeInGb <= 0f)
             return;
