@@ -217,7 +217,7 @@ internal sealed class Program
             AutoStartShortcut.TryUpdateShortcutPath();
         WebServer.Instance.StartOrRestart();
         FileTools.BackupAllYtdl();
-        await BulkPreCache.Instance.DownloadFileList();
+        await BulkPreCache.DownloadFileList();
 
         if (ConfigManager.Config.YtdlpUseCookies && !IsCookiesEnabledAndValid())
             Logger.Warning(
