@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using EmbedIO;
 using EmbedIO.Files;
@@ -9,9 +10,12 @@ using ILogger = Serilog.ILogger;
 
 namespace VRCVideoCacher.API;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class WebServer : Singleton<WebServer>, ILog
 {
-    private static EmbedIO.WebServer? _server;
+    private EmbedIO.WebServer? _server;
 
     ILogger ILog.Log => Log;
 

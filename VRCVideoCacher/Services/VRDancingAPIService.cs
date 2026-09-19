@@ -1,10 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class VRDancingAPIService : Singleton<VRDancingAPIService>
 {
     private const string VRDancingAPIBaseURL = "https://dbapi.vrdancing.club/";

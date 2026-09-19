@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -8,6 +9,9 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class OpenVRService : Singleton<OpenVRService>
 {
     public void Start(string dataPath)

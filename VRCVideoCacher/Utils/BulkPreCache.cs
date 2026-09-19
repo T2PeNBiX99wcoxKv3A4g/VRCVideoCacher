@@ -1,12 +1,21 @@
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace VRCVideoCacher.Utils;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class BulkPreCache : Singleton<BulkPreCache>
 {
     private readonly HttpClient _httpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
     };
 
     // FileName and Url are required
@@ -23,6 +32,7 @@ public class BulkPreCache : Singleton<BulkPreCache>
 
         public DateTime LastModifiedDate => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
             .AddSeconds(LastModified);
+
         public string FilePath => Path.Join(CacheManager.Instance.CachePath, FileName);
     }
 
@@ -44,6 +54,7 @@ public class BulkPreCache : Singleton<BulkPreCache>
                 Log.Information("No files to download for {URL}", url);
                 return;
             }
+
             await DownloadVideos(files);
             Log.Information("All {Count} files for {URL} are up to date.", files.Count, url);
         }
@@ -64,8 +75,8 @@ public class BulkPreCache : Singleton<BulkPreCache>
                 {
                     var fileInfo = new FileInfo(file.FilePath);
                     var lastWriteTime = File.GetLastWriteTimeUtc(file.FilePath);
-                    if ((file.LastModified > 0 && file.LastModifiedDate != lastWriteTime) ||
-                        (file.Size > 0 && file.Size != fileInfo.Length))
+                    if (file.LastModified > 0 && file.LastModifiedDate != lastWriteTime ||
+                        file.Size > 0 && file.Size != fileInfo.Length)
                     {
                         var percentage = Math.Round((double)index / fileCount * 100, 2);
                         Log.Information("Progress: {Percentage}%", percentage);
@@ -96,6 +107,7 @@ public class BulkPreCache : Singleton<BulkPreCache>
             Log.Information("Failed to download {Url}: {ResponseStatusCode}", fileInfo.Url, response.StatusCode);
             return;
         }
+
         var fileStream = new FileStream(fileInfo.FilePath, FileMode.Create, FileAccess.Write);
         await response.Content.CopyToAsync(fileStream);
         fileStream.Close();

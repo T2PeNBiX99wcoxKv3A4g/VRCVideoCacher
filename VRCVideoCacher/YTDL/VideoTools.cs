@@ -1,7 +1,11 @@
-﻿using VRCVideoCacher.Utils;
+﻿using System.Diagnostics.CodeAnalysis;
+using VRCVideoCacher.Utils;
 
-namespace VRCVideoCacher;
+namespace VRCVideoCacher.YTDL;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class VideoTools : Singleton<VideoTools>
 {
     private readonly HttpClient _httpClient = new();

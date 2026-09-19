@@ -1,10 +1,13 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
-using Serilog;
 using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class OpenUrl : Singleton<OpenUrl>
 {
     [PublicAPI]

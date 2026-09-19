@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using Jeek.Avalonia.Localization;
@@ -11,6 +12,9 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class Updater : Singleton<Updater>
 {
     private const string UpdateUrl = "https://api.github.com/repos/EllyVR/VRCVideoCacher/releases/latest";

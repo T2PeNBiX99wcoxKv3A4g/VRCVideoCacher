@@ -1,5 +1,10 @@
-﻿namespace VRCVideoCacher.Utils;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace VRCVideoCacher.Utils;
+
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class HostsManager : Singleton<HostsManager>
 {
     private static readonly string Header =

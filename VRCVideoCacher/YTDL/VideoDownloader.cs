@@ -10,6 +10,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
 [SuppressMessage("Performance", "CA1822")]
 public class VideoDownloader : Singleton<VideoDownloader>

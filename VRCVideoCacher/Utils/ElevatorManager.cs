@@ -1,10 +1,14 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using VRCVideoCacher.API;
 
 namespace VRCVideoCacher.Utils;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class ElevatorManager : Singleton<ElevatorManager>
 {
     public bool HasHostsLine = HostsManager.Instance.IsHostAdded();
@@ -18,9 +22,9 @@ public class ElevatorManager : Singleton<ElevatorManager>
         "/usr/lib/pressure-vessel/bin/steam-runtime-launch-client"
     ];
 
-    private static string? FindLaunchClient() => Candidates.FirstOrDefault(File.Exists);
+    private string? FindLaunchClient() => Candidates.FirstOrDefault(File.Exists);
 
-    private static string? FindHostBin(string name)
+    private string? FindHostBin(string name)
     {
         var paths = new[]
         {

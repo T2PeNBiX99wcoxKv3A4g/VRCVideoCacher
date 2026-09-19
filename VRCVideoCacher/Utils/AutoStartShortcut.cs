@@ -7,6 +7,7 @@ using ShellLink;
 
 namespace VRCVideoCacher.Utils;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
 [SuppressMessage("Performance", "CA1822")]
 public class AutoStartShortcut : Singleton<AutoStartShortcut>

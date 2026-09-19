@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
-using Serilog;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Models;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class Versions: Singleton<Versions>
 {
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
