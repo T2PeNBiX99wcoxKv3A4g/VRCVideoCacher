@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
@@ -60,6 +59,7 @@ public partial class CacheManager : Singleton<CacheManager>
             AddToCache(file);
         }
     }
+
 
     public void TryFlushCache()
     {
