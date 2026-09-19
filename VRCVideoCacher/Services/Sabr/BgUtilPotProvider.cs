@@ -433,7 +433,7 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        ChildProcessTracker.Track(process);
+        ChildProcessTracker.Instance.Track(process);
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         _server = process;
@@ -445,7 +445,7 @@ internal static class BgUtilPotProvider
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
-        ChildProcessTracker.Untrack(process);
+        ChildProcessTracker.Instance.Untrack(process);
         try
         {
             if (HasProcessExited(process)) return;
@@ -506,7 +506,7 @@ internal static class BgUtilPotProvider
         process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         process.Start();
-        ChildProcessTracker.Track(process);
+        ChildProcessTracker.Instance.Track(process);
         try
         {
             var stdout = process.StandardOutput.ReadToEndAsync();
@@ -536,7 +536,7 @@ internal static class BgUtilPotProvider
         }
         finally
         {
-            ChildProcessTracker.Untrack(process);
+            ChildProcessTracker.Instance.Untrack(process);
         }
     }
 

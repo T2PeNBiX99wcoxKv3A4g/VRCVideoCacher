@@ -115,8 +115,18 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         }
         finally
         {
-            foreach (var path in new[] { videoInput, audioInput, audioTrimmed, output })
-                try { File.Delete(path); } catch { /* best effort */ }
+            foreach (var path in new[]
+                     {
+                         videoInput, audioInput, audioTrimmed, output
+                     })
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                    /* best effort */
+                }
         }
     }
 
@@ -163,8 +173,21 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         // Write-then-move, so a request never reads a half-written file.
         var temp = path + ".part";
         await File.WriteAllBytesAsync(temp, data, ct);
-        try { File.Move(temp, path, overwrite: true); }
-        catch (IOException) { try { File.Delete(temp); } catch { /* raced */ } }
+        try
+        {
+            File.Move(temp, path, true);
+        }
+        catch (IOException)
+        {
+            try
+            {
+                File.Delete(temp);
+            }
+            catch
+            {
+                /* raced */
+            }
+        }
     }
 
     /// <summary>
@@ -281,6 +304,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
                 found.Add((offset + 8, offset + size));
             offset += size;
         }
+
         return found;
     }
 
@@ -302,27 +326,26 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
                 return offset;
             offset += size;
         }
+
         return -1;
     }
 
     private async Task RunFfmpegAsync(string arguments, CancellationToken ct)
     {
-        using var process = new Process
+        using var process = new Process();
+        process.StartInfo = new()
         {
-            StartInfo =
-            {
-                FileName = ffmpegPath,
-                Arguments = arguments,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true,
-                StandardErrorEncoding = Encoding.UTF8,
-            },
+            FileName = ffmpegPath,
+            Arguments = arguments,
+            UseShellExecute = false,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            CreateNoWindow = true,
+            StandardErrorEncoding = Encoding.UTF8
         };
 
         process.Start();
-        Utils.ChildProcessTracker.Track(process);
+        Utils.ChildProcessTracker.Instance.Track(process);
         try
         {
             var stderr = await process.StandardError.ReadToEndAsync(ct);
@@ -330,7 +353,9 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
 
             if (process.ExitCode != 0)
             {
-                log.Debug($"[sabr-mux] {process.StartInfo.FileName} {process.StartInfo.Arguments}");
+                log.Debug(
+                    "[sabr-mux] {StartInfoFileName} {StartInfoArguments}", process.StartInfo.FileName, process.StartInfo
+                        .Arguments);
                 throw new SabrException($"ffmpeg failed muxing a segment: {stderr.Trim()}");
             }
 
@@ -342,14 +367,18 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
             try
             {
                 if (!process.HasExited)
-                    process.Kill(entireProcessTree: true);
+                    process.Kill(true);
             }
-            catch { /* best effort */ }
+            catch
+            {
+                /* best effort */
+            }
+
             throw;
         }
         finally
         {
-            Utils.ChildProcessTracker.Untrack(process);
+            Utils.ChildProcessTracker.Instance.Untrack(process);
         }
     }
 }

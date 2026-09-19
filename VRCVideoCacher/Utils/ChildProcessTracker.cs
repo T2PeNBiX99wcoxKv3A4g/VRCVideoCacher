@@ -12,7 +12,7 @@ namespace VRCVideoCacher.Utils;
 /// </summary>
 public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 {
-    private static readonly ConcurrentDictionary<Process, byte> TrackedProcesses = new();
+    private readonly ConcurrentDictionary<Process, byte> TrackedProcesses = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
     private static bool _terminating;
 
@@ -88,7 +88,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// <summary>
     /// Registers a child process to be tracked and terminated when the application exits.
     /// </summary>
-    public static void Track(Process? process)
+    public void Track(Process? process)
     {
         if (process == null) return;
         if (Volatile.Read(ref _terminating))
@@ -121,16 +121,30 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// <summary>
     /// Unregisters a tracked child process once it has exited normally.
     /// </summary>
-    public static void Untrack(Process? process)
+    public void Untrack(Process? process)
     {
         if (process == null) return;
         TrackedProcesses.TryRemove(process, out _);
+    }
+    
+    public void TrackWhile(Process? process, Action<Process> callback)
+    {
+        if (process == null) return;
+        Track(process);
+        try
+        {
+            callback(process);
+        }
+        finally
+        {
+            Untrack(process);
+        }
     }
 
     /// <summary>
     /// Forces termination of all currently tracked child processes in parallel.
     /// </summary>
-    public static void TerminateAll()
+    public void TerminateAll()
     {
         if (Interlocked.Exchange(ref _terminating, true)) return;
         var toKill = TrackedProcesses.Keys.ToList();

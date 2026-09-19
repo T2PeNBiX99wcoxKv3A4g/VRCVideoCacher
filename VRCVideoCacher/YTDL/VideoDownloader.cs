@@ -191,7 +191,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            ChildProcessTracker.Track(process);
+            ChildProcessTracker.Instance.Track(process);
             try
             {
                 await process.WaitForExitAsync();
@@ -212,7 +212,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
             }
             finally
             {
-                ChildProcessTracker.Untrack(process);
+                ChildProcessTracker.Instance.Untrack(process);
             }
         }
 
@@ -285,7 +285,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        ChildProcessTracker.Track(process);
+        ChildProcessTracker.Instance.Track(process);
         string error;
         try
         {
@@ -307,7 +307,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
         }
         finally
         {
-            ChildProcessTracker.Untrack(process);
+            ChildProcessTracker.Instance.Untrack(process);
         }
 
         if (process.ExitCode != 0)
@@ -426,7 +426,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        ChildProcessTracker.Track(process);
+        ChildProcessTracker.Instance.Track(process);
         string error;
         try
         {
@@ -448,7 +448,7 @@ public class VideoDownloader : Singleton<VideoDownloader>
         }
         finally
         {
-            ChildProcessTracker.Untrack(process);
+            ChildProcessTracker.Instance.Untrack(process);
         }
 
         if (process.ExitCode != 0)

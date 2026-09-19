@@ -10,7 +10,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public class YtdlManager: Singleton<YtdlManager>
+public class YtdlManager : Singleton<YtdlManager>
 {
     private static readonly HttpClient HttpClient = new()
     {
@@ -22,10 +22,12 @@ public class YtdlManager: Singleton<YtdlManager>
         }
     };
 
-    public readonly string CookiesPath= Path.Join(Program.DataPath, "youtube_cookies.txt");
+    public readonly string CookiesPath = Path.Join(Program.DataPath, "youtube_cookies.txt");
     public readonly string YtdlPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
     public readonly string DenoPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
-    public readonly string FfmpegPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+
+    public readonly string FfmpegPath =
+        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
     // that worked before still works, and SABR-only videos now extract and download too — which mainline
@@ -163,7 +165,7 @@ public class YtdlManager: Singleton<YtdlManager>
             return;
         }
 
-        var currentYtdlVersion = Versions.CurrentVersion.Ytdlp;
+        var currentYtdlVersion = Versions.Instance.CurrentVersion.Ytdlp;
         if (!File.Exists(YtdlPath))
             currentYtdlVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(YtdlPath))
@@ -209,7 +211,7 @@ public class YtdlManager: Singleton<YtdlManager>
             return;
         }
 
-        var currentDenoVersion = Versions.CurrentVersion.Deno;
+        var currentDenoVersion = Versions.Instance.CurrentVersion.Deno;
         if (!File.Exists(DenoPath))
             currentDenoVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(DenoPath))
@@ -291,8 +293,8 @@ public class YtdlManager: Singleton<YtdlManager>
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
-                    Versions.CurrentVersion.Deno = json.tag_name;
-                    Versions.Save();
+                    Versions.Instance.CurrentVersion.Deno = json.tag_name;
+                    Versions.Instance.Save();
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
@@ -351,8 +353,8 @@ public class YtdlManager: Singleton<YtdlManager>
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
-                    Versions.CurrentVersion.Deno = latestVersion;
-                    Versions.Save();
+                    Versions.Instance.CurrentVersion.Deno = latestVersion;
+                    Versions.Instance.Save();
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
@@ -396,7 +398,7 @@ public class YtdlManager: Singleton<YtdlManager>
             return;
         }
 
-        var currentffmpegVersion = Versions.CurrentVersion.Ffmpeg;
+        var currentffmpegVersion = Versions.Instance.CurrentVersion.Ffmpeg;
         if (!File.Exists(FfmpegPath))
             currentffmpegVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(FfmpegPath, "-version"))
@@ -505,8 +507,8 @@ public class YtdlManager: Singleton<YtdlManager>
             return;
         }
 
-        Versions.CurrentVersion.Ffmpeg = latestVersion;
-        Versions.Save();
+        Versions.Instance.CurrentVersion.Ffmpeg = latestVersion;
+        Versions.Instance.Save();
         Log.Information("FFmpeg downloaded and extracted.");
     }
 
@@ -574,8 +576,8 @@ public class YtdlManager: Singleton<YtdlManager>
             Log.Information("Downloaded YT-DLP.");
             FileTools.MarkFileExecutable(YtdlPath);
             // Must match what TryDownloadYtdlp compares against, or every check re-downloads.
-            Versions.CurrentVersion.Ytdlp = string.IsNullOrEmpty(json.name) ? json.tag_name : json.name;
-            Versions.Save();
+            Versions.Instance.CurrentVersion.Ytdlp = string.IsNullOrEmpty(json.name) ? json.tag_name : json.name;
+            Versions.Instance.Save();
             return;
         }
 
@@ -602,7 +604,7 @@ public class YtdlManager: Singleton<YtdlManager>
                 }
             };
             process.Start();
-            ChildProcessTracker.Track(process);
+            ChildProcessTracker.Instance.Track(process);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             try
             {
@@ -617,13 +619,21 @@ public class YtdlManager: Singleton<YtdlManager>
             }
             catch (OperationCanceledException)
             {
-                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* ignore */ }
+                try
+                {
+                    if (!process.HasExited) process.Kill(true);
+                }
+                catch
+                {
+                    /* ignore */
+                }
+
                 Log.Error("Process {ProcessName} timed out during startup check", processName);
                 return false;
             }
             finally
             {
-                ChildProcessTracker.Untrack(process);
+                ChildProcessTracker.Instance.Untrack(process);
             }
         }
         catch (Exception ex)

@@ -18,10 +18,22 @@ internal static class SabrExtractor
     // varies over time and by account — only that we can map its name to the enum the request needs.
     private static readonly Dictionary<string, int> ClientNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["WEB"] = 1, ["MWEB"] = 2, ["ANDROID"] = 3, ["IOS"] = 5, ["TVHTML5"] = 7, ["TVLITE"] = 8,
-        ["ANDROID_VR"] = 28, ["ANDROID_MUSIC"] = 21, ["ANDROID_TV"] = 23, ["IOS_MUSIC"] = 26,
-        ["WEB_EMBEDDED_PLAYER"] = 56, ["WEB_MUSIC"] = 61, ["WEB_CREATOR"] = 62, ["TVHTML5_SIMPLY"] = 75,
-        ["WEB_REMIX"] = 67, ["VISIONOS"] = 101,
+        ["WEB"] = 1,
+        ["MWEB"] = 2,
+        ["ANDROID"] = 3,
+        ["IOS"] = 5,
+        ["TVHTML5"] = 7,
+        ["TVLITE"] = 8,
+        ["ANDROID_VR"] = 28,
+        ["ANDROID_MUSIC"] = 21,
+        ["ANDROID_TV"] = 23,
+        ["IOS_MUSIC"] = 26,
+        ["WEB_EMBEDDED_PLAYER"] = 56,
+        ["WEB_MUSIC"] = 61,
+        ["WEB_CREATOR"] = 62,
+        ["TVHTML5_SIMPLY"] = 75,
+        ["WEB_REMIX"] = 67,
+        ["VISIONOS"] = 101
     };
 
     /// <summary>
@@ -30,7 +42,15 @@ internal static class SabrExtractor
     /// we care which client we ended up on.
     /// </summary>
     private static readonly HashSet<string> MobileClients = new(StringComparer.OrdinalIgnoreCase)
-        { "ANDROID_VR", "ANDROID", "ANDROID_TV", "ANDROID_MUSIC", "IOS", "IOS_MUSIC", "VISIONOS" };
+    {
+        "ANDROID_VR",
+        "ANDROID",
+        "ANDROID_TV",
+        "ANDROID_MUSIC",
+        "IOS",
+        "IOS_MUSIC",
+        "VISIONOS"
+    };
 
     /// <summary>
     /// How long a playback request waits for the PO token provider to be ready before failing cleanly.
@@ -117,7 +137,8 @@ internal static class SabrExtractor
         var isLive = string.Equals(liveStatus, "is_live", StringComparison.Ordinal);
         var targetDurationSec = config["target_duration_sec"]?.Value<int?>() ?? 0;
 
-        log.Information("SABR formats for {VideoId}{Live}: video {VideoFormat} ({VCodec} {Height}p {Range}) + audio {AudioFormat} ({ACodec} {ALang})",
+        log.Information(
+            "SABR formats for {VideoId}{Live}: video {VideoFormat} ({VCodec} {Height}p {Range}) + audio {AudioFormat} ({ACodec} {ALang})",
             videoId,
             isLive ? $" [LIVE, {targetDurationSec}s segments]" : string.Empty,
             video["format_id"]?.Value<string>(), video["vcodec"]?.Value<string>(), video["height"]?.Value<int>(),
@@ -145,7 +166,7 @@ internal static class SabrExtractor
         if (string.IsNullOrEmpty(poToken))
             log.Information("SABR: {VideoId} is a Premium session; proceeding without a GVS PO token", videoId);
 
-        return new SabrSource
+        return new()
         {
             VideoId = videoId,
             // Every SABR format shares the same ABR streaming URL and ustreamer config.
@@ -166,7 +187,7 @@ internal static class SabrExtractor
             Height = video["height"]?.Value<int>() ?? 1080,
             Bandwidth = (long)((Bitrate(video) + Bitrate(audio)) * 1000),
             IsLive = isLive,
-            TargetDurationSec = targetDurationSec,
+            TargetDurationSec = targetDurationSec
         };
     }
 
@@ -184,7 +205,8 @@ internal static class SabrExtractor
     private static JToken? PickAudio(List<JToken> formats, bool fmp4Only)
     {
         var audio = formats.Where(f => f["acodec"]?.Value<string>() is { } a && a != "none"
-                                       && f["vcodec"]?.Value<string>() is "none" or null).ToList();
+                                                                             && f["vcodec"]?.Value<string>() is "none"
+                                                                                 or null).ToList();
 
         audio = PickAudioLanguage(audio);
 
@@ -204,7 +226,7 @@ internal static class SabrExtractor
         // OpusMp4Check. The IsWindows() guard is required: PreferAacAudio is a Windows-only signal.
         // SabrForceAacAudio is the test override — exercise this path on a machine that CAN play Opus.
         var preferAac = ConfigManager.Config.SabrForceAacAudio
-                        || (OperatingSystem.IsWindows() && OpusMp4Check.PreferAacAudio);
+                        || OperatingSystem.IsWindows() && OpusMp4Check.PreferAacAudio;
         if (preferAac && aac is not null)
             return aac;
 
@@ -337,16 +359,17 @@ internal static class SabrExtractor
     {
         { } v when v.StartsWith("avc1", StringComparison.Ordinal) => 0,
         { } v when v.StartsWith("vp9", StringComparison.Ordinal) || v.StartsWith("vp09", StringComparison.Ordinal) => 1,
-        _ => 2,
+        _ => 2
     };
 
-    private static long Bitrate(JToken format) => format["tbr"]?.Value<long?>() ?? format["filesize"]?.Value<long?>() ?? 0;
+    private static long Bitrate(JToken format) =>
+        format["tbr"]?.Value<long?>() ?? format["filesize"]?.Value<long?>() ?? 0;
 
     private static FormatId ParseFormatId(JToken sabrConfig) => new()
     {
         Itag = sabrConfig["itag"]?.Value<int>() ?? throw new SabrException("SABR format carried no itag"),
         Lmt = sabrConfig["last_modified"]?.Value<ulong?>(),
-        Xtags = sabrConfig["xtags"]?.Value<string>(),
+        Xtags = sabrConfig["xtags"]?.Value<string>()
     };
 
     private static ClientInfo ParseClientInfo(JToken? json)
@@ -358,7 +381,7 @@ internal static class SabrExtractor
         if (name is null || !ClientNames.TryGetValue(name, out var clientName))
             throw new SabrException($"Unknown SABR client '{name}'");
 
-        return new ClientInfo
+        return new()
         {
             ClientName = clientName,
             ClientVersion = json["client_version"]?.Value<string>(),
@@ -366,7 +389,7 @@ internal static class SabrExtractor
             OsVersion = json["os_version"]?.Value<string>(),
             DeviceMake = json["device_make"]?.Value<string>(),
             DeviceModel = json["device_model"]?.Value<string>(),
-            AndroidSdkVersion = json["android_sdk_version"]?.Value<int?>(),
+            AndroidSdkVersion = json["android_sdk_version"]?.Value<int?>()
         };
     }
 
@@ -398,19 +421,17 @@ internal static class SabrExtractor
             args.Append($"{ConfigManager.Config.SabrAdditionalArgs.Trim()} ");
         args.Append($"\"{videoUrl}\"");
 
-        using var process = new Process
+        using var process = new Process();
+        process.StartInfo = new()
         {
-            StartInfo =
-            {
-                FileName = ytdlpPath,
-                Arguments = args.ToString(),
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            },
+            FileName = ytdlpPath,
+            Arguments = args.ToString(),
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
         };
 
         // yt-dlp rewrites the cookie jar on exit; two of them at once corrupt the session and get us
@@ -419,31 +440,34 @@ internal static class SabrExtractor
 
         log.Debug("[sabr-extract] {File} {Args}", Path.GetFileName(ytdlpPath), args);
         process.Start();
-        ChildProcessTracker.Track(process);
+        ChildProcessTracker.Instance.Track(process);
         try
         {
             var stdout = process.StandardOutput.ReadToEndAsync(ct);
             var stderr = process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
 
-            if (process.ExitCode != 0)
-                throw new SabrException($"yt-dlp extraction failed: {(await stderr).Trim()}");
-
-            return JObject.Parse(await stdout);
+            return process.ExitCode != 0
+                ? throw new SabrException($"yt-dlp extraction failed: {(await stderr).Trim()}")
+                : JObject.Parse(await stdout);
         }
         catch
         {
             try
             {
                 if (!process.HasExited)
-                    process.Kill(entireProcessTree: true);
+                    process.Kill(true);
             }
-            catch { /* best effort */ }
+            catch
+            {
+                /* best effort */
+            }
+
             throw;
         }
         finally
         {
-            ChildProcessTracker.Untrack(process);
+            ChildProcessTracker.Instance.Untrack(process);
         }
     }
 }

@@ -55,7 +55,7 @@ public class VideoId
 
         Log.Information("Starting yt-dlp with args: {args:l}", ytdlpProcess.StartInfo.Arguments);
         ytdlpProcess.Start();
-        ChildProcessTracker.Track(ytdlpProcess);
+        ChildProcessTracker.Instance.Track(ytdlpProcess);
         try
         {
             var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
@@ -76,7 +76,7 @@ public class VideoId
         }
         finally
         {
-            ChildProcessTracker.Untrack(ytdlpProcess);
+            ChildProcessTracker.Instance.Untrack(ytdlpProcess);
         }
     }
 

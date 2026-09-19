@@ -62,7 +62,7 @@ public class WinGet : Singleton<WinGet>
                 }
             };
             process.Start();
-            ChildProcessTracker.Track(process);
+            ChildProcessTracker.Instance.Track(process);
             try
             {
                 process.WaitForExit(10_000);
@@ -70,7 +70,7 @@ public class WinGet : Singleton<WinGet>
             }
             finally
             {
-                ChildProcessTracker.Untrack(process);
+                ChildProcessTracker.Instance.Untrack(process);
             }
         }
         catch (Exception ex)
@@ -107,7 +107,7 @@ public class WinGet : Singleton<WinGet>
                 }
             };
             process.Start();
-            ChildProcessTracker.Track(process);
+            ChildProcessTracker.Instance.Track(process);
             try
             {
                 string? line;
@@ -127,7 +127,7 @@ public class WinGet : Singleton<WinGet>
             }
             finally
             {
-                ChildProcessTracker.Untrack(process);
+                ChildProcessTracker.Instance.Untrack(process);
             }
         }
         catch (Exception ex)

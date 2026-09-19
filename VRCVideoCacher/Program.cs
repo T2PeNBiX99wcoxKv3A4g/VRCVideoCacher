@@ -83,7 +83,7 @@ internal sealed class Program
                     if (process.Id != Environment.ProcessId)
                         try
                         {
-                            process.Kill(entireProcessTree: true);
+                            process.Kill(true);
                             process.WaitForExit(3000);
                             Logger.Information(
                                 "Killed existing instance with PID {Pid} due to kill existing instance argument.",
@@ -350,12 +350,12 @@ internal sealed class Program
 
     private static void OnAppQuit()
     {
-        try
+        Try.Run(() =>
         {
             BgUtilPotProvider.StopServer();
-            ChildProcessTracker.TerminateAll();
-        }
-        catch { /* best effort */ }
+            ChildProcessTracker.Instance.TerminateAll();
+        });
+
         FileTools.RestoreAllYtdl();
         Logger.Information("Exiting...");
     }
