@@ -7,9 +7,11 @@ public static class ObjectExtensions
 {
     extension<T>(T value)
     {
-        public T Also(Action<T> action)
+        public TResult Let<TResult>(Func<T, TResult> block) => block(value);
+
+        public T Also(Action<T> block)
         {
-            action(value);
+            block(value);
             return value;
         }
     }
