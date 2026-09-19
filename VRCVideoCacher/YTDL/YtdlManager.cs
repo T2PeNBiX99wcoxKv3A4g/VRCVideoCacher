@@ -90,7 +90,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                           string.Empty;
         }
 
-        Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath);
+        Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath2);
     }
 
     [PublicAPI]
@@ -138,7 +138,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
         {
             await Task.Delay(interval);
             await VvcConfigService.GetConfig();
-            await TryDownloadYtdlp();
+            await TryDownloadYtdlp2();
         }
         // ReSharper disable once FunctionNeverReturns
     }

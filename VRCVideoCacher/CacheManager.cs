@@ -28,9 +28,9 @@ public partial class CacheManager : Singleton<CacheManager>
         else
             CachePath2 = Path.Join(Program.CurrentProcessPath, ConfigManager.Config.CachedAssetPath);
 
-        Log.Debug("Using cache path {CachePath}", CachePath);
+        Log.Debug("Using cache path {CachePath}", CachePath2);
         BuildCache();
-        TryFlushCache();
+        TryFlushCache2();
     }
 
     // Events for UI
@@ -51,12 +51,12 @@ public partial class CacheManager : Singleton<CacheManager>
     private void BuildCache()
     {
         _cachedAssets.Clear();
-        Directory.CreateDirectory(CachePath);
-        var files = Directory.GetFiles(CachePath);
+        Directory.CreateDirectory(CachePath2);
+        var files = Directory.GetFiles(CachePath2);
         foreach (var path in files)
         {
             var file = Path.GetFileName(path);
-            AddToCache(file);
+            AddToCache2(file);
         }
     }
 
@@ -100,7 +100,7 @@ public partial class CacheManager : Singleton<CacheManager>
     [PublicAPI]
     public void AddToCache2(string fileName)
     {
-        var filePath = Path.Join(CachePath, fileName);
+        var filePath = Path.Join(CachePath2, fileName);
         if (!File.Exists(filePath))
             return;
 
@@ -117,7 +117,7 @@ public partial class CacheManager : Singleton<CacheManager>
         existingCache.LastModified = fileInfo.LastWriteTimeUtc;
 
         OnCacheChanged?.Invoke(fileName, CacheChangeType.Added);
-        TryFlushCache();
+        TryFlushCache2();
     }
 
     private long GetCacheSize()
