@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
@@ -5,6 +6,7 @@ using JetBrains.Annotations;
 namespace VRCVideoCacher.Utils;
 
 [PublicAPI]
+[StackTraceHidden]
 public static class Try
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -16,7 +18,7 @@ public static class Try
         }
         catch (Exception e)
         {
-            return Result<T>.Failure(ExceptionDispatchInfo.Capture(e).SourceException);
+            return Result<T>.Failure(ExceptionDispatchInfo.Capture(e));
         }
     }
 
@@ -30,7 +32,7 @@ public static class Try
         }
         catch (Exception e)
         {
-            return Result<Unit>.Failure(ExceptionDispatchInfo.Capture(e).SourceException);
+            return Result<Unit>.Failure(ExceptionDispatchInfo.Capture(e));
         }
     }
 
@@ -43,7 +45,7 @@ public static class Try
         }
         catch (Exception e)
         {
-            return Result<T>.Failure(ExceptionDispatchInfo.Capture(e).SourceException);
+            return Result<T>.Failure(e);
         }
     }
 
@@ -57,7 +59,7 @@ public static class Try
         }
         catch (Exception e)
         {
-            return Result<Unit>.Failure(ExceptionDispatchInfo.Capture(e).SourceException);
+            return Result<Unit>.Failure(e);
         }
     }
 }
