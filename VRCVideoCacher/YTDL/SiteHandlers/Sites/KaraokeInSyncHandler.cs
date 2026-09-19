@@ -1,22 +1,19 @@
-using Serilog;
 using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class KaraokeInSyncHandler : ISiteHandler
+public class KaraokeInSyncHandler : Handler<KaraokeInSyncHandler>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<KaraokeInSyncHandler>();
+    public override bool CanHandle(Uri uri) => false; // rewrite only
 
-    public bool CanHandle(Uri uri) => false; // rewrite only
-
-    public Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
+    public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
     public Task<string> RewriteUrl(string url, Uri uri)
     {
         if (!url.StartsWith("https://ksync.arcanescripts.com/custom/redir-url"))
             return Task.FromResult(url);
 
-        string[] splitQuery = uri.Query.Split(":", 2);
+        var splitQuery = uri.Query.Split(":", 2);
 
         if (!url.Contains("Paste%20the%20YouTube%20Link%20after%20the%20colon:") || splitQuery.Length != 2)
         {
@@ -30,5 +27,4 @@ public class KaraokeInSyncHandler : ISiteHandler
     }
 
     public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
-
 }

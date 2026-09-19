@@ -1,15 +1,12 @@
-﻿using Serilog;
-using VRCVideoCacher.Models;
+﻿using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class YTSHandler : ISiteHandler
+public class YTSHandler : Handler<YTSHandler>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<YTSHandler>();
+    public override bool CanHandle(Uri uri) => false; // rewrite only
 
-    public bool CanHandle(Uri uri) => false; // rewrite only
-
-    public Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
+    public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
     public Task<string> RewriteUrl(string url, Uri uri)
     {
@@ -22,5 +19,4 @@ public class YTSHandler : ISiteHandler
     }
 
     public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
-
 }

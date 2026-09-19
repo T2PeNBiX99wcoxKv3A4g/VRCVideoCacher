@@ -1,13 +1,10 @@
 ﻿using System.Text.RegularExpressions;
-using Serilog;
 using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public partial class NicoVideoHandler : ISiteHandler
+public partial class NicoVideoHandler : Handler<NicoVideoHandler>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<NicoVideoHandler>();
-
     // Matches full nicovideo/niconico URLs
     private static readonly Regex NicoID1 = NicoID1Regex();
     private static readonly Regex NicoID2 = NicoID2Regex();
@@ -15,9 +12,9 @@ public partial class NicoVideoHandler : ISiteHandler
     // Matches bare Nico video/live IDs
     private static readonly Regex NicoID4 = NicoID4Regex();
 
-    public bool CanHandle(Uri uri) => false; // rewrite only, GenericHandler picks up after
+    public override bool CanHandle(Uri uri) => false; // rewrite only, GenericHandler picks up after
 
-    public Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
+    public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
     public Task<string> RewriteUrl(string url, Uri uri)
     {

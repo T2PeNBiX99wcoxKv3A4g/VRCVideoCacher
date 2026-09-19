@@ -1,14 +1,11 @@
 ﻿using System.Text.RegularExpressions;
-using Serilog;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Sabr;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public partial class YouTubeHandler : ISiteHandler
+public partial class YouTubeHandler : Handler<YouTubeHandler>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<YouTubeHandler>();
-
     private static readonly string[] Hosts =
         ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
 
@@ -18,9 +15,9 @@ public partial class YouTubeHandler : ISiteHandler
     private const string UnityPlayerFormat =
         "(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?1080][height>=?64][width>=?64][protocol^=http]";
 
-    public bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
+    public override bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
 
-    public Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
+    public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
     {
         string? videoId = null;
 

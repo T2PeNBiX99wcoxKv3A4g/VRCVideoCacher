@@ -1,4 +1,3 @@
-using Serilog;
 using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
@@ -12,9 +11,8 @@ namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 /// return the m3u8, which VRChat/AVPro cannot play without restreaming — but the muxed MP4 is right there,
 /// so we just ask for it. See https://github.com/EllyVR/VRCVideoCacher/issues/200
 /// </summary>
-public class TwitterHandler : ISiteHandler
+public class TwitterHandler : Handler<TwitterHandler>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<TwitterHandler>();
     private static readonly string[] Hosts =
         ["twitter.com", "www.twitter.com", "mobile.twitter.com", "x.com", "www.x.com", "mobile.x.com"];
 
@@ -22,13 +20,13 @@ public class TwitterHandler : ISiteHandler
     // `^=http` protocol match deliberately excludes `m3u8_native`. Falls back to best if none exists.
     private const string MuxedHttpFormat = "best[protocol^=http]/best";
 
-    public bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
+    public override bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
 
-    public Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
+    public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
     {
         var videoId = VideoId.HashUrl(url);
         Log.Information("Handling Twitter/X URL: {URL}", url);
-        return Task.FromResult<VideoInfo?>(new VideoInfo
+        return Task.FromResult<VideoInfo?>(new()
         {
             VideoUrl = url,
             VideoId = videoId,

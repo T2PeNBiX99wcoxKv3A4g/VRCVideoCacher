@@ -1,19 +1,17 @@
 ﻿using System.Web;
-using Serilog;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class PyPyDanceHandler : ISiteHandler
+public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<PyPyDanceHandler>();
     private static readonly string[] Prefixes = ["http://api.pypy.dance/video", "https://api.pypy.dance/video"];
 
-    public bool CanHandle(Uri uri) => Prefixes.Any(p => uri.ToString().StartsWith(p));
+    public override bool CanHandle(Uri uri) => Prefixes.Any(p => uri.ToString().StartsWith(p));
 
-    public async Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
+    public override async Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
     {
         try
         {
@@ -22,7 +20,8 @@ public class PyPyDanceHandler : ISiteHandler
             var videoUrl = result.RequestMessage?.RequestUri?.ToString();
             if (string.IsNullOrEmpty(videoUrl))
             {
-                Log.Error("Failed to get video ID from PypyDance URL: {URL} Response: {Response} - {Data}", url, result.StatusCode, await result.Content.ReadAsStringAsync());
+                Log.Error("Failed to get video ID from PypyDance URL: {URL} Response: {Response} - {Data}", url,
+                    result.StatusCode, await result.Content.ReadAsStringAsync());
                 return null;
             }
 
@@ -54,5 +53,4 @@ public class PyPyDanceHandler : ISiteHandler
             return null;
         }
     }
-
 }

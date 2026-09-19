@@ -1,29 +1,36 @@
-using Serilog;
 using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class ThirdPartyYTResolver : ISiteHandler
+public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>, ISiteHandler
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<ThirdPartyYTResolver>();
-
     // AllowAutoRedirect=false so we can check each hop and stop as soon as
     // the destination is a URL a specific handler recognises
-    private static readonly HttpClient NoAutoRedirectClient = new(new HttpClientHandler { AllowAutoRedirect = false })
+    private static readonly HttpClient NoAutoRedirectClient = new(new HttpClientHandler
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
+        AllowAutoRedirect = false
+    })
+    {
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        }
     };
 
     private readonly HttpClient _client;
 
-    public ThirdPartyYTResolver() : this(NoAutoRedirectClient) { }
+    public ThirdPartyYTResolver() : this(NoAutoRedirectClient)
+    {
+    }
 
     /// <summary>Overload so tests can drive the redirect chain with a stub handler.</summary>
-    public ThirdPartyYTResolver(HttpClient client) => _client = client;
+    private ThirdPartyYTResolver(HttpClient client) => _client = client;
 
-    public bool CanHandle(Uri uri) => false; // rewrite only
+    public override bool CanHandle(Uri uri) => false; // rewrite only
 
-    public Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
+    public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
     public async Task<string> RewriteUrl(string url, Uri uri)
     {
@@ -65,7 +72,8 @@ public class ThirdPartyYTResolver : ISiteHandler
         if (current != url)
         {
             Log.Information("Resolved redirect: {URL} -> {Resolved}", url, current);
-            if (Uri.TryCreate(current, UriKind.Absolute, out var finalUri) && !SiteHandlerRegistry.HasSpecificHandler(finalUri))
+            if (Uri.TryCreate(current, UriKind.Absolute, out var finalUri) &&
+                !SiteHandlerRegistry.HasSpecificHandler(finalUri))
                 Log.Warning("Resolved URL has no specific handler, will use generic: {URL}", current);
         }
 
