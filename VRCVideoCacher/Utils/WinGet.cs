@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace VRCVideoCacher.Utils;
 
@@ -30,7 +31,8 @@ public partial class WinGet : Singleton<WinGet>
     };
 
     [SupportedOSPlatform("windows")]
-    public async Task TryInstallPackages()
+    [PublicAPI]
+    public async Task TryInstallPackages2()
     {
         Log.Information("Checking for missing codec packages...");
         if (!IsOurPackagesInstalled())

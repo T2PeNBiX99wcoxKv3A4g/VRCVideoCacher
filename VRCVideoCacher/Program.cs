@@ -227,7 +227,7 @@ internal sealed class Program
 
         // run after init to avoid text spam blocking user input
         if (OperatingSystem.IsWindows())
-            _ = WinGet.Instance.TryInstallPackages();
+            _ = WinGet.TryInstallPackages();
 
         await Task.Delay(-1);
     }
