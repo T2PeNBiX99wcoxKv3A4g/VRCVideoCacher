@@ -7,8 +7,7 @@ namespace VRCVideoCacher.Models;
 public partial class Versions : Singleton<Versions>
 {
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
-    [PublicAPI]
-    public readonly VersionJson CurrentVersion2 = new();
+    [PublicAPI] public readonly VersionJson CurrentVersion2 = new();
 
     public Versions()
     {
@@ -16,7 +15,7 @@ public partial class Versions : Singleton<Versions>
             try
             {
                 CurrentVersion2 = JsonConvert.DeserializeObject<VersionJson>(File.ReadAllText(VersionPath)) ??
-                                 new VersionJson();
+                                  new VersionJson();
                 return;
             }
             catch (Exception ex)
