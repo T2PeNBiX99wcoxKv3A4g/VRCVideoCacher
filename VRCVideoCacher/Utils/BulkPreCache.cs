@@ -32,7 +32,7 @@ public partial class BulkPreCache : Singleton<BulkPreCache>
         public string FilePath => Path.Join(CacheManager.Instance.CachePath, FileName);
     }
 
-    [StaticInclude("DownloadFileList")]
+    [StaticTrimLast]
     private async Task DownloadFileList2()
     {
         foreach (var url in ConfigManager.Config.PreCacheUrls)

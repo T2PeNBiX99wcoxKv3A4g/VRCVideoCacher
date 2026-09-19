@@ -26,7 +26,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     private bool? _doesVrcxSupportSteamShortcut;
 
     [SupportedOSPlatform("windows")]
-    [StaticInclude("TryUpdateShortcutPath")]
+    [StaticTrimLast]
     private void TryUpdateShortcutPath2()
     {
         RemoveLegacyShortcut(true);
@@ -61,7 +61,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     private bool StartupEnabled() => !string.IsNullOrEmpty(GetOurShortcut());
 
     [SupportedOSPlatform("windows")]
-    [StaticMember("CreateShortcut")]
+    [StaticTrimLast]
     private void CreateShortcut2()
     {
         if (StartupEnabled())

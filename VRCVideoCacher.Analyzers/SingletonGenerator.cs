@@ -185,7 +185,9 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
             var isPublic = member.DeclaredAccessibility == Accessibility.Public;
             var isExplicitlyIncluded = HasAttribute(member, "StaticIncludeAttribute", "StaticInclude") ||
-                                       HasAttribute(member, "StaticMemberAttribute", "StaticMember");
+                                       HasAttribute(member, "StaticTrimLastAttribute", "StaticTrimLast") ||
+                                       HasAttribute(member, "StaticTrimEndAttribute", "StaticTrimEnd") ||
+                                       HasAttribute(member, "StaticDropLastAttribute", "StaticDropLast");
 
             if (!isPublic && !isExplicitlyIncluded)
                 continue;
@@ -403,17 +405,36 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
     private static string? GetCustomMemberName(ISymbol symbol)
     {
-        foreach (var attr in symbol.GetAttributes()
-                     .Where(attr => attr.AttributeClass?.Name is "StaticMemberAttribute" or "StaticMember"
-                         or "StaticIncludeAttribute" or "StaticInclude"))
+        // 1. Check for StaticTrimLast attribute
+        foreach (var attr in symbol.GetAttributes())
         {
-            if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string s1 &&
-                !string.IsNullOrEmpty(s1))
-                return s1;
+            var attrName = attr.AttributeClass?.Name;
+            if (attrName is "StaticTrimLastAttribute" or "StaticTrimLast"
+                or "StaticTrimEndAttribute" or "StaticTrimEnd"
+                or "StaticDropLastAttribute" or "StaticDropLast")
+            {
+                return symbol.Name.Length > 1 ? symbol.Name.Substring(0, symbol.Name.Length - 1) : symbol.Name;
+            }
+        }
 
-            foreach (var namedArg in attr.NamedArguments)
-                if (namedArg is { Key: "Name", Value.Value: string s2 } && !string.IsNullOrEmpty(s2))
-                    return s2;
+        // 2. Check for StaticInclude attribute
+        foreach (var attr in symbol.GetAttributes())
+        {
+            var attrName = attr.AttributeClass?.Name;
+            if (attrName is "StaticIncludeAttribute" or "StaticInclude")
+            {
+                if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string s1 &&
+                    !string.IsNullOrEmpty(s1))
+                    return s1;
+
+                foreach (var namedArg in attr.NamedArguments)
+                {
+                    if (namedArg is { Key: "Name", Value.Value: string s2 } && !string.IsNullOrEmpty(s2))
+                        return s2;
+                    if (namedArg is { Key: "TrimLast", Value.Value: true })
+                        return symbol.Name.Length > 1 ? symbol.Name.Substring(0, symbol.Name.Length - 1) : symbol.Name;
+                }
+            }
         }
 
         return null;

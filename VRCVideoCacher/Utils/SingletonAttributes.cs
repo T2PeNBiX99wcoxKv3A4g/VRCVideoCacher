@@ -26,24 +26,8 @@ public sealed class SingletonStaticProxyAttribute : Attribute
 }
 
 /// <summary>
-/// Customizes the static proxy name for a specific member, or overrides the default naming rule.
-/// </summary>
-[PublicAPI]
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
-    Inherited = false)]
-public sealed class StaticMemberAttribute : Attribute
-{
-    public string? Name { get; set; }
-
-    public StaticMemberAttribute()
-    {
-    }
-
-    public StaticMemberAttribute(string name) => Name = name;
-}
-
-/// <summary>
-/// Explicitly includes a non-public (or public) member to generate a static proxy.
+/// Explicitly includes a non-public (or public) member to generate a static proxy,
+/// optionally customizing the static proxy name or trimming the last character.
 /// </summary>
 [PublicAPI]
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
@@ -52,11 +36,27 @@ public sealed class StaticIncludeAttribute : Attribute
 {
     public string? Name { get; set; }
 
+    /// <summary>
+    /// When true, automatically removes the last character from the member's name for the static proxy.
+    /// </summary>
+    public bool TrimLast { get; set; }
+
     public StaticIncludeAttribute()
     {
     }
 
     public StaticIncludeAttribute(string name) => Name = name;
+}
+
+/// <summary>
+/// Explicitly includes a member and automatically removes the last character from its name when generating the static proxy.
+/// (e.g. TryUpdateShortcutPath2 -> TryUpdateShortcutPath)
+/// </summary>
+[PublicAPI]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event,
+    Inherited = false)]
+public sealed class StaticTrimLastAttribute : Attribute
+{
 }
 
 /// <summary>
