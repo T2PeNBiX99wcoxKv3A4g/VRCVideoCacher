@@ -10,10 +10,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class VideoDownloader : Singleton<VideoDownloader>
+public partial class VideoDownloader : Singleton<VideoDownloader>
 {
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadWebmName = "_tempVideo.webm";

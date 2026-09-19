@@ -7,10 +7,7 @@ using ShellLink;
 
 namespace VRCVideoCacher.Utils;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class AutoStartShortcut : Singleton<AutoStartShortcut>
+public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
 {
     private static readonly byte[] ShortcutSignatureBytes = [.. "L\0\0\0"u8]; // signature for ShellLinkHeader
     private const string ShortcutName = "VRCVideoCacher";

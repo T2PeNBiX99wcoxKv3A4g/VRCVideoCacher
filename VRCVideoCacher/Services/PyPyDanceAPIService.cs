@@ -28,10 +28,7 @@ internal partial class PyPyDanceBundleContext : JsonSerializerContext
 {
 }
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class PyPyDanceApiService : Singleton<PyPyDanceApiService>
+public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
 {
     private const string PyPyDanceApiUrl = "https://api.pypy.dance/bundle";
     private DateTime _lastFetch = DateTime.MinValue;

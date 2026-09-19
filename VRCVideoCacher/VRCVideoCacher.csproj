@@ -173,4 +173,10 @@
         <InternalsVisibleTo Include="VRCVideoCacher.Tests" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\VRCVideoCacher.Analyzers\VRCVideoCacher.Analyzers.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
 </Project>

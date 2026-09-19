@@ -3,10 +3,7 @@ using Newtonsoft.Json;
 
 namespace VRCVideoCacher.Utils;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class BulkPreCache : Singleton<BulkPreCache>
+public partial class BulkPreCache : Singleton<BulkPreCache>
 {
     private readonly HttpClient _httpClient = new()
     {

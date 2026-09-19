@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VRCVideoCacher.Utils;
 
-public class WinGet : Singleton<WinGet>
+public partial class WinGet : Singleton<WinGet>
 {
     private static readonly string WingetPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\WindowsApps\winget.exe");
     private static readonly Dictionary<string, string> WingetPackages = new()

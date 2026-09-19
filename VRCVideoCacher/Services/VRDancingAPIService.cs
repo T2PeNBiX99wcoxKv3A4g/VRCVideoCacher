@@ -6,10 +6,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class VRDancingAPIService : Singleton<VRDancingAPIService>
+public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
 {
     private const string VRDancingAPIBaseURL = "https://dbapi.vrdancing.club/";
     private readonly HttpClient _httpClient = new()

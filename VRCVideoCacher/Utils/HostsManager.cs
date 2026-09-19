@@ -2,10 +2,7 @@
 
 namespace VRCVideoCacher.Utils;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class HostsManager : Singleton<HostsManager>
+public partial class HostsManager : Singleton<HostsManager>
 {
     private static readonly string Header =
         $"{Environment.NewLine}# ----- BEGIN VRCVIDEOCACHER -----{Environment.NewLine}";

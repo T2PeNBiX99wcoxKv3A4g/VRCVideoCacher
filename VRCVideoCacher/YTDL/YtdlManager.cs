@@ -10,7 +10,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public class YtdlManager : Singleton<YtdlManager>
+public partial class YtdlManager : Singleton<YtdlManager>
 {
     private static readonly HttpClient HttpClient = new()
     {

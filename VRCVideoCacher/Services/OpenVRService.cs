@@ -9,10 +9,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class OpenVRService : Singleton<OpenVRService>
+public partial class OpenVRService : Singleton<OpenVRService>
 {
     public void Start(string dataPath)
     {

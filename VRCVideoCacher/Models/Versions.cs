@@ -4,10 +4,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Models;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class Versions: Singleton<Versions>
+public partial class Versions: Singleton<Versions>
 {
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
     public readonly VersionJson CurrentVersion = new();

@@ -6,10 +6,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class VvcConfigService : Singleton<VvcConfigService>
+public partial class VvcConfigService : Singleton<VvcConfigService>
 {
     private readonly HttpClient _httpClient = new()
     {

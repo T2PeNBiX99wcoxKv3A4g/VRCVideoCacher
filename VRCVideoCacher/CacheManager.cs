@@ -15,10 +15,7 @@ public enum CacheChangeType
     Cleared
 }
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class CacheManager : Singleton<CacheManager>
+public partial class CacheManager : Singleton<CacheManager>
 {
     private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
     public readonly string CachePath;

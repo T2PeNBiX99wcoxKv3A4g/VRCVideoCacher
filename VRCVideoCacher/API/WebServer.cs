@@ -10,10 +10,7 @@ using ILogger = Serilog.ILogger;
 
 namespace VRCVideoCacher.API;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class WebServer : Singleton<WebServer>, ILog
+public partial class WebServer : Singleton<WebServer>, ILog
 {
     private EmbedIO.WebServer? _server;
 

@@ -6,10 +6,7 @@ using VRCVideoCacher.API;
 
 namespace VRCVideoCacher.Utils;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class ElevatorManager : Singleton<ElevatorManager>
+public partial class ElevatorManager : Singleton<ElevatorManager>
 {
     public bool HasHostsLine = HostsManager.Instance.IsHostAdded();
 

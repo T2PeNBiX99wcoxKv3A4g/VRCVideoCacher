@@ -5,10 +5,7 @@ using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
-[SuppressMessage("Performance", "CA1822")]
-public class OpenUrl : Singleton<OpenUrl>
+public partial class OpenUrl : Singleton<OpenUrl>
 {
     [PublicAPI]
     public bool Open(string url)
