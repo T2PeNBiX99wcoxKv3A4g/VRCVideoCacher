@@ -10,7 +10,6 @@ namespace VRCVideoCacher.API;
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public partial class WebServerLogger : ILogger
 {
-    private static readonly Regex RequestIdPrefix = RequestIdRegex();
     public LogLevel LogLevel => LogLevel.Info;
 
     public void Dispose()
@@ -20,7 +19,7 @@ public partial class WebServerLogger : ILogger
 
     public void Log(LogMessageReceivedEventArgs logEvent)
     {
-        var rawMessage = RequestIdPrefix.Replace(logEvent.Message, "");
+        var rawMessage = RequestIdPrefix().Replace(logEvent.Message, "");
         var trace = logEvent.Exception != null ? logEvent.Exception.ToString() : string.Empty;
         var message = string.IsNullOrEmpty(trace) ? rawMessage : $"{rawMessage}\n{trace}";
 
@@ -42,7 +41,7 @@ public partial class WebServerLogger : ILogger
     }
 
     [GeneratedRegex(@"^\[.*?\]\s*", RegexOptions.Compiled)]
-    private static partial Regex RequestIdRegex();
+    private static partial Regex RequestIdPrefix();
 
     private static bool IsHlsPartialContent(string message) =>
         message.Contains("/hls/", StringComparison.Ordinal) &&
