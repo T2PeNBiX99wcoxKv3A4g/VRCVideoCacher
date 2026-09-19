@@ -16,31 +16,45 @@ public static class ResultExtensions
             return result;
         }
 
-        public Result<T> OnFailure(Action<ExceptionDispatchInfo> action)
+        public Result<T> OnFailure(Action<Exception> action)
         {
             if (!result.IsSuccess)
-                action(result.ExceptionDispatchInfo!);
+                action(result.Exception!);
             return result;
         }
 
-        public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<ExceptionDispatchInfo, TResult> onFailure) =>
-            result.IsSuccess ? onSuccess(result.Value!) : onFailure(result.ExceptionDispatchInfo!);
+        private void ThrowOnFailure()
+        {
+            if (result.Exception is not { } exception) return;
+            ExceptionDispatchInfo.Throw(exception);
+        }
+
+        public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<Exception, TResult> onFailure) =>
+            result.IsSuccess ? onSuccess(result.Value!) : onFailure(result.Exception!);
 
         public T? GetOrNull() => result.IsSuccess ? result.Value : default;
 
-        public T GetOrElse(Func<ExceptionDispatchInfo, T> onFailure) =>
-            result.IsSuccess ? result.Value! : onFailure(result.ExceptionDispatchInfo!);
+        public T GetOrElse(Func<Exception, T> onFailure) =>
+            result.IsSuccess ? result.Value! : onFailure(result.Exception!);
+
+        public T GetOrThrow()
+        {
+            if (result.IsSuccess)
+                return result.Value!;
+            result.ThrowOnFailure();
+            return default!;
+        }
 
         public Result<TU> Select<TU>(Func<T, TU> selector) => result.IsSuccess
             ? Result<TU>.Success(selector(result.Value!))
-            : Result<TU>.Failure(result.ExceptionDispatchInfo!);
+            : Result<TU>.Failure(result.Exception!);
 
         public Result<TU> SelectMany<TU>(Func<T, Result<TU>> binder) =>
-            result.IsSuccess ? binder(result.Value!) : Result<TU>.Failure(result.ExceptionDispatchInfo!);
+            result.IsSuccess ? binder(result.Value!) : Result<TU>.Failure(result.Exception!);
 
         public Result<TV> SelectMany<TU, TV>(Func<T, Result<TU>> binder, Func<T, TU, TV> projector) => result.IsSuccess
             ? binder(result.Value!).Select(u => projector(result.Value!, u))
-            : Result<TV>.Failure(result.ExceptionDispatchInfo!);
+            : Result<TV>.Failure(result.Exception!);
     }
 
     extension<T>(Task<Result<T>> task)
@@ -55,23 +69,23 @@ public static class ResultExtensions
             return result;
         }
 
-        public async Task<Result<T>> OnFailure(Func<ExceptionDispatchInfo, Task> action)
+        public async Task<Result<T>> OnFailure(Func<Exception, Task> action)
         {
             var result = await task.ConfigureAwait(false);
 
             if (!result.IsSuccess)
-                await action(result.ExceptionDispatchInfo!).ConfigureAwait(false);
+                await action(result.Exception!).ConfigureAwait(false);
 
             return result;
         }
 
         public async Task<TResult> Match<TResult>(Func<T, Task<TResult>> onSuccess,
-            Func<ExceptionDispatchInfo, Task<TResult>> onFailure)
+            Func<Exception, Task<TResult>> onFailure)
         {
             var result = await task.ConfigureAwait(false);
             return result.IsSuccess
                 ? await onSuccess(result.Value!).ConfigureAwait(false)
-                : await onFailure(result.ExceptionDispatchInfo!).ConfigureAwait(false);
+                : await onFailure(result.Exception!).ConfigureAwait(false);
         }
 
         public async Task<T?> GetOrNull()
@@ -80,12 +94,21 @@ public static class ResultExtensions
             return result.IsSuccess ? result.Value : default;
         }
 
-        public async Task<T> GetOrElse(Func<ExceptionDispatchInfo, Task<T>> onFailure)
+        public async Task<T> GetOrElse(Func<Exception, Task<T>> onFailure)
         {
             var result = await task.ConfigureAwait(false);
             return result.IsSuccess
                 ? result.Value!
-                : await onFailure(result.ExceptionDispatchInfo!).ConfigureAwait(false);
+                : await onFailure(result.Exception!).ConfigureAwait(false);
+        }
+
+        public async Task<T> GetOrThrow()
+        {
+            var result = await task.ConfigureAwait(false);
+            if (result.IsSuccess)
+                return result.Value!;
+            result.ThrowOnFailure();
+            return default!;
         }
 
         public async Task<Result<TU>> Select<TU>(Func<T, TU> selector)
@@ -93,7 +116,7 @@ public static class ResultExtensions
             var result = await task.ConfigureAwait(false);
             return result.IsSuccess
                 ? Result<TU>.Success(selector(result.Value!))
-                : Result<TU>.Failure(result.ExceptionDispatchInfo!);
+                : Result<TU>.Failure(result.Exception!);
         }
 
         public async Task<Result<TU>> SelectMany<TU>(Func<T, Task<Result<TU>>> binder)
@@ -101,7 +124,7 @@ public static class ResultExtensions
             var result = await task.ConfigureAwait(false);
             return result.IsSuccess
                 ? await binder(result.Value!).ConfigureAwait(false)
-                : Result<TU>.Failure(result.ExceptionDispatchInfo!);
+                : Result<TU>.Failure(result.Exception!);
         }
 
         public async Task<Result<TV>> SelectMany<TU, TV>(Func<T, Task<Result<TU>>> binder, Func<T, TU, TV> projector)
@@ -109,12 +132,12 @@ public static class ResultExtensions
             var result = await task.ConfigureAwait(false);
 
             if (!result.IsSuccess)
-                return Result<TV>.Failure(result.ExceptionDispatchInfo!);
+                return Result<TV>.Failure(result.Exception!);
 
             var inner = await binder(result.Value!).ConfigureAwait(false);
             return inner.IsSuccess
                 ? Result<TV>.Success(projector(result.Value!, inner.Value!))
-                : Result<TV>.Failure(inner.ExceptionDispatchInfo!);
+                : Result<TV>.Failure(inner.Exception!);
         }
     }
 }
