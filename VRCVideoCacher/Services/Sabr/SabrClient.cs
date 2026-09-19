@@ -565,13 +565,17 @@ internal sealed class SabrClient(
                 PlaybackCookie = _playbackCookie,
                 // Echo back the ad/session contexts the server is waiting on, plus any it wants that we
                 // haven't received the value for yet.
-                SabrContexts = _sabrContextsToSend
-                    .Where(_sabrContextUpdates.ContainsKey)
-                    .Select(type => new SabrContext(type, _sabrContextUpdates[type].Value!))
-                    .ToList(),
-                UnsentSabrContexts = _sabrContextsToSend
-                    .Where(type => !_sabrContextUpdates.ContainsKey(type))
-                    .ToList()
+                SabrContexts =
+                [
+                    .. _sabrContextsToSend
+                        .Where(_sabrContextUpdates.ContainsKey)
+                        .Select(type => new SabrContext(type, _sabrContextUpdates[type].Value!))
+                ],
+                UnsentSabrContexts =
+                [
+                    .. _sabrContextsToSend
+                        .Where(type => !_sabrContextUpdates.ContainsKey(type))
+                ]
             }
         };
 

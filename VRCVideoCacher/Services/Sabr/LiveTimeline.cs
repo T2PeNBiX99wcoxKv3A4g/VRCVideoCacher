@@ -82,7 +82,7 @@ internal sealed class LiveTimeline
         {
             if (_fragments.Count == 0)
                 return [];
-            return _fragments.Values.TakeLast(count).ToList();
+            return [.. _fragments.Values.TakeLast(count)];
         }
     }
 

@@ -407,7 +407,7 @@ internal sealed class SabrContextUpdate
             switch (field)
             {
                 case 1 when wire == 0: result.Type = (int)r.ReadVarint(); break;
-                case 3 when wire == 2: result.Value = r.ReadBytes().ToArray(); break;
+                case 3 when wire == 2: result.Value = [.. r.ReadBytes()]; break;
                 case 4 when wire == 0: result.SendByDefault = r.ReadVarint() != 0; break;
                 case 5 when wire == 0: result.WritePolicy = (int)r.ReadVarint(); break;
                 default: r.Skip(wire); break; // scope(2) and anything else are not needed
@@ -506,7 +506,7 @@ internal static class SabrResponse
             switch (field)
             {
                 case 4 when wire == 0: backoff = (int)r.ReadVarint(); break;
-                case 7 when wire == 2: cookie = r.ReadBytes().ToArray(); break;
+                case 7 when wire == 2: cookie = [.. r.ReadBytes()]; break;
                 default: r.Skip(wire); break;
             }
 

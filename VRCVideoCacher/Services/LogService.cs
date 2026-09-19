@@ -58,7 +58,7 @@ public static class LogService
     }
 
     // Get all buffered logs (for UI initialization)
-    public static IEnumerable<LogEntry> GetBufferedLogs() => LogBuffer.ToArray();
+    public static IEnumerable<LogEntry> GetBufferedLogs() => [.. LogBuffer];
 }
 
 public class UiLogSink : ILogEventSink

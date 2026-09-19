@@ -131,11 +131,13 @@ public static class DatabaseManager
     public static List<History> GetPlayHistory(int limit = 50)
     {
         using var db = ContextFactory.CreateDbContext();
-        return db.PlayHistory
-            .AsNoTracking()
-            .OrderByDescending(h => h.Timestamp)
-            .Take(limit)
-            .ToList();
+        return
+        [
+            .. db.PlayHistory
+                .AsNoTracking()
+                .OrderByDescending(h => h.Timestamp)
+                .Take(limit)
+        ];
     }
 
     public static IEnumerable<HistoryItemViewModel> GetVideoHistoryAsCache(int limit = 50, bool distinctOnly = false)
@@ -145,8 +147,10 @@ public static class DatabaseManager
         List<History> histories;
 
         if (distinctOnly)
-            histories = db.PlayHistory
-                .FromSqlRaw($@"
+            histories =
+            [
+                .. db.PlayHistory
+                    .FromSqlRaw($@"
                     SELECT ph.* FROM {nameof(Database.PlayHistory)} ph
                     INNER JOIN (
                         SELECT {nameof(History.Id)}, MAX({nameof(History.Timestamp)}) as MaxTimestamp
@@ -155,14 +159,16 @@ public static class DatabaseManager
                     ) latest ON ph.{nameof(History.Id)} = latest.{nameof(History.Id)} AND ph.{nameof(History.Timestamp)} = latest.MaxTimestamp
                     ORDER BY ph.{nameof(History.Timestamp)} DESC
                     LIMIT {{0}}", limit)
-                .AsNoTracking()
-                .ToList();
+                    .AsNoTracking()
+            ];
         else
-            histories = db.PlayHistory
-                .AsNoTracking()
-                .OrderByDescending(h => h.Timestamp)
-                .Take(limit)
-                .ToList();
+            histories =
+            [
+                .. db.PlayHistory
+                    .AsNoTracking()
+                    .OrderByDescending(h => h.Timestamp)
+                    .Take(limit)
+            ];
 
         // Fetch matching VideoInfoCache entries
         var ids = histories.Select(h => h.Id).Where(id => id != null).Distinct().ToList();
@@ -172,11 +178,14 @@ public static class DatabaseManager
             .ToDictionary(v => v.Id);
 
         // Project to ViewModel in-memory
-        return histories.Select(h =>
-        {
-            cacheDict.TryGetValue(h.Id ?? string.Empty, out var meta);
-            return new HistoryItemViewModel(h, meta);
-        }).ToList();
+        return
+        [
+            .. histories.Select(h =>
+            {
+                cacheDict.TryGetValue(h.Id ?? string.Empty, out var meta);
+                return new HistoryItemViewModel(h, meta);
+            })
+        ];
     }
 
     public static VideoInfoCache? GetVideoInfoCache(string videoId)
