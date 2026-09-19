@@ -10,11 +10,10 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public class VideoDownloader
+public class VideoDownloader : Singleton<VideoDownloader>
 {
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadWebmName = "_tempVideo.webm";
-    private static readonly ILogger Log = Program.Logger.ForContext<VideoDownloader>();
 
     private static readonly HttpClient HttpClient = new()
     {
@@ -31,7 +30,7 @@ public class VideoDownloader
     // Current download tracking
     private static VideoInfo? _currentDownload;
 
-    static VideoDownloader()
+    public VideoDownloader()
     {
         Task.Run(DownloadThread);
     }
@@ -41,7 +40,7 @@ public class VideoDownloader
     public static event Action<VideoInfo, bool>? OnDownloadCompleted;
     public static event Action? OnQueueChanged;
 
-    private static async Task DownloadThread()
+    private async Task DownloadThread()
     {
         while (true)
         {
@@ -115,7 +114,7 @@ public class VideoDownloader
     public static int GetQueueCount() => DownloadQueue.Count;
     public static VideoInfo? GetCurrentDownload() => _currentDownload;
 
-    private static async Task<bool> DownloadYouTubeVideo(VideoInfo videoInfo)
+    private async Task<bool> DownloadYouTubeVideo(VideoInfo videoInfo)
     {
         var url = videoInfo.VideoUrl;
 
@@ -206,7 +205,15 @@ public class VideoDownloader
             }
             catch
             {
-                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+                try
+                {
+                    if (!process.HasExited) process.Kill(true);
+                }
+                catch
+                {
+                    /* best effort */
+                }
+
                 throw;
             }
             finally
@@ -262,7 +269,7 @@ public class VideoDownloader
         return true;
     }
 
-    private static async Task<bool> DownloadVRDancingVideoWithId(VideoInfo videoInfo)
+    private async Task<bool> DownloadVRDancingVideoWithId(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
@@ -293,7 +300,15 @@ public class VideoDownloader
         }
         catch
         {
-            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            try
+            {
+                if (!process.HasExited) process.Kill(true);
+            }
+            catch
+            {
+                /* best effort */
+            }
+
             throw;
         }
         finally
@@ -340,7 +355,7 @@ public class VideoDownloader
         return true;
     }
 
-    private static async Task<bool> DownloadVideoWithId(VideoInfo videoInfo)
+    private async Task<bool> DownloadVideoWithId(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
@@ -400,25 +415,20 @@ public class VideoDownloader
         return true;
     }
 
-    private static async Task<bool> DownloadGenericVideo(VideoInfo videoInfo)
+    private async Task<bool> DownloadGenericVideo(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
-        using var process = new Process
-        {
-            StartInfo =
-            {
-                FileName = YtdlManager.YtdlPath,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            }
-        };
+        using var process = new Process();
+        process.StartInfo.FileName = YtdlManager.YtdlPath;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
@@ -431,7 +441,15 @@ public class VideoDownloader
         }
         catch
         {
-            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            try
+            {
+                if (!process.HasExited) process.Kill(true);
+            }
+            catch
+            {
+                /* best effort */
+            }
+
             throw;
         }
         finally
