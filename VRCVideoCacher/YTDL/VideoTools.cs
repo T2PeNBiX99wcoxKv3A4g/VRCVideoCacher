@@ -1,4 +1,5 @@
-﻿using VRCVideoCacher.Utils;
+﻿using JetBrains.Annotations;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
@@ -6,7 +7,8 @@ public partial class VideoTools : Singleton<VideoTools>
 {
     private readonly HttpClient _httpClient = new();
 
-    public async Task<bool> Prefetch(string videoUrl, int maxRetryCount = 7)
+    [PublicAPI]
+    public async Task<bool> Prefetch2(string videoUrl, int maxRetryCount = 7)
     {
         // If the URL is invalid, skip prefetching
         if (string.IsNullOrWhiteSpace(videoUrl) || !Uri.IsWellFormedUriString(videoUrl, UriKind.RelativeOrAbsolute))
