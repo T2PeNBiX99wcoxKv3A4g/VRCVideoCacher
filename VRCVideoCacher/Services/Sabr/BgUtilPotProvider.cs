@@ -20,7 +20,12 @@ internal static class BgUtilPotProvider
 
     private static readonly HttpClient HttpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } },
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        },
         Timeout = TimeSpan.FromMinutes(5)
     };
 
@@ -50,7 +55,7 @@ internal static class BgUtilPotProvider
     public static string[] ExtractorArgs =>
     [
         $"--plugin-dirs \"{PluginSearchDir}\"",
-        $"--extractor-args \"youtubepot-bgutilhttp:base_url={BaseUrl}\"",
+        $"--extractor-args \"youtubepot-bgutilhttp:base_url={BaseUrl}\""
     ];
 
     public static int Port =>
@@ -62,7 +67,7 @@ internal static class BgUtilPotProvider
     private static bool IsAutoManaged =>
         Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri) && uri.IsLoopback;
 
-    private static readonly object InitLock = new();
+    private static readonly Lock InitLock = new();
     private static Task? _init;
     private static bool _backendReady;
     private static volatile bool _isReady;
@@ -88,64 +93,81 @@ internal static class BgUtilPotProvider
         {
             var preferredPort = Port;
             if (PortAudit.IsInUse(preferredPort))
-            {
                 if (PortAudit.TryKillListener(preferredPort, "deno"))
-                {
                     Log.Information("Freed POT server port {Port} by terminating leftover Deno process", preferredPort);
-                }
-            }
         }
 
         // 2. Kill leftover Deno processes originating from our bundled/utils path
         var denoPath = YtdlManager.DenoPath;
-        var processNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "deno" };
+        var processNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "deno"
+        };
         if (!string.IsNullOrEmpty(denoPath))
             processNames.Add(Path.GetFileNameWithoutExtension(denoPath));
 
         string? fullDenoPath = null;
-        try { if (!string.IsNullOrEmpty(denoPath)) fullDenoPath = Path.GetFullPath(denoPath); } catch { /* Ignore */ }
+        try
+        {
+            if (!string.IsNullOrEmpty(denoPath)) fullDenoPath = Path.GetFullPath(denoPath);
+        }
+        catch
+        {
+            /* Ignore */
+        }
 
         string? fullUtilsPath = null;
-        try { fullUtilsPath = Path.GetFullPath(Program.UtilsPath); } catch { /* Ignore */ }
+        try
+        {
+            fullUtilsPath = Path.GetFullPath(Program.UtilsPath);
+        }
+        catch
+        {
+            /* Ignore */
+        }
 
         foreach (var processName in processNames)
-        {
-            foreach (var process in Process.GetProcessesByName(processName))
+        foreach (var process in Process.GetProcessesByName(processName))
+            try
             {
+                var pid = process.Id;
+                if (pid == Environment.ProcessId)
+                    continue;
+
+                string? exePath = null;
                 try
                 {
-                    var pid = process.Id;
-                    if (pid == Environment.ProcessId)
-                        continue;
-
-                    string? exePath = null;
-                    try { exePath = process.MainModule?.FileName; }
-                    catch { continue; } // Skip processes whose ownership cannot be verified.
-
-                    if (string.IsNullOrEmpty(exePath))
-                        continue;
-
-                    var fullExePath = Path.GetFullPath(exePath);
-                    var matches = (!string.IsNullOrEmpty(fullDenoPath) && string.Equals(fullExePath, fullDenoPath, PathComparison)) ||
-                                  (!string.IsNullOrEmpty(fullUtilsPath) && fullExePath.StartsWith(fullUtilsPath, PathComparison));
-
-                    if (!matches)
-                        continue;
-
-                    Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
-                    process.Kill(entireProcessTree: true);
-                    process.WaitForExit(3000);
+                    exePath = process.MainModule?.FileName;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Log.Debug(ex, "Could not kill Deno process");
-                }
-                finally
-                {
-                    process.Dispose();
-                }
+                    continue;
+                } // Skip processes whose ownership cannot be verified.
+
+                if (string.IsNullOrEmpty(exePath))
+                    continue;
+
+                var fullExePath = Path.GetFullPath(exePath);
+                var matches = !string.IsNullOrEmpty(fullDenoPath) &&
+                              string.Equals(fullExePath, fullDenoPath, PathComparison) ||
+                              !string.IsNullOrEmpty(fullUtilsPath) &&
+                              fullExePath.StartsWith(fullUtilsPath, PathComparison);
+
+                if (!matches)
+                    continue;
+
+                Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
+                process.Kill(true);
+                process.WaitForExit(3000);
             }
-        }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, "Could not kill Deno process");
+            }
+            finally
+            {
+                process.Dispose();
+            }
     }
 
     /// <summary>
@@ -155,9 +177,7 @@ internal static class BgUtilPotProvider
     public static void EnableStartup()
     {
         lock (InitLock)
-        {
             _backendReady = true;
-        }
 
         Ensure();
     }
@@ -181,6 +201,7 @@ internal static class BgUtilPotProvider
                 _init = null;
                 _initFailed = false;
             }
+
             _init ??= Task.Run(InitAsync);
         }
     }
@@ -208,9 +229,16 @@ internal static class BgUtilPotProvider
                 return true;
             if (_initFailed)
                 return false;
-            try { await Task.Delay(500, ct); }
-            catch (OperationCanceledException) { return false; }
+            try
+            {
+                await Task.Delay(500, ct);
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
         }
+
         return _isReady;
     }
 
@@ -227,16 +255,15 @@ internal static class BgUtilPotProvider
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to provision the bgutil PO token provider; SABR web playback will be unavailable until this is resolved");
+                Log.Error(ex,
+                    "Failed to provision the bgutil PO token provider; SABR web playback will be unavailable until this is resolved");
                 _initFailed = true;
                 return;
             }
         }
         else
-        {
             Log.Information("Using an externally-managed bgutil PO token provider at {Url}",
                 ConfigManager.Config.SabrPotBaseUrl);
-        }
 
         await SuperviseAsync();
     }
@@ -263,7 +290,10 @@ internal static class BgUtilPotProvider
             return;
         }
 
-        _baseUrl = new UriBuilder(_baseUrl) { Port = free }.Uri.ToString().TrimEnd('/');
+        _baseUrl = new UriBuilder(_baseUrl)
+        {
+            Port = free
+        }.Uri.ToString().TrimEnd('/');
         Log.Warning("bgutil port {Preferred} is in use by {Process}; using port {Free} instead",
             preferred, who, free);
     }
@@ -312,10 +342,11 @@ internal static class BgUtilPotProvider
     private static void EnsureInstalled()
     {
         if (!File.Exists(YtdlManager.DenoPath))
-            throw new SabrException($"Deno runtime not found at {YtdlManager.DenoPath}; cannot run the PO token provider");
+            throw new SabrException(
+                $"Deno runtime not found at {YtdlManager.DenoPath}; cannot run the PO token provider");
 
         if (RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
-            (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux()))
+            !OperatingSystem.IsWindows() && !OperatingSystem.IsLinux())
             throw new SabrException("The embedded bgutil server supports only Windows x64 and Linux x64");
 
         var packageName = OperatingSystem.IsWindows()
@@ -336,20 +367,18 @@ internal static class BgUtilPotProvider
         Log.Information("Installing bgutil PO token provider {Tag}...", Program.BgUtilsVersion);
 
         using var resource = typeof(BgUtilPotProvider).Assembly.GetManifestResourceStream(resourceName)
-            ?? throw new SabrException($"Embedded bgutil server resource not found: {resourceName}");
+                             ?? throw new SabrException($"Embedded bgutil server resource not found: {resourceName}");
 
         var stagingPath = Path.Join(RootPath, $"install-{Guid.NewGuid():N}");
         Directory.CreateDirectory(stagingPath);
         try
         {
             if (OperatingSystem.IsWindows())
-            {
                 ZipFile.ExtractToDirectory(resource, stagingPath);
-            }
             else
             {
-                using var gzip = new GZipStream(resource, CompressionMode.Decompress, leaveOpen: true);
-                TarFile.ExtractToDirectory(gzip, stagingPath, overwriteFiles: false);
+                using var gzip = new GZipStream(resource, CompressionMode.Decompress, true);
+                TarFile.ExtractToDirectory(gzip, stagingPath, false);
             }
 
             var extractedPath = Path.Join(stagingPath, packageName);
@@ -377,9 +406,7 @@ internal static class BgUtilPotProvider
 
         // Check if port is still in use before spawning
         if (PortAudit.IsInUse(Port))
-        {
             PortAudit.TryKillListener(Port, "deno");
-        }
 
         // Keep the compiled entrypoint and bundled dependencies within the cwd-scoped permissions.
         var process = new Process
@@ -387,19 +414,26 @@ internal static class BgUtilPotProvider
             StartInfo =
             {
                 FileName = YtdlManager.DenoPath,
-                Arguments = $"run --no-config --no-lock --node-modules-dir=manual --cached-only --allow-env --allow-net --allow-ffi=. --allow-read=. build/main.js -p {Port}",
+                Arguments =
+                    $"run --no-config --no-lock --node-modules-dir=manual --cached-only --allow-env --allow-net --allow-ffi=. --allow-read=. build/main.js -p {Port}",
                 WorkingDirectory = ServerPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             },
-            EnableRaisingEvents = true,
+            EnableRaisingEvents = true
         };
-        process.OutputDataReceived += (_, e) => { if (e.Data is not null) Log.Debug("[bgutil] {Line}", e.Data); };
-        process.ErrorDataReceived += (_, e) => { if (e.Data is not null) Log.Debug("[bgutil] {Line}", e.Data); };
+        process.OutputDataReceived += (_, e) =>
+        {
+            if (e.Data is not null) Log.Debug("[bgutil] {Line}", e.Data);
+        };
+        process.ErrorDataReceived += (_, e) =>
+        {
+            if (e.Data is not null) Log.Debug("[bgutil] {Line}", e.Data);
+        };
 
         process.Start();
         ChildProcessTracker.Track(process);
@@ -418,7 +452,7 @@ internal static class BgUtilPotProvider
         try
         {
             if (HasProcessExited(process)) return;
-            process.Kill(entireProcessTree: true);
+            process.Kill(true);
             process.WaitForExit(3000);
         }
         catch (InvalidOperationException)
@@ -464,22 +498,16 @@ internal static class BgUtilPotProvider
     private static async Task<(int exitCode, string output)> RunProcessAsync(
         string fileName, string arguments, string workingDirectory, TimeSpan timeout)
     {
-        using var process = new Process
-        {
-            StartInfo =
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                WorkingDirectory = workingDirectory,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            }
-        };
-
+        using var process = new Process();
+        process.StartInfo.FileName = fileName;
+        process.StartInfo.Arguments = arguments;
+        process.StartInfo.WorkingDirectory = workingDirectory;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         process.Start();
         ChildProcessTracker.Track(process);
         try
@@ -493,8 +521,17 @@ internal static class BgUtilPotProvider
             }
             catch (OperationCanceledException)
             {
-                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* best effort */ }
-                throw new SabrException($"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
+                try
+                {
+                    if (!process.HasExited) process.Kill(true);
+                }
+                catch
+                {
+                    /* best effort */
+                }
+
+                throw new SabrException(
+                    $"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
             }
 
             var output = string.Join(Environment.NewLine, await stdout, await stderr);
@@ -511,7 +548,7 @@ internal static class BgUtilPotProvider
         try
         {
             if (Directory.Exists(dir))
-                Directory.Delete(dir, recursive: true);
+                Directory.Delete(dir, true);
         }
         catch (Exception ex)
         {
