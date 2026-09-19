@@ -67,7 +67,8 @@ public class UiLogSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
-        if (ConfigManager.IsInitialized && ConfigManager.Config is { ErrorPopups: true } && logEvent.Level >= LogEventLevel.Error)
+        if (ConfigManager.IsInitialized && ConfigManager.Config is { ErrorPopups: true } &&
+            logEvent.Level >= LogEventLevel.Error)
             Dispatcher.UIThread.Post(() =>
             {
                 App.MainWindow?.Show();
