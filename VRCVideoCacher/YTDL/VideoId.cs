@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using JetBrains.Annotations;
 using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
@@ -11,10 +12,8 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VRCVideoCacher.YTDL;
 
-public class VideoId
+public partial class VideoId: Singleton<VideoId>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<VideoId>();
-
     internal static Uri? ToUri(string url) => Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri : null;
 
     internal static string HashUrl(string url) =>
@@ -44,7 +43,7 @@ public class VideoId
         return process;
     }
 
-    private static async Task<(string Output, string Error, int ExitCode)> RunYtdlpAsync(List<string> args, string url)
+    private async Task<(string Output, string Error, int ExitCode)> RunYtdlpAsync(List<string> args, string url)
     {
         using var ytdlpProcess = GetYtdlpProcess();
         ytdlpProcess.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"");
@@ -84,7 +83,8 @@ public class VideoId
         }
     }
 
-    public static async Task<VideoInfo?> GetVideoId(string url, bool avPro)
+    [PublicAPI]
+    public async Task<VideoInfo?> GetVideoId2(string url, bool avPro)
     {
         url = url.Trim();
         url = await SiteHandlerRegistry.ApplyRewrites(url);
@@ -96,7 +96,8 @@ public class VideoId
         return handler == null ? null : await handler.GetVideoInfo(url, uri, avPro);
     }
 
-    public static async Task<string> TryGetYouTubeVideoId(string url)
+    [PublicAPI]
+    public async Task<string> TryGetYouTubeVideoId2(string url)
     {
         var args = new List<string>
         {
@@ -149,7 +150,8 @@ public class VideoId
         return data.Id;
     }
 
-    public static async Task<string> GetURLResonite(VideoInfo videoInfo)
+    [PublicAPI]
+    public async Task<string> GetURLResonite2(VideoInfo videoInfo)
     {
         // Don't hit YouTube for a video we already know is gone — a looping player would otherwise get us
         // bot-checked. Resonite treats an empty response as "no video", which is what we want here.
@@ -183,7 +185,8 @@ public class VideoId
         return output;
     }
 
-    public static async Task<Tuple<string, bool>> GetUrl(VideoInfo videoInfo, bool avPro)
+    [PublicAPI]
+    public async Task<Tuple<string, bool>> GetUrl2(VideoInfo videoInfo, bool avPro)
     {
         // if url contains "results?" then it's a search
         if (videoInfo.VideoUrl.Contains("results?") && videoInfo.UrlType == UrlType.YouTube)
@@ -212,7 +215,7 @@ public class VideoId
         {
             Log.Warning("AVPro format request failed retrying for 360p.");
             // ReSharper disable once TailRecursiveCall
-            return await GetUrl(videoInfo, false);
+            return await GetUrl2(videoInfo, false);
         }
 
         return new(error, false);
