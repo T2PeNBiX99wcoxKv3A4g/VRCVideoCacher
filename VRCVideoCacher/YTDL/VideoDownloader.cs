@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using Jeek.Avalonia.Localization;
@@ -9,6 +10,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class VideoDownloader : Singleton<VideoDownloader>
 {
     private const string TempDownloadMp4Name = "_tempVideo.mp4";

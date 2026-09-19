@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
@@ -14,6 +15,8 @@ public enum CacheChangeType
     Cleared
 }
 
+[SuppressMessage("Performance", "CA1822")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
 public class CacheManager : Singleton<CacheManager>
 {
     private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
@@ -36,7 +39,7 @@ public class CacheManager : Singleton<CacheManager>
     // Events for UI
     public static event Action<string, CacheChangeType>? OnCacheChanged;
 
-    private static string GetSystemCacheFolder()
+    private string GetSystemCacheFolder()
     {
         if (OperatingSystem.IsWindows())
             return Program.DataPath;

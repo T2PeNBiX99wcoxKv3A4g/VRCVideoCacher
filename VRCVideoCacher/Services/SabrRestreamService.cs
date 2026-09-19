@@ -343,7 +343,7 @@ public static class SabrRestreamService
 
         Log.Information("SABR session for {VideoId} ended without a complete copy (seeking leaves gaps); " +
                         "queueing a normal download so it still gets cached", videoInfo.VideoId);
-        VideoDownloader.QueueDownload(videoInfo);
+        VideoDownloader.Instance.QueueDownload(videoInfo);
     }
 
     private static async Task ReaperLoop()

@@ -1,11 +1,14 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
 using ShellLink;
 
 namespace VRCVideoCacher.Utils;
 
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public class AutoStartShortcut : Singleton<AutoStartShortcut>
 {
     private static readonly byte[] ShortcutSignatureBytes = [.. "L\0\0\0"u8]; // signature for ShellLinkHeader
@@ -135,7 +138,7 @@ public class AutoStartShortcut : Singleton<AutoStartShortcut>
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private static List<string> FindShortcutFiles(string folderPath)
+    private List<string> FindShortcutFiles(string folderPath)
     {
         var directoryInfo = new DirectoryInfo(folderPath);
         var files = directoryInfo.GetFiles();
@@ -148,7 +151,7 @@ public class AutoStartShortcut : Singleton<AutoStartShortcut>
         ];
     }
 
-    private static bool IsShortcutFile(string filePath)
+    private bool IsShortcutFile(string filePath)
     {
         var headerBytes = new byte[4];
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
