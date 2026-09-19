@@ -124,13 +124,13 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var indent = hasNamespace ? "    " : "";
         foreach (var outerType in containingTypes)
         {
-            sb.AppendLine($"{indent}partial class {GetTypeDeclaration(outerType)}");
+            sb.AppendLine($"{indent}partial sealed class {GetTypeDeclaration(outerType)}");
             sb.AppendLine($"{indent}{{");
             indent += "    ";
         }
 
         // Partial class definition with static proxies
-        sb.AppendLine($"{indent}partial class {GetTypeDeclaration(symbol)}");
+        sb.AppendLine($"{indent}partial sealed class {GetTypeDeclaration(symbol)}");
         sb.AppendLine($"{indent}{{");
 
         if (enabled)
@@ -187,167 +187,170 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             var customName = GetCustomMemberName(member);
             var staticName = customName ?? $"{prefix}{member.Name}{suffix}";
 
-            if (member is IPropertySymbol prop)
+            switch (member)
             {
-                if (prop.IsIndexer)
+                case IPropertySymbol { IsIndexer: true }:
                     continue; // Skip indexers
-
-                var typeStr = prop.Type.ToDisplayString(TypeDisplayFormat);
-                sb.AppendLine();
-                sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
-                sb.AppendLine($"{indent}public static {typeStr} {staticName}");
-                sb.AppendLine($"{indent}{{");
-                if (prop.GetMethod is { DeclaredAccessibility: Accessibility.Public })
+                case IPropertySymbol prop:
                 {
-                    sb.AppendLine(
-                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine($"{indent}    get => Instance.{prop.Name};");
-                }
-
-                if (prop.SetMethod is { DeclaredAccessibility: Accessibility.Public })
-                {
-                    sb.AppendLine(
-                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine($"{indent}    set => Instance.{prop.Name} = value;");
-                }
-
-                sb.AppendLine($"{indent}}}");
-                generatedCount++;
-            }
-            else if (member is IFieldSymbol field)
-            {
-                var typeStr = field.Type.ToDisplayString(TypeDisplayFormat);
-                sb.AppendLine();
-                sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{field.Name}\"/></summary>");
-                if (field.IsReadOnly)
-                    sb.AppendLine($"{indent}public static {typeStr} {staticName} => Instance.{field.Name};");
-                else
-                {
+                    var typeStr = prop.Type.ToDisplayString(TypeDisplayFormat);
+                    sb.AppendLine();
+                    sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
                     sb.AppendLine($"{indent}public static {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
-                    sb.AppendLine(
-                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine($"{indent}    get => Instance.{field.Name};");
-                    sb.AppendLine(
-                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine($"{indent}    set => Instance.{field.Name} = value;");
-                    sb.AppendLine($"{indent}}}");
-                }
-
-                generatedCount++;
-            }
-            else if (member is IMethodSymbol method)
-            {
-                if (method.MethodKind != MethodKind.Ordinary)
-                    continue;
-
-                // Avoid proxying object methods if any
-                if (method.ContainingType.SpecialType == SpecialType.System_Object)
-                    continue;
-
-                var returnTypeStr = method.ReturnType.ToDisplayString(TypeDisplayFormat);
-                var typeParamsStr = method.TypeParameters.Length > 0
-                    ? $"<{string.Join(", ", method.TypeParameters.Select(p => p.Name))}>"
-                    : "";
-
-                var typeParamConstraints = new List<string>();
-                foreach (var tp in method.TypeParameters)
-                {
-                    var constraints = new List<string>();
-                    if (tp.HasReferenceTypeConstraint) constraints.Add("class");
-                    if (tp.HasValueTypeConstraint) constraints.Add("struct");
-                    if (tp.HasNotNullConstraint) constraints.Add("notnull");
-                    if (tp.HasUnmanagedTypeConstraint) constraints.Add("unmanaged");
-                    foreach (var ct in tp.ConstraintTypes)
-                        constraints.Add(ct.ToDisplayString(TypeDisplayFormat));
-                    if (tp.HasConstructorConstraint) constraints.Add("new()");
-
-                    if (constraints.Count > 0)
-                        typeParamConstraints.Add($"where {tp.Name} : {string.Join(", ", constraints)}");
-                }
-
-                var constraintStr = typeParamConstraints.Count > 0
-                    ? " " + string.Join(" ", typeParamConstraints)
-                    : "";
-
-                var paramList = new List<string>();
-                var callArgs = new List<string>();
-
-                foreach (var p in method.Parameters)
-                {
-                    var refPrefix = "";
-                    var callRefPrefix = "";
-                    switch (p.RefKind)
+                    if (prop.GetMethod is { DeclaredAccessibility: Accessibility.Public })
                     {
-                        case RefKind.Ref:
-                            refPrefix = "ref ";
-                            callRefPrefix = "ref ";
-                            break;
-                        case RefKind.Out:
-                            refPrefix = "out ";
-                            callRefPrefix = "out ";
-                            break;
-                        case RefKind.In:
-                            refPrefix = "in ";
-                            callRefPrefix = "in ";
-                            break;
-                        case RefKind.RefReadOnlyParameter:
-                            refPrefix = "ref readonly ";
-                            callRefPrefix = "in ";
-                            break;
+                        sb.AppendLine(
+                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                        sb.AppendLine($"{indent}    get => Instance.{prop.Name};");
                     }
 
-                    var isParams = p.IsParams ? "params " : "";
-                    var pType = p.Type.ToDisplayString(TypeDisplayFormat);
-                    var pName = EscapeIdentifier(p.Name);
-                    var defaultVal = p.HasExplicitDefaultValue
-                        ? $" = {FormatDefaultValue(p.ExplicitDefaultValue)}"
+                    if (prop.SetMethod is { DeclaredAccessibility: Accessibility.Public })
+                    {
+                        sb.AppendLine(
+                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                        sb.AppendLine($"{indent}    set => Instance.{prop.Name} = value;");
+                    }
+
+                    sb.AppendLine($"{indent}}}");
+                    generatedCount++;
+                    break;
+                }
+                case IFieldSymbol field:
+                {
+                    var typeStr = field.Type.ToDisplayString(TypeDisplayFormat);
+                    sb.AppendLine();
+                    sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{field.Name}\"/></summary>");
+                    if (field.IsReadOnly)
+                        sb.AppendLine($"{indent}public static {typeStr} {staticName} => Instance.{field.Name};");
+                    else
+                    {
+                        sb.AppendLine($"{indent}public static {typeStr} {staticName}");
+                        sb.AppendLine($"{indent}{{");
+                        sb.AppendLine(
+                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                        sb.AppendLine($"{indent}    get => Instance.{field.Name};");
+                        sb.AppendLine(
+                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                        sb.AppendLine($"{indent}    set => Instance.{field.Name} = value;");
+                        sb.AppendLine($"{indent}}}");
+                    }
+
+                    generatedCount++;
+                    break;
+                }
+                case IMethodSymbol method when method.MethodKind != MethodKind.Ordinary:
+                    continue;
+                // Avoid proxying object methods if any
+                case IMethodSymbol method when method.ContainingType.SpecialType == SpecialType.System_Object:
+                    continue;
+                case IMethodSymbol method:
+                {
+                    var returnTypeStr = method.ReturnType.ToDisplayString(TypeDisplayFormat);
+                    var typeParamsStr = method.TypeParameters.Length > 0
+                        ? $"<{string.Join(", ", method.TypeParameters.Select(p => p.Name))}>"
                         : "";
 
-                    paramList.Add($"{isParams}{refPrefix}{pType} {pName}{defaultVal}");
-                    callArgs.Add($"{callRefPrefix}{pName}");
-                }
+                    var typeParamConstraints = new List<string>();
+                    foreach (var tp in method.TypeParameters)
+                    {
+                        var constraints = new List<string>();
+                        if (tp.HasReferenceTypeConstraint) constraints.Add("class");
+                        if (tp.HasValueTypeConstraint) constraints.Add("struct");
+                        if (tp.HasNotNullConstraint) constraints.Add("notnull");
+                        if (tp.HasUnmanagedTypeConstraint) constraints.Add("unmanaged");
+                        constraints.AddRange(tp.ConstraintTypes.Select(ct => ct.ToDisplayString(TypeDisplayFormat)));
+                        if (tp.HasConstructorConstraint) constraints.Add("new()");
 
-                var paramsStr = string.Join(", ", paramList);
-                var callArgsStr = string.Join(", ", callArgs);
+                        if (constraints.Count > 0)
+                            typeParamConstraints.Add($"where {tp.Name} : {string.Join(", ", constraints)}");
+                    }
 
-                var methodTypeArgsStr = method.TypeParameters.Length > 0
-                    ? $"<{string.Join(", ", method.TypeParameters.Select(p => p.Name))}>"
-                    : "";
+                    var constraintStr = typeParamConstraints.Count > 0
+                        ? " " + string.Join(" ", typeParamConstraints)
+                        : "";
 
-                sb.AppendLine();
-                sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{method.Name}\"/></summary>");
-                sb.AppendLine(
-                    $"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine(
-                    method.ReturnsVoid
-                        ? $"{indent}public static void {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});"
-                        : $"{indent}public static {returnTypeStr} {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
-                generatedCount++;
-            }
-            else if (member is IEventSymbol evt)
-            {
-                var typeStr = evt.Type.ToDisplayString(TypeDisplayFormat);
-                sb.AppendLine();
-                sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
-                sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
-                sb.AppendLine($"{indent}{{");
-                if (evt.AddMethod is { DeclaredAccessibility: Accessibility.Public })
-                {
+                    var paramList = new List<string>();
+                    var callArgs = new List<string>();
+
+                    foreach (var p in method.Parameters)
+                    {
+                        var refPrefix = "";
+                        var callRefPrefix = "";
+                        switch (p.RefKind)
+                        {
+                            case RefKind.Ref:
+                                refPrefix = "ref ";
+                                callRefPrefix = "ref ";
+                                break;
+                            case RefKind.Out:
+                                refPrefix = "out ";
+                                callRefPrefix = "out ";
+                                break;
+                            case RefKind.In:
+                                refPrefix = "in ";
+                                callRefPrefix = "in ";
+                                break;
+                            case RefKind.RefReadOnlyParameter:
+                                refPrefix = "ref readonly ";
+                                callRefPrefix = "in ";
+                                break;
+                        }
+
+                        var isParams = p.IsParams ? "params " : "";
+                        var pType = p.Type.ToDisplayString(TypeDisplayFormat);
+                        var pName = EscapeIdentifier(p.Name);
+                        var defaultVal = p.HasExplicitDefaultValue
+                            ? $" = {FormatDefaultValue(p.ExplicitDefaultValue)}"
+                            : "";
+
+                        paramList.Add($"{isParams}{refPrefix}{pType} {pName}{defaultVal}");
+                        callArgs.Add($"{callRefPrefix}{pName}");
+                    }
+
+                    var paramsStr = string.Join(", ", paramList);
+                    var callArgsStr = string.Join(", ", callArgs);
+
+                    var methodTypeArgsStr = method.TypeParameters.Length > 0
+                        ? $"<{string.Join(", ", method.TypeParameters.Select(p => p.Name))}>"
+                        : "";
+
+                    sb.AppendLine();
+                    sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{method.Name}\"/></summary>");
                     sb.AppendLine(
-                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine($"{indent}    add => Instance.{evt.Name} += value;");
-                }
-
-                if (evt.RemoveMethod is { DeclaredAccessibility: Accessibility.Public })
-                {
+                        $"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine(
-                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine($"{indent}    remove => Instance.{evt.Name} -= value;");
+                        method.ReturnsVoid
+                            ? $"{indent}public static void {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});"
+                            : $"{indent}public static {returnTypeStr} {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
+                    generatedCount++;
+                    break;
                 }
+                case IEventSymbol evt:
+                {
+                    var typeStr = evt.Type.ToDisplayString(TypeDisplayFormat);
+                    sb.AppendLine();
+                    sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
+                    sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
+                    sb.AppendLine($"{indent}{{");
+                    if (evt.AddMethod is { DeclaredAccessibility: Accessibility.Public })
+                    {
+                        sb.AppendLine(
+                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                        sb.AppendLine($"{indent}    add => Instance.{evt.Name} += value;");
+                    }
 
-                sb.AppendLine($"{indent}}}");
-                generatedCount++;
+                    if (evt.RemoveMethod is { DeclaredAccessibility: Accessibility.Public })
+                    {
+                        sb.AppendLine(
+                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                        sb.AppendLine($"{indent}    remove => Instance.{evt.Name} -= value;");
+                    }
+
+                    sb.AppendLine($"{indent}}}");
+                    generatedCount++;
+                    break;
+                }
             }
         }
     }
