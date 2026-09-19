@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 
 namespace VRCVideoCacher.Utils;
@@ -18,7 +17,7 @@ public static class Try
         }
         catch (Exception e)
         {
-            return Result<T>.Failure(ExceptionDispatchInfo.Capture(e));
+            return Result<T>.Failure(e);
         }
     }
 
@@ -32,7 +31,7 @@ public static class Try
         }
         catch (Exception e)
         {
-            return Result<Unit>.Failure(ExceptionDispatchInfo.Capture(e));
+            return Result<Unit>.Failure(e);
         }
     }
 

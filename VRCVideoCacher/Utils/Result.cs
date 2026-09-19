@@ -1,4 +1,3 @@
-using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 
 namespace VRCVideoCacher.Utils;
@@ -7,31 +6,30 @@ namespace VRCVideoCacher.Utils;
 public readonly struct Result<T>
 {
     public T? Value { get; }
-    public ExceptionDispatchInfo? ExceptionDispatchInfo { get; }
-    public bool IsSuccess => ExceptionDispatchInfo is null;
+    public Exception? Exception { get; }
+    public bool IsSuccess => Exception is null;
 
     private Result(T value)
     {
         Value = value;
-        ExceptionDispatchInfo = null;
+        Exception = null;
     }
 
-    private Result(ExceptionDispatchInfo exceptionDispatchInfo)
+    private Result(Exception exceptionDispatchInfo)
     {
         Value = default;
-        ExceptionDispatchInfo = exceptionDispatchInfo;
+        Exception = exceptionDispatchInfo;
     }
 
     public static Result<T> Success(T value) => new(value);
 
-    public static Result<T> Failure(Exception exception) => new(ExceptionDispatchInfo.Capture(exception));
-    public static Result<T> Failure(ExceptionDispatchInfo exceptionDispatchInfo) => new(exceptionDispatchInfo);
+    public static Result<T> Failure(Exception exception) => new(exception);
 
-    public void Deconstruct(out bool isSuccess, out T? value, out ExceptionDispatchInfo? exception)
+    public void Deconstruct(out bool isSuccess, out T? value, out Exception? exception)
     {
         isSuccess = IsSuccess;
         value = Value;
-        exception = ExceptionDispatchInfo;
+        exception = Exception;
     }
 
     public static bool operator true(Result<T> result) => result.IsSuccess;
@@ -39,5 +37,5 @@ public readonly struct Result<T>
     public static bool operator false(Result<T> result) => !result.IsSuccess;
 
     public override string ToString() =>
-        IsSuccess ? $"Success({Value})" : $"Failure({ExceptionDispatchInfo?.SourceException})";
+        IsSuccess ? $"Success({Value})" : $"Failure({Exception})";
 }
