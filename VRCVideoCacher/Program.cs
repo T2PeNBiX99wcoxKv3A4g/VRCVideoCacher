@@ -353,7 +353,7 @@ internal sealed class Program
         Try.Run(() =>
         {
             BgUtilPotProvider.StopServer();
-            ChildProcessTracker.Instance.TerminateAll();
+            ChildProcessTracker.TerminateAll();
         });
 
         FileTools.RestoreAllYtdl();

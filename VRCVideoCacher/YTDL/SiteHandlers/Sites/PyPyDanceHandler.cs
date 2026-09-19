@@ -20,7 +20,7 @@ public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
             var videoUrl = result.RequestMessage?.RequestUri?.ToString();
             if (string.IsNullOrEmpty(videoUrl))
             {
-                Log.Error("Failed to get video ID from PypyDance URL: {URL} Response: {Response} - {Data}", url,
+                Log.Error("Failed to get video ID from PypyDance URL: {Url} Response: {Response} - {Data}", url,
                     result.StatusCode, await result.Content.ReadAsStringAsync());
                 return null;
             }
@@ -33,11 +33,11 @@ public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
             var success = int.TryParse(query.Get("id"), out var idInt);
             if (!success)
             {
-                Log.Error("Failed to get video ID from PypyDance URL: {URL}", url);
+                Log.Error("Failed to get video ID from PypyDance URL: {Url}", url);
                 return null;
             }
 
-            _ = Task.Run(async () => await PyPyDanceApiService.Instance.DownloadMetadata(idInt, videoId));
+            _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
 
             return new()
             {
@@ -49,7 +49,7 @@ public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
         }
         catch
         {
-            Log.Error("Failed to get video ID from PypyDance URL: {URL}", url);
+            Log.Error("Failed to get video ID from PypyDance URL: {Url}", url);
             return null;
         }
     }

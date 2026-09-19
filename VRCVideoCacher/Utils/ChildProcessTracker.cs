@@ -148,7 +148,8 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// <summary>
     /// Forces termination of all currently tracked child processes in parallel.
     /// </summary>
-    public void TerminateAll()
+    [PublicAPI]
+    public void TerminateAll2()
     {
         if (Interlocked.Exchange(ref _terminating, true)) return;
         var toKill = _trackedProcesses.Keys.ToList();

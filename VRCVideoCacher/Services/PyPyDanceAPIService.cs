@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
@@ -70,7 +71,8 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
             _songs = bundle.Songs;
     }
 
-    public async Task DownloadMetadata(int idInt, string videoId)
+    [PublicAPI]
+    public async Task DownloadMetadata2(int idInt, string videoId)
     {
         try
         {
