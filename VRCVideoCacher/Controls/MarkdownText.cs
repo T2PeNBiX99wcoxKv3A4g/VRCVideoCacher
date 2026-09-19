@@ -82,7 +82,7 @@ public static class MarkdownText
 
         // Show where the link actually goes — the text is author-controlled and need not match the URL.
         ToolTip.SetTip(button, url);
-        button.Click += (_, _) => OpenUrl.Open(url);
+        button.Click += (_, _) => OpenUrl.Instance.Open(url);
         return new InlineUIContainer(button);
     }
 }
