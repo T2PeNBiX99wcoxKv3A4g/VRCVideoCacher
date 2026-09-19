@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using VRCVideoCacher.API;
@@ -10,28 +11,25 @@ public class ElevatorManager : Singleton<ElevatorManager>
 
     private readonly bool _inPressureVessel = Directory.Exists("/run/pressure-vessel");
 
-    private static string? FindLaunchClient()
-    {
-        string[] candidates =
-        [
-            "/usr/lib/pressure-vessel/from-host/bin/steam-runtime-launch-client",
-            "/usr/bin/steam-runtime-launch-client",
-            "/usr/lib/pressure-vessel/bin/steam-runtime-launch-client",
-        ];
-        foreach (var path in candidates)
-            if (File.Exists(path)) return path;
-        return null;
-    }
+    private static readonly ImmutableList<string> Candidates =
+    [
+        "/usr/lib/pressure-vessel/from-host/bin/steam-runtime-launch-client",
+        "/usr/bin/steam-runtime-launch-client",
+        "/usr/lib/pressure-vessel/bin/steam-runtime-launch-client"
+    ];
+
+    private static string? FindLaunchClient() => Candidates.FirstOrDefault(File.Exists);
 
     private static string? FindHostBin(string name)
     {
-        var paths = new[] { $"/usr/bin/{name}", $"/bin/{name}", $"/usr/local/bin/{name}" };
-        foreach (var p in paths)
+        var paths = new[]
         {
-            var check = Directory.Exists("/run/pressure-vessel") ? $"/run/host{p}" : p;
-            if (File.Exists(check)) return p;
-        }
-        return null;
+            $"/usr/bin/{name}", $"/bin/{name}", $"/usr/local/bin/{name}"
+        };
+        return (from p in paths
+            let check = Directory.Exists("/run/pressure-vessel") ? $"/run/host{p}" : p
+            where File.Exists(check)
+            select p).FirstOrDefault();
     }
 
     private Process? MakeLinuxElevatedProcess(string flag)
@@ -43,8 +41,17 @@ public class ElevatorManager : Singleton<ElevatorManager>
 
         ProcessStartInfo MakeStartInfo(string exe, string args) => launchClient != null
             ? new()
-                { FileName = launchClient, Arguments = $"--alongside-steam -- {exe} {args}", UseShellExecute = false }
-            : new ProcessStartInfo { FileName = exe, Arguments = args, UseShellExecute = false };
+            {
+                FileName = launchClient,
+                Arguments = $"--alongside-steam -- {exe} {args}",
+                UseShellExecute = false
+            }
+            : new ProcessStartInfo
+            {
+                FileName = exe,
+                Arguments = args,
+                UseShellExecute = false
+            };
 
         // 1. Try pkexec
         var pkexec = FindHostBin("pkexec");
@@ -52,7 +59,9 @@ public class ElevatorManager : Singleton<ElevatorManager>
         {
             Log.Debug("Using pkexec");
             return new()
-                { StartInfo = MakeStartInfo(pkexec, $"{appPath} {flag}") };
+            {
+                StartInfo = MakeStartInfo(pkexec, $"{appPath} {flag}")
+            };
         }
 
         // 2. Try sudo -A with a graphical askpass helper
@@ -61,7 +70,7 @@ public class ElevatorManager : Singleton<ElevatorManager>
             "/usr/lib/openssh/gnome-ssh-askpass",
             "/usr/lib/ssh/x11-ssh-askpass",
             "/usr/bin/ksshaskpass",
-            "/usr/lib/seahorse/seahorse-ssh-askpass",
+            "/usr/lib/seahorse/seahorse-ssh-askpass"
         ];
         foreach (var askpass in askpassCandidates)
         {
@@ -71,11 +80,14 @@ public class ElevatorManager : Singleton<ElevatorManager>
             var psi = MakeStartInfo("/usr/bin/sudo", $"-A {appPath} {flag}");
             psi.Environment["SUDO_ASKPASS"] = askpass;
             return new()
-                { StartInfo = psi };
+            {
+                StartInfo = psi
+            };
         }
 
         // 3. Fall back to a terminal emulator with sudo
-        string[] terminals = ["x-terminal-emulator", "xterm", "konsole", "gnome-terminal", "xfce4-terminal", "mate-terminal"];
+        string[] terminals =
+            ["x-terminal-emulator", "xterm", "konsole", "gnome-terminal", "xfce4-terminal", "mate-terminal"];
         foreach (var term in terminals)
         {
             var termPath = FindHostBin(term);
@@ -85,7 +97,9 @@ public class ElevatorManager : Singleton<ElevatorManager>
                 ? $"-- /usr/bin/sudo {appPath} {flag}"
                 : $"-e /usr/bin/sudo {appPath} {flag}";
             return new()
-                { StartInfo = MakeStartInfo(termPath, termArgs) };
+            {
+                StartInfo = MakeStartInfo(termPath, termArgs)
+            };
         }
 
         Log.Error("No elevation method found. Please manually edit /etc/hosts.");
@@ -106,8 +120,19 @@ public class ElevatorManager : Singleton<ElevatorManager>
         if (OperatingSystem.IsWindows())
         {
             proc = new()
-                { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--addhost", UseShellExecute = true, Verb = "runas" } };
-            try { proc.Start(); }
+            {
+                StartInfo =
+                {
+                    FileName = Environment.ProcessPath,
+                    Arguments = "--addhost",
+                    UseShellExecute = true,
+                    Verb = "runas"
+                }
+            };
+            try
+            {
+                proc.Start();
+            }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
                 Log.Warning("User cancelled UAC prompt.");
@@ -118,7 +143,10 @@ public class ElevatorManager : Singleton<ElevatorManager>
         {
             proc = MakeLinuxElevatedProcess("--addhost");
             if (proc == null) return;
-            try { proc.Start(); }
+            try
+            {
+                proc.Start();
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to launch privilege elevator for adding host entry.");
@@ -137,9 +165,9 @@ public class ElevatorManager : Singleton<ElevatorManager>
             WebServer.Init();
         }
         else
-        {
-            Log.Warning("Host entry not found after elevation — user may have cancelled or elevation failed (exit code: {ExitCode}).", proc.ExitCode);
-        }
+            Log.Warning(
+                "Host entry not found after elevation — user may have cancelled or elevation failed (exit code: {ExitCode}).",
+                proc.ExitCode);
     }
 
     private void RemoveHostFile()
@@ -148,8 +176,19 @@ public class ElevatorManager : Singleton<ElevatorManager>
         if (OperatingSystem.IsWindows())
         {
             proc = new()
-                { StartInfo = { FileName = Environment.ProcessPath, Arguments = "--removehost", UseShellExecute = true, Verb = "runas" } };
-            try { proc.Start(); }
+            {
+                StartInfo =
+                {
+                    FileName = Environment.ProcessPath,
+                    Arguments = "--removehost",
+                    UseShellExecute = true,
+                    Verb = "runas"
+                }
+            };
+            try
+            {
+                proc.Start();
+            }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
                 Log.Warning("User cancelled UAC prompt.");
@@ -160,7 +199,10 @@ public class ElevatorManager : Singleton<ElevatorManager>
         {
             proc = MakeLinuxElevatedProcess("--removehost");
             if (proc == null) return;
-            try { proc.Start(); }
+            try
+            {
+                proc.Start();
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to launch privilege elevator for removing host entry.");
@@ -179,8 +221,8 @@ public class ElevatorManager : Singleton<ElevatorManager>
             WebServer.Init();
         }
         else
-        {
-            Log.Warning("Host entry still present after elevation — user may have cancelled or elevation failed (exit code: {ExitCode}).", proc.ExitCode);
-        }
+            Log.Warning(
+                "Host entry still present after elevation — user may have cancelled or elevation failed (exit code: {ExitCode}).",
+                proc.ExitCode);
     }
 }
