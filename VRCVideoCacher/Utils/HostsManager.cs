@@ -1,4 +1,6 @@
-﻿namespace VRCVideoCacher.Utils;
+﻿using JetBrains.Annotations;
+
+namespace VRCVideoCacher.Utils;
 
 public partial class HostsManager : Singleton<HostsManager>
 {
@@ -11,7 +13,8 @@ public partial class HostsManager : Singleton<HostsManager>
         ? $"{Environment.GetFolderPath(Environment.SpecialFolder.System)}/drivers/etc/hosts"
         : "/etc/hosts";
 
-    public void TryRun()
+    [PublicAPI]
+    public void TryRun2()
     {
         if (Environment.CommandLine.Contains("--addhost"))
             try
@@ -64,7 +67,8 @@ public partial class HostsManager : Singleton<HostsManager>
         File.WriteAllText(HostsPath, newHostsFile);
     }
 
-    public bool IsHostAdded()
+    [PublicAPI]
+    public bool IsHostAdded2()
     {
         if (!File.Exists(HostsPath))
             return false;

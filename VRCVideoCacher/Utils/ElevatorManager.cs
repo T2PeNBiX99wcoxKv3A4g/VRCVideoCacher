@@ -9,7 +9,7 @@ namespace VRCVideoCacher.Utils;
 public partial class ElevatorManager : Singleton<ElevatorManager>
 {
     [PublicAPI]
-    public bool HasHostsLine2 = HostsManager.Instance.IsHostAdded();
+    public bool HasHostsLine2 = HostsManager.IsHostAdded();
 
     private readonly bool _inPressureVessel = Directory.Exists("/run/pressure-vessel");
 
@@ -158,7 +158,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
 
         proc.WaitForExit();
 
-        if (HostsManager.Instance.IsHostAdded())
+        if (HostsManager.IsHostAdded())
         {
             Log.Information("Host entry added successfully.");
             HasHostsLine = true;
@@ -214,7 +214,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
 
         proc.WaitForExit();
 
-        if (!HostsManager.Instance.IsHostAdded())
+        if (!HostsManager.IsHostAdded())
         {
             Log.Information("Host entry removed successfully.");
             HasHostsLine = false;

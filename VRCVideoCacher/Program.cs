@@ -44,7 +44,7 @@ internal sealed class Program
     {
         LaunchArgs.SetupArguments(args);
         // Must run before Steam API init — this process may be a privileged subprocess invoked by ElevatorManager
-        HostsManager.Instance.TryRun();
+        HostsManager.TryRun();
 
 #if STEAMRELEASE
         if (LaunchArgs.SteamSdk)
