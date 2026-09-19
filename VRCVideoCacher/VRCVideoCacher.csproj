@@ -118,6 +118,7 @@
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
         <PackageReference Include="SharpCompress" Version="0.50.4" />
+        <PackageReference Include="Unosquare.Swan.Lite" Version="3.1.0" />
         <PackageReference Include="ValveKeyValue" Version="0.70.0.499" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <!--I need to pay to debug this shit??? hallo???-->
