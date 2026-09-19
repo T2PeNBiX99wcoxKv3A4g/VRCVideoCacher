@@ -28,10 +28,10 @@ public static class ToolVerifier
         // the bashonly SABR build and its name carries the "sabr" marker ("sabr 2026.08.19.233452"), which
         // `yt-dlp --version` alone omits (it prints just the date).
         var check = await RunVersionAsync(YtdlManager.YtdlPath, "--version");
-        if (check.Ok && !string.IsNullOrWhiteSpace(Versions.Instance.CurrentVersion.Ytdlp))
+        if (check.Ok && !string.IsNullOrWhiteSpace(Versions.CurrentVersion.Ytdlp))
             return check with
             {
-                Detail = Versions.Instance.CurrentVersion.Ytdlp
+                Detail = Versions.CurrentVersion.Ytdlp
             };
         return check;
     }

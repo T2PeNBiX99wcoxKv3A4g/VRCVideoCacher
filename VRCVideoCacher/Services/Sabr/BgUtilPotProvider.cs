@@ -130,7 +130,7 @@ internal static class BgUtilPotProvider
                 if (pid == Environment.ProcessId)
                     continue;
 
-                string? exePath = null;
+                string? exePath;
                 try
                 {
                     exePath = process.MainModule?.FileName;
@@ -352,7 +352,7 @@ internal static class BgUtilPotProvider
         var canvasPath = Path.Join("node_modules", "canvas", "build", "Release", "canvas.node");
         var installed = File.Exists(MainJsPath) && File.Exists(Path.Join(ServerPath, canvasPath));
 
-        if (installed && Versions.Instance.CurrentVersion.BgUtil == Program.BgUtilsVersion)
+        if (installed && Versions.CurrentVersion.BgUtil == Program.BgUtilsVersion)
         {
             Log.Debug("bgutil provider {Tag} already installed", Program.BgUtilsVersion);
             return;
@@ -391,8 +391,8 @@ internal static class BgUtilPotProvider
             SafeDelete(stagingPath);
         }
 
-        Versions.Instance.CurrentVersion.BgUtil = Program.BgUtilsVersion;
-        Versions.Instance.Save();
+        Versions.CurrentVersion.BgUtil = Program.BgUtilsVersion;
+        Versions.Save();
         Log.Information("bgutil PO token provider {Tag} installed.", Program.BgUtilsVersion);
     }
 

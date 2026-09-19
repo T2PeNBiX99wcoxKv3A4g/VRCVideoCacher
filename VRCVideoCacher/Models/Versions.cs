@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using VRCVideoCacher.Utils;
 
@@ -7,14 +7,15 @@ namespace VRCVideoCacher.Models;
 public partial class Versions : Singleton<Versions>
 {
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
-    public readonly VersionJson CurrentVersion = new();
+    [PublicAPI]
+    public readonly VersionJson CurrentVersion2 = new();
 
     public Versions()
     {
         if (File.Exists(VersionPath))
             try
             {
-                CurrentVersion = JsonConvert.DeserializeObject<VersionJson>(File.ReadAllText(VersionPath)) ??
+                CurrentVersion2 = JsonConvert.DeserializeObject<VersionJson>(File.ReadAllText(VersionPath)) ??
                                  new VersionJson();
                 return;
             }
@@ -23,10 +24,11 @@ public partial class Versions : Singleton<Versions>
                 Log.Error(ex, "Failed to parse version file, it may be corrupted. Recreating...");
             }
 
-        Save();
+        Save2();
     }
 
-    public void Save()
+    [PublicAPI]
+    public void Save2()
     {
         File.WriteAllText(VersionPath, JsonConvert.SerializeObject(CurrentVersion, Formatting.Indented));
     }

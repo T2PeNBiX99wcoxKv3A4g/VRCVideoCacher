@@ -173,7 +173,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        var currentYtdlVersion = Versions.Instance.CurrentVersion.Ytdlp;
+        var currentYtdlVersion = Versions.CurrentVersion.Ytdlp;
         if (!File.Exists(YtdlPath))
             currentYtdlVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(YtdlPath))
@@ -220,7 +220,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        var currentDenoVersion = Versions.Instance.CurrentVersion.Deno;
+        var currentDenoVersion = Versions.CurrentVersion.Deno;
         if (!File.Exists(DenoPath))
             currentDenoVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(DenoPath))
@@ -302,8 +302,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
-                    Versions.Instance.CurrentVersion.Deno = json.tag_name;
-                    Versions.Instance.Save();
+                    Versions.CurrentVersion.Deno = json.tag_name;
+                    Versions.Save();
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
@@ -362,8 +362,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
                     FileTools.MarkFileExecutable(path);
-                    Versions.Instance.CurrentVersion.Deno = latestVersion;
-                    Versions.Instance.Save();
+                    Versions.CurrentVersion.Deno = latestVersion;
+                    Versions.Save();
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
@@ -408,7 +408,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        var currentffmpegVersion = Versions.Instance.CurrentVersion.Ffmpeg;
+        var currentffmpegVersion = Versions.CurrentVersion.Ffmpeg;
         if (!File.Exists(FfmpegPath))
             currentffmpegVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(FfmpegPath, "-version"))
@@ -517,8 +517,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        Versions.Instance.CurrentVersion.Ffmpeg = latestVersion;
-        Versions.Instance.Save();
+        Versions.CurrentVersion.Ffmpeg = latestVersion;
+        Versions.Save();
         Log.Information("FFmpeg downloaded and extracted.");
     }
 
@@ -586,8 +586,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
             Log.Information("Downloaded YT-DLP.");
             FileTools.MarkFileExecutable(YtdlPath);
             // Must match what TryDownloadYtdlp compares against, or every check re-downloads.
-            Versions.Instance.CurrentVersion.Ytdlp = string.IsNullOrEmpty(json.name) ? json.tag_name : json.name;
-            Versions.Instance.Save();
+            Versions.CurrentVersion.Ytdlp = string.IsNullOrEmpty(json.name) ? json.tag_name : json.name;
+            Versions.Save();
             return;
         }
 
