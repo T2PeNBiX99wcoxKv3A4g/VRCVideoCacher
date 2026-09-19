@@ -37,7 +37,7 @@ public class ApiController : WebApiController
         // it and lose one side's rotated session tokens — which is exactly what gets us bot-checked.
         // See YtdlCookieJar.
         using (await YtdlCookieJar.AcquireAsync())
-            await File.WriteAllTextAsync(YtdlManager.CookiesPath, cookies);
+            await File.WriteAllTextAsync(YtdlManager.Instance.CookiesPath, cookies);
 
         HttpContext.Response.StatusCode = 200;
         await HttpContext.SendStringAsync("Cookies received.", "text/plain", Encoding.UTF8);
