@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
@@ -10,11 +11,13 @@ namespace VRCVideoCacher.Utils;
 /// On Windows, binds the application process tree to a Win32 Job Object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
 /// so the OS kernel guarantees cleanup even on abnormal termination or crash.
 /// </summary>
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+[SuppressMessage("Performance", "CA1822")]
 public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 {
-    private readonly ConcurrentDictionary<Process, byte> TrackedProcesses = new();
-    private static IntPtr _jobHandle = IntPtr.Zero;
-    private static bool _terminating;
+    private readonly ConcurrentDictionary<Process, byte> _trackedProcesses = new();
+    private IntPtr _jobHandle = IntPtr.Zero;
+    private bool _terminating;
 
     public ChildProcessTracker()
     {
@@ -97,11 +100,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
             return;
         }
 
-        if (!TrackedProcesses.TryAdd(process, 0)) return;
+        if (!_trackedProcesses.TryAdd(process, 0)) return;
 
         if (Volatile.Read(ref _terminating))
         {
-            if (TrackedProcesses.TryRemove(process, out _))
+            if (_trackedProcesses.TryRemove(process, out _))
                 KillProcess(process);
             return;
         }
@@ -124,7 +127,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public void Untrack(Process? process)
     {
         if (process == null) return;
-        TrackedProcesses.TryRemove(process, out _);
+        _trackedProcesses.TryRemove(process, out _);
     }
     
     public void TrackWhile(Process? process, Action<Process> callback)
@@ -147,12 +150,12 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public void TerminateAll()
     {
         if (Interlocked.Exchange(ref _terminating, true)) return;
-        var toKill = TrackedProcesses.Keys.ToList();
-        TrackedProcesses.Clear();
+        var toKill = _trackedProcesses.Keys.ToList();
+        _trackedProcesses.Clear();
         Parallel.ForEach(toKill, KillProcess);
     }
 
-    private static void KillProcess(Process proc)
+    private void KillProcess(Process proc)
     {
         try
         {
