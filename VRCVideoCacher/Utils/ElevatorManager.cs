@@ -162,7 +162,7 @@ public class ElevatorManager : Singleton<ElevatorManager>
             HasHostsLine = true;
             ConfigManager.Config.YtdlpWebServerUrl = "http://localhost.youtube.com:9696";
             ConfigManager.TrySaveConfig();
-            WebServer.Instance.Create();
+            WebServer.Instance.StartOrRestart();
         }
         else
             Log.Warning(
@@ -218,7 +218,7 @@ public class ElevatorManager : Singleton<ElevatorManager>
             HasHostsLine = false;
             ConfigManager.Config.YtdlpWebServerUrl = "http://localhost:9696";
             ConfigManager.TrySaveConfig();
-            WebServer.Instance.Create();
+            WebServer.Instance.StartOrRestart();
         }
         else
             Log.Warning(

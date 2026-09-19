@@ -15,7 +15,7 @@ public class WebServer : Singleton<WebServer>, ILog
 
     ILogger ILog.Log => Log;
 
-    public void Create()
+    public void StartOrRestart()
     {
         _server?.Dispose();
 
