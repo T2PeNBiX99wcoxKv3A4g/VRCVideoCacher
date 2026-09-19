@@ -56,7 +56,8 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 
         try
         {
-            if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, ref extendedInfo, (uint)length))
+            if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, ref extendedInfo,
+                    (uint)length))
             {
                 Log.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastPInvokeError());
                 return;
