@@ -1,13 +1,14 @@
 using System.Diagnostics;
+using JetBrains.Annotations;
 using Serilog;
+using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
-public static class OpenUrl
+public class OpenUrl : Singleton<OpenUrl>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext("SourceContext", nameof(OpenUrl));
-
-    public static bool Open(string url)
+    [PublicAPI]
+    public bool Open(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
         {
@@ -21,14 +22,13 @@ public static class OpenUrl
             return false;
         }
 
-        if (uri.Scheme != Uri.UriSchemeHttp &&
-            uri.Scheme != Uri.UriSchemeHttps)
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
         {
             Log.Warning("Refused to open non-web URL {Url}", url);
             return false;
         }
 
-        try
+        return Try.Run(() =>
         {
             var psi = new ProcessStartInfo
             {
@@ -36,11 +36,10 @@ public static class OpenUrl
                 UseShellExecute = true
             };
             return Process.Start(psi) != null;
-        }
-        catch (Exception ex)
+        }).GetOrElse((ex) =>
         {
             Log.Error(ex, "Failed to open link: {Url}", url);
             return false;
-        }
+        });
     }
 }
