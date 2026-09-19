@@ -2,8 +2,11 @@
 
 public class HostsManager : Singleton<HostsManager>
 {
-    private static readonly string Header = $"{Environment.NewLine}# ----- BEGIN VRCVIDEOCACHER -----{Environment.NewLine}";
+    private static readonly string Header =
+        $"{Environment.NewLine}# ----- BEGIN VRCVIDEOCACHER -----{Environment.NewLine}";
+
     private static readonly string Footer = $"{Environment.NewLine}# ----- END VRCVIDEOCACHER -----{Environment.NewLine}";
+
     private static readonly string HostsPath = OperatingSystem.IsWindows()
         ? $"{Environment.GetFolderPath(Environment.SpecialFolder.System)}/drivers/etc/hosts"
         : "/etc/hosts";
@@ -11,7 +14,6 @@ public class HostsManager : Singleton<HostsManager>
     public void TryRun()
     {
         if (Environment.CommandLine.Contains("--addhost"))
-        {
             try
             {
                 Add();
@@ -23,9 +25,8 @@ public class HostsManager : Singleton<HostsManager>
                 Log.Error(ex, "Failed to add host entry");
                 Environment.Exit(1);
             }
-        }
+
         if (Environment.CommandLine.Contains("--removehost"))
-        {
             try
             {
                 Remove();
@@ -37,7 +38,6 @@ public class HostsManager : Singleton<HostsManager>
                 Log.Error(ex, "Failed to remove host entry");
                 Environment.Exit(1);
             }
-        }
     }
 
     private void Add()
@@ -75,11 +75,9 @@ public class HostsManager : Singleton<HostsManager>
 
     private void CreateHostsIfNotExists()
     {
-        if (!File.Exists(HostsPath))
-        {
-            Log.Information("Hosts file not found at {HostsPath}. Creating a new one with default content.", HostsPath);
-            File.WriteAllText(HostsPath, DefaultHostsFile);
-        }
+        if (File.Exists(HostsPath)) return;
+        Log.Information("Hosts file not found at {HostsPath}. Creating a new one with default content.", HostsPath);
+        File.WriteAllText(HostsPath, DefaultHostsFile);
     }
 
     // Default content for the hosts file, based on the standard Windows hosts file.
