@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using Serilog;
 
 namespace VRCVideoCacher.Utils;
 
@@ -11,14 +10,13 @@ namespace VRCVideoCacher.Utils;
 /// On Windows, binds the application process tree to a Win32 Job Object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
 /// so the OS kernel guarantees cleanup even on abnormal termination or crash.
 /// </summary>
-public partial class ChildProcessTracker
+public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<ChildProcessTracker>();
     private static readonly ConcurrentDictionary<Process, byte> TrackedProcesses = new();
     private static IntPtr _jobHandle = IntPtr.Zero;
     private static bool _terminating;
 
-    static ChildProcessTracker()
+    public ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
             try
@@ -33,16 +31,8 @@ public partial class ChildProcessTracker
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll();
     }
 
-    /// <summary>
-    /// Explicit initialization method to ensure the static constructor runs early at startup.
-    /// </summary>
-    public static void Initialize()
-    {
-        // Triggers the static constructor.
-    }
-
     [SupportedOSPlatform("windows")]
-    private static void InitJobObject()
+    private void InitJobObject()
     {
         var jobHandle = CreateJobObject(IntPtr.Zero, null);
         if (jobHandle == IntPtr.Zero)

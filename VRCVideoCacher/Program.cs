@@ -72,7 +72,7 @@ internal sealed class Program
             return;
         }
 
-        ChildProcessTracker.Initialize();
+        _ = ChildProcessTracker.Instance;
 
         var processes = Process.GetProcessesByName("VRCVideoCacher");
         if (processes.Length > 1)
