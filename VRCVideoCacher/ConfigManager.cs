@@ -1,41 +1,41 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Jeek.Avalonia.Localization;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Serilog;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public class ConfigManager
+public partial class ConfigManager : Singleton<ConfigManager>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<ConfigManager>();
-    private static readonly string ConfigFilePath;
+    private readonly string _configFilePath;
 
-    static ConfigManager()
+    public ConfigManager()
     {
         Log.Information("Loading config...");
-        ConfigFilePath = Path.Join(Program.DataPath,
+        _configFilePath = Path.Join(Program.DataPath,
             $"{(!string.IsNullOrWhiteSpace(LaunchArgs.ConfigName) ? LaunchArgs.ConfigName : "Config")}.json");
-        Log.Debug("Using config file path: {ConfigFilePath}", ConfigFilePath);
+        Log.Debug("Using config file path: {ConfigFilePath}", _configFilePath);
 
         ConfigModel? newConfig = null;
         try
         {
-            if (File.Exists(ConfigFilePath))
-                newConfig = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(ConfigFilePath));
+            if (File.Exists(_configFilePath))
+                newConfig = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath));
             if (newConfig != null)
-                Config = newConfig;
+                Config2 = newConfig;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load config, creating new one...");
         }
 
-        if (Config == null)
+        if (Config2 == null)
         {
             Log.Information("No valid config found, creating new one...");
-            Config = new()
+            Config2 = new()
             {
                 Language = GetSystemLanguage()
             };
@@ -45,36 +45,38 @@ public class ConfigManager
         else
             Log.Information("Config loaded successfully.");
 
-        if (Config.YtdlpWebServerUrl.EndsWith('/'))
-            Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
+        if (Config2.YtdlpWebServerUrl.EndsWith('/'))
+            Config2.YtdlpWebServerUrl = Config2.YtdlpWebServerUrl.TrimEnd('/');
 
-        TrySaveConfig(false);
+        TrySaveConfig2(false);
     }
 
-    public static ConfigModel Config { get; }
+    [PublicAPI] public ConfigModel Config2 { get; }
 
     // Events for UI
     public static event Action? OnConfigChanged;
 
-    public static void TrySaveConfig(bool infoLog = true)
+    [PublicAPI]
+    public void TrySaveConfig2(bool infoLog = true)
     {
         var newConfig = JsonConvert.SerializeObject(Config, Formatting.Indented);
-        var oldConfig = File.Exists(ConfigFilePath) ? File.ReadAllText(ConfigFilePath) : string.Empty;
+        var oldConfig = File.Exists(_configFilePath) ? File.ReadAllText(_configFilePath) : string.Empty;
         if (newConfig == oldConfig)
             return;
 
         if (infoLog)
             Log.Information("Config changed, saving...");
-        File.WriteAllText(ConfigFilePath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+        File.WriteAllText(_configFilePath, JsonConvert.SerializeObject(Config, Formatting.Indented));
         if (infoLog)
             Log.Information("Config saved.");
         OnConfigChanged?.Invoke();
         CacheManager.TryFlushCache();
     }
 
-    public static void TrySaveConfigWithoutWait(bool infoLog = true) => Task.Run(() => TrySaveConfig(infoLog));
+    [PublicAPI]
+    public void TrySaveConfigWithoutWait2(bool infoLog = true) => Task.Run(() => TrySaveConfig(infoLog));
 
-    private static bool GetUserConfirmation(string prompt, bool defaultValue)
+    private bool GetUserConfirmation(string prompt, bool defaultValue)
     {
         var defaultOption = defaultValue ? "Y/n" : "y/N";
         var message = $"{prompt} ({defaultOption}):";
@@ -84,7 +86,7 @@ public class ConfigManager
         return string.IsNullOrEmpty(input) ? defaultValue : input.Equals("y", StringComparison.CurrentCultureIgnoreCase);
     }
 
-    private static void FirstRunConsole()
+    private void FirstRunConsole()
     {
         Log.Information("It appears this is your first time running VRCVideoCacher. Let's create a basic config file.");
 
