@@ -84,7 +84,7 @@ public partial class CacheItemViewModel : ViewModelBase
     [RelayCommand]
     private void Delete()
     {
-        CacheManager.Instance.DeleteCacheItem(FileName);
+        CacheManager.DeleteCacheItem(FileName);
         OnDeleted?.Invoke(this);
     }
 
@@ -149,7 +149,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
         CachedVideos.Clear();
         FilteredVideos.Clear();
 
-        var cachedAssets = CacheManager.Instance.GetCachedAssets();
+        var cachedAssets = CacheManager.GetCachedAssets();
         var itemsToLoad = new List<CacheItemViewModel>();
 
         foreach (var (fileName, cache) in cachedAssets.OrderByDescending(x => x.Value.LastModified))
@@ -202,7 +202,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
     [RelayCommand]
     private static void DeleteAll()
     {
-        CacheManager.Instance.ClearCache();
+        CacheManager.ClearCache();
     }
 
     [RelayCommand]

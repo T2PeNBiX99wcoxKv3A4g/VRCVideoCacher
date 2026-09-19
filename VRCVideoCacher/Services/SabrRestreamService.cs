@@ -259,7 +259,7 @@ public static class SabrRestreamService
             await session.WriteCompleteFileAsync(temp);
             File.Move(temp, filePath, overwrite: true);
 
-            CacheManager.Instance.AddToCache(fileName);
+            CacheManager.AddToCache(fileName);
             Log.Information("Cached {VideoId} from the streamed fragments (no second download)", videoId);
         }
         catch (Exception ex)

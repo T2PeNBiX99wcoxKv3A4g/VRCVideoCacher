@@ -139,13 +139,13 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             videoId = await VideoId.TryGetYouTubeVideoId(url);
             if (string.IsNullOrEmpty(videoId))
             {
-                Log.Warning("Invalid YouTube URL: {URL}", url);
+                Log.Warning("Invalid YouTube URL: {Url}", url);
                 return false;
             }
         }
         catch (Exception ex)
         {
-            Log.Error("Not downloading YouTube video: {URL} {ex}", url, ex.ToString());
+            Log.Error("Not downloading YouTube video: {Url} {Ex}", url, ex.ToString());
             return false;
         }
 
@@ -226,7 +226,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download YouTube Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
+            Log.Error("Failed to download YouTube Video: {exitCode} {Url} {error}", process.ExitCode, url, error);
             if (error.Contains("Sign in to confirm you’re not a bot"))
                 Log.Error(
                     "Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
@@ -250,7 +250,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to delete temp file: {ex}", ex.ToString());
+                Log.Error("Failed to delete temp file: {Ex}", ex.ToString());
             }
 
             return false;
@@ -262,12 +262,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             File.Move(tempDownloadWebmPath, filePath);
         else
         {
-            Log.Error("Failed to download YouTube Video: {URL}", url);
+            Log.Error("Failed to download YouTube Video: {Url}", url);
             return false;
         }
 
-        CacheManager.Instance.AddToCache(fileName);
-        Log.Information("YouTube Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.AddToCache(fileName);
+        Log.Information("YouTube Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -277,20 +277,18 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
-        using var process = new Process
+        using var process = new Process();
+        process.StartInfo = new()
         {
-            StartInfo =
-            {
-                FileName = YtdlManager.Instance.YtdlPath,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            }
+            FileName = YtdlManager.Instance.YtdlPath,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+            Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\""
         };
-        process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
         ChildProcessTracker.Track(process);
@@ -320,7 +318,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download VRDancing Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
+            Log.Error("Failed to download VRDancing Video: {ExitCode} {Url} {Error}", process.ExitCode, url, error);
             return false;
         }
 
@@ -338,7 +336,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to delete temp file: {ex}", ex.ToString());
+                Log.Error("Failed to delete temp file: {Ex}", ex.ToString());
             }
 
             return false;
@@ -348,12 +346,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             File.Move(tempDownloadMp4Path, filePath);
         else
         {
-            Log.Error("Failed to download VRDancing Video: {URL}", url);
+            Log.Error("Failed to download VRDancing Video: {Url}", url);
             return false;
         }
 
-        CacheManager.Instance.AddToCache(fileName);
-        Log.Information("VRDancing Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.AddToCache(fileName);
+        Log.Information("VRDancing Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -362,19 +360,19 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
-        Log.Information("Downloading Video: {URL}", videoInfo.VideoUrl);
+        Log.Information("Downloading Video: {Url}", videoInfo.VideoUrl);
         var url = videoInfo.VideoUrl;
         var response = await HttpClient.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.Redirect)
         {
-            Log.Information("Redirected to: {URL}", response.Headers.Location);
+            Log.Information("Redirected to: {Url}", response.Headers.Location);
             url = response.Headers.Location?.ToString();
             response = await HttpClient.GetAsync(url);
         }
 
         if (!response.IsSuccessStatusCode)
         {
-            Log.Error("Failed to download video: {URL}", url);
+            Log.Error("Failed to download video: {Url}", url);
             return false;
         }
 
@@ -398,7 +396,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to delete temp file: {ex}", ex.ToString());
+                Log.Error("Failed to delete temp file: {Ex}", ex.ToString());
             }
 
             return false;
@@ -408,12 +406,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             File.Move(tempDownloadMp4Path, filePath);
         else
         {
-            Log.Error("Failed to download Video: {URL}", url);
+            Log.Error("Failed to download Video: {Url}", url);
             return false;
         }
 
-        CacheManager.Instance.AddToCache(fileName);
-        Log.Information("Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.AddToCache(fileName);
+        Log.Information("Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -461,7 +459,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download Generic Video: {exitCode} {URL} {error}", process.ExitCode, url, error);
+            Log.Error("Failed to download Generic Video: {ExitCode} {Url} {Error}", process.ExitCode, url, error);
             return false;
         }
 
@@ -479,7 +477,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to delete temp file: {ex}", ex.ToString());
+                Log.Error("Failed to delete temp file: {Ex}", ex.ToString());
             }
 
             return false;
@@ -489,12 +487,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             File.Move(tempDownloadMp4Path, filePath);
         else
         {
-            Log.Error("Failed to download Generic Video: {URL}", url);
+            Log.Error("Failed to download Generic Video: {Url}", url);
             return false;
         }
 
-        CacheManager.Instance.AddToCache(fileName);
-        Log.Information("Generic Video Downloaded: {URL}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.AddToCache(fileName);
+        Log.Information("Generic Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 }

@@ -327,10 +327,10 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void RefreshCacheStats()
     {
-        TotalCacheSize = CacheManager.Instance.GetTotalCacheSize();
+        TotalCacheSize = CacheManager.GetTotalCacheSize();
         // Subtract 1 for index.html if it exists in the cache
-        var count = CacheManager.Instance.GetCachedVideoCount();
-        var assets = CacheManager.Instance.GetCachedAssets();
+        var count = CacheManager.GetCachedVideoCount();
+        var assets = CacheManager.GetCachedAssets();
         if (assets.ContainsKey("index.html"))
             count--;
         CachedVideoCount = count;

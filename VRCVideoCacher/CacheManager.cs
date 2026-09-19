@@ -98,7 +98,8 @@ public partial class CacheManager : Singleton<CacheManager>
         }
     }
 
-    public void AddToCache(string fileName)
+    [PublicAPI]
+    public void AddToCache2(string fileName)
     {
         var filePath = Path.Join(CachePath, fileName);
         if (!File.Exists(filePath))
@@ -126,14 +127,18 @@ public partial class CacheManager : Singleton<CacheManager>
     }
 
     // Public accessors for UI
-    public IReadOnlyDictionary<string, VideoCache> GetCachedAssets()
+    [PublicAPI]
+    public IReadOnlyDictionary<string, VideoCache> GetCachedAssets2()
         => _cachedAssets.ToDictionary(k => k.Key, v => v.Value);
 
-    public long GetTotalCacheSize() => GetCacheSize();
+    [PublicAPI]
+    public long GetTotalCacheSize2() => GetCacheSize();
 
-    public int GetCachedVideoCount() => _cachedAssets.Count;
+    [PublicAPI]
+    public int GetCachedVideoCount2() => _cachedAssets.Count;
 
-    public void DeleteCacheItem(string fileName)
+    [PublicAPI]
+    public void DeleteCacheItem2(string fileName)
     {
         var filePath = Path.Join(CachePath, fileName);
         if (!File.Exists(filePath))
@@ -145,7 +150,8 @@ public partial class CacheManager : Singleton<CacheManager>
         Log.Information("Deleted cached video: {FileName}", fileName);
     }
 
-    public void ClearCache()
+    [PublicAPI]
+    public void ClearCache2()
     {
         var recentPlayHistory = DatabaseManager.GetPlayHistory();
         var files = _cachedAssets.Keys.ToList();
