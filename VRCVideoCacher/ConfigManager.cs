@@ -10,20 +10,20 @@ namespace VRCVideoCacher;
 
 public partial class ConfigManager : Singleton<ConfigManager>
 {
-    private readonly string ConfigFilePath;
+    private readonly string _configFilePath;
 
     public ConfigManager()
     {
         Log.Information("Loading config...");
-        ConfigFilePath = Path.Join(Program.DataPath,
+        _configFilePath = Path.Join(Program.DataPath,
             $"{(!string.IsNullOrWhiteSpace(LaunchArgs.ConfigName) ? LaunchArgs.ConfigName : "Config")}.json");
-        Log.Debug("Using config file path: {ConfigFilePath}", ConfigFilePath);
+        Log.Debug("Using config file path: {ConfigFilePath}", _configFilePath);
 
         ConfigModel? newConfig = null;
         try
         {
-            if (File.Exists(ConfigFilePath))
-                newConfig = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(ConfigFilePath));
+            if (File.Exists(_configFilePath))
+                newConfig = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath));
             if (newConfig != null)
                 Config2 = newConfig;
         }
@@ -48,11 +48,10 @@ public partial class ConfigManager : Singleton<ConfigManager>
         if (Config2.YtdlpWebServerUrl.EndsWith('/'))
             Config2.YtdlpWebServerUrl = Config2.YtdlpWebServerUrl.TrimEnd('/');
 
-        Task.Run(() => TrySaveConfig2(false));
+        TrySaveConfigWithoutWait2(false);
     }
 
-    [PublicAPI]
-    public ConfigModel Config2 { get; }
+    [PublicAPI] public ConfigModel Config2 { get; }
 
     // Events for UI
     public static event Action? OnConfigChanged;
@@ -61,13 +60,13 @@ public partial class ConfigManager : Singleton<ConfigManager>
     public void TrySaveConfig2(bool infoLog = true)
     {
         var newConfig = JsonConvert.SerializeObject(Config2, Formatting.Indented);
-        var oldConfig = File.Exists(ConfigFilePath) ? File.ReadAllText(ConfigFilePath) : string.Empty;
+        var oldConfig = File.Exists(_configFilePath) ? File.ReadAllText(_configFilePath) : string.Empty;
         if (newConfig == oldConfig)
             return;
 
         if (infoLog)
             Log.Information("Config changed, saving...");
-        File.WriteAllText(ConfigFilePath, JsonConvert.SerializeObject(Config2, Formatting.Indented));
+        File.WriteAllText(_configFilePath, JsonConvert.SerializeObject(Config2, Formatting.Indented));
         if (infoLog)
             Log.Information("Config saved.");
         OnConfigChanged?.Invoke();
