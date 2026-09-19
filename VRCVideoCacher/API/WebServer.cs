@@ -15,7 +15,7 @@ public class WebServer
     {
         _server?.Dispose();
 
-        var indexPath = Path.Join(CacheManager.CachePath, "index.html");
+        var indexPath = Path.Join(CacheManager.Instance.CachePath, "index.html");
         if (!File.Exists(indexPath))
             File.WriteAllText(indexPath, "VRCVideoCacher");
 
@@ -54,7 +54,7 @@ public class WebServer
             .WithModule(new SabrHlsModule("/hls"))
             .WithStaticFolder("/hls", Services.SabrRestreamService.HlsRootPath, false, m => m
                 .WithContentCaching(false))
-            .WithStaticFolder("/", CacheManager.CachePath, true, m => m
+            .WithStaticFolder("/", CacheManager.Instance.CachePath, true, m => m
                 .WithContentCaching(true));
 
         // Listen for state changes.

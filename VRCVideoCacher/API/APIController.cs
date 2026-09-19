@@ -316,14 +316,14 @@ public class ApiController : WebApiController
     {
         var ext = avPro ? "webm" : "mp4";
         var fileName = $"{videoId}.{ext}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         var isCached = File.Exists(filePath);
         // ReSharper disable once InvertIf
         if (avPro && !isCached)
         {
             // retry with .mp4
             fileName = $"{videoId}.mp4";
-            filePath = Path.Join(CacheManager.CachePath, fileName);
+            filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
             isCached = File.Exists(filePath);
         }
 

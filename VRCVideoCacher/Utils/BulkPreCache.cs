@@ -23,7 +23,7 @@ public class BulkPreCache : Singleton<BulkPreCache>
 
         public DateTime LastModifiedDate => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
             .AddSeconds(LastModified);
-        public string FilePath => Path.Join(CacheManager.CachePath, FileName);
+        public string FilePath => Path.Join(CacheManager.Instance.CachePath, FileName);
     }
 
     public async Task DownloadFileList()
