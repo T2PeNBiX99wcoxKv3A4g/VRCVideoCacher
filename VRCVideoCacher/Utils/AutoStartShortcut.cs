@@ -57,13 +57,7 @@ public class AutoStartShortcut : Singleton<AutoStartShortcut>
         }
     }
 
-    private bool StartupEnabled()
-    {
-        if (string.IsNullOrEmpty(GetOurShortcut()))
-            return false;
-
-        return true;
-    }
+    private bool StartupEnabled() => !string.IsNullOrEmpty(GetOurShortcut());
 
     [SupportedOSPlatform("windows")]
     public void CreateShortcut()
@@ -141,7 +135,7 @@ public class AutoStartShortcut : Singleton<AutoStartShortcut>
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private List<string> FindShortcutFiles(string folderPath)
+    private static List<string> FindShortcutFiles(string folderPath)
     {
         var directoryInfo = new DirectoryInfo(folderPath);
         var files = directoryInfo.GetFiles();
@@ -154,7 +148,7 @@ public class AutoStartShortcut : Singleton<AutoStartShortcut>
         ];
     }
 
-    private bool IsShortcutFile(string filePath)
+    private static bool IsShortcutFile(string filePath)
     {
         var headerBytes = new byte[4];
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
