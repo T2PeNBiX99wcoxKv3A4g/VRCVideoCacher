@@ -29,7 +29,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
                 Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
             }
 
-        AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll2();
     }
 
     [SupportedOSPlatform("windows")]
@@ -38,7 +38,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         var jobHandle = CreateJobObject(IntPtr.Zero, null);
         if (jobHandle == IntPtr.Zero)
         {
-            Log.Debug("CreateJobObject failed with error {Error}", Marshal.GetLastWin32Error());
+            Log.Debug("CreateJobObject failed with error {Error}", Marshal.GetLastPInvokeError());
             return;
         }
 
@@ -58,7 +58,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         {
             if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, ref extendedInfo, (uint)length))
             {
-                Log.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastWin32Error());
+                Log.Debug("SetInformationJobObject failed with error {Error}", Marshal.GetLastPInvokeError());
                 return;
             }
 
@@ -66,7 +66,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 
             if (!AssignProcessToJobObject(jobHandle, currentProcess.Handle))
             {
-                Log.Debug("AssignProcessToJobObject failed with error {Error}", Marshal.GetLastWin32Error());
+                Log.Debug("AssignProcessToJobObject failed with error {Error}", Marshal.GetLastPInvokeError());
                 return;
             }
 
@@ -76,7 +76,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         finally
         {
             if (jobHandle != IntPtr.Zero && !CloseHandle(jobHandle))
-                Log.Debug("CloseHandle failed with error {Error}", Marshal.GetLastWin32Error());
+                Log.Debug("CloseHandle failed with error {Error}", Marshal.GetLastPInvokeError());
         }
     }
 
