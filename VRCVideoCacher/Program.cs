@@ -193,7 +193,7 @@ internal sealed class Program
         Console.CancelKeyPress += (_, _) => Environment.Exit(0);
         AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAppQuit();
 
-        await VvcConfigService.Instance.GetConfig();
+        await VvcConfigService.GetConfig();
         if (ConfigManager.Config.YtdlpAutoUpdate && !LaunchArgs.UseGlobalPath)
         {
             await Task.WhenAll(

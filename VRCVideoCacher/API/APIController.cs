@@ -15,7 +15,7 @@ public class ApiController : WebApiController
 {
     private static readonly ILogger Log = Program.Logger.ForContext<ApiController>();
 
-    private static int YoutubePrefetchMaxRetries => VvcConfigService.Instance.CurrentConfig.RetryCount;
+    private static int YoutubePrefetchMaxRetries => VvcConfigService.CurrentConfig.RetryCount;
 
     [Route(HttpVerbs.Post, "/youtube-cookies")]
     [PublicAPI]

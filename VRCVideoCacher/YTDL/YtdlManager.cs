@@ -130,7 +130,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
         while (true)
         {
             await Task.Delay(interval);
-            await VvcConfigService.Instance.GetConfig();
+            await VvcConfigService.GetConfig();
             await TryDownloadYtdlp();
         }
         // ReSharper disable once FunctionNeverReturns
@@ -589,19 +589,17 @@ public partial class YtdlManager : Singleton<YtdlManager>
         var processName = Path.GetFileNameWithoutExtension(path);
         try
         {
-            using var process = new Process
+            using var process = new Process();
+            process.StartInfo = new()
             {
-                StartInfo = new()
-                {
-                    FileName = path,
-                    Arguments = arg,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8
-                }
+                FileName = path,
+                Arguments = arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
             ChildProcessTracker.Track(process);

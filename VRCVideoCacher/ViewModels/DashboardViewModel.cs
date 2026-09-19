@@ -74,7 +74,7 @@ public partial class DashboardViewModel : ViewModelBase
         // Initial data load
         RefreshData();
 
-        Motd = VvcConfigService.Instance.CurrentConfig.Motd;
+        Motd = VvcConfigService.CurrentConfig.Motd;
 
         // Subscribe to language changes to refresh localized strings
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedStrings);
@@ -86,7 +86,7 @@ public partial class DashboardViewModel : ViewModelBase
         VideoDownloader.OnQueueChanged += OnQueueChanged;
         ConfigManager.OnConfigChanged += OnConfigChanged;
         Program.OnCookiesUpdated += OnCookiesUpdated;
-        VvcConfigService.Instance.OnApiConfigChanged += OnApiConfigChanged;
+        VvcConfigService.OnApiConfigChanged += OnApiConfigChanged;
 
         // Reflect tool downloads live: mark a tool "downloading" while its activity is active, and
         // re-verify it the moment the download finishes.
@@ -114,16 +114,14 @@ public partial class DashboardViewModel : ViewModelBase
         // (MarkdownText renders it as inlines), so this must happen on the UI thread.
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var newMotd = VvcConfigService.Instance.CurrentConfig.Motd;
+            var newMotd = VvcConfigService.CurrentConfig.Motd;
 #if DEBUG
             if (string.IsNullOrEmpty(newMotd))
                 newMotd = "Test Motd";
 #endif
-            if (Motd != newMotd)
-            {
-                Motd = newMotd;
-                IsMotdDismissed = false;
-            }
+            if (Motd == newMotd) return;
+            Motd = newMotd;
+            IsMotdDismissed = false;
         });
     }
 

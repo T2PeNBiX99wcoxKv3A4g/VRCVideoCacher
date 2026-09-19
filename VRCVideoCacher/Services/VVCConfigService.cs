@@ -13,10 +13,12 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
         DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher v{Program.Version}" } }
     };
 
-    public VvcConfig CurrentConfig { get; private set; } = new();
-    public event Action? OnApiConfigChanged;
+    [PublicAPI]
+    public VvcConfig CurrentConfig2 { get; private set; } = new();
+    public static event Action? OnApiConfigChanged;
 
-    public async Task GetConfig()
+    [PublicAPI]
+    public async Task GetConfig2()
     {
         try
         {
@@ -26,7 +28,7 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
                 var deserialized = JsonConvert.DeserializeObject<VvcConfig>(await req.Content.ReadAsStringAsync());
                 if (deserialized != null)
                 {
-                    CurrentConfig = deserialized;
+                    CurrentConfig2 = deserialized;
                     OnApiConfigChanged?.Invoke();
                 }
             }
