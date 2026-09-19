@@ -8,24 +8,20 @@ namespace VRCVideoCacher.Services;
 
 internal class PyPyDanceBundle
 {
-    [JsonPropertyName("songs")]
-    public List<PyPyDanceSong>? Songs { get; set; }
+    [JsonPropertyName("songs")] public List<PyPyDanceSong>? Songs { get; set; }
 }
 
 public class PyPyDanceSong
 {
-    [JsonPropertyName("i")]
-    public int? Id { get; set; }
+    [JsonPropertyName("i")] public int? Id { get; set; }
 
-    [JsonPropertyName("n")]
-    public string? Name { get; set; }
+    [JsonPropertyName("n")] public string? Name { get; set; }
 
-    [JsonPropertyName("s")]
-    public int? StartTime { get; set; }
+    [JsonPropertyName("s")] public int? StartTime { get; set; }
 
-    [JsonPropertyName("e")]
-    public int? EndTime { get; set; }
+    [JsonPropertyName("e")] public int? EndTime { get; set; }
 }
+
 [JsonSerializable(typeof(PyPyDanceBundle))]
 internal partial class PyPyDanceBundleContext : JsonSerializerContext
 {
@@ -36,16 +32,21 @@ public class PyPyDanceApiService : Singleton<PyPyDanceApiService>
     private const string PyPyDanceApiUrl = "https://api.pypy.dance/bundle";
     private DateTime _lastFetch = DateTime.MinValue;
     private List<PyPyDanceSong> _songs = [];
+
     private readonly HttpClient _httpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher {Program.Version}" } },
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", $"VRCVideoCacher {Program.Version}"
+            }
+        },
         Timeout = TimeSpan.FromSeconds(10)
     };
 
     private async Task<PyPyDanceSong?> GetVideoInfo(int? videoId)
     {
-        if (videoId == 0 || videoId == null)
-            return null;
+        if (videoId is 0 or null) return null;
 
         try
         {
