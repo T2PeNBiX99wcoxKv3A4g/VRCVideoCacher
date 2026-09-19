@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
@@ -110,9 +111,49 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial string BlockRedirect { get; set; } = string.Empty;
 
     // Status
+    private CancellationTokenSource? _statusMessageCts;
+
     [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty] public partial string StatusMessageColor { get; set; } = string.Empty;
+
+    private void SetStatusMessage(string message, string color, double autoHideSeconds = 3.5)
+    {
+        _statusMessageCts?.Cancel();
+        _statusMessageCts?.Dispose();
+        _statusMessageCts = null;
+
+        StatusMessage = message;
+        StatusMessageColor = color;
+
+        if (string.IsNullOrEmpty(message) || autoHideSeconds <= 0)
+            return;
+
+        var cts = new CancellationTokenSource();
+        _statusMessageCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(autoHideSeconds), cts.Token);
+                if (!cts.IsCancellationRequested)
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!cts.IsCancellationRequested)
+                        {
+                            StatusMessage = string.Empty;
+                        }
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when a new status message is set or cleared
+            }
+        });
+    }
 
     [ObservableProperty] public partial bool StartWithSteamVr { get; set; }
 
@@ -198,8 +239,7 @@ public partial class SettingsViewModel : ViewModelBase
                                  ?? AvailableLanguageOptions.FirstOrDefault();
 
         HasChanges = false;
-        StatusMessage = string.Empty;
-        StatusMessageColor = "#81C784";
+        SetStatusMessage(string.Empty, "#81C784", 0);
         _isLoadingConfig = false;
     }
 
@@ -209,8 +249,7 @@ public partial class SettingsViewModel : ViewModelBase
             return;
 
         HasChanges = true;
-        StatusMessage = Localizer.Get("SettingsUnsavedChanges");
-        StatusMessageColor = "#FFB74D";
+        SetStatusMessage(Localizer.Get("SettingsUnsavedChanges"), "#FFB74D");
     }
 
     private void OnBlockedUrlsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -310,16 +349,14 @@ public partial class SettingsViewModel : ViewModelBase
         config.RedirectVRDancing = RedirectVRDancing;
         ConfigManager.TrySaveConfig();
         HasChanges = false;
-        StatusMessage = Localizer.Get("SettingsSaved");
-        StatusMessageColor = "#81C784";
+        SetStatusMessage(Localizer.Get("SettingsSaved"), "#81C784");
     }
 
     [RelayCommand]
     private void ResetToDefaults()
     {
         LoadFromConfig();
-        StatusMessage = Localizer.Get("SettingsReset");
-        StatusMessageColor = "#81C784";
+        SetStatusMessage(Localizer.Get("SettingsReset"), "#81C784");
     }
 
     [RelayCommand]
