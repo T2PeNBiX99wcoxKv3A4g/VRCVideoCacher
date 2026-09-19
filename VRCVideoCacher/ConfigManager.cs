@@ -110,7 +110,7 @@ public class ConfigManager
 
         if (OperatingSystem.IsWindows() &&
             GetUserConfirmation("Would you like to add VRCVideoCacher to VRCX auto start?", true))
-            AutoStartShortcut.CreateShortcut();
+            AutoStartShortcut.Instance.CreateShortcut();
 
         Log.Information(
             "You'll need to install our companion extension to fetch youtube cookies (This will fix YouTube bot errors)");

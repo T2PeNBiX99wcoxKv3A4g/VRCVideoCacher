@@ -214,7 +214,7 @@ internal sealed class Program
                 _ = OpusMp4Check.EnsureAsync();
 
         if (OperatingSystem.IsWindows())
-            AutoStartShortcut.TryUpdateShortcutPath();
+            AutoStartShortcut.Instance.TryUpdateShortcutPath();
         WebServer.Init();
         FileTools.BackupAllYtdl();
         await BulkPreCache.DownloadFileList();

@@ -6,18 +6,17 @@ using ShellLink;
 
 namespace VRCVideoCacher.Utils;
 
-public class AutoStartShortcut
+public class AutoStartShortcut : Singleton<AutoStartShortcut>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<AutoStartShortcut>();
-    private static readonly byte[] ShortcutSignatureBytes = { 0x4C, 0x00, 0x00, 0x00 }; // signature for ShellLinkHeader
+    private readonly byte[] _shortcutSignatureBytes = [0x4C, 0x00, 0x00, 0x00]; // signature for ShellLinkHeader
     private const string ShortcutName = "VRCVideoCacher";
     private const string SteamShortcutExtension = ".url";
     private const string SteamGameUrl = "steam://rungameid/4296960";
     private const string ExeShortcutExtension = ".lnk";
-    private static bool? _doesVrcxSupportSteamShortcut;
+    private bool? _doesVrcxSupportSteamShortcut;
 
     [SupportedOSPlatform("windows")]
-    public static void TryUpdateShortcutPath()
+    public void TryUpdateShortcutPath()
     {
         RemoveLegacyShortcut(true);
 
@@ -49,7 +48,7 @@ public class AutoStartShortcut
         }
     }
 
-    private static bool StartupEnabled()
+    private bool StartupEnabled()
     {
         if (string.IsNullOrEmpty(GetOurShortcut()))
             return false;
@@ -58,7 +57,7 @@ public class AutoStartShortcut
     }
 
     [SupportedOSPlatform("windows")]
-    public static void CreateShortcut()
+    public void CreateShortcut()
     {
         if (StartupEnabled())
             return;
@@ -97,7 +96,7 @@ public class AutoStartShortcut
     }
 
     [SupportedOSPlatform("windows")]
-    private static void RemoveLegacyShortcut(bool createIfAnyFound)
+    private void RemoveLegacyShortcut(bool createIfAnyFound)
     {
         var shortcutPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX", "startup");
         if (!Directory.Exists(shortcutPath))
@@ -123,7 +122,7 @@ public class AutoStartShortcut
         }
     }
 
-    private static string? GetOurShortcut()
+    private string? GetOurShortcut()
     {
         var shortcutPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX", "startup");
         if (!Directory.Exists(shortcutPath))
@@ -139,7 +138,7 @@ public class AutoStartShortcut
         return null;
     }
 
-    private static List<string> FindShortcutFiles(string folderPath)
+    private List<string> FindShortcutFiles(string folderPath)
     {
         var directoryInfo = new DirectoryInfo(folderPath);
         var files = directoryInfo.GetFiles();
@@ -156,7 +155,7 @@ public class AutoStartShortcut
         return ret;
     }
 
-    private static bool IsShortcutFile(string filePath)
+    private bool IsShortcutFile(string filePath)
     {
         var headerBytes = new byte[4];
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -165,11 +164,11 @@ public class AutoStartShortcut
             fileStream.ReadExactly(headerBytes, 0, 4);
         }
 
-        return headerBytes.SequenceEqual(ShortcutSignatureBytes);
+        return headerBytes.SequenceEqual(_shortcutSignatureBytes);
     }
 
     [SupportedOSPlatform("windows")]
-    private static bool ShouldUseSteamShortcut()
+    private bool ShouldUseSteamShortcut()
     {
 #if STEAMRELEASE
         if(!_doesVrcxSupportSteamShortcut.HasValue)
@@ -202,7 +201,7 @@ public class AutoStartShortcut
         return _doesVrcxSupportSteamShortcut.Value;
     }
 
-    private static bool TryParseVrcxVersion(string? version, out int year, out int month, out int day)
+    private bool TryParseVrcxVersion(string? version, out int year, out int month, out int day)
     {
         year = 0;
         month = 0;
@@ -250,7 +249,7 @@ public class AutoStartShortcut
     }
 
     [SupportedOSPlatform("windows")]
-    private static bool TryGetVrcxVersion(out string? version)
+    private bool TryGetVrcxVersion(out string? version)
     {
         version = null;
 
@@ -265,37 +264,33 @@ public class AutoStartShortcut
 
             foreach (var regPath in registryPaths)
             {
-                using (var key = Registry.LocalMachine.OpenSubKey(regPath))
+                using var key = Registry.LocalMachine.OpenSubKey(regPath);
+                if (key != null)
                 {
-                    if (key != null)
+                    foreach (var subKeyName in key.GetSubKeyNames())
                     {
-                        foreach (var subKeyName in key.GetSubKeyNames())
+                        using var subKey = key.OpenSubKey(subKeyName);
+                        var displayName = subKey?.GetValue("DisplayName") as string;
+                        if (subKey != null && displayName != null && displayName.Contains("VRCX", StringComparison.OrdinalIgnoreCase))
                         {
-                            using (var subKey = key.OpenSubKey(subKeyName))
+                            var installLocation = subKey.GetValue("InstallLocation") as string;
+                            if (!string.IsNullOrWhiteSpace(installLocation))
                             {
-                                var displayName = subKey?.GetValue("DisplayName") as string;
-                                if (subKey != null && displayName != null && displayName.Contains("VRCX", StringComparison.OrdinalIgnoreCase))
+                                if (TryGetVrcxVersionFromFile(installLocation, out version))
                                 {
-                                    var installLocation = subKey.GetValue("InstallLocation") as string;
-                                    if (!string.IsNullOrWhiteSpace(installLocation))
+                                    return true;
+                                }
+                            }
+                            else
+                            {
+                                // Try DisplayIcon as fallback
+                                var displayIcon = subKey.GetValue("DisplayIcon") as string;
+                                displayIcon = displayIcon?.Trim('"');
+                                if (!string.IsNullOrWhiteSpace(displayIcon) && displayIcon.EndsWith("VRCX.ico", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (TryGetVrcxVersionFromFile(Path.GetDirectoryName(displayIcon), out version))
                                     {
-                                        if (TryGetVrcxVersionFromFile(installLocation, out version))
-                                        {
-                                            return true;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Try DisplayIcon as fallback
-                                        var displayIcon = subKey.GetValue("DisplayIcon") as string;
-                                        displayIcon = displayIcon?.Trim('"');
-                                        if (!string.IsNullOrWhiteSpace(displayIcon) && displayIcon.EndsWith("VRCX.ico", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            if (TryGetVrcxVersionFromFile(Path.GetDirectoryName(displayIcon), out version))
-                                            {
-                                                return true;
-                                            }
-                                        }
+                                        return true;
                                     }
                                 }
                             }
@@ -355,7 +350,7 @@ public class AutoStartShortcut
         return false;
     }
 
-    private static bool TryGetVrcxVersionFromFile(string? directory, out string? version)
+    private bool TryGetVrcxVersionFromFile(string? directory, out string? version)
     {
         version = null;
 
