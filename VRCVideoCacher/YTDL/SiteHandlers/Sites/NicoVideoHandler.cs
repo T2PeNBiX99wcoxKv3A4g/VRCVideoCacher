@@ -5,13 +5,6 @@ namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
 public partial class NicoVideoHandler : Handler<NicoVideoHandler>, ISiteHandler
 {
-    // Matches full nicovideo/niconico URLs
-    private static readonly Regex NicoID1 = NicoID1Regex();
-    private static readonly Regex NicoID2 = NicoID2Regex();
-
-    // Matches bare Nico video/live IDs
-    private static readonly Regex NicoID4 = NicoID4Regex();
-
     public override bool CanHandle(Uri uri) => false; // rewrite only, GenericHandler picks up after
 
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
@@ -23,7 +16,7 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>, ISiteHandler
 
         var (m, group) = new[]
         {
-            (NicoID1.Match(url), 4), (NicoID2.Match(url), 2), (NicoID4.Match(url), 1)
+            (NicoID1().Match(url), 4), (NicoID2().Match(url), 2), (NicoID4().Match(url), 1)
         }.FirstOrDefault(x => x.Item1.Success);
 
         if (m?.Success != true)
@@ -34,14 +27,16 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>, ISiteHandler
         return Task.FromResult(newUrl);
     }
 
+    // Matches full nicovideo/niconico URLs
     [GeneratedRegex(@"^(https?)://(live|www)\.nicovideo\.jp/(watch|shorts)/(.+)$", RegexOptions.Compiled)]
-    private static partial Regex NicoID1Regex();
+    private static partial Regex NicoID1();
 
     [GeneratedRegex(@"^(https?)://nico\.ms/(.+)$", RegexOptions.Compiled)]
-    private static partial Regex NicoID2Regex();
+    private static partial Regex NicoID2();
 
+    // Matches bare Nico video/live IDs
     [GeneratedRegex(
         @"^(sm\d+|nm\d+|am\d+|fz\d+|ut\d+|dm\d+|so\d+|ax\d+|ca\d+|cd\d+|cw\d+|fx\d+|ig\d+|na\d+|om\d+|sd\d+|sk\d+|yk\d+|yo\d+|za\d+|zb\d+|zc\d+|zd\d+|ze\d+|nl\d+|ch\d+|\d+|lv\d+|ss\d+)$",
         RegexOptions.Compiled)]
-    private static partial Regex NicoID4Regex();
+    private static partial Regex NicoID4();
 }

@@ -9,7 +9,6 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>, ISiteHandler
     private static readonly string[] Hosts =
         ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
 
-    private static readonly Regex IdRegex = YoutubeIDRegex();
     private const string AVProFormat = "(mp4/best)[height<=?1080][height>=?64][width>=?64]";
 
     private const string UnityPlayerFormat =
@@ -21,7 +20,7 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>, ISiteHandler
     {
         string? videoId = null;
 
-        var match = IdRegex.Match(url);
+        var match = IDRegex().Match(url);
         if (match.Success)
             videoId = match.Groups[1].Value;
         else if (uri.AbsolutePath.StartsWith("/shorts/"))
@@ -80,5 +79,5 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>, ISiteHandler
 
     [GeneratedRegex(
         @"(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|live\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})")]
-    private static partial Regex YoutubeIDRegex();
+    private static partial Regex IDRegex();
 }
