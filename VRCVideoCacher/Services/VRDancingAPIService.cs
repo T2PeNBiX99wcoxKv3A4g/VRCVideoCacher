@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using JetBrains.Annotations;
 using Newtonsoft.Json;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
@@ -29,7 +29,8 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
         return JsonConvert.DeserializeObject<VRDSongInfo>(str);
     }
 
-    public async Task DownloadMetadata(string code, string videoId)
+    [PublicAPI]
+    public async Task DownloadMetadata2(string code, string videoId)
     {
         try
         {

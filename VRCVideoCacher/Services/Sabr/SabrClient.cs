@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using Serilog;
 
 namespace VRCVideoCacher.Services.Sabr;

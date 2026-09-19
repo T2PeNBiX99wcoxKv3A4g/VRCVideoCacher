@@ -1,4 +1,5 @@
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Services;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
@@ -16,7 +17,7 @@ public class VRDancingHandler : Handler<VRDancingHandler>, ISiteHandler
 
         // _ = Task.Run(async () =>
         // {
-        //     await VRDancingAPIService.Instance.DownloadMetadata(code, videoId);
+        //     await VRDancingAPIService.DownloadMetadata(code, videoId);
         // });
 
         return Task.FromResult<VideoInfo?>(new()
