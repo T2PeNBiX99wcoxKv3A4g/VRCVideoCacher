@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 using ILogger = Swan.Logging.ILogger;
 using LogLevel = Swan.Logging.LogLevel;
@@ -27,15 +28,15 @@ public partial class WebServerLogger : ILogger
         {
             case LogLevel.Error:
             case LogLevel.Warning:
-                (WebServer.Instance as ILog).Log.Warning("{WebServerLogEvent:l}", message);
+                WebServer.Instance.Logger.Warning("{WebServerLogEvent:l}", message);
                 break;
             case LogLevel.Info:
                 // SABR HLS segment fetches (206 Partial Content) fire constantly during playback — one per
                 // segment, per viewer — and drown out everything else at Info. Keep them, but at Debug.
                 if (IsHlsPartialContent(rawMessage))
-                    (WebServer.Instance as ILog).Log.Debug("{WebServerLogEvent:l}", message);
+                    WebServer.Instance.Logger.Debug("{WebServerLogEvent:l}", message);
                 else
-                    (WebServer.Instance as ILog).Log.Information("{WebServerLogEvent:l}", message);
+                    WebServer.Instance.Logger.Information("{WebServerLogEvent:l}", message);
                 break;
         }
     }
@@ -43,7 +44,6 @@ public partial class WebServerLogger : ILogger
     [GeneratedRegex(@"^\[.*?\]\s*", RegexOptions.Compiled)]
     private static partial Regex RequestIdPrefix();
 
-    private static bool IsHlsPartialContent(string message) =>
-        message.Contains("/hls/", StringComparison.Ordinal) &&
-        message.Contains("206", StringComparison.Ordinal);
+    private static bool IsHlsPartialContent(string message) => message.Contains("/hls/", StringComparison.Ordinal) &&
+                                                               message.Contains("206", StringComparison.Ordinal);
 }
