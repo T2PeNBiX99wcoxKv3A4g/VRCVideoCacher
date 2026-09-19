@@ -8,12 +8,11 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public static class ConfigManager
+public partial class ConfigManager : Singleton<ConfigManager>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext(typeof(ConfigManager));
-    private static readonly string ConfigFilePath;
+    private readonly string ConfigFilePath;
 
-    static ConfigManager()
+    public ConfigManager()
     {
         Log.Information("Loading config...");
         ConfigFilePath = Path.Join(Program.DataPath,
@@ -26,17 +25,17 @@ public static class ConfigManager
             if (File.Exists(ConfigFilePath))
                 newConfig = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(ConfigFilePath));
             if (newConfig != null)
-                Config = newConfig;
+                Config2 = newConfig;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load config, creating new one...");
         }
 
-        if (Config == null)
+        if (Config2 == null)
         {
             Log.Information("No valid config found, creating new one...");
-            Config = new()
+            Config2 = new()
             {
                 Language = GetSystemLanguage()
             };
@@ -46,36 +45,39 @@ public static class ConfigManager
         else
             Log.Information("Config loaded successfully.");
 
-        if (Config.YtdlpWebServerUrl.EndsWith('/'))
-            Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
+        if (Config2.YtdlpWebServerUrl.EndsWith('/'))
+            Config2.YtdlpWebServerUrl = Config2.YtdlpWebServerUrl.TrimEnd('/');
 
-        TrySaveConfig(false);
+        Task.Run(() => TrySaveConfig2(false));
     }
 
-    public static ConfigModel Config { get; }
+    [PublicAPI]
+    public ConfigModel Config2 { get; }
 
     // Events for UI
     public static event Action? OnConfigChanged;
 
-    public static void TrySaveConfig(bool infoLog = true)
+    [PublicAPI]
+    public void TrySaveConfig2(bool infoLog = true)
     {
-        var newConfig = JsonConvert.SerializeObject(Config, Formatting.Indented);
+        var newConfig = JsonConvert.SerializeObject(Config2, Formatting.Indented);
         var oldConfig = File.Exists(ConfigFilePath) ? File.ReadAllText(ConfigFilePath) : string.Empty;
         if (newConfig == oldConfig)
             return;
 
         if (infoLog)
             Log.Information("Config changed, saving...");
-        File.WriteAllText(ConfigFilePath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+        File.WriteAllText(ConfigFilePath, JsonConvert.SerializeObject(Config2, Formatting.Indented));
         if (infoLog)
             Log.Information("Config saved.");
         OnConfigChanged?.Invoke();
         CacheManager.TryFlushCache();
     }
 
-    public static void TrySaveConfigWithoutWait(bool infoLog = true) => Task.Run(() => TrySaveConfig(infoLog));
+    [PublicAPI]
+    public void TrySaveConfigWithoutWait2(bool infoLog = true) => Task.Run(() => TrySaveConfig2(infoLog));
 
-    private static bool GetUserConfirmation(string prompt, bool defaultValue)
+    private bool GetUserConfirmation(string prompt, bool defaultValue)
     {
         var defaultOption = defaultValue ? "Y/n" : "y/N";
         var message = $"{prompt} ({defaultOption}):";
@@ -85,7 +87,7 @@ public static class ConfigManager
         return string.IsNullOrEmpty(input) ? defaultValue : input.Equals("y", StringComparison.CurrentCultureIgnoreCase);
     }
 
-    private static void FirstRunConsole()
+    private void FirstRunConsole()
     {
         Log.Information("It appears this is your first time running VRCVideoCacher. Let's create a basic config file.");
 
@@ -94,19 +96,19 @@ public static class ConfigManager
             Log.Information("Basic config created. You can modify it later in the Config.json file.");
         else
         {
-            Config.CacheYouTube = GetUserConfirmation("Would you like to cache/download Youtube videos?", true);
-            if (Config.CacheYouTube)
+            Config2.CacheYouTube = GetUserConfirmation("Would you like to cache/download Youtube videos?", true);
+            if (Config2.CacheYouTube)
             {
                 var maxResolution = GetUserConfirmation("Would you like to cache/download Youtube videos in 4k?", true);
-                Config.CacheYouTubeMaxResolution = maxResolution ? 2160 : 1080;
+                Config2.CacheYouTubeMaxResolution = maxResolution ? 2160 : 1080;
             }
 
             var vrDancingPyPyChoice =
                 GetUserConfirmation("Would you like to cache/download VRDancing & PyPyDance videos?", true);
-            Config.CacheVrDancing = vrDancingPyPyChoice;
-            Config.CachePyPyDance = vrDancingPyPyChoice;
+            Config2.CacheVrDancing = vrDancingPyPyChoice;
+            Config2.CachePyPyDance = vrDancingPyPyChoice;
 
-            Config.PatchResonite = GetUserConfirmation("Would you like to enable Resonite support?", false);
+            Config2.PatchResonite = GetUserConfirmation("Would you like to enable Resonite support?", false);
         }
 
         if (OperatingSystem.IsWindows() &&
@@ -119,7 +121,7 @@ public static class ConfigManager
             "Chrome: https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge");
         Log.Information("Firefox: https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter/");
         Log.Information("More info: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
-        TrySaveConfig();
+        TrySaveConfig2();
     }
 
     private static string GetSystemLanguage()
