@@ -1,15 +1,15 @@
 using Newtonsoft.Json;
 using Serilog;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Models;
 
-public class Versions
+public class Versions: Singleton<Versions>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<Versions>();
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
-    public static readonly VersionJson CurrentVersion = new();
+    public readonly VersionJson CurrentVersion = new();
 
-    static Versions()
+    public Versions()
     {
         if (File.Exists(VersionPath))
         {
@@ -28,7 +28,7 @@ public class Versions
         Save();
     }
 
-    public static void Save()
+    public void Save()
     {
         File.WriteAllText(VersionPath, JsonConvert.SerializeObject(CurrentVersion, Formatting.Indented));
     }

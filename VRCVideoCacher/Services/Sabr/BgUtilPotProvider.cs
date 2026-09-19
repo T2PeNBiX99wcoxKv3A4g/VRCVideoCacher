@@ -40,9 +40,8 @@ internal static class BgUtilPotProvider
         IsAutoManaged ? Path.Join(ServerPath, "yt-dlp-plugins") : Program.UtilsPath;
 
     // Port conflicts change only the runtime URL, not the configured preference.
-    private static string _baseUrl = ConfigManager.Config.SabrPotBaseUrl.TrimEnd('/');
 
-    public static string BaseUrl => _baseUrl;
+    public static string BaseUrl { get; private set; } = ConfigManager.Config.SabrPotBaseUrl.TrimEnd('/');
 
     /// <summary>
     /// Non-blocking readiness snapshot; use <see cref="WaitReadyAsync"/> to wait for startup.
@@ -58,14 +57,12 @@ internal static class BgUtilPotProvider
         $"--extractor-args \"youtubepot-bgutilhttp:base_url={BaseUrl}\""
     ];
 
-    public static int Port =>
-        Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri) ? uri.Port : 4416;
+    public static int Port => Uri.TryCreate(BaseUrl, UriKind.Absolute, out var uri) ? uri.Port : 4416;
 
-    private static string PingUrl => $"{_baseUrl}/ping";
+    private static string PingUrl => $"{BaseUrl}/ping";
 
     // External providers are health-checked only; their lifecycle is managed by the operator.
-    private static bool IsAutoManaged =>
-        Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri) && uri.IsLoopback;
+    private static bool IsAutoManaged => Uri.TryCreate(BaseUrl, UriKind.Absolute, out var uri) && uri.IsLoopback;
 
     private static readonly Lock InitLock = new();
     private static Task? _init;
@@ -290,7 +287,7 @@ internal static class BgUtilPotProvider
             return;
         }
 
-        _baseUrl = new UriBuilder(_baseUrl)
+        BaseUrl = new UriBuilder(BaseUrl)
         {
             Port = free
         }.Uri.ToString().TrimEnd('/');
@@ -356,7 +353,7 @@ internal static class BgUtilPotProvider
         var canvasPath = Path.Join("node_modules", "canvas", "build", "Release", "canvas.node");
         var installed = File.Exists(MainJsPath) && File.Exists(Path.Join(ServerPath, canvasPath));
 
-        if (installed && Versions.CurrentVersion.BgUtil == Program.BgUtilsVersion)
+        if (installed && Versions.Instance.CurrentVersion.BgUtil == Program.BgUtilsVersion)
         {
             Log.Debug("bgutil provider {Tag} already installed", Program.BgUtilsVersion);
             return;
@@ -395,8 +392,8 @@ internal static class BgUtilPotProvider
             SafeDelete(stagingPath);
         }
 
-        Versions.CurrentVersion.BgUtil = Program.BgUtilsVersion;
-        Versions.Save();
+        Versions.Instance.CurrentVersion.BgUtil = Program.BgUtilsVersion;
+        Versions.Instance.Save();
         Log.Information("bgutil PO token provider {Tag} installed.", Program.BgUtilsVersion);
     }
 
