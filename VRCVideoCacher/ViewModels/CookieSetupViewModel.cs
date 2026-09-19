@@ -10,8 +10,11 @@ namespace VRCVideoCacher.ViewModels;
 
 public partial class CookieSetupViewModel : ViewModelBase
 {
-    private const string ChromeExtensionUrl = "https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge";
-    private const string FirefoxExtensionUrl = "https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter";
+    private const string ChromeExtensionUrl =
+        "https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge";
+
+    private const string FirefoxExtensionUrl =
+        "https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter";
 
     // Step layout:
     //  1 - Browser selection
@@ -22,20 +25,15 @@ public partial class CookieSetupViewModel : ViewModelBase
 
     public event Action? RequestClose;
 
-    [ObservableProperty]
-    private int _currentStep = 1;
+    [ObservableProperty] private int _currentStep = 1;
 
-    [ObservableProperty]
-    private bool _isChrome;
+    [ObservableProperty] private bool _isChrome;
 
-    [ObservableProperty]
-    private bool _cookiesReceived;
+    [ObservableProperty] private bool _cookiesReceived;
 
-    [ObservableProperty]
-    private bool _hostState;
+    [ObservableProperty] private bool _hostState;
 
-    [ObservableProperty]
-    private bool _dontShowAgainChecked;
+    [ObservableProperty] private bool _dontShowAgainChecked;
 
     public bool IsDontShowAgainCheckboxVisible => !IsStep5 && !(ConfigManager.Config?.CookieSetupCompleted ?? false);
 
@@ -46,12 +44,13 @@ public partial class CookieSetupViewModel : ViewModelBase
     public bool IsStep5 => CurrentStep == 5;
 
     public bool CanGoBack => CurrentStep is > 1 and < 5;
+
     public bool CanGoNext => CurrentStep switch
     {
         1 => false, // Must select browser
         2 => true,
         3 => CookiesReceived,
-        4 => true,  // Hosts step is optional
+        4 => true, // Hosts step is optional
         5 => true,
         _ => false
     };
@@ -90,7 +89,7 @@ public partial class CookieSetupViewModel : ViewModelBase
     {
         Program.OnCookiesUpdated += OnCookiesUpdated;
         CookiesReceived = Program.IsCookiesEnabledAndValid();
-        _hostState = ElevatorManager.Instance.HasHostsLine;
+        _hostState = ElevatorManager.HasHostsLine;
 
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedComputedProperties);
         DontShowAgainChecked = false;
@@ -181,7 +180,7 @@ public partial class CookieSetupViewModel : ViewModelBase
         ElevatorManager.Instance.ToggleHostLine();
         Dispatcher.UIThread.Post(() =>
         {
-            HostState = ElevatorManager.Instance.HasHostsLine;
+            HostState = ElevatorManager.HasHostsLine;
             OnPropertyChanged(nameof(HostButtonText));
             OnPropertyChanged(nameof(HostStatusText));
             OnPropertyChanged(nameof(HostStatusIcon));

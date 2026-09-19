@@ -67,7 +67,7 @@ public partial class DashboardViewModel : ViewModelBase
     {
         ServerUrl = ConfigManager.Config.YtdlpWebServerUrl;
         MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
-        HostState = ElevatorManager.Instance.HasHostsLine;
+        HostState = ElevatorManager.HasHostsLine;
 
         Tools = [_ytdlpTool, _ffmpegTool, _denoTool, _potTool, _opusTool];
 
@@ -317,7 +317,7 @@ public partial class DashboardViewModel : ViewModelBase
     private void ToggleHost()
     {
         ElevatorManager.Instance.ToggleHostLine();
-        Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.Instance.HasHostsLine; });
+        Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.HasHostsLine; });
     }
 
     private void RefreshCacheStats()

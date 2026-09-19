@@ -1,13 +1,15 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using VRCVideoCacher.API;
 
 namespace VRCVideoCacher.Utils;
 
 public partial class ElevatorManager : Singleton<ElevatorManager>
 {
-    public bool HasHostsLine = HostsManager.Instance.IsHostAdded();
+    [PublicAPI]
+    public bool HasHostsLine2 = HostsManager.Instance.IsHostAdded();
 
     private readonly bool _inPressureVessel = Directory.Exists("/run/pressure-vessel");
 
