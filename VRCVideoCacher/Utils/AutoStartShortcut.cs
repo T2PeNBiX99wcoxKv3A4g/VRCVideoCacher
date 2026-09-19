@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Microsoft.Win32;
 using ShellLink;
 
@@ -27,6 +28,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     private bool? _doesVrcxSupportSteamShortcut;
 
     [SupportedOSPlatform("windows")]
+    [PublicAPI]
     public void TryUpdateShortcutPath()
     {
         RemoveLegacyShortcut(true);
@@ -275,7 +277,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
             foreach (var proc in processes)
                 try
                 {
-                    var vrcxPath = proc?.MainModule?.FileName;
+                    var vrcxPath = proc.MainModule?.FileName;
                     if (string.IsNullOrWhiteSpace(vrcxPath)) continue;
                     if (TryGetVrcxVersionFromFile(Path.GetDirectoryName(vrcxPath), out version)) return true;
                     break;

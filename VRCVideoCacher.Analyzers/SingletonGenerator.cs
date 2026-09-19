@@ -124,13 +124,13 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var indent = hasNamespace ? "    " : "";
         foreach (var outerType in containingTypes)
         {
-            sb.AppendLine($"{indent}partial sealed class {GetTypeDeclaration(outerType)}");
+            sb.AppendLine($"{indent}sealed partial class {GetTypeDeclaration(outerType)}");
             sb.AppendLine($"{indent}{{");
             indent += "    ";
         }
 
         // Partial class definition with static proxies
-        sb.AppendLine($"{indent}partial sealed class {GetTypeDeclaration(symbol)}");
+        sb.AppendLine($"{indent}sealed partial class {GetTypeDeclaration(symbol)}");
         sb.AppendLine($"{indent}{{");
 
         if (enabled)
