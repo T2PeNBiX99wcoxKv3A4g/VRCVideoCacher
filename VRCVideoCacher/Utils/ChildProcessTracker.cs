@@ -134,14 +134,14 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public void TrackWhile2(Process? process, Action<Process> callback)
     {
         if (process == null) return;
-        Track(process);
+        Track2(process);
         try
         {
             callback(process);
         }
         finally
         {
-            Untrack(process);
+            Untrack2(process);
         }
     }
 
