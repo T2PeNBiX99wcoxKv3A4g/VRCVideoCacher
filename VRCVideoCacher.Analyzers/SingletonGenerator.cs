@@ -173,7 +173,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         string suffix)
     {
         var members = symbol.GetMembers();
-        var generatedCount = 0;
 
         foreach (var member in members)
         {
@@ -213,7 +212,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     }
 
                     sb.AppendLine($"{indent}}}");
-                    generatedCount++;
                     break;
                 }
                 case IFieldSymbol field:
@@ -236,7 +234,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                         sb.AppendLine($"{indent}}}");
                     }
 
-                    generatedCount++;
                     break;
                 }
                 case IMethodSymbol method when method.MethodKind != MethodKind.Ordinary:
@@ -323,7 +320,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                         method.ReturnsVoid
                             ? $"{indent}public static void {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});"
                             : $"{indent}public static {returnTypeStr} {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
-                    generatedCount++;
                     break;
                 }
                 case IEventSymbol evt:
@@ -348,7 +344,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     }
 
                     sb.AppendLine($"{indent}}}");
-                    generatedCount++;
                     break;
                 }
             }
