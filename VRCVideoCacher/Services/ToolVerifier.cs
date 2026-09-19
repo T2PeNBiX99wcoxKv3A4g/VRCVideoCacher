@@ -71,7 +71,7 @@ public static class ToolVerifier
                 StandardErrorEncoding = Encoding.UTF8,
             };
             process.Start();
-            ChildProcessTracker.Instance.Track(process);
+            ChildProcessTracker.Track(process);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             try
             {

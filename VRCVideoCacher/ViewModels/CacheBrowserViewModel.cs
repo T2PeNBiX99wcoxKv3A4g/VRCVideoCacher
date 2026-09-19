@@ -208,7 +208,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
     [RelayCommand]
     private void OpenInExplorer()
     {
-        var cachePath = CacheManager.Instance.CachePath;
+        var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
         {
             if (SelectedItem != null)

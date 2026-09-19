@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 
 namespace VRCVideoCacher.Utils;
 
@@ -88,7 +89,8 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// <summary>
     /// Registers a child process to be tracked and terminated when the application exits.
     /// </summary>
-    public void Track(Process? process)
+    [PublicAPI]
+    public void Track2(Process? process)
     {
         if (process == null) return;
         if (Volatile.Read(ref _terminating))

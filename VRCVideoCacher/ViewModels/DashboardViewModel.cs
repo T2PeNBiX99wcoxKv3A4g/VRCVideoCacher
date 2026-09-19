@@ -334,7 +334,7 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private static void OpenCacheFolder()
     {
-        var cachePath = CacheManager.Instance.CachePath;
+        var cachePath = CacheManager.CachePath;
         if (OperatingSystem.IsWindows())
             Process.Start("explorer.exe", cachePath);
         else if (OperatingSystem.IsLinux())

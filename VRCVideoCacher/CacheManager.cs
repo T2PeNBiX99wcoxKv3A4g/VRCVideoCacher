@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
@@ -17,16 +17,17 @@ public enum CacheChangeType
 public partial class CacheManager : Singleton<CacheManager>
 {
     private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
-    public readonly string CachePath;
+    [PublicAPI]
+    public readonly string CachePath2;
 
     public CacheManager()
     {
         if (string.IsNullOrEmpty(ConfigManager.Config.CachedAssetPath))
-            CachePath = Path.Join(GetSystemCacheFolder(), "CachedAssets");
+            CachePath2 = Path.Join(GetSystemCacheFolder(), "CachedAssets");
         else if (Path.IsPathRooted(ConfigManager.Config.CachedAssetPath))
-            CachePath = ConfigManager.Config.CachedAssetPath;
+            CachePath2 = ConfigManager.Config.CachedAssetPath;
         else
-            CachePath = Path.Join(Program.CurrentProcessPath, ConfigManager.Config.CachedAssetPath);
+            CachePath2 = Path.Join(Program.CurrentProcessPath, ConfigManager.Config.CachedAssetPath);
 
         Log.Debug("Using cache path {CachePath}", CachePath);
         BuildCache();
@@ -36,7 +37,7 @@ public partial class CacheManager : Singleton<CacheManager>
     // Events for UI
     public static event Action<string, CacheChangeType>? OnCacheChanged;
 
-    private string GetSystemCacheFolder()
+    private static string GetSystemCacheFolder()
     {
         if (OperatingSystem.IsWindows())
             return Program.DataPath;
@@ -59,7 +60,6 @@ public partial class CacheManager : Singleton<CacheManager>
             AddToCache(file);
         }
     }
-
 
     public void TryFlushCache()
     {

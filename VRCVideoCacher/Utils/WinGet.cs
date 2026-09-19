@@ -62,7 +62,7 @@ public partial class WinGet : Singleton<WinGet>
                 }
             };
             process.Start();
-            ChildProcessTracker.Instance.Track(process);
+            ChildProcessTracker.Track(process);
             try
             {
                 process.WaitForExit(10_000);
@@ -92,26 +92,23 @@ public partial class WinGet : Singleton<WinGet>
     {
         try
         {
-            using var process = new Process
+            using var process = new Process();
+            process.StartInfo = new()
             {
-                StartInfo =
-                {
-                    FileName = WingetPath,
-                    Arguments = $"install --id {packageId} -s msstore --accept-package-agreements --accept-source-agreements",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
-                }
+                FileName = WingetPath,
+                Arguments = $"install --id {packageId} -s msstore --accept-package-agreements --accept-source-agreements",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8,
             };
             process.Start();
-            ChildProcessTracker.Instance.Track(process);
+            ChildProcessTracker.Track(process);
             try
             {
-                string? line;
-                while ((line = await process.StandardOutput.ReadLineAsync()) != null)
+                while (await process.StandardOutput.ReadLineAsync() is { } line)
                 {
                     if (!string.IsNullOrEmpty(line.Trim()))
                         Log.Debug("{Winget}: {Line}", "winget", line);

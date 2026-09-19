@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Microsoft.Win32;
 using ShellLink;
 
@@ -26,8 +27,8 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     private bool? _doesVrcxSupportSteamShortcut;
 
     [SupportedOSPlatform("windows")]
-    [StaticTrimLast]
-    private void TryUpdateShortcutPath2()
+    [PublicAPI]
+    public void TryUpdateShortcutPath2()
     {
         RemoveLegacyShortcut(true);
 
@@ -61,8 +62,8 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     private bool StartupEnabled() => !string.IsNullOrEmpty(GetOurShortcut());
 
     [SupportedOSPlatform("windows")]
-    [StaticTrimLast]
-    private void CreateShortcut2()
+    [PublicAPI]
+    public void CreateShortcut2()
     {
         if (StartupEnabled())
             return;

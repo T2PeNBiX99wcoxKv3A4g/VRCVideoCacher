@@ -10,9 +10,9 @@ namespace VRCVideoCacher.Utils;
 public sealed class SingletonStaticProxyAttribute : Attribute
 {
     /// <summary>
-    /// Suffix appended to instance member names when generating static proxy members. Default is "S".
+    /// Suffix appended to instance member names when generating static proxy members. Default is empty.
     /// </summary>
-    public string Suffix { get; set; } = "S";
+    public string Suffix { get; set; } = "";
 
     /// <summary>
     /// Prefix prepended to instance member names when generating static proxy members. Default is empty.

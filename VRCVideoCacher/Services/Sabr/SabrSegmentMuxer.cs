@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Serilog;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services.Sabr;
 
@@ -345,7 +346,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         };
 
         process.Start();
-        Utils.ChildProcessTracker.Instance.Track(process);
+        ChildProcessTracker.Track(process);
         try
         {
             var stderr = await process.StandardError.ReadToEndAsync(ct);
@@ -378,7 +379,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         }
         finally
         {
-            Utils.ChildProcessTracker.Instance.Untrack(process);
+            ChildProcessTracker.Instance.Untrack(process);
         }
     }
 }

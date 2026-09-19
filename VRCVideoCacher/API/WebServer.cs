@@ -20,7 +20,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
     {
         _server?.Dispose();
 
-        var indexPath = Path.Join(CacheManager.Instance.CachePath, "index.html");
+        var indexPath = Path.Join(VRCVideoCacher.CacheManager.CachePath, "index.html");
         if (!File.Exists(indexPath))
             File.WriteAllText(indexPath, "VRCVideoCacher");
 
@@ -60,7 +60,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
             .WithModule(new SabrHlsModule("/hls"))
             .WithStaticFolder("/hls", SabrRestreamService.HlsRootPath, false, m => m
                 .WithContentCaching(false))
-            .WithStaticFolder("/", CacheManager.Instance.CachePath, true, m => m
+            .WithStaticFolder("/", VRCVideoCacher.CacheManager.CachePath, true, m => m
                 .WithContentCaching(true));
 
         // Listen for state changes.

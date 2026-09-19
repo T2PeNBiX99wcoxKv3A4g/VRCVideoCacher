@@ -17,13 +17,21 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         SymbolDisplayFormat.FullyQualifiedFormat
             .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
+    private static readonly DiagnosticDescriptor MemberNameTooShortRule = new(
+        id: "VVC0001",
+        title: "Singleton member name is too short for static proxy generation",
+        messageFormat: "Member '{0}' in singleton '{1}' cannot generate a static proxy because its name has only {2} character(s) (must have at least 2 characters to trim the last character)",
+        category: "SingletonGenerator",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // 1. Query target classes that inherit from Singleton<T>
         var classDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                static (s, cancellationToken) => IsSyntaxTargetForGeneration(s, cancellationToken),
-                static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
+                predicate: static (s, cancellationToken) => IsSyntaxTargetForGeneration(s, cancellationToken),
+                transform: static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
             .Where(static m => m is not null)
             .Select(static (item, _) => item!.Value);
 
@@ -35,7 +43,15 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(distinctClasses,
             static (spc, target) =>
             {
-                spc.AddSource(target.HintName, SourceText.From(target.SourceText, Encoding.UTF8));
+                foreach (var diagnostic in target.Diagnostics)
+                {
+                    spc.ReportDiagnostic(diagnostic);
+                }
+
+                if (!string.IsNullOrEmpty(target.SourceText))
+                {
+                    spc.AddSource(target.HintName, SourceText.From(target.SourceText, Encoding.UTF8));
+                }
             });
     }
 
@@ -137,8 +153,9 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         sb.AppendLine($"{indent}sealed partial class {GetTypeDeclaration(symbol)}");
         sb.AppendLine($"{indent}{{");
 
+        var diagnostics = new List<Diagnostic>();
         if (enabled)
-            GenerateStaticMembers(sb, indent + "    ", symbol, prefix, suffix);
+            GenerateStaticMembers(sb, indent + "    ", symbol, prefix, suffix, diagnostics);
 
         sb.AppendLine($"{indent}}}");
 
@@ -151,14 +168,14 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         if (hasNamespace)
             sb.AppendLine("}");
 
-        return new(hintName, sb.ToString());
+        return new(hintName, sb.ToString(), diagnostics);
     }
 
     private static (bool Enabled, string Prefix, string Suffix) GetClassProxyConfig(INamedTypeSymbol symbol)
     {
         var enabled = true;
         var prefix = "";
-        var suffix = "S";
+        var suffix = "";
 
         foreach (var attr in symbol.GetAttributes())
             if (attr.AttributeClass?.Name is "SingletonStaticProxyAttribute" or "SingletonStaticProxy")
@@ -180,7 +197,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
     }
 
     private static void GenerateStaticMembers(StringBuilder sb, string indent, INamedTypeSymbol symbol, string prefix,
-        string suffix)
+        string suffix, List<Diagnostic> diagnostics)
     {
         var members = symbol.GetMembers();
 
@@ -202,13 +219,42 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             if (HasAttribute(member, "StaticIgnoreAttribute", "StaticIgnore"))
                 continue;
 
-            var customName = GetCustomMemberName(member);
-            var staticName = customName ?? $"{prefix}{member.Name}{suffix}";
-
+            // Determine if the member is a valid candidate for proxy generation
             switch (member)
             {
                 case IPropertySymbol { IsIndexer: true }:
-                    continue; // Skip indexers
+                    continue;
+                case IPropertySymbol:
+                case IFieldSymbol:
+                case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary && method.ContainingType.SpecialType != SpecialType.System_Object:
+                case IEventSymbol:
+                    break;
+                default:
+                    continue;
+            }
+
+            var customName = GetExplicitCustomName(member);
+            string staticName;
+
+            if (customName != null)
+            {
+                staticName = customName;
+            }
+            else
+            {
+                if (member.Name.Length <= 1)
+                {
+                    var location = member.Locations.FirstOrDefault() ?? Location.None;
+                    diagnostics.Add(Diagnostic.Create(MemberNameTooShortRule, location, member.Name, symbol.Name, member.Name.Length));
+                    continue;
+                }
+
+                var baseName = member.Name.Substring(0, member.Name.Length - 1);
+                staticName = $"{prefix}{baseName}{suffix}";
+            }
+
+            switch (member)
+            {
                 case IPropertySymbol prop:
                 {
                     var hasGet = prop.GetMethod != null;
@@ -265,11 +311,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
                     break;
                 }
-                case IMethodSymbol method when method.MethodKind != MethodKind.Ordinary:
-                    continue;
-                // Avoid proxying object methods if any
-                case IMethodSymbol method when method.ContainingType.SpecialType == SpecialType.System_Object:
-                    continue;
                 case IMethodSymbol method:
                 {
                     var returnTypeStr = method.ReturnType.ToDisplayString(TypeDisplayFormat);
@@ -413,19 +454,8 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             attr => attr.AttributeClass?.Name == attrName1 || attr.AttributeClass?.Name == attrName2);
     }
 
-    private static string? GetCustomMemberName(ISymbol symbol)
+    private static string? GetExplicitCustomName(ISymbol symbol)
     {
-        // 1. Check for StaticTrimLast attribute
-        foreach (var attr in symbol.GetAttributes())
-        {
-            var attrName = attr.AttributeClass?.Name;
-            if (attrName is "StaticTrimLastAttribute" or "StaticTrimLast"
-                or "StaticTrimEndAttribute" or "StaticTrimEnd"
-                or "StaticDropLastAttribute" or "StaticDropLast")
-                return symbol.Name.Length > 1 ? symbol.Name.Substring(0, symbol.Name.Length - 1) : symbol.Name;
-        }
-
-        // 2. Check for StaticInclude attribute
         foreach (var attr in symbol.GetAttributes())
         {
             var attrName = attr.AttributeClass?.Name;
@@ -439,8 +469,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 {
                     if (namedArg is { Key: "Name", Value.Value: string s2 } && !string.IsNullOrEmpty(s2))
                         return s2;
-                    if (namedArg is { Key: "TrimLast", Value.Value: true })
-                        return symbol.Name.Length > 1 ? symbol.Name.Substring(0, symbol.Name.Length - 1) : symbol.Name;
                 }
             }
         }
@@ -457,12 +485,35 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         return $"{symbol.Name}<{typeParams}>";
     }
 
-    private readonly struct TargetClassInfo(string hintName, string sourceText) : IEquatable<TargetClassInfo>
+    private readonly struct TargetClassInfo : IEquatable<TargetClassInfo>
     {
-        public string HintName { get; } = hintName;
-        public string SourceText { get; } = sourceText;
+        public string HintName { get; }
+        public string SourceText { get; }
+        public IReadOnlyList<Diagnostic> Diagnostics { get; }
 
-        public bool Equals(TargetClassInfo other) => HintName == other.HintName && SourceText == other.SourceText;
+        public TargetClassInfo(string hintName, string sourceText, IReadOnlyList<Diagnostic> diagnostics)
+        {
+            HintName = hintName;
+            SourceText = sourceText;
+            Diagnostics = diagnostics;
+        }
+
+        public bool Equals(TargetClassInfo other)
+        {
+            if (HintName != other.HintName || SourceText != other.SourceText)
+                return false;
+
+            if (Diagnostics.Count != other.Diagnostics.Count)
+                return false;
+
+            for (var i = 0; i < Diagnostics.Count; i++)
+            {
+                if (!Diagnostics[i].Equals(other.Diagnostics[i]))
+                    return false;
+            }
+
+            return true;
+        }
 
         public override bool Equals(object? obj) => obj is TargetClassInfo other && Equals(other);
 
@@ -470,7 +521,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         {
             unchecked
             {
-                return HintName.GetHashCode() * 397 ^ SourceText.GetHashCode();
+                var hash = HintName.GetHashCode() * 397 ^ SourceText.GetHashCode();
+                foreach (var d in Diagnostics)
+                {
+                    hash = hash * 31 ^ d.GetHashCode();
+                }
+                return hash;
             }
         }
     }

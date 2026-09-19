@@ -192,7 +192,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            ChildProcessTracker.Instance.Track(process);
+            ChildProcessTracker.Track(process);
             try
             {
                 await process.WaitForExitAsync();
@@ -230,7 +230,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         Thread.Sleep(100);
 
         var fileName = $"{videoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -286,7 +286,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        ChildProcessTracker.Instance.Track(process);
+        ChildProcessTracker.Track(process);
         string error;
         try
         {
@@ -320,7 +320,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         Thread.Sleep(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -380,7 +380,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         await Task.Delay(10);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -427,7 +427,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        ChildProcessTracker.Instance.Track(process);
+        ChildProcessTracker.Track(process);
         string error;
         try
         {
@@ -461,7 +461,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         Thread.Sleep(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");

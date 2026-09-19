@@ -249,7 +249,7 @@ public static class SabrRestreamService
         // H.264/VP9 + Opus in MP4 — the same combination AVPro already plays in our HLS segments, so no
         // separate AAC fetch is needed. GetCachedFile falls back to .mp4 for the avpro=true case too.
         var fileName = $"{videoId}.mp4";
-        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
         if (File.Exists(filePath))
             return;
 
@@ -338,7 +338,7 @@ public static class SabrRestreamService
             return; // APIController already queued the download
 
         var fileName = $"{videoInfo.VideoId}.mp4";
-        if (File.Exists(Path.Join(CacheManager.Instance.CachePath, fileName)))
+        if (File.Exists(Path.Join(CacheManager.CachePath, fileName)))
             return; // the session produced it from the streamed fragments
 
         Log.Information("SABR session for {VideoId} ended without a complete copy (seeking leaves gaps); " +

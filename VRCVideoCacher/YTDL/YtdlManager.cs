@@ -604,7 +604,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 }
             };
             process.Start();
-            ChildProcessTracker.Instance.Track(process);
+            ChildProcessTracker.Track(process);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             try
             {

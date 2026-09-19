@@ -433,7 +433,7 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        ChildProcessTracker.Instance.Track(process);
+        ChildProcessTracker.Track(process);
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         _server = process;
@@ -506,7 +506,7 @@ internal static class BgUtilPotProvider
         process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         process.Start();
-        ChildProcessTracker.Instance.Track(process);
+        ChildProcessTracker.Track(process);
         try
         {
             var stdout = process.StandardOutput.ReadToEndAsync();

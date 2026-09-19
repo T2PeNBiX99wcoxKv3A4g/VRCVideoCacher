@@ -440,7 +440,7 @@ internal static class SabrExtractor
 
         log.Debug("[sabr-extract] {File} {Args}", Path.GetFileName(ytdlpPath), args);
         process.Start();
-        ChildProcessTracker.Instance.Track(process);
+        ChildProcessTracker.Track(process);
         try
         {
             var stdout = process.StandardOutput.ReadToEndAsync(ct);
