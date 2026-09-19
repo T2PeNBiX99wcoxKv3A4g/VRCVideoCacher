@@ -164,7 +164,7 @@ internal sealed class Program
             /* GUI mode, no console */
         }
 
-        OpenVRService.Instance.Start(CurrentProcessPath);
+        OpenVRService.Start(CurrentProcessPath);
 
         // Surface a fixed-port (9696) conflict up front — with the offending process — before WebServer
         // throws an opaque bind error. Reassignable ports (bgutil) handle themselves when they start.

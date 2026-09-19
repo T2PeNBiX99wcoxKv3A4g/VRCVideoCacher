@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using JetBrains.Annotations;
 using Valve.VR;
 using VRCVideoCacher.Utils;
 
@@ -10,7 +11,8 @@ namespace VRCVideoCacher.Services;
 
 public partial class OpenVRService : Singleton<OpenVRService>
 {
-    public void Start(string dataPath)
+    [PublicAPI]
+    public void Start2(string dataPath)
     {
         if (!LaunchArgs.OVR)
             return;
