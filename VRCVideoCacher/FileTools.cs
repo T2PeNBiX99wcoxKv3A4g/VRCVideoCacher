@@ -2,19 +2,19 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Microsoft.Win32;
-using Serilog;
 using ValveKeyValue;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public class FileTools
+public partial class FileTools : Singleton<FileTools>
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<FileTools>();
-    private static readonly string? YtdlPathVrc;
-    private static readonly string? BackupPathVrc;
-    private static readonly string? YtdlPathReso;
-    private static readonly string? BackupPathReso;
+    private readonly string? _ytdlPathVrc;
+    private readonly string? _backupPathVrc;
+    private readonly string? _ytdlPathReso;
+    private readonly string? _backupPathReso;
 
     private static readonly ImmutableList<string> SteamPaths =
     [
@@ -30,7 +30,7 @@ public class FileTools
     private const string ResoniteAppId = "2519830";
     private const string VrcAppId = "438100";
 
-    static FileTools()
+    public FileTools()
     {
         var resoPath = !string.IsNullOrEmpty(ConfigManager.Config.ResonitePath)
             ? ConfigManager.Config.ResonitePath
@@ -38,8 +38,8 @@ public class FileTools
                 ?.Select(path => Path.Join(path, "steamapps", "common", "Resonite")).Where(Path.Exists).First();
         if (!string.IsNullOrEmpty(resoPath))
         {
-            YtdlPathReso = Path.Join(resoPath, "RuntimeData", OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe");
-            BackupPathReso = $"{YtdlPathReso}.bkp";
+            _ytdlPathReso = Path.Join(resoPath, "RuntimeData", OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe");
+            _backupPathReso = $"{_ytdlPathReso}.bkp";
         }
 
         string? localLowPath;
@@ -64,8 +64,8 @@ public class FileTools
             Log.Warning("YT-DLP not found at expected VRChat path: {Path}", vrcPath);
         else
         {
-            YtdlPathVrc = vrcPath;
-            BackupPathVrc = $"{vrcPath}.bkp";
+            _ytdlPathVrc = vrcPath;
+            _backupPathVrc = $"{vrcPath}.bkp";
         }
     }
 
@@ -76,7 +76,7 @@ public class FileTools
             .FirstOrDefault(installPath => !string.IsNullOrWhiteSpace(installPath) && Directory.Exists(installPath));
 
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
-    private static List<string>? GetAppLibraryPath(string appid, bool isEnabled)
+    private List<string>? GetAppLibraryPath(string appid, bool isEnabled)
     {
         string vdfPath;
         if (OperatingSystem.IsWindows())
@@ -158,7 +158,7 @@ public class FileTools
 
     [SupportedOSPlatform("linux")]
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
-    private static string? GetCompatPath(string appid)
+    private string? GetCompatPath(string appid)
     {
         var libraryPaths = GetAppLibraryPath(appid, ConfigManager.Config.PatchVrChat);
         var paths = libraryPaths?.Select(path => Path.Join(path, "steamapps", "compatdata", appid))
@@ -167,7 +167,8 @@ public class FileTools
         return paths?.Count > 0 ? paths.First() : null;
     }
 
-    public static string? LocateFile(string filename)
+    [PublicAPI]
+    public string? LocateFile2(string filename)
     {
         var systemPath = Environment.GetEnvironmentVariable("PATH");
         if (systemPath == null) return null;
@@ -181,7 +182,8 @@ public class FileTools
         return paths.Count > 0 ? paths.First() : null;
     }
 
-    public static void MarkFileExecutable(string path)
+    [PublicAPI]
+    public void MarkFileExecutable2(string path)
     {
         if (!File.Exists(path))
             throw new FileNotFoundException($"File not found: {path}");
@@ -192,31 +194,33 @@ public class FileTools
         File.SetUnixFileMode(path, mode);
     }
 
-    public static void BackupAllYtdl()
+    [PublicAPI]
+    public void BackupAllYtdl2()
     {
         if (ConfigManager.Config.PatchVrChat)
         {
             Log.Information("Patching VRChat yt-dlp");
-            if (!BackupAndReplaceYtdl(YtdlPathVrc, BackupPathVrc, false))
-                Log.Error("Can't find VRC data, it may not be installed. {Path}", YtdlPathVrc);
+            if (!BackupAndReplaceYtdl(_ytdlPathVrc, _backupPathVrc, false))
+                Log.Error("Can't find VRC data, it may not be installed. {Path}", _ytdlPathVrc);
         }
 
         // ReSharper disable once InvertIf
         if (ConfigManager.Config.PatchResonite)
         {
             Log.Information("Patching Resonite yt-dlp");
-            if (!BackupAndReplaceYtdl(YtdlPathReso, BackupPathReso, OperatingSystem.IsLinux()))
-                Log.Warning("Can't find Resonite data, it may not be installed. {Path}", YtdlPathReso);
+            if (!BackupAndReplaceYtdl(_ytdlPathReso, _backupPathReso, OperatingSystem.IsLinux()))
+                Log.Warning("Can't find Resonite data, it may not be installed. {Path}", _ytdlPathReso);
         }
     }
 
-    public static void RestoreAllYtdl()
+    [PublicAPI]
+    public void RestoreAllYtdl2()
     {
-        RestoreYtdl(YtdlPathVrc, BackupPathVrc);
-        RestoreYtdl(YtdlPathReso, BackupPathReso);
+        RestoreYtdl(_ytdlPathVrc, _backupPathVrc);
+        RestoreYtdl(_ytdlPathReso, _backupPathReso);
     }
 
-    private static bool BackupAndReplaceYtdl(string? ytdlPath, string? backupPath, bool useLinuxStub)
+    private bool BackupAndReplaceYtdl(string? ytdlPath, string? backupPath, bool useLinuxStub)
     {
         if (string.IsNullOrEmpty(ytdlPath) ||
             string.IsNullOrEmpty(backupPath) ||
@@ -254,7 +258,7 @@ public class FileTools
         return true;
     }
 
-    private static void RestoreYtdl(string? ytdlPath, string? backupPath)
+    private void RestoreYtdl(string? ytdlPath, string? backupPath)
     {
         if (string.IsNullOrEmpty(ytdlPath) ||
             string.IsNullOrEmpty(backupPath) ||
