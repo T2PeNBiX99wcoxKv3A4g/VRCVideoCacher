@@ -20,9 +20,9 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
         "/usr/lib/pressure-vessel/bin/steam-runtime-launch-client"
     ];
 
-    private string? FindLaunchClient() => Candidates.FirstOrDefault(File.Exists);
+    private static string? FindLaunchClient() => Candidates.FirstOrDefault(File.Exists);
 
-    private string? FindHostBin(string name)
+    private static string? FindHostBin(string name)
     {
         var paths = new[]
         {
@@ -108,7 +108,8 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
         return null;
     }
 
-    public void ToggleHostLine()
+    [PublicAPI]
+    public void ToggleHostLine2()
     {
         if (HasHostsLine)
             RemoveHostFile();
@@ -164,7 +165,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
             HasHostsLine = true;
             ConfigManager.Config.YtdlpWebServerUrl = "http://localhost.youtube.com:9696";
             ConfigManager.TrySaveConfig();
-            WebServer.Instance.StartOrRestart();
+            WebServer.StartOrRestart();
         }
         else
             Log.Warning(
@@ -220,7 +221,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
             HasHostsLine = false;
             ConfigManager.Config.YtdlpWebServerUrl = "http://localhost:9696";
             ConfigManager.TrySaveConfig();
-            WebServer.Instance.StartOrRestart();
+            WebServer.StartOrRestart();
         }
         else
             Log.Warning(

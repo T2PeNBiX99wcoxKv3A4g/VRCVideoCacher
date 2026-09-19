@@ -319,7 +319,7 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleHost()
     {
-        ElevatorManager.Instance.ToggleHostLine();
+        ElevatorManager.ToggleHostLine();
         Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.HasHostsLine; });
     }
 

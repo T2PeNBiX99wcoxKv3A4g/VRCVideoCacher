@@ -310,7 +310,7 @@ public partial class SettingsViewModel : ViewModelBase
         if (config.YtdlpWebServerUrl != WebServerUrl)
         {
             config.YtdlpWebServerUrl = WebServerUrl;
-            WebServer.Instance.StartOrRestart();
+            WebServer.StartOrRestart();
         }
 
         config.YtdlpUseCookies = YtdlUseCookies;

@@ -3,6 +3,7 @@ using System.Text;
 using EmbedIO;
 using EmbedIO.Files;
 using EmbedIO.WebApi;
+using JetBrains.Annotations;
 using Swan.Logging;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -16,7 +17,8 @@ public partial class WebServer : Singleton<WebServer>, ILog
 
     ILogger ILog.Log => Log;
 
-    public void StartOrRestart()
+    [PublicAPI]
+    public void StartOrRestart2()
     {
         _server?.Dispose();
 
