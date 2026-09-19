@@ -7,6 +7,7 @@ internal enum UmpPartId
     MediaHeader = 20,
     Media = 21,
     MediaEnd = 22,
+
     /// <summary>Live only. Carries the broadcast head and the seekable (DVR) window.</summary>
     LiveMetadata = 31,
     FormatInitializationMetadata = 42,
@@ -17,7 +18,7 @@ internal enum UmpPartId
     NextRequestPolicy = 35,
     SabrContextUpdate = 57,
     StreamProtectionStatus = 58,
-    SabrContextSendingPolicy = 59,
+    SabrContextSendingPolicy = 59
 }
 
 internal readonly record struct UmpPart(int PartId, byte[] Payload);
@@ -47,7 +48,7 @@ internal static class UmpReader
 
             var payload = new byte[size];
             await buffered.ReadExactlyAsync(payload, ct);
-            yield return new UmpPart((int)partId, payload);
+            yield return new((int)partId, payload);
         }
     }
 
@@ -66,7 +67,7 @@ internal static class UmpReader
         {
             // The unused low bits of the first byte carry the low bits of the value.
             shift = 8 - size;
-            result = first & ((1 << shift) - 1);
+            result = first & (1 << shift) - 1;
         }
 
         for (var i = 1; i < size; i++)

@@ -29,7 +29,9 @@ internal sealed class SabrLiveSession : ISabrSession
 {
     private const string RawVideoDir = "raw_v";
     private const string RawAudioDir = "raw_a";
+
     private static readonly TimeSpan FragmentWaitTimeout = TimeSpan.FromSeconds(30);
+
     // How long to wait at startup for enough media to publish a first playlist.
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(45);
 
@@ -87,7 +89,7 @@ internal sealed class SabrLiveSession : ISabrSession
         Directory.CreateDirectory(Path.Combine(dir, RawAudioDir));
 
         var session = new SabrLiveSession(videoId, dir, playbackUrl, source,
-            new SabrSegmentMuxer(ffmpegPath, log), log);
+            new(ffmpegPath, log), log);
 
         var sw = Stopwatch.StartNew();
         session._fill = Task.Run(() => session.FillLoopAsync(session._cts.Token));
@@ -107,7 +109,8 @@ internal sealed class SabrLiveSession : ISabrSession
         if (session._video.Count < 2)
         {
             session.Dispose();
-            throw new SabrException($"Live SABR session for {videoId} produced no media within {StartTimeout.TotalSeconds:0}s");
+            throw new SabrException(
+                $"Live SABR session for {videoId} produced no media within {StartTimeout.TotalSeconds:0}s");
         }
 
         await session.WritePlaylistAsync();
@@ -124,8 +127,14 @@ internal sealed class SabrLiveSession : ISabrSession
         {
             // No timeout: a live fetch runs for as long as the broadcast does. The VOD session caps its
             // HttpClient at 15 minutes, which would silently kill a longer stream.
-            using var http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
-            var client = new SabrClient(http, _source, _log) { OnFragment = WriteFragmentAsync };
+            using var http = new HttpClient
+            {
+                Timeout = Timeout.InfiniteTimeSpan
+            };
+            var client = new SabrClient(http, _source, _log)
+            {
+                OnFragment = WriteFragmentAsync
+            };
 
             await client.DownloadAsync(Stream.Null, Stream.Null, SabrClient.LiveEdgeStartMs, ct: ct);
             Ended = client.BroadcastEnded;
@@ -194,7 +203,10 @@ internal sealed class SabrLiveSession : ISabrSession
         if (cutoff <= 0)
             return;
 
-        foreach (var timeline in new[] { _video, _audio })
+        foreach (var timeline in new[]
+                 {
+                     _video, _audio
+                 })
         {
             var isVideo = ReferenceEquals(timeline, _video);
             foreach (var sequence in timeline.EvictBefore(cutoff))
@@ -302,6 +314,7 @@ internal sealed class SabrLiveSession : ISabrSession
                     _log.Warning("SABR LIVE {VideoId}: no audio covering segment {Seq}", _videoId, sequence);
                     return;
                 }
+
                 if (_audio.TryGet(sequence, out var single))
                     audio = [single];
             }
@@ -357,23 +370,58 @@ internal sealed class SabrLiveSession : ISabrSession
     {
         var temp = path + ".part";
         await File.WriteAllBytesAsync(temp, data);
-        try { File.Move(temp, path, overwrite: true); }
-        catch (IOException) { try { File.Delete(temp); } catch { /* raced */ } }
+        try
+        {
+            File.Move(temp, path, true);
+        }
+        catch (IOException)
+        {
+            try
+            {
+                File.Delete(temp);
+            }
+            catch
+            {
+                /* raced */
+            }
+        }
     }
 
     private static void TryDeleteFile(string path)
     {
-        try { if (File.Exists(path)) File.Delete(path); } catch { /* best effort */ }
+        try
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+        catch
+        {
+            /* best effort */
+        }
     }
 
     private static void TryDelete(string dir)
     {
-        try { Directory.Delete(dir, true); } catch { /* best effort */ }
+        try
+        {
+            Directory.Delete(dir, true);
+        }
+        catch
+        {
+            /* best effort */
+        }
     }
 
     public void Dispose()
     {
-        try { _cts.Cancel(); } catch { /* already gone */ }
+        try
+        {
+            _cts.Cancel();
+        }
+        catch
+        {
+            /* already gone */
+        }
+
         _cts.Dispose();
         _buildGate.Dispose();
         TryDelete(_dir);

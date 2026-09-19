@@ -95,7 +95,7 @@ internal static class BgUtilPotProvider
         }
 
         // 2. Kill leftover Deno processes originating from our bundled/utils path
-        var denoPath = YtdlManager.Instance.DenoPath;
+        var denoPath = YtdlManager.DenoPath;
         var processNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "deno"
@@ -123,8 +123,7 @@ internal static class BgUtilPotProvider
             /* Ignore */
         }
 
-        foreach (var processName in processNames)
-        foreach (var process in Process.GetProcessesByName(processName))
+        foreach (var process in processNames.SelectMany(Process.GetProcessesByName))
             try
             {
                 var pid = process.Id;
@@ -338,9 +337,9 @@ internal static class BgUtilPotProvider
 
     private static void EnsureInstalled()
     {
-        if (!File.Exists(YtdlManager.Instance.DenoPath))
+        if (!File.Exists(YtdlManager.DenoPath))
             throw new SabrException(
-                $"Deno runtime not found at {YtdlManager.Instance.DenoPath}; cannot run the PO token provider");
+                $"Deno runtime not found at {YtdlManager.DenoPath}; cannot run the PO token provider");
 
         if (RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
             !OperatingSystem.IsWindows() && !OperatingSystem.IsLinux())
@@ -410,7 +409,7 @@ internal static class BgUtilPotProvider
         {
             StartInfo =
             {
-                FileName = YtdlManager.Instance.DenoPath,
+                FileName = YtdlManager.DenoPath,
                 Arguments =
                     $"run --no-config --no-lock --node-modules-dir=manual --cached-only --allow-env --allow-net --allow-ffi=. --allow-read=. build/main.js -p {Port}",
                 WorkingDirectory = ServerPath,
@@ -496,15 +495,19 @@ internal static class BgUtilPotProvider
         string fileName, string arguments, string workingDirectory, TimeSpan timeout)
     {
         using var process = new Process();
-        process.StartInfo.FileName = fileName;
-        process.StartInfo.Arguments = arguments;
-        process.StartInfo.WorkingDirectory = workingDirectory;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
+        process.StartInfo = new()
+        {
+            FileName = fileName,
+            Arguments = arguments,
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+
         process.Start();
         ChildProcessTracker.Track(process);
         try

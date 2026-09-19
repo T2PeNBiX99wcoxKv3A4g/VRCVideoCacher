@@ -58,7 +58,10 @@ internal static class WebmCues
                 return null; // can't size the final cluster; a wrong playlist is worse than none
             durations[^1] = totalDurationMs - lastStart;
 
-            return new SegmentIndex { DurationsMs = durations };
+            return new()
+            {
+                DurationsMs = durations
+            };
         }
         catch (ArgumentOutOfRangeException)
         {
@@ -71,26 +74,26 @@ internal static class WebmCues
     {
         var pos = 0;
         while (TryReadElement(parent, ref pos, out var id, out var candidate))
-        {
             if (id == wanted)
             {
                 body = candidate;
                 return true;
             }
-        }
+
         body = default;
         return false;
     }
 
-    private static bool TryReadElement(ReadOnlySpan<byte> data, scoped ref int pos, out uint id, out ReadOnlySpan<byte> body)
+    private static bool TryReadElement(ReadOnlySpan<byte> data, scoped ref int pos, out uint id,
+        out ReadOnlySpan<byte> body)
     {
         id = 0;
         body = default;
         if (pos >= data.Length)
             return false;
 
-        id = (uint)ReadVint(data, ref pos, keepMarker: true);
-        var size = ReadVint(data, ref pos, keepMarker: false);
+        id = (uint)ReadVint(data, ref pos, true);
+        var size = ReadVint(data, ref pos, false);
 
         // An unknown-size element (all size bits set) runs to the end of what we hold.
         var length = size == long.MaxValue ? data.Length - pos : (int)Math.Min(size, data.Length - pos);
@@ -107,20 +110,21 @@ internal static class WebmCues
     {
         var first = data[pos];
         var length = 1;
-        while (length <= 8 && (first & (0x80 >> (length - 1))) == 0)
+        while (length <= 8 && (first & 0x80 >> length - 1) == 0)
             length++;
         if (length > 8)
             throw new ArgumentOutOfRangeException(nameof(data), "Invalid EBML vint");
 
-        long value = keepMarker ? first : first & ((1 << (8 - length)) - 1);
-        var allOnes = !keepMarker && (first & ((1 << (8 - length)) - 1)) == ((1 << (8 - length)) - 1);
+        long value = keepMarker ? first : first & (1 << 8 - length) - 1;
+        var allOnes = !keepMarker && (first & (1 << 8 - length) - 1) == (1 << 8 - length) - 1;
 
         for (var i = 1; i < length; i++)
         {
             var b = data[pos + i];
-            value = (value << 8) | b;
+            value = value << 8 | b;
             allOnes &= b == 0xFF;
         }
+
         pos += length;
 
         return allOnes ? long.MaxValue : value;
@@ -130,7 +134,7 @@ internal static class WebmCues
     {
         ulong value = 0;
         foreach (var b in data)
-            value = (value << 8) | b;
+            value = value << 8 | b;
         return value;
     }
 }

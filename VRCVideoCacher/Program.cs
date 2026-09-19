@@ -197,11 +197,11 @@ internal sealed class Program
         if (ConfigManager.Config.YtdlpAutoUpdate && !LaunchArgs.UseGlobalPath)
         {
             await Task.WhenAll(
-                YtdlManager.Instance.TryDownloadYtdlp(),
-                YtdlManager.Instance.TryDownloadDeno()
+                YtdlManager.TryDownloadYtdlp(),
+                YtdlManager.TryDownloadDeno()
             );
-            YtdlManager.Instance.StartYtdlUpdaterThread();
-            _ = YtdlManager.Instance.TryDownloadFfmpeg();
+            YtdlManager.StartYtdlUpdaterThread();
+            _ = YtdlManager.TryDownloadFfmpeg();
         }
 
         // Readiness checks may have arrived already; only now may they start the provider.
@@ -240,22 +240,22 @@ internal sealed class Program
 
     public static void DeleteCookieFile()
     {
-        if (!File.Exists(YtdlManager.Instance.CookiesPath)) return;
-        File.Delete(YtdlManager.Instance.CookiesPath);
+        if (!File.Exists(YtdlManager.CookiesPath)) return;
+        File.Delete(YtdlManager.CookiesPath);
         Logger.Information("Deleted cookie file.");
     }
 
-    public static bool DoesCookieFileExist() => File.Exists(YtdlManager.Instance.CookiesPath);
+    public static bool DoesCookieFileExist() => File.Exists(YtdlManager.CookiesPath);
 
     public static bool IsCookiesEnabledAndValid()
     {
         if (!ConfigManager.Config.YtdlpUseCookies)
             return false;
 
-        if (!File.Exists(YtdlManager.Instance.CookiesPath))
+        if (!File.Exists(YtdlManager.CookiesPath))
             return false;
 
-        var cookies = File.ReadAllText(YtdlManager.Instance.CookiesPath);
+        var cookies = File.ReadAllText(YtdlManager.CookiesPath);
         return IsCookiesValid(cookies);
     }
 
@@ -275,7 +275,7 @@ internal sealed class Program
         try
         {
             var cookieContainer = new CookieContainer();
-            var lines = await File.ReadAllLinesAsync(YtdlManager.Instance.CookiesPath);
+            var lines = await File.ReadAllLinesAsync(YtdlManager.CookiesPath);
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))

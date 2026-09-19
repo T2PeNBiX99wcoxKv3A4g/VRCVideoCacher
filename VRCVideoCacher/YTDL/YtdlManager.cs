@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Jeek.Avalonia.Localization;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using SharpCompress.Readers;
 using VRCVideoCacher.Models;
@@ -22,11 +23,15 @@ public partial class YtdlManager : Singleton<YtdlManager>
         }
     };
 
-    public readonly string CookiesPath = Path.Join(Program.DataPath, "youtube_cookies.txt");
-    public readonly string YtdlPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
-    public readonly string DenoPath = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
+    [PublicAPI]
+    public readonly string CookiesPath2 = Path.Join(Program.DataPath, "youtube_cookies.txt");
+    [PublicAPI]
+    public readonly string YtdlPath2 = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
+    [PublicAPI]
+    public readonly string DenoPath2 = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
 
-    public readonly string FfmpegPath =
+    [PublicAPI]
+    public readonly string FfmpegPath2 =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
@@ -77,18 +82,19 @@ public partial class YtdlManager : Singleton<YtdlManager>
         // try to locate in PATH
         if (LaunchArgs.UseGlobalPath)
         {
-            YtdlPath = FileTools.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ??
+            YtdlPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ??
                        throw new FileNotFoundException("Unable to find yt-dlp");
-            DenoPath = FileTools.LocateFile(OperatingSystem.IsWindows() ? "deno.exe" : "deno") ??
+            DenoPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "deno.exe" : "deno") ??
                        throw new FileNotFoundException("Unable to find Deno runtime");
-            FfmpegPath = FileTools.LocateFile(OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg") ??
+            FfmpegPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg") ??
                          string.Empty;
         }
 
         Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath);
     }
 
-    public string GenerateYtdlArgs(List<string> args, string urlArg)
+    [PublicAPI]
+    public string GenerateYtdlArgs2(List<string> args, string urlArg)
     {
         var globalArgs = new List<string>
         {
@@ -119,7 +125,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
         return string.Join(' ', args);
     }
 
-    public void StartYtdlUpdaterThread()
+    [PublicAPI]
+    public void StartYtdlUpdaterThread2()
     {
         Task.Run(YtdlUpdaterTask);
     }
@@ -144,7 +151,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
         return await HttpClient.SendAsync(request);
     }
 
-    public async Task TryDownloadYtdlp()
+    [PublicAPI]
+    public async Task TryDownloadYtdlp2()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -191,7 +199,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
         await DownloadYtdl(json);
     }
 
-    public async Task TryDownloadDeno()
+    [PublicAPI]
+    public async Task TryDownloadDeno2()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -377,7 +386,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
         }
     }
 
-    public async Task TryDownloadFfmpeg()
+    [PublicAPI]
+    public async Task TryDownloadFfmpeg2()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");

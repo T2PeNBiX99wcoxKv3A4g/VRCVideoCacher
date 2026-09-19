@@ -197,15 +197,15 @@ public static class SabrRestreamService
         var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
         var playbackUrl = $"{baseUrl}/hls/{videoId}/{HlsPlaylist.PlaylistName}";
 
-        var cookies = ConfigManager.Config.YtdlpUseCookies && File.Exists(YtdlManager.Instance.CookiesPath)
-            ? YtdlManager.Instance.CookiesPath
+        var cookies = ConfigManager.Config.YtdlpUseCookies && File.Exists(YtdlManager.CookiesPath)
+            ? YtdlManager.CookiesPath
             : null;
 
         // Extract once, here, because liveness is only knowable from the extraction — and a live
         // broadcast needs an entirely different session. The result is handed to whichever session we
         // build, so this costs no extra yt-dlp run.
         // The one yt-dlp we ship is the SABR-capable build, used here purely as a link extractor (-J).
-        var source = await SabrExtractor.ExtractAsync(videoInfo.VideoUrl, maxHeight, YtdlManager.Instance.YtdlPath,
+        var source = await SabrExtractor.ExtractAsync(videoInfo.VideoUrl, maxHeight, YtdlManager.YtdlPath,
             cookies, Log);
 
         if (source.IsLive)
@@ -218,11 +218,11 @@ public static class SabrRestreamService
             }
 
             return await SabrLiveSession.StartAsync(videoId, source, HlsRootPath, playbackUrl,
-                YtdlManager.Instance.FfmpegPath, Log);
+                YtdlManager.FfmpegPath, Log);
         }
 
         var session = await SabrHlsSession.StartAsync(videoId, videoInfo.VideoUrl, maxHeight, HlsRootPath,
-            playbackUrl, YtdlManager.Instance.YtdlPath, YtdlManager.Instance.FfmpegPath, cookies, Log, source);
+            playbackUrl, YtdlManager.YtdlPath, YtdlManager.FfmpegPath, cookies, Log, source);
 
         if (CacheConverges)
             session.OnFullyFetched = WriteCacheFileAsync;

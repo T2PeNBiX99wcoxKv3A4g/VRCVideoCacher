@@ -26,7 +26,6 @@ internal sealed class FormatId : IProtoMessage
         var result = new FormatId();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 1 when wire == 0: result.Itag = (int)r.ReadVarint(); break;
@@ -34,7 +33,7 @@ internal sealed class FormatId : IProtoMessage
                 case 3 when wire == 2: result.Xtags = r.ReadString(); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         return result;
     }
 
@@ -98,8 +97,8 @@ internal sealed class MediaCapabilities(bool hdr) : IProtoMessage
         public void WriteTo(ProtoWriter w)
         {
             w.Varint(1, codec);
-            w.Bool(2, true);   // efficient
-            w.Bool(15, true);  // is_10_bit_supported
+            w.Bool(2, true); // efficient
+            w.Bool(15, true); // is_10_bit_supported
         }
     }
 }
@@ -111,6 +110,7 @@ internal sealed class ClientAbrState : IProtoMessage
 
     /// <summary>The seek lever. Seeding this is how you start playback at an arbitrary time.</summary>
     public long PlayerTimeMs;
+
     public MediaCapabilities? MediaCapabilities;
 
     public void WriteTo(ProtoWriter w)
@@ -164,8 +164,10 @@ internal sealed class StreamerContext : IProtoMessage
     public ClientInfo? ClientInfo;
     public byte[]? PoToken;
     public byte[]? PlaybackCookie;
+
     /// <summary>Ad/session contexts the server asked us to send back (VOD ads gate content behind this).</summary>
     public List<SabrContext> SabrContexts = [];
+
     /// <summary>Context types the server wants but whose value we haven't received yet.</summary>
     public List<int> UnsentSabrContexts = [];
 
@@ -216,8 +218,10 @@ internal sealed class MediaHeader
     public FormatId? FormatId;
     public long? ContentLength;
     public bool Compressed;
+
     /// <summary>Live only, and only sometimes: used to estimate a missing content_length.</summary>
     public long BitrateBps;
+
     /// <summary>True when the server gave no duration at all — live headers often omit it.</summary>
     public bool DurationKnown;
 
@@ -231,7 +235,6 @@ internal sealed class MediaHeader
         var result = new MediaHeader();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 1 when wire == 0: result.HeaderId = (uint)r.ReadVarint(); break;
@@ -240,13 +243,16 @@ internal sealed class MediaHeader
                 case 9 when wire == 0: result.SequenceNumber = (long)r.ReadVarint(); break;
                 case 10 when wire == 0: result.BitrateBps = (long)r.ReadVarint(); break;
                 case 11 when wire == 0: result.StartMs = (long)r.ReadVarint(); break;
-                case 12 when wire == 0: result.DurationMs = (long)r.ReadVarint(); result.DurationKnown = true; break;
+                case 12 when wire == 0:
+                    result.DurationMs = (long)r.ReadVarint();
+                    result.DurationKnown = true;
+                    break;
                 case 13 when wire == 2: result.FormatId = FormatId.Decode(r.ReadBytes()); break;
                 case 14 when wire == 0: result.ContentLength = (long)r.ReadVarint(); break;
                 case 15 when wire == 2: result.ReadTimeRange(r.ReadBytes()); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         // VOD headers normally carry start_ms/duration_ms outright; time_range is the fallback encoding,
         // and on live it is frequently the ONLY encoding.
         if (result is { DurationMs: 0, _rangeTimescale: > 0 })
@@ -255,6 +261,7 @@ internal sealed class MediaHeader
             result.DurationMs = result._rangeDurationTicks * 1000 / result._rangeTimescale;
             result.DurationKnown = result.DurationMs > 0;
         }
+
         return result;
     }
 
@@ -262,7 +269,6 @@ internal sealed class MediaHeader
     {
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 1 when wire == 0: _rangeStartTicks = (long)r.ReadVarint(); break;
@@ -270,7 +276,6 @@ internal sealed class MediaHeader
                 case 3 when wire == 0: _rangeTimescale = (int)r.ReadVarint(); break;
                 default: r.Skip(wire); break;
             }
-        }
     }
 }
 
@@ -291,7 +296,6 @@ internal sealed class FormatInitializationMetadata
         var result = new FormatInitializationMetadata();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 2 when wire == 2: result.FormatId = FormatId.Decode(r.ReadBytes()); break;
@@ -302,7 +306,7 @@ internal sealed class FormatInitializationMetadata
                 case 10 when wire == 0: result.DurationTimescale = (int)r.ReadVarint(); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         return result;
     }
 }
@@ -338,7 +342,6 @@ internal sealed class LiveMetadata
         var result = new LiveMetadata();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 3 when wire == 0: result.HeadSequenceNumber = (long)r.ReadVarint(); break;
@@ -350,7 +353,7 @@ internal sealed class LiveMetadata
                 case 15 when wire == 0: result._maxSeekableTimescale = (int)r.ReadVarint(); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         return result;
     }
 }
@@ -371,14 +374,13 @@ internal sealed class SabrSeek
         var result = new SabrSeek();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 1 when wire == 0: result._seekTicks = (long)r.ReadVarint(); break;
                 case 2 when wire == 0: result._timescale = (int)r.ReadVarint(); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         return result;
     }
 }
@@ -402,7 +404,6 @@ internal sealed class SabrContextUpdate
         var result = new SabrContextUpdate();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 1 when wire == 0: result.Type = (int)r.ReadVarint(); break;
@@ -411,7 +412,7 @@ internal sealed class SabrContextUpdate
                 case 5 when wire == 0: result.WritePolicy = (int)r.ReadVarint(); break;
                 default: r.Skip(wire); break; // scope(2) and anything else are not needed
             }
-        }
+
         return result;
     }
 }
@@ -428,7 +429,6 @@ internal sealed class SabrContextSendingPolicy
         var result = new SabrContextSendingPolicy();
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             // Repeated int32 may arrive packed (wire 2) or one-per-tag (wire 0); handle both.
             switch (field)
             {
@@ -437,7 +437,7 @@ internal sealed class SabrContextSendingPolicy
                 case 3: ReadInts(ref r, wire, result.Discard); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         return result;
     }
 
@@ -448,6 +448,7 @@ internal sealed class SabrContextSendingPolicy
             into.Add((int)r.ReadVarint());
             return;
         }
+
         if (wire != 2)
         {
             r.Skip(wire);
@@ -469,6 +470,7 @@ internal sealed class SabrContextSendingPolicy
                     break;
                 shift += 7;
             }
+
             into.Add((int)value);
         }
     }
@@ -486,6 +488,7 @@ internal static class SabrResponse
                 return r.ReadString();
             r.Skip(wire);
         }
+
         return null;
     }
 
@@ -500,14 +503,13 @@ internal static class SabrResponse
         var backoff = 0;
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             switch (field)
             {
                 case 4 when wire == 0: backoff = (int)r.ReadVarint(); break;
                 case 7 when wire == 2: cookie = r.ReadBytes().ToArray(); break;
                 default: r.Skip(wire); break;
             }
-        }
+
         return (cookie, backoff);
     }
 
@@ -521,6 +523,7 @@ internal static class SabrResponse
                 return (int)r.ReadVarint();
             r.Skip(wire);
         }
+
         return 0;
     }
 
@@ -530,12 +533,10 @@ internal static class SabrResponse
         string? type = null;
         var r = new ProtoReader(data);
         while (r.Next(out var field, out var wire))
-        {
             if (field == 1 && wire == 2)
                 type = r.ReadString();
             else
                 r.Skip(wire);
-        }
         return type ?? "unknown";
     }
 }

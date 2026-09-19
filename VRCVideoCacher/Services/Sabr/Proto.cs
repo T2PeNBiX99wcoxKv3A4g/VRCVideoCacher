@@ -63,7 +63,7 @@ internal sealed class ProtoWriter
             Message(field, message);
     }
 
-    private void Tag(int field, int wireType) => WriteVarint((ulong)((field << 3) | wireType));
+    private void Tag(int field, int wireType) => WriteVarint((ulong)(field << 3 | wireType));
 
     private void WriteVarint(ulong value)
     {
@@ -72,6 +72,7 @@ internal sealed class ProtoWriter
             _buffer.WriteByte((byte)(value | 0x80));
             value >>= 7;
         }
+
         _buffer.WriteByte((byte)value);
     }
 }
@@ -95,6 +96,7 @@ internal ref struct ProtoReader(ReadOnlySpan<byte> data)
             wireType = 0;
             return false;
         }
+
         var tag = ReadVarint();
         field = (int)(tag >> 3);
         wireType = (int)(tag & 0x7);
@@ -142,6 +144,7 @@ internal ref struct ProtoReader(ReadOnlySpan<byte> data)
             case 5: _position += 4; break;
             default: throw new InvalidDataException($"Unsupported protobuf wire type {wireType}");
         }
+
         if (_position > _data.Length)
             throw new InvalidDataException("Truncated protobuf field");
     }

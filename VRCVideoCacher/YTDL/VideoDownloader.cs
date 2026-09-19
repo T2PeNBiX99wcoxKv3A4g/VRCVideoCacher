@@ -63,7 +63,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             using var activity = StatusService.Begin(StatusCategory.Downloading,
                 string.Format(Localizer.Get("StatusDownloading"), queueItem.VideoId));
 
-            var success = false;
+            bool success;
             try
             {
                 success = queueItem.UrlType switch
@@ -159,13 +159,16 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         };
 
         using var process = new Process();
-        process.StartInfo.FileName = YtdlManager.Instance.YtdlPath;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
+        process.StartInfo = new()
+        {
+            FileName = YtdlManager.YtdlPath,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
 
         if (videoInfo.DownloadFormat == DownloadFormat.Webm)
         {
@@ -190,7 +193,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             // $@"-f best/bestvideo[height<=?720]+bestaudio {url} " %(id)s.%(ext)s
         }
 
-        process.StartInfo.Arguments = YtdlManager.Instance.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
+        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
@@ -226,7 +229,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download YouTube Video: {exitCode} {Url} {error}", process.ExitCode, url, error);
+            Log.Error("Failed to download YouTube Video: {ExitCode} {Url} {Error}", process.ExitCode, url, error);
             if (error.Contains("Sign in to confirm you’re not a bot"))
                 Log.Error(
                     "Fix this error by following these instructions: https://github.com/clienthax/VRCVideoCacherBrowserExtension");
@@ -280,7 +283,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using var process = new Process();
         process.StartInfo = new()
         {
-            FileName = YtdlManager.Instance.YtdlPath,
+            FileName = YtdlManager.YtdlPath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -422,7 +425,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         var url = videoInfo.VideoUrl;
         using var process = new Process();
-        process.StartInfo.FileName = YtdlManager.Instance.YtdlPath;
+        process.StartInfo.FileName = YtdlManager.YtdlPath;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.RedirectStandardError = true;

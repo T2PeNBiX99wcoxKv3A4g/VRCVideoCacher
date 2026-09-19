@@ -31,7 +31,7 @@ public class VideoId
         {
             StartInfo =
             {
-                FileName = YtdlManager.Instance.YtdlPath,
+                FileName = YtdlManager.YtdlPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -47,7 +47,7 @@ public class VideoId
     private static async Task<(string Output, string Error, int ExitCode)> RunYtdlpAsync(List<string> args, string url)
     {
         using var ytdlpProcess = GetYtdlpProcess();
-        ytdlpProcess.StartInfo.Arguments = YtdlManager.Instance.GenerateYtdlArgs(args, $"\"{url}\"");
+        ytdlpProcess.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"");
 
         // yt-dlp rewrites the cookie jar on exit; overlapping it with the download queue corrupts the
         // session and gets us bot-checked. See YtdlCookieJar.

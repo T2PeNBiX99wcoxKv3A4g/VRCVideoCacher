@@ -123,7 +123,7 @@ internal sealed class SabrHlsSession : ISabrSession
         var (videoIndex, audioIndex) = await ProbeIndexesAsync(source, Extract, log);
 
         var session = new SabrHlsSession(videoId, dir, playbackUrl, videoIndex, audioIndex, source, Extract,
-            new SabrSegmentMuxer(ffmpegPath, log), log);
+            new(ffmpegPath, log), log);
 
         await File.WriteAllTextAsync(Path.Combine(dir, HlsPlaylist.PlaylistName), HlsPlaylist.Build(videoIndex));
         log.Information("SABR HLS ready for {VideoId} in {Elapsed:0.0}s: {Count} segments, {Duration:0.0}s",
@@ -137,7 +137,10 @@ internal sealed class SabrHlsSession : ISabrSession
     private static async Task<(SegmentIndex Video, SegmentIndex Audio)> ProbeIndexesAsync(SabrSource source,
         Func<CancellationToken, Task<SabrSource>> reload, ILogger log)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+        using var http = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(60)
+        };
         using var cts = new CancellationTokenSource(StartTimeout);
         var probe = new SabrClient(http, source, log, reload);
 
@@ -151,7 +154,14 @@ internal sealed class SabrHlsSession : ISabrSession
         }
         finally
         {
-            try { await fetch; } catch { /* cancelled, as intended */ }
+            try
+            {
+                await fetch;
+            }
+            catch
+            {
+                /* cancelled, as intended */
+            }
         }
     }
 
@@ -168,7 +178,7 @@ internal sealed class SabrHlsSession : ISabrSession
         try
         {
             await _fillCts.CancelAsync();
-            _fillCts = new CancellationTokenSource();
+            _fillCts = new();
             var ct = _fillCts.Token;
 
             // This fill is now the active one; only its own completion may clear the fetching flag (a later
@@ -182,8 +192,14 @@ internal sealed class SabrHlsSession : ISabrSession
             _log.Debug("SABR {VideoId}: filling from {Start:0.0}s (video fragment {Fragment})",
                 _videoId, fromMs / 1000.0, _videoFillStart);
 
-            var http = new HttpClient { Timeout = TimeSpan.FromMinutes(15) };
-            var client = new SabrClient(http, _source, _log, _reload) { OnFragment = WriteFragmentAsync };
+            var http = new HttpClient
+            {
+                Timeout = TimeSpan.FromMinutes(15)
+            };
+            var client = new SabrClient(http, _source, _log, _reload)
+            {
+                OnFragment = WriteFragmentAsync
+            };
 
             _ = Task.Run(async () =>
             {
@@ -197,7 +213,10 @@ internal sealed class SabrHlsSession : ISabrSession
                     if (OnFullyFetched is { } onFullyFetched && HasAllFragments())
                         await onFullyFetched(this);
                 }
-                catch (OperationCanceledException) { /* superseded by a seek */ }
+                catch (OperationCanceledException)
+                {
+                    /* superseded by a seek */
+                }
                 catch (Exception ex)
                 {
                     _log.Error(ex, "SABR {VideoId}: fill from {Start:0.0}s failed", _videoId, fromMs / 1000.0);
@@ -227,8 +246,21 @@ internal sealed class SabrHlsSession : ISabrSession
         {
             var temp = path + ".part";
             await File.WriteAllBytesAsync(temp, data);
-            try { File.Move(temp, path, overwrite: true); }
-            catch (IOException) { try { File.Delete(temp); } catch { /* raced */ } }
+            try
+            {
+                File.Move(temp, path, true);
+            }
+            catch (IOException)
+            {
+                try
+                {
+                    File.Delete(temp);
+                }
+                catch
+                {
+                    /* raced */
+                }
+            }
         }
 
         // Track the running fill's real progress. SABR delivers forward-contiguously from the seek point,
@@ -271,7 +303,7 @@ internal sealed class SabrHlsSession : ISabrSession
             // A prebuild must NEVER move the fetch: it is speculative, so if the fragments aren't there
             // yet, skip it rather than yanking the SABR stream away from the playhead.
             var segment = i;
-            _ = Task.Run(() => BuildSegmentAsync(segment, allowSeek: false));
+            _ = Task.Run(() => BuildSegmentAsync(segment, false));
         }
     }
 
@@ -287,7 +319,7 @@ internal sealed class SabrHlsSession : ISabrSession
             if (File.Exists(path))
                 return;
 
-            var building = _building.GetOrAdd(segment, s => new Lazy<Task>(
+            var building = _building.GetOrAdd(segment, s => new(
                 () => BuildSegmentCoreAsync(s, allowSeek), LazyThreadSafetyMode.ExecutionAndPublication));
 
             try
@@ -400,14 +432,24 @@ internal sealed class SabrHlsSession : ISabrSession
         var audioTrack = Path.Combine(_dir, "complete_a.tmp");
         try
         {
-            await ConcatTrackAsync(videoTrack, isVideo: true, _videoIndex.Count, ct);
-            await ConcatTrackAsync(audioTrack, isVideo: false, _audioIndex.Count, ct);
+            await ConcatTrackAsync(videoTrack, true, _videoIndex.Count, ct);
+            await ConcatTrackAsync(audioTrack, false, _audioIndex.Count, ct);
             await _muxer.MuxCompleteAsync(videoTrack, audioTrack, outputPath, ct);
         }
         finally
         {
-            foreach (var path in new[] { videoTrack, audioTrack })
-                try { File.Delete(path); } catch { /* best effort */ }
+            foreach (var path in new[]
+                     {
+                         videoTrack, audioTrack
+                     })
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                    /* best effort */
+                }
         }
     }
 
@@ -435,12 +477,27 @@ internal sealed class SabrHlsSession : ISabrSession
 
     public void Dispose()
     {
-        try { _fillCts.Cancel(); } catch { /* already gone */ }
+        try
+        {
+            _fillCts.Cancel();
+        }
+        catch
+        {
+            /* already gone */
+        }
+
         TryDelete(_dir);
     }
 
     private static void TryDelete(string dir)
     {
-        try { Directory.Delete(dir, true); } catch { /* best effort */ }
+        try
+        {
+            Directory.Delete(dir, true);
+        }
+        catch
+        {
+            /* best effort */
+        }
     }
 }

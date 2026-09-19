@@ -37,7 +37,7 @@ public class ApiController : WebApiController
         // it and lose one side's rotated session tokens — which is exactly what gets us bot-checked.
         // See YtdlCookieJar.
         using (await YtdlCookieJar.AcquireAsync())
-            await File.WriteAllTextAsync(YtdlManager.Instance.CookiesPath, cookies);
+            await File.WriteAllTextAsync(YtdlManager.CookiesPath, cookies);
 
         HttpContext.Response.StatusCode = 200;
         await HttpContext.SendStringAsync("Cookies received.", "text/plain", Encoding.UTF8);
@@ -78,7 +78,7 @@ public class ApiController : WebApiController
             return;
         }
 
-        Log.Information("Request URL: {URL}", requestUrl);
+        Log.Information("Request URL: {Url}", requestUrl);
 
         if (requestUrl.StartsWith("https://eu2.vrdancing.club/weekend/") && ConfigManager.Config.RedirectVRDancing)
         {
@@ -88,14 +88,14 @@ public class ApiController : WebApiController
 
         if (ConfigManager.Config.BlockedUrls.Any(blockedUrl => requestUrl.StartsWith(blockedUrl)))
         {
-            Log.Warning("URL Is Blocked: {URL}", requestUrl);
+            Log.Warning("URL Is Blocked: {Url}", requestUrl);
             requestUrl = ConfigManager.Config.BlockRedirect;
         }
 
         foreach (var (redirectUrl, redirectTo) in ConfigManager.Config.RedirectUrls)
         {
             if (!requestUrl.StartsWith(redirectUrl)) continue;
-            Log.Information("URL Is Redirected: {URL}", requestUrl);
+            Log.Information("URL Is Redirected: {Url}", requestUrl);
             requestUrl = redirectTo;
             break;
         }
@@ -136,7 +136,7 @@ public class ApiController : WebApiController
         var videoInfo = await VideoId.GetVideoId(requestUrl, avPro);
         if (videoInfo == null)
         {
-            Log.Information("Failed to get Video Info for URL: {URL}", requestUrl);
+            Log.Information("Failed to get Video Info for URL: {Url}", requestUrl);
             return;
         }
 
@@ -154,7 +154,7 @@ public class ApiController : WebApiController
         {
             File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
             var url = $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}";
-            Log.Information("Responding with Cached URL: {URL}", url);
+            Log.Information("Responding with Cached URL: {Url}", url);
             await HttpContext.SendStringAsync(url, "text/plain", Encoding.UTF8);
             return;
         }
@@ -192,7 +192,7 @@ public class ApiController : WebApiController
             var forcedUrl = await SabrRestreamService.TryGetRestreamUrlAsync(videoInfo);
             if (!string.IsNullOrEmpty(forcedUrl))
             {
-                Log.Information("Responding with forced SABR restream URL: {URL}", forcedUrl);
+                Log.Information("Responding with forced SABR restream URL: {Url}", forcedUrl);
                 await HttpContext.SendStringAsync(forcedUrl, "text/plain", Encoding.UTF8);
                 // The SABR session fetches the whole video anyway; when it is streaming at the cache's
                 // resolution it writes the cached file itself, so downloading it again would fetch the
@@ -240,7 +240,7 @@ public class ApiController : WebApiController
                     var restreamUrl = await SabrRestreamService.TryGetRestreamUrlAsync(videoInfo);
                     if (!string.IsNullOrEmpty(restreamUrl))
                     {
-                        Log.Information("Responding with SABR restream URL: {URL}", restreamUrl);
+                        Log.Information("Responding with SABR restream URL: {Url}", restreamUrl);
                         await HttpContext.SendStringAsync(restreamUrl, "text/plain", Encoding.UTF8);
                         // Still cache in the background so the next play is a direct cache hit — unless it
                         // is a live broadcast, which can never be "fully" downloaded.
@@ -273,7 +273,7 @@ public class ApiController : WebApiController
             }
         }
 
-        Log.Information("Responding with URL: {URL}", response);
+        Log.Information("Responding with URL: {Url}", response);
         await HttpContext.SendStringAsync(response, "text/plain", Encoding.UTF8);
 
         // Don't attempt to cache if its a livestream

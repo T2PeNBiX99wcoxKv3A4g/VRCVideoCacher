@@ -8,11 +8,14 @@ internal sealed class SabrSource
 {
     public required string VideoId;
     public required string AbrStreamingUrl;
+
     /// <summary>Opaque base64url blob from the player response. We never parse it — just pass it back.</summary>
     public required string UstreamerConfig;
+
     public required ClientInfo ClientInfo;
     public required FormatId AudioFormat;
     public required FormatId VideoFormat;
+
     /// <summary>True if the selected video format is HDR. Must be reflected in MediaCapabilities.</summary>
     public bool Hdr;
 
@@ -28,6 +31,7 @@ internal sealed class SabrSource
     public int Width;
     public int Height;
     public long Bandwidth;
+
     /// <summary>
     /// The web client's GVS PO token (base64url), minted by the bgutil provider during extraction. The
     /// SABR server attests against it together with the client_info, so it must accompany every request.
@@ -72,14 +76,19 @@ internal sealed record SabrSegment(bool IsVideo, long SequenceNumber, long Start
 /// Re-runs extraction to get a fresh player response. The server can demand this mid-stream
 /// (RELOAD_PLAYER_RESPONSE), and the streaming URL also expires on its own after a few hours.
 /// </param>
-internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log,
+internal sealed class SabrClient(
+    HttpClient http,
+    SabrSource source,
+    ILogger log,
     Func<CancellationToken, Task<SabrSource>>? reloadAsync = null)
 {
     // The server decides how much to send per request; if it sends nothing at all this many times in
     // a row, the stream is stuck and we should fail loudly rather than spin.
     private const int MaxEmptyResponses = 3;
     private const int MaxTransportRetries = 10;
+
     private const int MaxReloads = 3;
+
     // A VOD ad makes the server withhold content for a few backoff cycles; allow enough waits to sit
     // through one before we call it a stall.
     private const int MaxAdWaits = 12;
@@ -94,14 +103,16 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
     // Live: how long we sit at the head getting nothing before concluding the broadcast has ended
     // rather than that we are merely waiting for the next segment.
     private const int LiveEndEmptyResponses = 5;
+
     private static readonly TimeSpan LiveEndQuietPeriod = TimeSpan.FromSeconds(30);
+
     // Underestimating a live segment's duration is deliberate: it keeps player_time slightly behind the
     // server's notion of where we are, so we never ask for a segment that does not exist yet.
     private const int LiveDurationToleranceMs = 100;
     private const int LiveDefaultTargetDurationSec = 5;
 
-    private readonly TrackState _audio = new(source.AudioFormat, isVideo: false);
-    private readonly TrackState _video = new(source.VideoFormat, isVideo: true);
+    private readonly TrackState _audio = new(source.AudioFormat, false);
+    private readonly TrackState _video = new(source.VideoFormat, true);
 
     // Everything the server can invalidate mid-stream. The formats and all per-track progress survive
     // a reload — only the session's addressing changes — so a reload costs one extraction, not a restart.
@@ -142,6 +153,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
 
     private readonly TaskCompletionSource<SegmentIndex> _segmentIndex =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     private readonly TaskCompletionSource<SegmentIndex> _audioIndex =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -196,6 +208,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                 Observe(_segmentIndex.Task);
                 Observe(_audioIndex.Task);
             }
+
             throw;
         }
 
@@ -229,7 +242,8 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                 gotSegments = await RequestAsync(ct);
                 transportRetries = 0;
             }
-            catch (Exception ex) when (ex is HttpRequestException or IOException && transportRetries < MaxTransportRetries)
+            catch (Exception ex) when (ex is HttpRequestException or IOException &&
+                                       transportRetries < MaxTransportRetries)
             {
                 // A retry re-sends an identical request — the protocol is idempotent at request level,
                 // because our buffered_ranges already tell the server exactly what we have.
@@ -280,15 +294,14 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                 await Task.Delay(wait, ct);
             }
             else if (++emptyResponses >= MaxEmptyResponses)
-            {
                 throw new SabrException(
                     $"SABR stream stalled: {MaxEmptyResponses} consecutive responses carried no new media " +
                     $"(player time {_playerTimeMs}ms of {DurationMs}ms)");
-            }
 
             AdvancePlayerTime();
 
-            log.Debug("SABR t={PlayerTime}ms | audio seq {ASeq}/{ATotal} ({ABytes:0.0}MiB) | video seq {VSeq}/{VTotal} ({VBytes:0.0}MiB)",
+            log.Debug(
+                "SABR t={PlayerTime}ms | audio seq {ASeq}/{ATotal} ({ABytes:0.0}MiB) | video seq {VSeq}/{VTotal} ({VBytes:0.0}MiB)",
                 _playerTimeMs, _audio.LastSequence, _audio.TotalSegments, _audio.BytesWritten / 1048576.0,
                 _video.LastSequence, _video.TotalSegments, _video.BytesWritten / 1048576.0);
 
@@ -320,11 +333,9 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                 target.TrySetResult(index);
             }
             else if (isLastChance && !_isLive)
-            {
                 target.TrySetException(new SabrException(
                     $"No segment index (sidx/Cues) at the head of the {name} track, so its exact timeline " +
                     "is unavailable and the playlist cannot be published up front"));
-            }
             // Live has no index by design — measured: no sidx anywhere in a live fMP4 track. The timeline
             // is discovered fragment by fragment instead, so never fail the fetch over a missing one.
         };
@@ -334,7 +345,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, _url);
         request.Content = new ByteArrayContent(BuildRequest());
-        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-protobuf");
+        request.Content.Headers.ContentType = new("application/x-protobuf");
         request.Headers.Accept.ParseAdd("application/vnd.yt-ump");
         // Identity encoding: the UMP framing is already the transport, and gzip only gets in the way.
         request.Headers.AcceptEncoding.ParseAdd("identity");
@@ -352,7 +363,6 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
         _pendingBackoffMs = 0;
 
         await foreach (var part in UmpReader.ReadPartsAsync(body, ct))
-        {
             switch ((UmpPartId)part.PartId)
             {
                 case UmpPartId.FormatInitializationMetadata:
@@ -374,7 +384,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                         header.SequenceNumber, header.IsInitSegment, header.StartMs, header.DurationMs,
                         header.ContentLength, header.FormatId);
                     if (track != null)
-                        partials[header.HeaderId] = new PartialSegment(track, header);
+                        partials[header.HeaderId] = new(track, header);
                     break;
                 }
 
@@ -458,7 +468,6 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                     log.Verbose("Ignoring UMP part {PartId} ({Size} bytes)", part.PartId, part.Payload.Length);
                     break;
             }
-        }
 
         if (redirect != null)
         {
@@ -511,6 +520,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
             log.Warning("Ignoring an invalid SabrContextUpdate");
             return;
         }
+
         const int keepExisting = 2;
         if (update.WritePolicy == keepExisting && _sabrContextUpdates.ContainsKey(update.Type))
             return;
@@ -539,17 +549,17 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
     {
         var request = new VideoPlaybackAbrRequest
         {
-            ClientAbrState = new ClientAbrState
+            ClientAbrState = new()
             {
                 PlayerTimeMs = _playerTimeMs,
                 // Required for ANDROID_VR; sending it to a web client would make the server ignore
                 // our preferred formats entirely. The HDR flag must match the itag we're asking for.
-                MediaCapabilities = source.SendMediaCapabilities ? new MediaCapabilities(source.Hdr) : null,
+                MediaCapabilities = source.SendMediaCapabilities ? new MediaCapabilities(source.Hdr) : null
             },
             VideoPlaybackUstreamerConfig = Base64Url(_ustreamerConfig),
             PreferredAudioFormatIds = [source.AudioFormat],
             PreferredVideoFormatIds = [source.VideoFormat],
-            StreamerContext = new StreamerContext
+            StreamerContext = new()
             {
                 ClientInfo = _clientInfo,
                 PoToken = _poToken is null ? null : Base64Url(_poToken),
@@ -562,8 +572,8 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
                     .ToList(),
                 UnsentSabrContexts = _sabrContextsToSend
                     .Where(type => !_sabrContextUpdates.ContainsKey(type))
-                    .ToList(),
-            },
+                    .ToList()
+            }
         };
 
         foreach (var track in Tracks)
@@ -708,6 +718,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
         public Stream Output = Stream.Null;
         public Action<SabrSegment>? OnSegment;
         public Func<SabrSegment, byte[], Task>? OnFragment;
+
         /// <summary>(bytes, isLastChance) — offered the head of the track until the index turns up.</summary>
         public Action<byte[], bool>? OnIndexCandidate;
 
@@ -733,13 +744,13 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
             LastSequence = header.SequenceNumber;
             if (Consumed is null)
             {
-                Consumed = new BufferedRange
+                Consumed = new()
                 {
                     FormatId = FormatId,
                     StartTimeMs = header.StartMs,
                     DurationMs = header.DurationMs,
                     StartSegmentIndex = header.SequenceNumber,
-                    EndSegmentIndex = header.SequenceNumber,
+                    EndSegmentIndex = header.SequenceNumber
                 };
                 return;
             }
@@ -777,7 +788,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
 
             if (track.OnFragment is { } onFragment)
                 await onFragment(
-                    new SabrSegment(track.IsVideo, header.SequenceNumber, header.StartMs, header.DurationMs,
+                    new(track.IsVideo, header.SequenceNumber, header.StartMs, header.DurationMs,
                         header.IsInitSegment),
                     _data.ToArray());
 
@@ -785,7 +796,7 @@ internal sealed class SabrClient(HttpClient http, SabrSource source, ILogger log
             await _data.CopyToAsync(track.Output, ct);
             track.Record(header);
             track.BytesWritten += _data.Length;
-            track.OnSegment?.Invoke(new SabrSegment(
+            track.OnSegment?.Invoke(new(
                 track.IsVideo, header.SequenceNumber, header.StartMs, header.DurationMs, header.IsInitSegment));
             return true;
         }

@@ -61,6 +61,7 @@ internal sealed class SegmentIndex
             if (timeMs < start)
                 return i;
         }
+
         return Math.Max(0, DurationsMs.Count - 1);
     }
 
@@ -97,6 +98,7 @@ internal sealed class SegmentIndex
 
             offset += size;
         }
+
         return default;
     }
 
@@ -129,7 +131,10 @@ internal sealed class SegmentIndex
                 pos += 12;
             }
 
-            return new SegmentIndex { DurationsMs = durations };
+            return new()
+            {
+                DurationsMs = durations
+            };
         }
         catch (ArgumentOutOfRangeException)
         {
