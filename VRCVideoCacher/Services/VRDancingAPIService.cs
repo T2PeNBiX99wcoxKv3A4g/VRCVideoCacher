@@ -9,10 +9,16 @@ namespace VRCVideoCacher.Services;
 public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
 {
     private const string VRDancingAPIBaseURL = "https://dbapi.vrdancing.club/";
+
     private readonly HttpClient _httpClient = new()
     {
         BaseAddress = new(VRDancingAPIBaseURL),
-        DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher {Program.Version}" } },
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", $"VRCVideoCacher {Program.Version}"
+            }
+        },
         Timeout = TimeSpan.FromSeconds(10)
     };
 

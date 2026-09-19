@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "Bejegyzés törlése",
   "Logs": "Naplók",
   "About": "Rólunk",
-
   "Refresh": "Frissítés",
   "Save": "Mentés",
   "Reset": "Visszaállítás",
@@ -24,7 +23,6 @@
   "Language": "Nyelv",
   "General": "Általános",
   "ShowAdvancedSettings": "Speciális beállítások megjelenítése",
-
   "ToggleHostTooltip": "A YouTube domain használatának bekapcsolása a localhost gyorsítótár számára",
   "ServerStatus": "Szerver Állapota",
   "Cache": "Gyorsítótár",
@@ -55,7 +53,6 @@
   "StatusProviderSetup": "PO token szolgáltató beállítása",
   "StatusProviderWaiting": "Várakozás a PO token szolgáltatóra",
   "StatusMore": " (+{0} további)",
-
   "ServerSettings": "Szerver Beállítások",
   "WebServerUrl": "Web Szerver URL",
   "DownloadSettings": "Beállítások Letöltése",
@@ -103,14 +100,12 @@
   "SettingsReset": "Beállítások visszaállnak az utoljára mentett értékekre.",
   "SettingsUnsavedChanges": "Vannak mentetlen változások.",
   "RedirectVRDancing": "EU VRDancing átirányítása NA-ra",
-
   "OpenFolder": "Mappa Megnyitás",
   "OpenUrl": "URL Megnyitása",
   "CopyUrl": "URL Másolása",
   "DeleteAllCache": "Összes gyorsítótár Törlése",
   "SearchVideosWatermark": "Videók Keresése...",
   "VideosCountFormat": "{0} az {1} videóból",
-
   "DownloadQueue": "Letöltési Sor",
   "ClearQueue": "Sor Törlése",
   "CurrentDownload": "Aktuális Letöltés",
@@ -119,7 +114,6 @@
   "EnterVideoUrl": "Írd be a videó linkjét...",
   "QueuedDownloads": "Sorban Álló Letöltések",
   "QueueIsEmpty": "A sor üres",
-
   "LogViewer": "Napló Néző",
   "ScrollToBottom": "Görgetés az aljára",
   "ExportLogs": "Napló Exportálás",
@@ -130,9 +124,7 @@
   "Warning": "Figyelem",
   "Error": "Hiba",
   "AutoScroll": "Automatikus Görgetés",
-
   "EntriesCountFormat": "{0} bejegyzés",
-
   "CookieSetupTitle": "YouTube Süti Bővítmény Beállítása",
   "CookieSetupSubtitle": "Javítsd ki a YouTube bot észlelési hibáit",
   "CookieSetupStep1Header": "1. Lépés: Válaszd ki a böngésződ",
@@ -162,12 +154,10 @@
   "AddHostsEntry": "Hosztok Hozzáadása",
   "OpenChromeWebStore": "Chrome Web Áruház Megnyítás",
   "OpenFirefoxAddons": "Firefox Addonok Megnyítás",
-
   "DontShowThisAgain": "Ne mutasd ezt újra",
   "TrayShow": "Megjelenítés",
   "TrayOpenCacheFolder": "Gyorsítótár Mappa Megnyitása",
   "TrayExit": "Kilépés",
-
   "CreatedBy": "Készítette",
   "ReportAnIssue": "Hiba Jelentése",
   "OpenIssueOnGitHub": "Nyisd meg a probléma részt a GitHubon",

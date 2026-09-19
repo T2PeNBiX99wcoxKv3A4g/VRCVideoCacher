@@ -19,11 +19,9 @@ public partial class CacheItemViewModel : ViewModelBase
     public DateTime LastModified { get; init; }
     public string Extension { get; init; } = string.Empty;
 
-    [ObservableProperty]
-    private string _title = string.Empty;
+    [ObservableProperty] private string _title = string.Empty;
 
-    [ObservableProperty]
-    private string _thumbnailSource = string.Empty;
+    [ObservableProperty] private string _thumbnailSource = string.Empty;
 
     public string DisplayTitle => string.IsNullOrEmpty(Title) ? VideoId : Title;
 
@@ -64,7 +62,10 @@ public partial class CacheItemViewModel : ViewModelBase
                 UseShellExecute = true
             });
         }
-        catch { /* Ignore errors */ }
+        catch
+        {
+            /* Ignore errors */
+        }
     }
 
     [RelayCommand]
@@ -75,9 +76,7 @@ public partial class CacheItemViewModel : ViewModelBase
         {
             var clipboard = desktop.MainWindow?.Clipboard;
             if (clipboard != null)
-            {
                 await clipboard.SetTextAsync(url);
-            }
         }
     }
 
@@ -101,14 +100,11 @@ public partial class CacheItemViewModel : ViewModelBase
 
 public partial class CacheBrowserViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private string _searchFilter = string.Empty;
+    [ObservableProperty] private string _searchFilter = string.Empty;
 
-    [ObservableProperty]
-    private CacheItemViewModel? _selectedItem;
+    [ObservableProperty] private CacheItemViewModel? _selectedItem;
 
-    [ObservableProperty]
-    private string _statusText = string.Empty;
+    [ObservableProperty] private string _statusText = string.Empty;
 
     public ObservableCollection<CacheItemViewModel> CachedVideos { get; } = [];
     public ObservableCollection<CacheItemViewModel> FilteredVideos { get; } = [];
@@ -131,14 +127,10 @@ public partial class CacheBrowserViewModel : ViewModelBase
 
         var filter = SearchFilter.ToLowerInvariant();
         foreach (var video in CachedVideos)
-        {
             if (string.IsNullOrEmpty(filter) ||
                 video.FileName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                 video.VideoId.Contains(filter, StringComparison.OrdinalIgnoreCase))
-            {
                 FilteredVideos.Add(video);
-            }
-        }
 
         StatusText = string.Format(Localizer.Get("VideosCountFormat"), FilteredVideos.Count, CachedVideos.Count);
     }
@@ -183,9 +175,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
         _ = Task.Run(async () =>
         {
             foreach (var item in itemsToLoad)
-            {
                 await item.LoadMetadataAsync();
-            }
         });
     }
 
@@ -217,14 +207,9 @@ public partial class CacheBrowserViewModel : ViewModelBase
                 Process.Start("explorer.exe", $"/select,\"{filePath}\"");
             }
             else
-            {
                 Process.Start("explorer.exe", cachePath);
-            }
         }
         else if (OperatingSystem.IsLinux())
-        {
             Process.Start("xdg-open", cachePath);
-        }
     }
-
 }

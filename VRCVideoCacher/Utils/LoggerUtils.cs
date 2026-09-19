@@ -28,31 +28,26 @@ public static class LoggerUtils
     public static void InitializeLogger()
     {
         if (LaunchArgs.ErrorReporting)
-        {
             SentrySdk.Init(GetSentryOptions());
-        }
 
         LoggerStartDateTime = DateTime.Now;
         var loggerConfiguration = new LoggerConfiguration()
             // Information and above by default; the LogViewer's Debug toggle lowers LevelSwitch at runtime.
             .MinimumLevel.ControlledBy(LevelSwitch)
             .WriteTo.Console(new ExpressionTemplate(
-                "[{@t:HH:mm:ss} {@l:u3} {Coalesce(Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1),'<none>')}] {@m}" + Environment.NewLine + "{@x}",
+                "[{@t:HH:mm:ss} {@l:u3} {Coalesce(Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1),'<none>')}] {@m}" +
+                Environment.NewLine + "{@x}",
                 theme: TemplateTheme.Literate))
             .WriteTo.File(
-                path: Path.Combine(LogsPath, "VRCVideoCacher.log"),
+                Path.Combine(LogsPath, "VRCVideoCacher.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 5);
 
         if (LaunchArgs.ErrorReporting)
-        {
             loggerConfiguration = loggerConfiguration.WriteTo.Sentry(ConfigureSentryOptions);
-        }
 
         if (LaunchArgs.HasGui)
-        {
             loggerConfiguration = loggerConfiguration.WriteTo.Sink(new UiLogSink());
-        }
 
         Log.Logger = loggerConfiguration.CreateLogger();
     }
@@ -70,7 +65,7 @@ public static class LoggerUtils
             {
                 // Never turn a failure in exception reporting into another unhandled exception.
             }
-        }, e.Exception, preferLocal: false);
+        }, e.Exception, false);
     }
 
     public static void LogUnhandledException(Exception ex, string message)
@@ -78,7 +73,6 @@ public static class LoggerUtils
         if (OperatingSystem.IsLinux() && LaunchArgs.HasGui && IsUnavailableDesktopServiceException(ex))
         {
             if (Interlocked.Exchange(ref _desktopServiceNoticeLogged, 1) == 0)
-            {
                 try
                 {
                     Program.Logger.Information(
@@ -87,7 +81,6 @@ public static class LoggerUtils
                 catch
                 {
                 }
-            }
 
             return;
         }
@@ -121,22 +114,16 @@ public static class LoggerUtils
         {
             Program.Logger.Error(ex, "{Message}", message);
 
-            var logFile = Path.Combine(LogsPath, $"VRCVideoCacher{(LoggerStartDateTime ?? DateTime.Now):yyyyMMdd}.log");
+            var logFile = Path.Combine(LogsPath, $"VRCVideoCacher{LoggerStartDateTime ?? DateTime.Now:yyyyMMdd}.log");
             if (OperatingSystem.IsWindows())
             {
                 if (File.Exists(logFile))
-                {
                     Process.Start("explorer.exe", $"/select,\"{logFile}\"");
-                }
                 else
-                {
                     Process.Start("explorer.exe", LogsPath);
-                }
             }
             else if (OperatingSystem.IsLinux())
-            {
                 Process.Start("xdg-open", LogsPath);
-            }
         }
         catch
         {
@@ -154,17 +141,19 @@ public static class LoggerUtils
                 return false;
 
             foreach (var inner in exceptions)
-            {
                 if (inner is not DBusErrorReplyException
-                    { ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown" })
+                    {
+                        ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown"
+                    })
                     return false;
-            }
 
             return true;
         }
 
         return exception is DBusErrorReplyException
-            { ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown" };
+        {
+            ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown"
+        };
     }
 
     private static void ConfigureSentryOptions(SentrySerilogOptions o)
@@ -190,5 +179,4 @@ public static class LoggerUtils
         ConfigureSentryOptions(options);
         return options;
     }
-
 }

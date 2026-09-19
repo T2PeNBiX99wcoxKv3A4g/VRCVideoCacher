@@ -83,7 +83,7 @@ public static class SabrRestreamService
         ConfigManager.Config is
         {
             SabrRestreamEnabled: true,
-            CacheYouTube: true,
+            CacheYouTube: true
         } && ConfigManager.Config.SabrMaxResolution == ConfigManager.Config.CacheYouTubeMaxResolution;
 
     static SabrRestreamService()
@@ -105,10 +105,14 @@ public static class SabrRestreamService
         try
         {
             foreach (var dir in Directory.EnumerateDirectories(HlsRootPath))
-            {
-                try { Directory.Delete(dir, true); }
-                catch (Exception ex) { Log.Debug(ex, "Could not remove orphaned SABR session {Dir}", dir); }
-            }
+                try
+                {
+                    Directory.Delete(dir, true);
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug(ex, "Could not remove orphaned SABR session {Dir}", dir);
+                }
         }
         catch (Exception ex)
         {
@@ -135,7 +139,7 @@ public static class SabrRestreamService
             return existing.PlaybackUrl;
         }
 
-        var starter = Starting.GetOrAdd(videoId, _ => new Lazy<Task<ISabrSession?>>(
+        var starter = Starting.GetOrAdd(videoId, _ => new(
             () => StartSessionAsync(videoInfo), LazyThreadSafetyMode.ExecutionAndPublication));
         try
         {
@@ -154,6 +158,7 @@ public static class SabrRestreamService
                 if (!StreamActivities.TryAdd(videoId, activity))
                     activity.Dispose();
             }
+
             return session.PlaybackUrl;
         }
         catch (Exception ex)
@@ -168,9 +173,8 @@ public static class SabrRestreamService
                 Log.Information("SABR: YouTube video {VideoId} is unavailable; not restreaming it", videoId);
             }
             else
-            {
                 Log.Error(ex, "Failed to start SABR HLS session for {VideoId}", videoId);
-            }
+
             return null;
         }
         finally
@@ -257,7 +261,7 @@ public static class SabrRestreamService
         {
             var temp = filePath + ".part";
             await session.WriteCompleteFileAsync(temp);
-            File.Move(temp, filePath, overwrite: true);
+            File.Move(temp, filePath, true);
 
             CacheManager.AddToCache(fileName);
             Log.Information("Cached {VideoId} from the streamed fragments (no second download)", videoId);
@@ -407,9 +411,7 @@ public static class SabrRestreamService
                 activity.Dispose();
         }
         else if (StreamActivities.TryRemove(videoId, out var activity))
-        {
             activity.Dispose();
-        }
     }
 
     private static void ShutdownAll()

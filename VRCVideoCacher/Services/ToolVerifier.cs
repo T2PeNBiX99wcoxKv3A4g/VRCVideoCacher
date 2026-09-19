@@ -27,14 +27,17 @@ public static class ToolVerifier
         // Run --version to confirm it actually works, but display the tracked release NAME instead: we ship
         // the bashonly SABR build and its name carries the "sabr" marker ("sabr 2026.08.19.233452"), which
         // `yt-dlp --version` alone omits (it prints just the date).
-        var check = await RunVersionAsync(YtdlManager.Instance.YtdlPath, "--version");
+        var check = await RunVersionAsync(YtdlManager.YtdlPath, "--version");
         if (check.Ok && !string.IsNullOrWhiteSpace(Versions.Instance.CurrentVersion.Ytdlp))
-            return check with { Detail = Versions.Instance.CurrentVersion.Ytdlp };
+            return check with
+            {
+                Detail = Versions.Instance.CurrentVersion.Ytdlp
+            };
         return check;
     }
 
-    public static Task<ToolCheck> VerifyDenoAsync() => RunVersionAsync(YtdlManager.Instance.DenoPath, "--version");
-    public static Task<ToolCheck> VerifyFfmpegAsync() => RunVersionAsync(YtdlManager.Instance.FfmpegPath, "-version");
+    public static Task<ToolCheck> VerifyDenoAsync() => RunVersionAsync(YtdlManager.DenoPath, "--version");
+    public static Task<ToolCheck> VerifyFfmpegAsync() => RunVersionAsync(YtdlManager.FfmpegPath, "-version");
 
     public static async Task<ToolCheck> VerifyPotProviderAsync()
     {
@@ -68,7 +71,7 @@ public static class ToolVerifier
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
             ChildProcessTracker.Track(process);
@@ -89,7 +92,15 @@ public static class ToolVerifier
             }
             catch (OperationCanceledException)
             {
-                try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { /* ignore */ }
+                try
+                {
+                    if (!process.HasExited) process.Kill(true);
+                }
+                catch
+                {
+                    /* ignore */
+                }
+
                 return new(false, true, string.Empty);
             }
             finally
@@ -110,7 +121,8 @@ public static class ToolVerifier
         // "ffmpeg version 7.1.1-full_build ..." -> "7.1.1-full_build"
         var idx = line.IndexOf("version ", StringComparison.OrdinalIgnoreCase);
         if (idx >= 0)
-            return line[(idx + "version ".Length)..].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? line;
+            return line[(idx + "version ".Length)..].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault() ?? line;
         return line;
     }
 }

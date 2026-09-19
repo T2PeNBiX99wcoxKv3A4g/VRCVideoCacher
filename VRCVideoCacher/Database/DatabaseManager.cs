@@ -23,7 +23,7 @@ public static class DatabaseManager
             .EnableSensitiveDataLogging()
             .Options;
 
-        ContextFactory = new PooledDbContextFactory<Database>(options);
+        ContextFactory = new(options);
 
         using var db = ContextFactory.CreateDbContext();
         db.Database.EnsureCreated();
@@ -122,9 +122,8 @@ public static class DatabaseManager
                 existingCache.Duration = videoInfoCache.Duration;
         }
         else
-        {
             db.VideoInfoCache.Add(videoInfoCache);
-        }
+
         db.SaveChanges();
         OnVideoInfoCacheUpdated?.Invoke();
     }
@@ -146,7 +145,6 @@ public static class DatabaseManager
         List<History> histories;
 
         if (distinctOnly)
-        {
             histories = db.PlayHistory
                 .FromSqlRaw($@"
                     SELECT ph.* FROM {nameof(Database.PlayHistory)} ph
@@ -159,15 +157,12 @@ public static class DatabaseManager
                     LIMIT {{0}}", limit)
                 .AsNoTracking()
                 .ToList();
-        }
         else
-        {
             histories = db.PlayHistory
                 .AsNoTracking()
                 .OrderByDescending(h => h.Timestamp)
                 .Take(limit)
                 .ToList();
-        }
 
         // Fetch matching VideoInfoCache entries
         var ids = histories.Select(h => h.Id).Where(id => id != null).Distinct().ToList();

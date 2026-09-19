@@ -69,9 +69,13 @@ public class VideoId
             try
             {
                 if (!ytdlpProcess.HasExited)
-                    ytdlpProcess.Kill(entireProcessTree: true);
+                    ytdlpProcess.Kill(true);
             }
-            catch { /* best effort */ }
+            catch
+            {
+                /* best effort */
+            }
+
             throw;
         }
         finally

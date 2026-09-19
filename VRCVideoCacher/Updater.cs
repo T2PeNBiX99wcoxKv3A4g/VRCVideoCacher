@@ -51,7 +51,7 @@ public partial class Updater : Singleton<Updater>
 
         using var request = new HttpRequestMessage(HttpMethod.Get, UpdateUrl);
         if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ConfigManager.Config.GitHubToken.Trim());
+            request.Headers.Authorization = new("Bearer", ConfigManager.Config.GitHubToken.Trim());
         using var response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
@@ -111,7 +111,8 @@ public partial class Updater : Singleton<Updater>
                     HttpCompletionOption.ResponseHeadersRead);
                 await using var stream = new ProgressStream(
                     await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength, activity.Report);
-                await using var fileStream = new FileStream(TempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                await using var fileStream =
+                    new FileStream(TempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
                 await stream.CopyToAsync(fileStream);
                 fileStream.Close();
 

@@ -138,15 +138,11 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 await Task.Delay(TimeSpan.FromSeconds(autoHideSeconds), cts.Token);
                 if (!cts.IsCancellationRequested)
-                {
                     Dispatcher.UIThread.Post(() =>
                     {
                         if (!cts.IsCancellationRequested)
-                        {
                             StatusMessage = string.Empty;
-                        }
                     });
-                }
             }
             catch (OperationCanceledException)
             {

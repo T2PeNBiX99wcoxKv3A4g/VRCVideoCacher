@@ -10,19 +10,23 @@
         <!-- Header & Action Controls -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,16">
             <StackPanel Orientation="Vertical" Spacing="4">
-                <TextBlock Text="{l:Localize DownloadQueue}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="Manage ongoing and queued background video downloads and manual caching tasks" 
-                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBlock Text="{l:Localize DownloadQueue}" FontSize="24" FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Manage ongoing and queued background video downloads and manual caching tasks"
+                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <Button Command="{Binding RefreshQueueCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize Refresh}">
-                    <mi:MaterialIcon Kind="Refresh" Width="18" Height="18" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <Button Command="{Binding RefreshQueueCommand}" Classes="icon-button"
+                        ToolTip.Tip="{l:Localize Refresh}">
+                    <mi:MaterialIcon Kind="Refresh" Width="18" Height="18"
+                                     Foreground="{StaticResource TextSecondaryBrush}" />
                 </Button>
-                <Button Command="{Binding ClearQueueCommand}" Classes="subtle-danger" ToolTip.Tip="{l:Localize ClearQueue}">
+                <Button Command="{Binding ClearQueueCommand}" Classes="subtle-danger"
+                        ToolTip.Tip="{l:Localize ClearQueue}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <mi:MaterialIcon Kind="DeleteSweepOutline" Width="18" Height="18"/>
-                        <TextBlock Text="{l:Localize ClearQueue}" FontSize="12.5"/>
+                        <mi:MaterialIcon Kind="DeleteSweepOutline" Width="18" Height="18" />
+                        <TextBlock Text="{l:Localize ClearQueue}" FontSize="12.5" />
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -34,60 +38,80 @@
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Border Background="{StaticResource InfoSubtleBrush}" CornerRadius="6" Width="26" Height="26">
-                            <mi:MaterialIcon Kind="DownloadNetworkOutline" Width="16" Height="16" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <mi:MaterialIcon Kind="DownloadNetworkOutline" Width="16" Height="16"
+                                             Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"
+                                             VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="{l:Localize CurrentDownload}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l:Localize CurrentDownload}" FontWeight="Bold" FontSize="14"
+                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                 </Grid>
 
                 <!-- Active download item -->
-                <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}" 
-                        BorderBrush="{StaticResource CardBorderBrush}" 
-                        BorderThickness="1" 
-                        CornerRadius="10" 
+                <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}"
+                        BorderBrush="{StaticResource CardBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10"
                         Padding="14"
                         IsVisible="{Binding CurrentDownload, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <Border.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CurrentDownload.CopyUrlCommand}">
                                 <MenuItem.Icon>
-                                    <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                    <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16"
+                                                     Foreground="{StaticResource PrimaryLightBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
                         </ContextMenu>
                     </Border.ContextMenu>
                     <Grid ColumnDefinitions="Auto, *, Auto">
-                        <Border Grid.Column="0" Background="{StaticResource InfoSubtleBrush}" BorderBrush="{StaticResource BadgeInfoBorderBrush}" BorderThickness="1" CornerRadius="20" Width="42" Height="42">
-                            <mi:MaterialIcon Kind="Download" Width="22" Height="22" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Grid.Column="0" Background="{StaticResource InfoSubtleBrush}"
+                                BorderBrush="{StaticResource BadgeInfoBorderBrush}" BorderThickness="1"
+                                CornerRadius="20" Width="42" Height="42">
+                            <mi:MaterialIcon Kind="Download" Width="22" Height="22"
+                                             Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"
+                                             VerticalAlignment="Center" />
                         </Border>
                         <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="4">
-                            <TextBlock Text="{Binding CurrentDownload.VideoId}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"/>
+                            <TextBlock Text="{Binding CurrentDownload.VideoId}" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" />
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="{Binding CurrentDownload.UrlType}" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
+                                <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                                        BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1"
+                                        CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="{Binding CurrentDownload.UrlType}"
+                                               Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
                                 </Border>
-                                <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2"
+                                <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                                        BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1"
+                                        CornerRadius="4" Padding="6,2"
                                         IsVisible="{Binding CurrentDownload.Format, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                    <TextBlock Text="{Binding CurrentDownload.Format}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="11"/>
+                                    <TextBlock Text="{Binding CurrentDownload.Format}"
+                                               Foreground="{StaticResource PrimaryLightBrush}" FontSize="11" />
                                 </Border>
                             </StackPanel>
                         </StackPanel>
-                        <Border Grid.Column="2" Background="{StaticResource InfoSubtleBrush}" BorderBrush="{StaticResource BadgeInfoBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding CurrentStatus}" Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold" FontSize="12"/>
+                        <Border Grid.Column="2" Background="{StaticResource InfoSubtleBrush}"
+                                BorderBrush="{StaticResource BadgeInfoBorderBrush}" BorderThickness="1"
+                                CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentStatus}" Foreground="{StaticResource InfoBrush}"
+                                       FontWeight="SemiBold" FontSize="12" />
                         </Border>
                     </Grid>
                 </Border>
 
                 <!-- No active download -->
-                <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}" 
-                        BorderBrush="{StaticResource CardBorderBrush}" 
-                        BorderThickness="1" 
-                        CornerRadius="10" 
+                <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}"
+                        BorderBrush="{StaticResource CardBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10"
                         Padding="16"
                         IsVisible="{Binding CurrentDownload, Converter={x:Static ObjectConverters.IsNull}}">
                     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                        <mi:MaterialIcon Kind="CheckCircleOutline" Width="18" Height="18" Foreground="{StaticResource SuccessBrush}"/>
-                        <TextBlock Text="{l:Localize NoActiveDownload}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" FontSize="13"/>
+                        <mi:MaterialIcon Kind="CheckCircleOutline" Width="18" Height="18"
+                                         Foreground="{StaticResource SuccessBrush}" />
+                        <TextBlock Text="{l:Localize NoActiveDownload}" Foreground="{StaticResource TextMutedBrush}"
+                                   VerticalAlignment="Center" FontSize="13" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -98,34 +122,39 @@
             <StackPanel Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
-                        <mi:MaterialIcon Kind="LinkPlus" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <mi:MaterialIcon Kind="LinkPlus" Width="16" Height="16"
+                                         Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
                     </Border>
-                    <TextBlock Text="{l:Localize AddManualDownload}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:Localize AddManualDownload}" FontWeight="Bold" FontSize="14"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                 </StackPanel>
 
                 <Grid ColumnDefinitions="*, Auto">
-                    <TextBox Grid.Column="0" 
-                             Text="{Binding ManualUrl}" 
+                    <TextBox Grid.Column="0"
+                             Text="{Binding ManualUrl}"
                              PlaceholderText="{l:Localize EnterVideoUrl}"
                              Background="{StaticResource TextControlBackground}"
                              BorderBrush="{StaticResource CardBorderBrush}"
                              CornerRadius="8"
                              Padding="12, 9">
                         <TextBox.InnerLeftContent>
-                            <mi:MaterialIcon Kind="LinkVariant" Width="16" Height="16" Margin="10,0,6,0" Foreground="{StaticResource TextMutedBrush}"/>
+                            <mi:MaterialIcon Kind="LinkVariant" Width="16" Height="16" Margin="10,0,6,0"
+                                             Foreground="{StaticResource TextMutedBrush}" />
                         </TextBox.InnerLeftContent>
                     </TextBox>
-                    <Button Grid.Column="1" Command="{Binding AddManualDownloadCommand}" Classes="primary" Margin="10,0,0,0">
+                    <Button Grid.Column="1" Command="{Binding AddManualDownloadCommand}" Classes="primary"
+                            Margin="10,0,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
-                            <TextBlock Text="{l:Localize Add}"/>
+                            <mi:MaterialIcon Kind="Plus" Width="16" Height="16" />
+                            <TextBlock Text="{l:Localize Add}" />
                         </StackPanel>
                     </Button>
                 </Grid>
 
                 <TextBlock Text="{Binding StatusMessage}"
                            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                           Foreground="{StaticResource SuccessBrush}" FontSize="12"/>
+                           Foreground="{StaticResource SuccessBrush}" FontSize="12" />
             </StackPanel>
         </Border>
 
@@ -134,14 +163,21 @@
             <Grid RowDefinitions="Auto, *">
                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,12">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26" Height="26">
-                            <mi:MaterialIcon Kind="FormatListNumbered" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26"
+                                Height="26">
+                            <mi:MaterialIcon Kind="FormatListNumbered" Width="16" Height="16"
+                                             Foreground="{StaticResource PrimaryLightBrush}"
+                                             HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="{l:Localize QueuedDownloads}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l:Localize QueuedDownloads}" FontWeight="Bold" FontSize="14"
+                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
-                    <Border Grid.Column="1" Background="{StaticResource PrimarySubtleBrush}" BorderBrush="{StaticResource BadgePrimaryBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="10,3"
+                    <Border Grid.Column="1" Background="{StaticResource PrimarySubtleBrush}"
+                            BorderBrush="{StaticResource BadgePrimaryBorderBrush}" BorderThickness="1"
+                            CornerRadius="10" Padding="10,3"
                             IsVisible="{Binding QueuedDownloads.Count, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}">
-                        <TextBlock Text="{Binding QueuedDownloads.Count, StringFormat='{}{0} tasks'}" Foreground="{StaticResource PrimaryLightBrush}" FontSize="11" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding QueuedDownloads.Count, StringFormat='{}{0} tasks'}"
+                                   Foreground="{StaticResource PrimaryLightBrush}" FontSize="11" FontWeight="Bold" />
                     </Border>
                 </Grid>
 
@@ -151,13 +187,13 @@
                          IsVisible="{Binding QueuedDownloads.Count, Converter={x:Static vm:GreaterThanZeroConverter.Instance}}">
                     <ListBox.Styles>
                         <Style Selector="ListBoxItem">
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="0,3"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="CornerRadius" Value="10"/>
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,3" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="CornerRadius" Value="10" />
                         </Style>
                         <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Background" Value="Transparent" />
                         </Style>
                         <Style Selector="ListBoxItem Border.queue-item">
                             <Setter Property="Background" Value="{StaticResource SurfaceSubtleBackgroundBrush}" />
@@ -169,16 +205,16 @@
                             <Setter Property="RenderTransform" Value="none" />
                             <Setter Property="Transitions">
                                 <Transitions>
-                                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+                                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
                                 </Transitions>
                             </Setter>
                         </Style>
                         <Style Selector="ListBoxItem:pointerover Border.queue-item">
-                            <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}"/>
-                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverColor}"/>
-                            <Setter Property="RenderTransform" Value="translateX(4px)"/>
+                            <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverColor}" />
+                            <Setter Property="RenderTransform" Value="translateX(4px)" />
                         </Style>
                     </ListBox.Styles>
                     <ListBox.ItemTemplate>
@@ -188,28 +224,43 @@
                                     <ContextMenu>
                                         <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CopyUrlCommand}">
                                             <MenuItem.Icon>
-                                                <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                                <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16"
+                                                                 Foreground="{StaticResource PrimaryLightBrush}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
                                     </ContextMenu>
                                 </Border.ContextMenu>
                                 <Grid ColumnDefinitions="Auto, *, Auto">
-                                    <Border Grid.Column="0" Background="{StaticResource WarningSubtleBrush}" BorderBrush="{StaticResource BadgeWarningBorderBrush}" BorderThickness="1" CornerRadius="18" Width="36" Height="36">
-                                        <mi:MaterialIcon Kind="ClockOutline" Width="18" Height="18" Foreground="{StaticResource WarningBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="0" Background="{StaticResource WarningSubtleBrush}"
+                                            BorderBrush="{StaticResource BadgeWarningBorderBrush}" BorderThickness="1"
+                                            CornerRadius="18" Width="36" Height="36">
+                                        <mi:MaterialIcon Kind="ClockOutline" Width="18" Height="18"
+                                                         Foreground="{StaticResource WarningBrush}"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="{Binding VideoId}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13.5"/>
+                                        <TextBlock Text="{Binding VideoId}" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="13.5" />
                                         <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                                <TextBlock Text="{Binding UrlType}" Foreground="{StaticResource TextMutedBrush}" FontSize="10.5"/>
+                                            <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                                                    BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1"
+                                                    CornerRadius="4" Padding="6,2">
+                                                <TextBlock Text="{Binding UrlType}"
+                                                           Foreground="{StaticResource TextMutedBrush}" FontSize="10.5" />
                                             </Border>
-                                            <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" IsVisible="{Binding Format, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                                <TextBlock Text="{Binding Format}" Foreground="{StaticResource TextMutedBrush}" FontSize="10.5"/>
+                                            <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}"
+                                                    BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1"
+                                                    CornerRadius="4" Padding="6,2"
+                                                    IsVisible="{Binding Format, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBlock Text="{Binding Format}"
+                                                           Foreground="{StaticResource TextMutedBrush}" FontSize="10.5" />
                                             </Border>
                                         </StackPanel>
                                     </StackPanel>
-                                    <Button Grid.Column="2" Command="{Binding CopyUrlCommand}" Classes="icon-button" ToolTip.Tip="{l:Localize CopyUrl}">
-                                        <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <Button Grid.Column="2" Command="{Binding CopyUrlCommand}" Classes="icon-button"
+                                            ToolTip.Tip="{l:Localize CopyUrl}">
+                                        <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16"
+                                                         Foreground="{StaticResource TextSecondaryBrush}" />
                                     </Button>
                                 </Grid>
                             </Border>
@@ -222,13 +273,16 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             IsVisible="{Binding !QueuedDownloads.Count}">
-                    <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" CornerRadius="28" Width="56" Height="56" HorizontalAlignment="Center">
-                        <mi:MaterialIcon Kind="InboxOutline" Width="28" Height="28" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource SurfaceElevatedBackgroundBrush}" CornerRadius="28" Width="56"
+                            Height="56" HorizontalAlignment="Center">
+                        <mi:MaterialIcon Kind="InboxOutline" Width="28" Height="28"
+                                         Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
                     </Border>
                     <TextBlock Text="{l:Localize QueueIsEmpty}"
                                Foreground="{StaticResource TextMutedBrush}"
                                FontSize="13"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>

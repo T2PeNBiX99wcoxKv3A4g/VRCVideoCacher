@@ -425,14 +425,18 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         var url = videoInfo.VideoUrl;
         using var process = new Process();
-        process.StartInfo.FileName = YtdlManager.YtdlPath;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
-        process.StartInfo.Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\"";
+        process.StartInfo = new()
+        {
+            FileName = YtdlManager.YtdlPath,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+            Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\""
+        };
+
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
         ChildProcessTracker.Track(process);

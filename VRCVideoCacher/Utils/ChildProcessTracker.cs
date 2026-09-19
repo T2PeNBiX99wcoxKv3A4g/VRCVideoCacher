@@ -128,7 +128,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         if (process == null) return;
         _trackedProcesses.TryRemove(process, out _);
     }
-    
+
     public void TrackWhile(Process? process, Action<Process> callback)
     {
         if (process == null) return;

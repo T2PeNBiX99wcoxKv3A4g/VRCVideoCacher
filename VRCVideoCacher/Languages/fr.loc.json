@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "Supprimer l’entrée",
   "Logs": "Journaux",
   "About": "À propos",
-
   "Refresh": "Actualiser",
   "Save": "Enregistrer",
   "Reset": "Réinitialiser",
@@ -24,7 +23,6 @@
   "Language": "Langue",
   "General": "Général",
   "ShowAdvancedSettings": "Afficher les paramètres avancés",
-
   "ToggleHostTooltip": "Activer ou désactiver l’utilisation du domaine YouTube pour le cache local (localhost)",
   "ServerStatus": "État du serveur",
   "Cache": "Cache",
@@ -55,7 +53,6 @@
   "StatusProviderSetup": "Configuration du fournisseur de jetons PO",
   "StatusProviderWaiting": "En attente du fournisseur de jetons PO",
   "StatusMore": " (+{0} autres)",
-
   "ServerSettings": "Paramètres du serveur",
   "WebServerUrl": "URL du serveur web",
   "DownloadSettings": "Paramètres de téléchargement",
@@ -103,14 +100,12 @@
   "SettingsReset": "Les dernières valeurs enregistrées des paramètres ont été restaurées.",
   "SettingsUnsavedChanges": "Vous avez des modifications non enregistrées.",
   "RedirectVRDancing": "Rediriger VRDancing de l’Europe vers l’Amérique du Nord",
-
   "OpenFolder": "Ouvrir le dossier",
   "OpenUrl": "Ouvrir l'URL",
   "CopyUrl": "Copier l'URL",
   "DeleteAllCache": "Vider tout le cache",
   "SearchVideosWatermark": "Rechercher des vidéos…",
   "VideosCountFormat": "{0} vidéos sur {1}",
-
   "DownloadQueue": "File d’attente des téléchargements",
   "ClearQueue": "Vider la file d’attente",
   "CurrentDownload": "Téléchargement en cours",
@@ -119,7 +114,6 @@
   "EnterVideoUrl": "Saisir l’URL de la vidéo…",
   "QueuedDownloads": "Téléchargements en attente",
   "QueueIsEmpty": "La file d’attente est vide",
-
   "LogViewer": "Visionneuse de journaux",
   "ScrollToBottom": "Faire défiler vers le bas",
   "ExportLogs": "Exporter les journaux",
@@ -130,9 +124,7 @@
   "Warning": "Avertissement",
   "Error": "Erreur",
   "AutoScroll": "Défilement automatique",
-
   "EntriesCountFormat": "{0} entrées",
-
   "CookieSetupTitle": "Configuration de l’extension de cookies YouTube",
   "CookieSetupSubtitle": "Résoudre les erreurs de détection de robots sur YouTube",
   "CookieSetupStep1Header": "Étape 1 : sélectionnez votre navigateur",
@@ -162,12 +154,10 @@
   "AddHostsEntry": "Ajouter une entrée au fichier hosts",
   "OpenChromeWebStore": "Ouvrir le Chrome Web Store",
   "OpenFirefoxAddons": "Ouvrir le site des modules complémentaires Firefox",
-
   "DontShowThisAgain": "Ne plus afficher",
   "TrayShow": "Afficher",
   "TrayOpenCacheFolder": "Ouvrir le dossier du cache",
   "TrayExit": "Quitter",
-
   "CreatedBy": "Créé par",
   "ReportAnIssue": "Signaler un problème",
   "OpenIssueOnGitHub": "Ouvrir un ticket sur GitHub",

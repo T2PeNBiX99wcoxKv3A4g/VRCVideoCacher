@@ -43,10 +43,8 @@ public static class PortAudit
     public static int FindFreePort(int preferred, int span = 64)
     {
         for (var port = preferred; port < preferred + span && port <= 65535; port++)
-        {
             if (!IsInUse(port))
                 return port;
-        }
         return preferred;
     }
 
@@ -87,12 +85,22 @@ public static class PortAudit
             {
                 var matchesName = procName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
                 string? exeName = null;
-                try { exeName = proc.MainModule?.FileName; } catch { /* Ignore */ }
-                var matchesExe = !string.IsNullOrEmpty(exeName) && exeName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
+                try
+                {
+                    exeName = proc.MainModule?.FileName;
+                }
+                catch
+                {
+                    /* Ignore */
+                }
+
+                var matchesExe = !string.IsNullOrEmpty(exeName) &&
+                                 exeName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
 
                 if (!matchesName && !matchesExe)
                 {
-                    Log.Warning("Port {Port} is in use by {Process} (PID {Pid}), not matching expected filter '{Filter}'; skipping kill",
+                    Log.Warning(
+                        "Port {Port} is in use by {Process} (PID {Pid}), not matching expected filter '{Filter}'; skipping kill",
                         port, procName, id, expectedProcessNameSubstring);
                     return false;
                 }
@@ -100,7 +108,7 @@ public static class PortAudit
 
             Log.Information("Killing leftover process {Process} (PID {Pid}) holding port {Port}",
                 procName, id, port);
-            proc.Kill(entireProcessTree: true);
+            proc.Kill(true);
             proc.WaitForExit(timeoutMs);
 
             // Wait for OS to release the socket
@@ -211,7 +219,7 @@ public static class PortAudit
     }
 
     /// <summary>The port field is a DWORD holding the port in network byte order in its low 16 bits.</summary>
-    private static int PortOf(uint dwPort) => (int)(((dwPort & 0xFF) << 8) | ((dwPort >> 8) & 0xFF));
+    private static int PortOf(uint dwPort) => (int)((dwPort & 0xFF) << 8 | dwPort >> 8 & 0xFF);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MibTcpRowOwnerPid
@@ -227,10 +235,15 @@ public static class PortAudit
     [StructLayout(LayoutKind.Sequential)]
     private struct MibTcp6RowOwnerPid
     {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public byte[] LocalAddr;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public byte[] LocalAddr;
+
         public uint LocalScopeId;
         public uint LocalPort;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public byte[] RemoteAddr;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public byte[] RemoteAddr;
+
         public uint RemoteScopeId;
         public uint RemotePort;
         public uint State;
@@ -265,6 +278,7 @@ public static class PortAudit
                 // Not our process to read (permissions) or it vanished — keep scanning.
             }
         }
+
         return null;
     }
 
@@ -288,6 +302,7 @@ public static class PortAudit
                 continue;
             return cols[9];
         }
+
         return null;
     }
 
@@ -306,13 +321,11 @@ public static class PortAudit
             return;
 
         if (LaunchArgs.KillExistingInstance)
-        {
             if (TryKillListener(port, "VRCVideoCacher"))
             {
                 Log.Information("Freed web server port {Port} by terminating existing VRCVideoCacher instance", port);
                 return;
             }
-        }
 
         var who = DescribeListener(port);
         Log.Error(

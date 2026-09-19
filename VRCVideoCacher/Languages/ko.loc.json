@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "항목 삭제",
   "Logs": "로그",
   "About": "정보",
-
   "Refresh": "새로고침",
   "Save": "저장",
   "Reset": "재설정",
@@ -24,7 +23,6 @@
   "Language": "언어",
   "General": "일반",
   "ShowAdvancedSettings": "고급 설정 표시",
-
   "ToggleHostTooltip": "캐시된 동영상에 YouTube 도메인 사용 켜기/끄기",
   "ServerStatus": "서버 상태",
   "Cache": "캐시",
@@ -55,7 +53,6 @@
   "StatusProviderSetup": "PO 토큰 제공자 설정 중",
   "StatusProviderWaiting": "PO 토큰 제공자 대기 중",
   "StatusMore": " (외 {0}개)",
-
   "ServerSettings": "서버 설정",
   "WebServerUrl": "웹 서버 URL",
   "DownloadSettings": "다운로드 설정",
@@ -103,14 +100,12 @@
   "SettingsReset": "설정이 마지막 저장된 상태로 재설정되었습니다.",
   "SettingsUnsavedChanges": "저장되지 않은 변경 사항이 있습니다.",
   "RedirectVRDancing": "EU VRDancing을 NA로 리다이렉트",
-
   "OpenFolder": "폴더 열기",
   "OpenUrl": "URL 열기",
   "CopyUrl": "URL 복사",
   "DeleteAllCache": "모든 캐시 삭제",
   "SearchVideosWatermark": "동영상 검색...",
   "VideosCountFormat": "동영상 {1}개 중 {0}개",
-
   "DownloadQueue": "다운로드 대기열",
   "ClearQueue": "대기열 지우기",
   "CurrentDownload": "현재 다운로드",
@@ -119,7 +114,6 @@
   "EnterVideoUrl": "동영상 URL 입력...",
   "QueuedDownloads": "대기 중인 다운로드",
   "QueueIsEmpty": "대기열이 비었음",
-
   "LogViewer": "로그 뷰어",
   "ScrollToBottom": "맨 아래로 스크롤",
   "ExportLogs": "로그 내보내기",
@@ -130,9 +124,7 @@
   "Warning": "경고",
   "Error": "오류",
   "AutoScroll": "자동 스크롤",
-
   "EntriesCountFormat": "{0}개 항목",
-
   "CookieSetupTitle": "YouTube 쿠키 확장 설정",
   "CookieSetupSubtitle": "YouTube 봇 감지 오류 해결하기",
   "CookieSetupStep1Header": "1단계: 사용하는 브라우저 선택",
@@ -162,12 +154,10 @@
   "AddHostsEntry": "Hosts 항목 추가",
   "OpenChromeWebStore": "Chrome 웹 스토어 열기",
   "OpenFirefoxAddons": "Firefox용 부가 기능 열기",
-
   "DontShowThisAgain": "다시 보지 않기",
   "TrayShow": "표시",
   "TrayOpenCacheFolder": "캐시 폴더 열기",
   "TrayExit": "종료",
-
   "CreatedBy": "제작자: ",
   "ReportAnIssue": "문제 보고",
   "OpenIssueOnGitHub": "GitHub에서 Issue 열기",

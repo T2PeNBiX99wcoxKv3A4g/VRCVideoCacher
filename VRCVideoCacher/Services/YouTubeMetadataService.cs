@@ -9,7 +9,12 @@ public static class YouTubeMetadataService
 {
     private static readonly HttpClient HttpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } },
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", "VRCVideoCacher"
+            }
+        },
         Timeout = TimeSpan.FromSeconds(10)
     };
 

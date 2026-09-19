@@ -54,7 +54,7 @@ public static class MarkdownText
     private static Run BuildRun(MarkdownSpan span) => new(span.Text)
     {
         FontWeight = span.Bold ? FontWeight.Bold : FontWeight.Normal,
-        FontStyle = span.Italic ? FontStyle.Italic : FontStyle.Normal,
+        FontStyle = span.Italic ? FontStyle.Italic : FontStyle.Normal
     };
 
     /// <summary>
@@ -70,19 +70,19 @@ public static class MarkdownText
         var button = new HyperlinkButton
         {
             Content = span.Text,
-            Padding = new Thickness(0),
+            Padding = new(0),
             MinWidth = 0,
             MinHeight = 0,
             Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
+            BorderThickness = new(0),
             VerticalAlignment = VerticalAlignment.Center,
             FontWeight = span.Bold ? FontWeight.Bold : textBlock.FontWeight,
-            FontStyle = span.Italic ? FontStyle.Italic : FontStyle.Normal,
+            FontStyle = span.Italic ? FontStyle.Italic : FontStyle.Normal
         };
 
         // Show where the link actually goes — the text is author-controlled and need not match the URL.
         ToolTip.SetTip(button, url);
         button.Click += (_, _) => OpenUrl.Instance.Open(url);
-        return new InlineUIContainer(button);
+        return new(button);
     }
 }

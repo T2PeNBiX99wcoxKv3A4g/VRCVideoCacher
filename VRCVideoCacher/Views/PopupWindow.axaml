@@ -13,14 +13,14 @@
                        Foreground="{StaticResource TextPrimaryBrush}"
                        FontSize="13"
                        LineHeight="20"
-                       TextWrapping="Wrap"/>
+                       TextWrapping="Wrap" />
             <Button Content="OK"
                     Classes="primary"
                     Width="90"
                     Padding="12,7"
                     HorizontalContentAlignment="Center"
                     HorizontalAlignment="Right"
-                    Click="OkButton_Click"/>
+                    Click="OkButton_Click" />
         </StackPanel>
     </Border>
 </Window>

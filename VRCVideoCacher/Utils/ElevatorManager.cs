@@ -8,8 +8,7 @@ namespace VRCVideoCacher.Utils;
 
 public partial class ElevatorManager : Singleton<ElevatorManager>
 {
-    [PublicAPI]
-    public bool HasHostsLine2 = HostsManager.IsHostAdded();
+    [PublicAPI] public bool HasHostsLine2 = HostsManager.IsHostAdded();
 
     private readonly bool _inPressureVessel = Directory.Exists("/run/pressure-vessel");
 

@@ -4,7 +4,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Models;
 
-public partial class Versions: Singleton<Versions>
+public partial class Versions : Singleton<Versions>
 {
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
     public readonly VersionJson CurrentVersion = new();
@@ -12,7 +12,6 @@ public partial class Versions: Singleton<Versions>
     public Versions()
     {
         if (File.Exists(VersionPath))
-        {
             try
             {
                 CurrentVersion = JsonConvert.DeserializeObject<VersionJson>(File.ReadAllText(VersionPath)) ??
@@ -23,7 +22,6 @@ public partial class Versions: Singleton<Versions>
             {
                 Log.Error(ex, "Failed to parse version file, it may be corrupted. Recreating...");
             }
-        }
 
         Save();
     }

@@ -32,35 +32,34 @@ public partial class OpenVRService : Singleton<OpenVRService>
                     {
                         case EVRInitError.None:
                             var manifestPath = Path.Combine(dataPath, "manifest.vrmanifest");
-                            await using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("VRCVideoCacher.manifest.vrmanifest")!)
+                            await using (var stream = Assembly.GetExecutingAssembly()
+                                             .GetManifestResourceStream("VRCVideoCacher.manifest.vrmanifest")!)
                             await using (var file = File.Create(manifestPath))
                                 await stream.CopyToAsync(file);
                             var manifestError = OpenVR.Applications.AddApplicationManifest(manifestPath, false);
                             if (manifestError != EVRApplicationError.None)
-                            {
                                 Log.Warning("Failed to register startup manifest: {Error}", manifestError);
-                            }
                             else
                             {
                                 if (OpenVR.Applications.IsApplicationInstalled("com.github.ellyvr.vrcvideocacher"))
                                 {
                                     Log.Information("Startup manifest registered successfully");
 
-                                    Log.Information("{AutoLaunchState} steamvr auto-launch", ConfigManager.Config.StartWithSteamVr ? "Enabling" : "Disabling");
-                                    OpenVR.Applications.SetApplicationAutoLaunch("com.github.ellyvr.vrcvideocacher", ConfigManager.Config.StartWithSteamVr);
+                                    Log.Information("{AutoLaunchState} steamvr auto-launch",
+                                        ConfigManager.Config.StartWithSteamVr ? "Enabling" : "Disabling");
+                                    OpenVR.Applications.SetApplicationAutoLaunch("com.github.ellyvr.vrcvideocacher",
+                                        ConfigManager.Config.StartWithSteamVr);
                                 }
                                 else
-                                {
                                     Log.Warning("Failed to register startup manifest");
-                                }
                             }
+
                             if (LaunchArgs.CloseWithSteamVr || true)
-                            {
                                 await PollEventsUntilQuit();
-                            }
                             break;
                         // Only retry if vrserver just isn't running yet
-                        case EVRInitError.Init_HmdNotFound or EVRInitError.Init_HmdNotFoundPresenceFailed or EVRInitError.Init_NoServerForBackgroundApp:
+                        case EVRInitError.Init_HmdNotFound or EVRInitError.Init_HmdNotFoundPresenceFailed
+                            or EVRInitError.Init_NoServerForBackgroundApp:
                             await Task.Delay(TimeSpan.FromSeconds(5));
                             retry = true;
                             break;
@@ -104,28 +103,18 @@ public partial class OpenVRService : Singleton<OpenVRService>
                 quitApp = true;
             }
             else
-            {
                 while (OpenVR.System.PollNextEvent(ref vrEvent, eventSize))
-                {
                     if ((EVREventType)vrEvent.eventType == EVREventType.VREvent_Quit)
                     {
                         Log.Information("Received VREvent_Quit, shutting down");
                         quitApp = true;
                     }
-                }
-            }
         }
 
-        if (LaunchArgs.HasGui && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-        {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                lifetime.Shutdown();
-            });
-        }
+        if (LaunchArgs.HasGui &&
+            Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            await Dispatcher.UIThread.InvokeAsync(() => { lifetime.Shutdown(); });
         else
-        {
             Environment.Exit(0);
-        }
     }
 }

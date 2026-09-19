@@ -12,8 +12,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private const string StatusNormalColor = "#CCCCCC";
     private const string StatusWarningColor = "#FFB74D";
 
-    [ObservableProperty]
-    private ViewModelBase _currentView;
+    [ObservableProperty] private ViewModelBase _currentView;
 
     partial void OnCurrentViewChanged(ViewModelBase value)
     {
@@ -34,26 +33,19 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsLogViewerActive => CurrentView == LogViewer;
     public bool IsAboutActive => CurrentView == About;
 
-    [ObservableProperty]
-    private string _statusText = Localizer.Get("ServerRunning");
+    [ObservableProperty] private string _statusText = Localizer.Get("ServerRunning");
 
-    [ObservableProperty]
-    private string _statusColor = StatusNormalColor;
+    [ObservableProperty] private string _statusColor = StatusNormalColor;
 
-    [ObservableProperty]
-    private bool _statusShowBar;
+    [ObservableProperty] private bool _statusShowBar;
 
-    [ObservableProperty]
-    private bool _statusIndeterminate;
+    [ObservableProperty] private bool _statusIndeterminate;
 
-    [ObservableProperty]
-    private double _statusProgress;
+    [ObservableProperty] private double _statusProgress;
 
-    [ObservableProperty]
-    private string _cacheStatusText = "Cache: 0 B";
+    [ObservableProperty] private string _cacheStatusText = "Cache: 0 B";
 
-    [ObservableProperty]
-    private string _title = $"VRCVideoCacher v{Program.Version}";
+    [ObservableProperty] private string _title = $"VRCVideoCacher v{Program.Version}";
 
     public DashboardViewModel Dashboard { get; }
     public SettingsViewModel Settings { get; }
@@ -125,9 +117,7 @@ public partial class MainWindowViewModel : ViewModelBase
             CacheStatusText = $"Cache: {FormatSize(size)} / {FormatSize(maxBytes)}";
         }
         else
-        {
             CacheStatusText = $"Cache: {FormatSize(size)}";
-        }
     }
 
     private static string FormatSize(long bytes)

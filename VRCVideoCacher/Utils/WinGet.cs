@@ -6,16 +6,27 @@ namespace VRCVideoCacher.Utils;
 
 public partial class WinGet : Singleton<WinGet>
 {
-    private static readonly string WingetPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\WindowsApps\winget.exe");
+    private static readonly string WingetPath =
+        Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            @"Microsoft\WindowsApps\winget.exe");
+
     private static readonly Dictionary<string, string> WingetPackages = new()
     {
-        { "VP9 Video Extensions", "9n4d0msmp0pt" },
-        { "AV1 Video Extension", "9mvzqvxjbq9v" },
-        { "Dolby Digital Plus decoder for PC OEMs", "9nvjqjbdkn97" },
+        {
+            "VP9 Video Extensions", "9n4d0msmp0pt"
+        },
+        {
+            "AV1 Video Extension", "9mvzqvxjbq9v"
+        },
+        {
+            "Dolby Digital Plus decoder for PC OEMs", "9nvjqjbdkn97"
+        },
         // Supplies the Opus/Vorbis decoders, which SABR needs — we mux Opus audio. Note this package
         // alone is NOT sufficient for Opus in MP4: that also needs a Windows new enough for the MF MP4
         // source to map the Opus sample entry, which is what OpusMp4Check actually verifies.
-        { "Web Media Extensions", "9n5tdp8vcmhs" }
+        {
+            "Web Media Extensions", "9n5tdp8vcmhs"
+        }
     };
 
     [SupportedOSPlatform("windows")]
@@ -32,12 +43,8 @@ public partial class WinGet : Singleton<WinGet>
     private bool IsOurPackagesInstalled()
     {
         foreach (var package in WingetPackages.Values)
-        {
             if (!IsPackageInstalled(package))
-            {
                 return false;
-            }
-        }
 
         Log.Information("Codec packages are already installed.");
         return true;
@@ -58,7 +65,7 @@ public partial class WinGet : Singleton<WinGet>
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                     StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
                 }
             };
             process.Start();
@@ -83,9 +90,7 @@ public partial class WinGet : Singleton<WinGet>
     private async Task InstallAllPackages()
     {
         foreach (var package in WingetPackages.Values)
-        {
             await InstallPackage(package);
-        }
     }
 
     private async Task InstallPackage(string packageId)
@@ -102,17 +107,15 @@ public partial class WinGet : Singleton<WinGet>
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
             ChildProcessTracker.Track(process);
             try
             {
                 while (await process.StandardOutput.ReadLineAsync() is { } line)
-                {
                     if (!string.IsNullOrEmpty(line.Trim()))
                         Log.Debug("{Winget}: {Line}", "winget", line);
-                }
                 var error = await process.StandardError.ReadToEndAsync();
                 await process.WaitForExitAsync();
                 if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))

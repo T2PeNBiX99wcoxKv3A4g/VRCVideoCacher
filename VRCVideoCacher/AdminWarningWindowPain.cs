@@ -9,12 +9,12 @@ public class AdminWarningWindowPain : Window
     public AdminWarningWindowPain(string error)
     {
         var okButton =
-                new Button
-                {
-                    Content = "OK",
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    Width = 80,
-                };
+            new Button
+            {
+                Content = "OK",
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Width = 80
+            };
         okButton.Click += (_, _) => Close();
 
         Title = "VRCVideoCacher";

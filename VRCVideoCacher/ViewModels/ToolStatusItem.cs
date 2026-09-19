@@ -10,7 +10,7 @@ public enum ToolState
     Ok,
     Warning,
     Failed,
-    NotApplicable,
+    NotApplicable
 }
 
 /// <summary>One row in the dashboard's Required Tools panel: a tool's name, verified state, and a detail
@@ -19,13 +19,10 @@ public partial class ToolStatusItem : ObservableObject
 {
     public string Name { get; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IconKind))]
-    [NotifyPropertyChangedFor(nameof(StatusBrush))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IconKind))] [NotifyPropertyChangedFor(nameof(StatusBrush))]
     private ToolState _state;
 
-    [ObservableProperty]
-    private string _detail = string.Empty;
+    [ObservableProperty] private string _detail = string.Empty;
 
     public ToolStatusItem(string name, ToolState state = ToolState.Checking)
     {
@@ -39,7 +36,7 @@ public partial class ToolStatusItem : ObservableObject
         ToolState.Warning => MaterialIconKind.AlertCircle,
         ToolState.Failed => MaterialIconKind.CloseCircle,
         ToolState.NotApplicable => MaterialIconKind.MinusCircle,
-        _ => MaterialIconKind.ProgressClock,
+        _ => MaterialIconKind.ProgressClock
     };
 
     public IBrush StatusBrush => new SolidColorBrush(Color.Parse(State switch
@@ -47,6 +44,6 @@ public partial class ToolStatusItem : ObservableObject
         ToolState.Ok => "#81C784",
         ToolState.Warning => "#FFB74D",
         ToolState.Failed => "#E57373",
-        _ => "#888888",
+        _ => "#888888"
     }));
 }

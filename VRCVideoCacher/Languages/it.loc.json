@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "Elimina voce",
   "Logs": "Logs",
   "About": "Informazioni",
-
   "Refresh": "Aggiorna",
   "Save": "Salva",
   "Reset": "Ripristina",
@@ -24,7 +23,6 @@
   "Language": "Lingua",
   "General": "Generale",
   "ShowAdvancedSettings": "Mostra impostazioni avanzate",
-
   "ToggleHostTooltip": "Usa il dominio YouTube per la cache di localhost",
   "ServerStatus": "Stato del Server",
   "Cache": "Cache",
@@ -55,7 +53,6 @@
   "StatusProviderSetup": "Configurazione del provider di token PO",
   "StatusProviderWaiting": "In attesa del provider di token PO",
   "StatusMore": " (+{0} altri)",
-
   "ServerSettings": "Impostazioni Server",
   "WebServerUrl": "URL Web Server",
   "DownloadSettings": "Impostazioni Download",
@@ -103,14 +100,12 @@
   "SettingsReset": "Impostazioni ripristinate ai valori salvati l'ultima volta.",
   "SettingsUnsavedChanges": "Hai modifiche non salvate.",
   "RedirectVRDancing": "Reindirizza EU VRDancing a NA",
-
   "OpenFolder": "Apri Cartella",
   "OpenUrl": "Apri URL",
   "CopyUrl": "Copia URL",
   "DeleteAllCache": "Elimina tutta la cache",
   "SearchVideosWatermark": "Cerca video...",
   "VideosCountFormat": "{0} di {1} video",
-
   "DownloadQueue": "Coda Download",
   "ClearQueue": "Svuota Coda",
   "CurrentDownload": "Download in corso",
@@ -119,7 +114,6 @@
   "EnterVideoUrl": "Inserisci URL video...",
   "QueuedDownloads": "Download in coda",
   "QueueIsEmpty": "La coda è vuota",
-
   "LogViewer": "Visualizzatore Logs",
   "ScrollToBottom": "Scorri fino in fondo",
   "ExportLogs": "Esporta Logs",
@@ -130,9 +124,7 @@
   "Warning": "Avviso",
   "Error": "Errore",
   "AutoScroll": "Scorrimento automatico",
-
   "EntriesCountFormat": "{0} voci",
-
   "CookieSetupTitle": "Configurazione Estensione Cookie YouTube",
   "CookieSetupSubtitle": "Risolvi gli errori di rilevamento bot di YouTube",
   "CookieSetupStep1Header": "Passaggio 1: Seleziona il tuo browser",
@@ -162,12 +154,10 @@
   "AddHostsEntry": "Aggiungi Voce Hosts",
   "OpenChromeWebStore": "Apri Chrome Web Store",
   "OpenFirefoxAddons": "Apri Firefox Add-ons",
-
   "DontShowThisAgain": "Non mostrare più questo messaggio",
   "TrayShow": "Mostra",
   "TrayOpenCacheFolder": "Apri cartella Cache",
   "TrayExit": "Esci",
-
   "CreatedBy": "Creato da",
   "ReportAnIssue": "Segnala un problema",
   "OpenIssueOnGitHub": "Apri una segnalazione su GitHub",

@@ -23,15 +23,15 @@ public partial class YtdlManager : Singleton<YtdlManager>
         }
     };
 
-    [PublicAPI]
-    public readonly string CookiesPath2 = Path.Join(Program.DataPath, "youtube_cookies.txt");
-    [PublicAPI]
-    public readonly string YtdlPath2 = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
-    [PublicAPI]
-    public readonly string DenoPath2 = Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
+    [PublicAPI] public readonly string CookiesPath2 = Path.Join(Program.DataPath, "youtube_cookies.txt");
 
-    [PublicAPI]
-    public readonly string FfmpegPath2 =
+    [PublicAPI] public readonly string YtdlPath2 =
+        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
+
+    [PublicAPI] public readonly string DenoPath2 =
+        Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
+
+    [PublicAPI] public readonly string FfmpegPath2 =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
@@ -83,11 +83,11 @@ public partial class YtdlManager : Singleton<YtdlManager>
         if (LaunchArgs.UseGlobalPath)
         {
             YtdlPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ??
-                       throw new FileNotFoundException("Unable to find yt-dlp");
+                        throw new FileNotFoundException("Unable to find yt-dlp");
             DenoPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "deno.exe" : "deno") ??
-                       throw new FileNotFoundException("Unable to find Deno runtime");
+                        throw new FileNotFoundException("Unable to find Deno runtime");
             FfmpegPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg") ??
-                         string.Empty;
+                          string.Empty;
         }
 
         Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath);

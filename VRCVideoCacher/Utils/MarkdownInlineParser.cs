@@ -47,7 +47,7 @@ public static class MarkdownInlineParser
         {
             if (buffer.Length == 0)
                 return;
-            spans.Add(new MarkdownSpan(buffer.ToString(), bold, italic));
+            spans.Add(new(buffer.ToString(), bold, italic));
             buffer.Clear();
         }
 
@@ -66,7 +66,7 @@ public static class MarkdownInlineParser
             if (c is '\n')
             {
                 Flush();
-                spans.Add(new MarkdownSpan(string.Empty, LineBreak: true));
+                spans.Add(new(string.Empty, LineBreak: true));
                 i++;
                 continue;
             }
@@ -80,7 +80,7 @@ public static class MarkdownInlineParser
             if (c == '[' && TryParseLink(text, i, out var linkText, out var linkUrl, out var linkEnd))
             {
                 Flush();
-                spans.Add(new MarkdownSpan(linkText, bold, italic, linkUrl));
+                spans.Add(new(linkText, bold, italic, linkUrl));
                 i = linkEnd;
                 continue;
             }
@@ -88,7 +88,7 @@ public static class MarkdownInlineParser
             if (c is 'h' && TryParseBareUrl(text, i, out var bareUrl, out var bareEnd))
             {
                 Flush();
-                spans.Add(new MarkdownSpan(bareUrl, bold, italic, bareUrl));
+                spans.Add(new(bareUrl, bold, italic, bareUrl));
                 i = bareEnd;
                 continue;
             }
@@ -104,7 +104,8 @@ public static class MarkdownInlineParser
                 if (!open || HasCloser(text, i + marker.Length, marker))
                 {
                     Flush();
-                    if (isBold) bold = !bold; else italic = !italic;
+                    if (isBold) bold = !bold;
+                    else italic = !italic;
                     i += marker.Length;
                     continue;
                 }

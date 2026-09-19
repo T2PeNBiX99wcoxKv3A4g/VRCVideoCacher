@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "Удалить запись",
   "Logs": "Логи",
   "About": "О программе",
-
   "Refresh": "Обновить",
   "Save": "Сохранить",
   "Reset": "Сбросить",
@@ -24,7 +23,6 @@
   "Language": "Язык программы",
   "General": "Общие",
   "ShowAdvancedSettings": "Показать расширенные настройки",
-
   "ToggleHostTooltip": "Переключить локальный домен Ютуба(YouTube) для использования кэша",
   "ServerStatus": "Статус сервера",
   "Cache": "Кэш",
@@ -55,7 +53,6 @@
   "StatusProviderSetup": "Настройка провайдера PO-токенов",
   "StatusProviderWaiting": "Ожидание провайдера PO-токенов",
   "StatusMore": " (ещё {0})",
-
   "ServerSettings": "Настройки сервера",
   "WebServerUrl": "URL-Веб сервера",
   "DownloadSettings": "Настройки загрузки",
@@ -103,14 +100,12 @@
   "SettingsReset": "Настройки сброшенны до последнего сохранения",
   "SettingsUnsavedChanges": "У вас есть несохраненные изменения!",
   "RedirectVRDancing": "Перенаправлять EU VRDancing на NA",
-
   "OpenFolder": "Открыть папку..",
   "OpenUrl": "Открыть URL",
   "CopyUrl": "Скопировать URL",
   "DeleteAllCache": "Удалить весь кэш",
   "SearchVideosWatermark": "Поиск видео...",
   "VideosCountFormat": "{0} из {1} видео",
-
   "DownloadQueue": "Очередь загрузки",
   "ClearQueue": "Очистить очередь",
   "CurrentDownload": "Текущяя загрузка",
@@ -119,7 +114,6 @@
   "EnterVideoUrl": "Введите URl видео...",
   "QueuedDownloads": "Загрузки в очереди..",
   "QueueIsEmpty": "Очередь пуста..",
-
   "LogViewer": "Просмотр логов",
   "ScrollToBottom": "Прокрутить вниз",
   "ExportLogs": "Экспортировать логи",
@@ -130,9 +124,7 @@
   "Warning": "Предупреждение",
   "Error": "Ошибка!",
   "AutoScroll": "Авто-прокручивание",
-
   "EntriesCountFormat": "{0} Записей",
-
   "CookieSetupTitle": "Настройка расширения YouTube Cookie",
   "CookieSetupSubtitle": "Исправление ошибок обнаружение ботов на YouTube",
   "CookieSetupStep1Header": "Шаг 1-ый: выберите свой браузер",
@@ -162,12 +154,10 @@
   "AddHostsEntry": "Добавить запись в hosts",
   "OpenChromeWebStore": "Открыть Chrome Web Store (Chrome Веб магазин)",
   "OpenFirefoxAddons": "Открыть Firefox Add-ons (FireFox Аддоны)",
-
   "DontShowThisAgain": "Не показывать это снова.",
   "TrayShow": "Показать",
   "TrayOpenCacheFolder": "Открыть папку с кэшом",
   "TrayExit": "Выход.",
-
   "CreatedBy": "Авторы",
   "ReportAnIssue": "Сообщить о проблеме..",
   "OpenIssueOnGitHub": "Открыть задачу на GitHub",

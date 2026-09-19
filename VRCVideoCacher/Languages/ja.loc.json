@@ -10,8 +10,7 @@
   "DeleteHistoryEntry": "エントリを削除",
   "Logs": "ログ",
   "About": "バージョン情報",
- 
- "Refresh": "更新",
+  "Refresh": "更新",
   "Save": "保存",
   "Reset": "リセット",
   "Add": "追加",
@@ -24,8 +23,7 @@
   "Language": "言語",
   "General": "一般",
   "ShowAdvancedSettings": "高度な設定を表示",
- 
- "ToggleHostTooltip": "ローカルホストキャッシュに YouTube ドメインを使用するかどうかを切り替えます",
+  "ToggleHostTooltip": "ローカルホストキャッシュに YouTube ドメインを使用するかどうかを切り替えます",
   "ServerStatus": "サーバーの状態",
   "Cache": "キャッシュ",
   "YouTubeCookies": "YouTube の Cookie",
@@ -55,8 +53,7 @@
   "StatusProviderSetup": "PO トークンプロバイダーを設定中",
   "StatusProviderWaiting": "PO トークンプロバイダーを待機中",
   "StatusMore": "(ほか {0} 件)",
- 
- "ServerSettings": "サーバーの設定",
+  "ServerSettings": "サーバーの設定",
   "WebServerUrl": "Web サーバーの URL",
   "DownloadSettings": "ダウンロードの設定",
   "UseYouTubeCookies": "YouTube の Cookie を使用する (ブラウザーの拡張機能が必要)",
@@ -103,8 +100,7 @@
   "SettingsReset": "設定を最後に保存した値にリセットしました。",
   "SettingsUnsavedChanges": "保存していない変更があります。",
   "RedirectVRDancing": "EU の VRDancing を NA にリダイレクト",
- 
- "OpenFolder": "フォルダーを開く",
+  "OpenFolder": "フォルダーを開く",
   "OpenUrl": "URLを開く",
   "CopyUrl": "URLをコピー",
   "DeleteAllCache": "すべてのキャッシュを削除",
@@ -118,7 +114,6 @@
   "EnterVideoUrl": "動画の URL を入力...",
   "QueuedDownloads": "待機中のダウンロード",
   "QueueIsEmpty": "キューは空です",
-
   "LogViewer": "ログビューアー",
   "ScrollToBottom": "一番下にスクロール",
   "ExportLogs": "ログをエクスポート",
@@ -129,9 +124,7 @@
   "Warning": "警告",
   "Error": "エラー",
   "AutoScroll": "自動スクロール",
- 
- "EntriesCountFormat": "{0} 件のエントリ",
-
+  "EntriesCountFormat": "{0} 件のエントリ",
   "CookieSetupTitle": "YouTube の Cookie 拡張機能をセットアップ",
   "CookieSetupSubtitle": "YouTube のボット検出による問題を修正します",
   "CookieSetupStep1Header": "ステップ 1: ブラウザーを選択",
@@ -161,12 +154,10 @@
   "AddHostsEntry": "hosts エントリを追加",
   "OpenChromeWebStore": "Chrome ウェブストアを開く",
   "OpenFirefoxAddons": "Firefox Add-ons を開く",
- 
- "DontShowThisAgain": "今後表示しない",
+  "DontShowThisAgain": "今後表示しない",
   "TrayShow": "表示",
   "TrayOpenCacheFolder": "キャッシュフォルダーを開く",
   "TrayExit": "終了",
-
   "CreatedBy": "開発者:",
   "ReportAnIssue": "問題を報告",
   "OpenIssueOnGitHub": "GitHub の Issue を開く",

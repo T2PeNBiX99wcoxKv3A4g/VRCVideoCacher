@@ -17,7 +17,8 @@ public partial class VideoTools : Singleton<VideoTools>
 
         // Determine if the URL is an M3U8 playlist
         var uri = new Uri(videoUrl);
-        var isM3U8 = uri.AbsolutePath.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase) || videoUrl.Contains("mime=application/vnd.apple.mpegurl");
+        var isM3U8 = uri.AbsolutePath.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase) ||
+                     videoUrl.Contains("mime=application/vnd.apple.mpegurl");
 
         // Prefetch the video URL
         // - Use GET for M3U8 to extract the direct stream URL
@@ -26,10 +27,12 @@ public partial class VideoTools : Singleton<VideoTools>
         using var prefetchResponse = await _httpClient.SendAsync(prefetchRequest);
         Log.Information("Video prefetch request returned status code {status}.", (int)prefetchResponse.StatusCode);
 
-        if (prefetchRequest.Method == HttpMethod.Get && prefetchResponse.Content.Headers.ContentType?.MediaType == "application/vnd.apple.mpegurl")
+        if (prefetchRequest.Method == HttpMethod.Get && prefetchResponse.Content.Headers.ContentType?.MediaType ==
+            "application/vnd.apple.mpegurl")
         {
             var body = await prefetchResponse.Content.ReadAsStringAsync();
-            firstM3U8Url = body.Split('\n').FirstOrDefault(line => Uri.IsWellFormedUriString(line, UriKind.RelativeOrAbsolute));
+            firstM3U8Url = body.Split('\n')
+                .FirstOrDefault(line => Uri.IsWellFormedUriString(line, UriKind.RelativeOrAbsolute));
         }
 
         if (firstM3U8Url == null)

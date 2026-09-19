@@ -18,8 +18,8 @@
         <!-- Main Body (Sidebar + Content View) -->
         <Grid Grid.Row="0" ColumnDefinitions="250, *">
             <!-- Sleek Sidebar Navigation -->
-            <Border Grid.Column="0" 
-                    Background="{StaticResource SidebarBackgroundBrush}" 
+            <Border Grid.Column="0"
+                    Background="{StaticResource SidebarBackgroundBrush}"
                     BorderBrush="{StaticResource DividerBrush}"
                     BorderThickness="0,0,1,0"
                     Padding="14, 16, 14, 14">
@@ -27,31 +27,31 @@
                     <!-- Brand / App Banner Header -->
                     <Border Grid.Row="0" Margin="0,2,0,18" HorizontalAlignment="Stretch">
                         <StackPanel Spacing="10">
-                            <Border Background="{StaticResource MediaThumbnailBackgroundBrush}" 
-                                    BorderBrush="{StaticResource NavButtonHoverBorderBrush}" 
-                                    BorderThickness="1" 
-                                    CornerRadius="12" 
+                            <Border Background="{StaticResource MediaThumbnailBackgroundBrush}"
+                                    BorderBrush="{StaticResource NavButtonHoverBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
                                     Padding="10, 8">
                                 <Border.Transitions>
                                     <Transitions>
-                                        <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
-                                        <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                                        <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                                        <BrushTransition Property="Background" Duration="0:0:0.2" />
                                     </Transitions>
                                 </Border.Transitions>
                                 <Grid ColumnDefinitions="Auto, *">
-                                    <Image Grid.Column="0" 
-                                           Source="avares://VRCVideoCacher/Assets/icon.ico" 
-                                           Width="32" Height="32" 
+                                    <Image Grid.Column="0"
+                                           Source="avares://VRCVideoCacher/Assets/icon.ico"
+                                           Width="32" Height="32"
                                            Margin="0,0,10,0"
-                                           VerticalAlignment="Center"/>
+                                           VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                                        <TextBlock Text="VRCVideoCacher" 
-                                                   FontWeight="Bold" 
-                                                   FontSize="14" 
-                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="Video Stream Proxy" 
-                                                   FontSize="11" 
-                                                   Foreground="{StaticResource PrimaryLightBrush}"/>
+                                        <TextBlock Text="VRCVideoCacher"
+                                                   FontWeight="Bold"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <TextBlock Text="Video Stream Proxy"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource PrimaryLightBrush}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -62,34 +62,38 @@
                     <ScrollViewer Grid.Row="1">
                         <StackPanel Spacing="4">
                             <!-- Category: MAIN -->
-                            <TextBlock Text="OVERVIEW" 
-                                       FontSize="10" 
-                                       FontWeight="Bold" 
-                                       Foreground="{StaticResource TextMutedBrush}" 
-                                       Margin="8,4,0,6"/>
+                            <TextBlock Text="OVERVIEW"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       Margin="8,4,0,6" />
 
                             <Button Command="{Binding NavigateToDashboardCommand}"
                                     Classes="nav-button"
                                     Classes.active="{Binding IsDashboardActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="ViewDashboardOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize Dashboard}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="ViewDashboardOutline" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Dashboard}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
 
                             <!-- Category: MEDIA -->
-                            <TextBlock Text="MEDIA &amp; CACHE" 
-                                       FontSize="10" 
-                                       FontWeight="Bold" 
-                                       Foreground="{StaticResource TextMutedBrush}" 
-                                       Margin="8,12,0,6"/>
+                            <TextBlock Text="MEDIA &amp; CACHE"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       Margin="8,12,0,6" />
 
                             <Button Command="{Binding NavigateToCacheBrowserCommand}"
                                     Classes="nav-button"
                                     Classes.active="{Binding IsCacheBrowserActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="FolderPlayOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize CacheBrowser}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="FolderPlayOutline" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize CacheBrowser}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
 
@@ -97,8 +101,10 @@
                                     Classes="nav-button"
                                     Classes.active="{Binding IsHistoryActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="History" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize History}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="History" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize History}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
 
@@ -106,24 +112,28 @@
                                     Classes="nav-button"
                                     Classes.active="{Binding IsDownloadQueueActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="DownloadOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize Downloads}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="DownloadOutline" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Downloads}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
 
                             <!-- Category: SYSTEM -->
-                            <TextBlock Text="SYSTEM" 
-                                       FontSize="10" 
-                                       FontWeight="Bold" 
-                                       Foreground="{StaticResource TextMutedBrush}" 
-                                       Margin="8,12,0,6"/>
+                            <TextBlock Text="SYSTEM"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       Margin="8,12,0,6" />
 
                             <Button Command="{Binding NavigateToSettingsCommand}"
                                     Classes="nav-button"
                                     Classes.active="{Binding IsSettingsActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="CogOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize Settings}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="CogOutline" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Settings}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
 
@@ -131,8 +141,10 @@
                                     Classes="nav-button"
                                     Classes.active="{Binding IsLogViewerActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="ConsoleLine" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize Logs}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="ConsoleLine" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize Logs}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
 
@@ -140,41 +152,46 @@
                                     Classes="nav-button"
                                     Classes.active="{Binding IsAboutActive}">
                                 <Grid ColumnDefinitions="26, *">
-                                    <mi:MaterialIcon Grid.Column="0" Kind="InformationOutline" Width="19" Height="19" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{l:Localize About}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <mi:MaterialIcon Grid.Column="0" Kind="InformationOutline" Width="19" Height="19"
+                                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{l:Localize About}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" />
                                 </Grid>
                             </Button>
                         </StackPanel>
                     </ScrollViewer>
 
                     <!-- Sidebar Bottom Quick Widget -->
-                    <Border Grid.Row="2" 
-                            Background="{StaticResource SidebarWidgetBackgroundBrush}" 
-                            BorderBrush="{StaticResource SidebarWidgetBorderBrush}" 
-                            BorderThickness="1" 
-                            CornerRadius="10" 
-                            Padding="10, 8" 
+                    <Border Grid.Row="2"
+                            Background="{StaticResource SidebarWidgetBackgroundBrush}"
+                            BorderBrush="{StaticResource SidebarWidgetBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="10, 8"
                             Margin="0,10,0,0">
                         <Border.Transitions>
                             <Transitions>
-                                <BrushTransition Property="Background" Duration="0:0:0.2"/>
-                                <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                                <BrushTransition Property="Background" Duration="0:0:0.2" />
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
                             </Transitions>
                         </Border.Transitions>
                         <Grid ColumnDefinitions="Auto, *">
-                            <Border Grid.Column="0" 
-                                    Background="{StaticResource SidebarWidgetIconBackgroundBrush}" 
-                                    CornerRadius="8" 
-                                    Width="30" Height="30" 
+                            <Border Grid.Column="0"
+                                    Background="{StaticResource SidebarWidgetIconBackgroundBrush}"
+                                    CornerRadius="8"
+                                    Width="30" Height="30"
                                     Margin="0,0,8,0">
-                                <mi:MaterialIcon Kind="Harddisk" Width="16" Height="16" Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <mi:MaterialIcon Kind="Harddisk" Width="16" Height="16"
+                                                 Foreground="{StaticResource PrimaryLightBrush}"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="CACHE STORAGE" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Text="{Binding CacheStatusText}" 
-                                           FontSize="11" 
-                                           Foreground="{StaticResource TextSecondaryBrush}" 
-                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="CACHE STORAGE" FontSize="9.5" FontWeight="Bold"
+                                           Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="{Binding CacheStatusText}"
+                                           FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -185,29 +202,29 @@
             <Border Grid.Column="1" Background="{StaticResource AppBackgroundBrush}" Padding="18, 14, 18, 14">
                 <TransitioningContentControl Content="{Binding CurrentView}">
                     <TransitioningContentControl.PageTransition>
-                        <CrossFade Duration="0:0:0.2"/>
+                        <CrossFade Duration="0:0:0.2" />
                     </TransitioningContentControl.PageTransition>
                     <TransitioningContentControl.DataTemplates>
                         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
-                            <views:DashboardView/>
+                            <views:DashboardView />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
-                            <views:SettingsView/>
+                            <views:SettingsView />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:CacheBrowserViewModel}">
-                            <views:CacheBrowserView/>
+                            <views:CacheBrowserView />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:DownloadQueueViewModel}">
-                            <views:DownloadQueueView/>
+                            <views:DownloadQueueView />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:LogViewerViewModel}">
-                            <views:LogViewerView/>
+                            <views:LogViewerView />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
-                            <views:HistoryView/>
+                            <views:HistoryView />
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-                            <views:AboutView/>
+                            <views:AboutView />
                         </DataTemplate>
                     </TransitioningContentControl.DataTemplates>
                 </TransitioningContentControl>
@@ -215,39 +232,40 @@
         </Grid>
 
         <!-- Modern High-Tech Status Bar -->
-        <Border Grid.Row="1" 
-                Background="{StaticResource SidebarBackgroundBrush}" 
+        <Border Grid.Row="1"
+                Background="{StaticResource SidebarBackgroundBrush}"
                 BorderBrush="{StaticResource DividerBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="16, 8">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <!-- Activity Status Indicator -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Background="{StaticResource StatusIndicatorSuccessSubtleBrush}" 
-                            BorderBrush="{StaticResource StatusIndicatorSuccessBorderBrush}" 
-                            BorderThickness="1" 
-                            CornerRadius="10" 
+                    <Border Background="{StaticResource StatusIndicatorSuccessSubtleBrush}"
+                            BorderBrush="{StaticResource StatusIndicatorSuccessBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
                             Width="16" Height="16">
-                        <Border Background="{StaticResource StatusIndicatorSuccessDotBrush}" CornerRadius="4" Width="6" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{StaticResource StatusIndicatorSuccessDotBrush}" CornerRadius="4" Width="6"
+                                Height="6" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <TextBlock Text="{Binding StatusText}" 
-                               Foreground="{Binding StatusColor}" 
+                    <TextBlock Text="{Binding StatusText}"
+                               Foreground="{Binding StatusColor}"
                                FontSize="12"
                                FontWeight="Medium"
-                               VerticalAlignment="Center"/>
+                               VerticalAlignment="Center" />
                 </StackPanel>
 
                 <!-- Status Progress Bar (if active) -->
-                <ProgressBar Grid.Column="1" 
+                <ProgressBar Grid.Column="1"
                              Margin="20,0"
-                             Height="4" 
+                             Height="4"
                              Minimum="0" Maximum="1"
                              CornerRadius="2"
                              Foreground="{StaticResource PrimaryGradientBrush}"
                              VerticalAlignment="Center"
                              IsVisible="{Binding StatusShowBar}"
                              IsIndeterminate="{Binding StatusIndeterminate}"
-                             Value="{Binding StatusProgress}"/>
+                             Value="{Binding StatusProgress}" />
 
                 <!-- Right Side Status Chips -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -257,11 +275,12 @@
                             CornerRadius="6"
                             Padding="8, 3">
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="CheckCircleOutline" Width="13" Height="13" Foreground="{StaticResource SuccessBrush}"/>
-                            <TextBlock Text="Ready" 
-                                       Foreground="{StaticResource TextSecondaryBrush}" 
-                                       FontSize="11.5" 
-                                       VerticalAlignment="Center"/>
+                            <mi:MaterialIcon Kind="CheckCircleOutline" Width="13" Height="13"
+                                             Foreground="{StaticResource SuccessBrush}" />
+                            <TextBlock Text="Ready"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       FontSize="11.5"
+                                       VerticalAlignment="Center" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

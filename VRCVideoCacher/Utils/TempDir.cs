@@ -33,6 +33,7 @@ public sealed class TempDir : IDisposable
             // If we couldn't delete it (e.g. because it wasn't empty), then leave it around for debugging. The OS will
             // eventually clean this up for us.
         }
+
         _disposed = true;
     }
 }

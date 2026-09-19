@@ -102,8 +102,10 @@
                 <Border Classes="card">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Border Background="{StaticResource DangerSubtleBrush}" CornerRadius="6" Width="26" Height="26">
-                                <mi:MaterialIcon Kind="Youtube" Width="16" Height="16" Foreground="{StaticResource DangerBrush}"
+                            <Border Background="{StaticResource DangerSubtleBrush}" CornerRadius="6" Width="26"
+                                    Height="26">
+                                <mi:MaterialIcon Kind="Youtube" Width="16" Height="16"
+                                                 Foreground="{StaticResource DangerBrush}"
                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="{l:Localize YouTubeSabrOptions}" FontWeight="Bold" FontSize="15"

@@ -1,4 +1,5 @@
 // ReSharper disable InconsistentNaming
+
 namespace VRCVideoCacher.Models;
 
 public enum UrlType

@@ -15,34 +15,47 @@
     <Grid RowDefinitions="Auto, *, Auto" Margin="20">
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16" Spacing="4">
-            <TextBlock Text="{l:Localize CookieSetupTitle}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-            <TextBlock Text="{l:Localize CookieSetupSubtitle}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+            <TextBlock Text="{l:Localize CookieSetupTitle}" FontSize="20" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+            <TextBlock Text="{l:Localize CookieSetupSubtitle}" Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="13" />
         </StackPanel>
 
         <!-- Content - Step 1: Browser Selection -->
         <Border Grid.Row="1" Classes="card"
                 IsVisible="{Binding IsStep1}">
             <StackPanel Spacing="16">
-                <TextBlock Text="{l:Localize CookieSetupStep1Header}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="{l:Localize CookieSetupStep1Desc}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18"/>
+                <TextBlock Text="{l:Localize CookieSetupStep1Header}" FontSize="15" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="{l:Localize CookieSetupStep1Desc}" TextWrapping="Wrap"
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18" />
 
                 <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center" Margin="0,16,0,0">
-                    <Button Command="{Binding SelectChromeCommand}" Width="200" Height="140" 
+                    <Button Command="{Binding SelectChromeCommand}" Width="200" Height="140"
                             Classes="secondary"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="GoogleChrome" Width="36" Height="36" Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{l:Localize Chrome}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{l:Localize ChromeBased}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                            <mi:MaterialIcon Kind="GoogleChrome" Width="36" Height="36"
+                                             Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{l:Localize Chrome}" FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{l:Localize ChromeBased}" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"
+                                       TextWrapping="Wrap" />
                         </StackPanel>
                     </Button>
-                    <Button Command="{Binding SelectFirefoxCommand}" Width="200" Height="140" 
+                    <Button Command="{Binding SelectFirefoxCommand}" Width="200" Height="140"
                             Classes="secondary"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <mi:MaterialIcon Kind="Firefox" Width="36" Height="36" Foreground="{StaticResource BrandFirefoxBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{l:Localize Firefox}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{l:Localize FirefoxBased}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                            <mi:MaterialIcon Kind="Firefox" Width="36" Height="36"
+                                             Foreground="{StaticResource BrandFirefoxBrush}"
+                                             HorizontalAlignment="Center" />
+                            <TextBlock Text="{l:Localize Firefox}" FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{l:Localize FirefoxBased}" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"
+                                       TextWrapping="Wrap" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -53,20 +66,26 @@
         <Border Grid.Row="1" Classes="card"
                 IsVisible="{Binding IsStep2}">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Bottom" Text="{l:Localize CookieSetupStep2AccountWarning}" TextWrapping="Wrap" Foreground="{StaticResource WarningBrush}" FontSize="12" Margin="0,15,0,0"/>
+                <TextBlock DockPanel.Dock="Bottom" Text="{l:Localize CookieSetupStep2AccountWarning}"
+                           TextWrapping="Wrap" Foreground="{StaticResource WarningBrush}" FontSize="12"
+                           Margin="0,15,0,0" />
 
                 <StackPanel Spacing="14">
-                    <TextBlock Text="{l:Localize CookieSetupStep2Header}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{l:Localize CookieSetupStep2Desc}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18"/>
+                    <TextBlock Text="{l:Localize CookieSetupStep2Header}" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{l:Localize CookieSetupStep2Desc}" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18" />
 
-                    <Button Command="{Binding OpenExtensionStoreCommand}" Classes="primary" HorizontalAlignment="Center" Margin="0,8,0,0" Padding="16,8">
+                    <Button Command="{Binding OpenExtensionStoreCommand}" Classes="primary"
+                            HorizontalAlignment="Center" Margin="0,8,0,0" Padding="16,8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16"/>
-                            <TextBlock Text="{Binding ExtensionStoreButtonText}"/>
+                            <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16" />
+                            <TextBlock Text="{Binding ExtensionStoreButtonText}" />
                         </StackPanel>
                     </Button>
 
-                    <TextBlock Text="{l:Localize CookieSetupStep2AfterInstall}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,8,0,0"/>
+                    <TextBlock Text="{l:Localize CookieSetupStep2AfterInstall}" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,8,0,0" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -76,26 +95,30 @@
                 IsVisible="{Binding IsStep3}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="{l:Localize CookieSetupStep3Header}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{l:Localize CookieSetupStep3Desc}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18"/>
+                    <TextBlock Text="{l:Localize CookieSetupStep3Header}" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{l:Localize CookieSetupStep3Desc}" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18" />
 
-                    <Button Command="{Binding OpenYouTubeCommand}" Classes="primary" HorizontalAlignment="Center" Margin="0,4,0,0" Padding="16,8">
+                    <Button Command="{Binding OpenYouTubeCommand}" Classes="primary" HorizontalAlignment="Center"
+                            Margin="0,4,0,0" Padding="16,8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <mi:MaterialIcon Kind="Youtube" Width="18" Height="18"/>
-                            <TextBlock Text="{l:Localize OpenYouTube}"/>
+                            <mi:MaterialIcon Kind="Youtube" Width="18" Height="18" />
+                            <TextBlock Text="{l:Localize OpenYouTube}" />
                         </StackPanel>
                     </Button>
 
                     <Border Classes="card-subtle" Margin="0,4,0,0" Padding="12">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <mi:MaterialIcon Kind="{Binding CookieStatusIcon}" Width="22" Height="22"
-                                            Foreground="{Binding CookieStatusColor}"/>
+                                             Foreground="{Binding CookieStatusColor}" />
                             <TextBlock Text="{Binding CookieStatusText}" VerticalAlignment="Center"
-                                      Foreground="{Binding CookieStatusColor}" FontWeight="Medium"/>
+                                       Foreground="{Binding CookieStatusColor}" FontWeight="Medium" />
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Text="{l:Localize CookieSetupStep3Note}" TextWrapping="Wrap" Foreground="{StaticResource TextMutedBrush}" FontSize="11" Margin="0,4,0,0"/>
+                    <TextBlock Text="{l:Localize CookieSetupStep3Note}" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextMutedBrush}" FontSize="11" Margin="0,4,0,0" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
@@ -104,26 +127,29 @@
         <Border Grid.Row="1" Classes="card"
                 IsVisible="{Binding IsStep4}">
             <StackPanel Spacing="14">
-                <TextBlock Text="{l:Localize CookieSetupStep4Header}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="{l:Localize CookieSetupStep4Desc}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18"/>
+                <TextBlock Text="{l:Localize CookieSetupStep4Header}" FontSize="15" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="{l:Localize CookieSetupStep4Desc}" TextWrapping="Wrap"
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="18" />
 
                 <Border Classes="card-subtle" Padding="12">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <mi:MaterialIcon Kind="{Binding HostStatusIcon}" Width="22" Height="22"
-                                        Foreground="{Binding HostStatusColor}"/>
+                                         Foreground="{Binding HostStatusColor}" />
                         <TextBlock Text="{Binding HostStatusText}" VerticalAlignment="Center"
-                                   Foreground="{Binding HostStatusColor}" FontWeight="Medium"/>
+                                   Foreground="{Binding HostStatusColor}" FontWeight="Medium" />
                     </StackPanel>
                 </Border>
 
                 <Button Command="{Binding ToggleHostCommand}" HorizontalAlignment="Left" Padding="12, 7">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <mi:MaterialIcon Kind="ShieldEdit" Width="16" Height="16"/>
-                        <TextBlock Text="{Binding HostButtonText}"/>
+                        <mi:MaterialIcon Kind="ShieldEdit" Width="16" Height="16" />
+                        <TextBlock Text="{Binding HostButtonText}" />
                     </StackPanel>
                 </Button>
 
-                <TextBlock Text="{l:Localize CookieSetupStep4Note}" TextWrapping="Wrap" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
+                <TextBlock Text="{l:Localize CookieSetupStep4Note}" TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
             </StackPanel>
         </Border>
 
@@ -131,23 +157,33 @@
         <Border Grid.Row="1" Classes="card"
                 IsVisible="{Binding IsStep5}">
             <StackPanel Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Border Background="{StaticResource SuccessSubtleBrush}" BorderBrush="{StaticResource BadgeSuccessBorderBrush}" BorderThickness="1" CornerRadius="36" Width="72" Height="72" HorizontalAlignment="Center">
-                    <mi:MaterialIcon Kind="CheckCircleOutline" Width="44" Height="44" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Background="{StaticResource SuccessSubtleBrush}"
+                        BorderBrush="{StaticResource BadgeSuccessBorderBrush}" BorderThickness="1" CornerRadius="36"
+                        Width="72" Height="72" HorizontalAlignment="Center">
+                    <mi:MaterialIcon Kind="CheckCircleOutline" Width="44" Height="44"
+                                     Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
                 </Border>
-                <TextBlock Text="{l:Localize CookieSetupComplete}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                <TextBlock Text="{l:Localize CookieSetupCompleteDesc}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="380" LineHeight="18"/>
+                <TextBlock Text="{l:Localize CookieSetupComplete}" FontSize="18" FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                <TextBlock Text="{l:Localize CookieSetupCompleteDesc}" TextWrapping="Wrap"
+                           Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                           TextAlignment="Center" MaxWidth="380" LineHeight="18" />
             </StackPanel>
         </Border>
 
         <!-- Footer Buttons -->
         <Grid Grid.Row="2" Margin="0,16,0,0">
             <CheckBox Content="{l:Localize DontShowThisAgain}" IsChecked="{Binding DontShowAgainChecked}"
-                      VerticalAlignment="Center" IsVisible="{Binding IsDontShowAgainCheckboxVisible}" Margin="0,0,20,0" Grid.Column="0"/>
+                      VerticalAlignment="Center" IsVisible="{Binding IsDontShowAgainCheckboxVisible}" Margin="0,0,20,0"
+                      Grid.Column="0" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                <Button Content="{l:Localize Cancel}" Command="{Binding CancelCommand}" IsVisible="{Binding !IsStep5}" Padding="14,7"/>
-                <Button Content="{l:Localize Back}" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}" Padding="14,7"/>
+                <Button Content="{l:Localize Cancel}" Command="{Binding CancelCommand}" IsVisible="{Binding !IsStep5}"
+                        Padding="14,7" />
+                <Button Content="{l:Localize Back}" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}"
+                        Padding="14,7" />
                 <Button Content="{Binding NextButtonText}" Command="{Binding NextCommand}"
-                        IsEnabled="{Binding CanGoNext}" Classes="primary" Padding="18,7"/>
+                        IsEnabled="{Binding CanGoNext}" Classes="primary" Padding="18,7" />
             </StackPanel>
         </Grid>
     </Grid>

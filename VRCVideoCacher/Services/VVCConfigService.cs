@@ -10,11 +10,15 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
 {
     private readonly HttpClient _httpClient = new()
     {
-        DefaultRequestHeaders = { { "User-Agent", $"VRCVideoCacher v{Program.Version}" } }
+        DefaultRequestHeaders =
+        {
+            {
+                "User-Agent", $"VRCVideoCacher v{Program.Version}"
+            }
+        }
     };
 
-    [PublicAPI]
-    public VvcConfig CurrentConfig2 { get; private set; } = new();
+    [PublicAPI] public VvcConfig CurrentConfig2 { get; private set; } = new();
     public static event Action? OnApiConfigChanged;
 
     [PublicAPI]

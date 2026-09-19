@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "Excluir entrada",
   "Logs": "Registros",
   "About": "Sobre",
-
   "Refresh": "Atualizar",
   "Save": "Salvar",
   "Reset": "Redefinir",
@@ -24,7 +23,6 @@
   "Language": "Idioma",
   "General": "Geral",
   "ShowAdvancedSettings": "Mostrar configurações avançadas",
-
   "ToggleHostTooltip": "Alternar entre domínio do YouTube e localhost para cachê.",
   "ServerStatus": "Status do servidor",
   "Cache": "Cachê",
@@ -55,7 +53,6 @@
   "StatusProviderSetup": "Configurando o provedor de token PO",
   "StatusProviderWaiting": "Aguardando o provedor de token PO",
   "StatusMore": " (+{0} mais)",
-
   "ServerSettings": "Preferências de servidor",
   "WebServerUrl": "URL de Web Servidor",
   "DownloadSettings": "Preferências de download",
@@ -103,14 +100,12 @@
   "SettingsReset": "Preferências redefinidas para os últimos valores salvos.",
   "SettingsUnsavedChanges": "Você tem mudanças não salvas.",
   "RedirectVRDancing": "Redirecionar VRDancing Europeu para Norte-Americano",
-
   "OpenFolder": "Abrir pasta",
   "OpenUrl": "Abrir URL",
   "CopyUrl": "Copiar URL",
   "DeleteAllCache": "Esvaziar o cachê",
   "SearchVideosWatermark": "Procurar vídeos...",
   "VideosCountFormat": "{0} de {1} vídeos",
-
   "DownloadQueue": "Fila de download",
   "ClearQueue": "Limpar fila",
   "CurrentDownload": "Download atual",
@@ -119,7 +114,6 @@
   "EnterVideoUrl": "Inserir URL do vídeo...",
   "QueuedDownloads": "Downloads inseridos na fila",
   "QueueIsEmpty": "A fila está vazia",
-
   "LogViewer": "Visualizador de registros",
   "ScrollToBottom": "Rolar para o final",
   "ExportLogs": "Exportar registros",
@@ -130,9 +124,7 @@
   "Warning": "Aviso",
   "Error": "Erro",
   "AutoScroll": "Rolar página automaticamente",
-
   "EntriesCountFormat": "{0} itens",
-
   "CookieSetupTitle": "Configuração da extensão de cookies do YouTube",
   "CookieSetupSubtitle": "Corrigir erros de deteção do Bot do YouTube",
   "CookieSetupStep1Header": "Passo 1: Selecionar seu navegador",
@@ -162,12 +154,10 @@
   "AddHostsEntry": "Adicionar entrada em Hosts",
   "OpenChromeWebStore": "Abrir Chrome Web Store",
   "OpenFirefoxAddons": "Abrir Add-ons do Firefox",
-
   "DontShowThisAgain": "Não mostrar novamente",
   "TrayShow": "Mostrar",
   "TrayOpenCacheFolder": "Abrir pasta de cachê",
   "TrayExit": "Encerrar",
-
   "CreatedBy": "Criado por",
   "ReportAnIssue": "Reportar um problema",
   "OpenIssueOnGitHub": "Abrir uma solicitação no GitHub",

@@ -17,8 +17,7 @@ public enum CacheChangeType
 public partial class CacheManager : Singleton<CacheManager>
 {
     private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
-    [PublicAPI]
-    public readonly string CachePath2;
+    [PublicAPI] public readonly string CachePath2;
 
     public CacheManager()
     {

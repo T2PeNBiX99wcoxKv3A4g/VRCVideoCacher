@@ -37,7 +37,6 @@ public class ProtectedStringConverter : JsonConverter<string>
     private static string GetMachineId()
     {
         if (OperatingSystem.IsWindows())
-        {
             try
             {
                 var guid = Registry.GetValue(
@@ -51,9 +50,7 @@ public class ProtectedStringConverter : JsonConverter<string>
             {
                 // ignored
             }
-        }
         else if (OperatingSystem.IsLinux())
-        {
             try
             {
                 if (File.Exists("/etc/machine-id"))
@@ -74,7 +71,6 @@ public class ProtectedStringConverter : JsonConverter<string>
             {
                 // ignored
             }
-        }
 
         return Environment.MachineName;
     }

@@ -11,16 +11,16 @@ public static class SiteHandlerRegistry
         new VRDancingHandler(),
         new TwitterHandler(),
         // fallthrough last
-        new GenericHandler(),
+        new GenericHandler()
     ];
 
     // Rewriters run first, in order, before handler resolution
     private static readonly List<ISiteHandler> Rewriters =
     [
-        new NicoVideoHandler(),   // rewrites nico.ms → nicovideo.life
-        new YTSHandler(),      // rewrites /sr/ → /yt/
+        new NicoVideoHandler(), // rewrites nico.ms → nicovideo.life
+        new YTSHandler(), // rewrites /sr/ → /yt/
         new KaraokeInSyncHandler(), // skips the Karaoke in Sync youtube workaround
-        new ThirdPartyYTResolver(), // dmn.moe, u2b.cx etc → real YT url
+        new ThirdPartyYTResolver() // dmn.moe, u2b.cx etc → real YT url
     ];
 
     public static async Task<string> ApplyRewrites(string url)
@@ -31,6 +31,7 @@ public static class SiteHandlerRegistry
             if (uri == null) return url;
             url = await rewriter.RewriteUrl(url, uri);
         }
+
         return url;
     }
 
