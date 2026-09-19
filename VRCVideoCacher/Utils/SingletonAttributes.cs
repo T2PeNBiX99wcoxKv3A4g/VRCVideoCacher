@@ -45,6 +45,25 @@ public sealed class StaticMemberAttribute : Attribute
 }
 
 /// <summary>
+/// Explicitly includes a non-public (or public) member to generate a static proxy.
+/// </summary>
+[PublicAPI]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event, Inherited = false)]
+public sealed class StaticIncludeAttribute : Attribute
+{
+    public string? Name { get; set; }
+
+    public StaticIncludeAttribute()
+    {
+    }
+
+    public StaticIncludeAttribute(string name)
+    {
+        Name = name;
+    }
+}
+
+/// <summary>
 /// Ignores generating a static proxy for this specific member.
 /// </summary>
 [PublicAPI]

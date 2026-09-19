@@ -100,6 +100,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Global\", Scope = \"type\", Target = \"{targetSpec}\")]");
         sb.AppendLine(
             $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Local\", Scope = \"type\", Target = \"{targetSpec}\")]");
+        sb.AppendLine(
+            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBePrivate.Global\", Scope = \"type\", Target = \"{targetSpec}\")]");
+        sb.AppendLine(
+            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBePrivate.Local\", Scope = \"type\", Target = \"{targetSpec}\")]");
         sb.AppendLine();
 
         // Class configuration
@@ -176,7 +180,14 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
         foreach (var member in members)
         {
-            if (member.IsStatic || member.DeclaredAccessibility != Accessibility.Public)
+            if (member.IsStatic)
+                continue;
+
+            var isPublic = member.DeclaredAccessibility == Accessibility.Public;
+            var isExplicitlyIncluded = HasAttribute(member, "StaticIncludeAttribute", "StaticInclude") ||
+                                       HasAttribute(member, "StaticMemberAttribute", "StaticMember");
+
+            if (!isPublic && !isExplicitlyIncluded)
                 continue;
 
             // Check if ignored
@@ -192,19 +203,27 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     continue; // Skip indexers
                 case IPropertySymbol prop:
                 {
+                    var hasGet = prop.GetMethod != null;
+                    var hasSet = prop.SetMethod != null;
+                    var canGet = hasGet && (isExplicitlyIncluded || prop.GetMethod!.DeclaredAccessibility == Accessibility.Public);
+                    var canSet = hasSet && (isExplicitlyIncluded || prop.SetMethod!.DeclaredAccessibility == Accessibility.Public);
+
+                    if (!canGet && !canSet)
+                        continue;
+
                     var typeStr = prop.Type.ToDisplayString(TypeDisplayFormat);
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
                     sb.AppendLine($"{indent}public static {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
-                    if (prop.GetMethod is { DeclaredAccessibility: Accessibility.Public })
+                    if (canGet)
                     {
                         sb.AppendLine(
                             $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                         sb.AppendLine($"{indent}    get => Instance.{prop.Name};");
                     }
 
-                    if (prop.SetMethod is { DeclaredAccessibility: Accessibility.Public })
+                    if (canSet)
                     {
                         sb.AppendLine(
                             $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
@@ -324,19 +343,27 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 }
                 case IEventSymbol evt:
                 {
+                    var hasAdd = evt.AddMethod != null;
+                    var hasRemove = evt.RemoveMethod != null;
+                    var canAdd = hasAdd && (isExplicitlyIncluded || evt.AddMethod!.DeclaredAccessibility == Accessibility.Public);
+                    var canRemove = hasRemove && (isExplicitlyIncluded || evt.RemoveMethod!.DeclaredAccessibility == Accessibility.Public);
+
+                    if (!canAdd && !canRemove)
+                        continue;
+
                     var typeStr = evt.Type.ToDisplayString(TypeDisplayFormat);
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
                     sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
-                    if (evt.AddMethod is { DeclaredAccessibility: Accessibility.Public })
+                    if (canAdd)
                     {
                         sb.AppendLine(
                             $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                         sb.AppendLine($"{indent}    add => Instance.{evt.Name} += value;");
                     }
 
-                    if (evt.RemoveMethod is { DeclaredAccessibility: Accessibility.Public })
+                    if (canRemove)
                     {
                         sb.AppendLine(
                             $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
@@ -377,7 +404,8 @@ public sealed class SingletonGenerator : IIncrementalGenerator
     private static string? GetCustomMemberName(ISymbol symbol)
     {
         foreach (var attr in symbol.GetAttributes()
-                     .Where(attr => attr.AttributeClass?.Name is "StaticMemberAttribute" or "StaticMember"))
+                     .Where(attr => attr.AttributeClass?.Name is "StaticMemberAttribute" or "StaticMember"
+                         or "StaticIncludeAttribute" or "StaticInclude"))
         {
             if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string s1 &&
                 !string.IsNullOrEmpty(s1))
