@@ -15,16 +15,6 @@ public class ApiController : WebApiController
 {
     private static readonly ILogger Log = Program.Logger.ForContext<ApiController>();
 
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        }
-    };
-
     private static int YoutubePrefetchMaxRetries => VvcConfigService.Instance.CurrentConfig.RetryCount;
 
     [Route(HttpVerbs.Post, "/youtube-cookies")]
