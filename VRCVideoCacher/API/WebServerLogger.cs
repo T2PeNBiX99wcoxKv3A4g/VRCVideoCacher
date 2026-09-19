@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Swan.Logging;
+using VRCVideoCacher.Utils;
+using ILogger = Swan.Logging.ILogger;
+using LogLevel = Swan.Logging.LogLevel;
+using LogMessageReceivedEventArgs = Swan.Logging.LogMessageReceivedEventArgs;
 
 namespace VRCVideoCacher.API;
 
@@ -25,15 +28,15 @@ public partial class WebServerLogger : ILogger
         {
             case LogLevel.Error:
             case LogLevel.Warning:
-                WebServer.Log.Warning("{WebServerLogEvent:l}", message);
+                (WebServer.Instance as ILog).Log.Warning("{WebServerLogEvent:l}", message);
                 break;
             case LogLevel.Info:
                 // SABR HLS segment fetches (206 Partial Content) fire constantly during playback — one per
                 // segment, per viewer — and drown out everything else at Info. Keep them, but at Debug.
                 if (IsHlsPartialContent(rawMessage))
-                    WebServer.Log.Debug("{WebServerLogEvent:l}", message);
+                    (WebServer.Instance as ILog).Log.Debug("{WebServerLogEvent:l}", message);
                 else
-                    WebServer.Log.Information("{WebServerLogEvent:l}", message);
+                    (WebServer.Instance as ILog).Log.Information("{WebServerLogEvent:l}", message);
                 break;
         }
     }

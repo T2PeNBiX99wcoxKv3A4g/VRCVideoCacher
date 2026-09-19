@@ -215,7 +215,7 @@ internal sealed class Program
 
         if (OperatingSystem.IsWindows())
             AutoStartShortcut.Instance.TryUpdateShortcutPath();
-        WebServer.Init();
+        WebServer.Instance.Create();
         FileTools.BackupAllYtdl();
         await BulkPreCache.Instance.DownloadFileList();
 

@@ -1,17 +1,21 @@
+using System.Text;
 using EmbedIO;
 using EmbedIO.Files;
 using EmbedIO.WebApi;
 using Swan.Logging;
+using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 using ILogger = Serilog.ILogger;
 
 namespace VRCVideoCacher.API;
 
-public class WebServer
+public class WebServer : Singleton<WebServer>, ILog
 {
     private static EmbedIO.WebServer? _server;
-    public static readonly ILogger Log = Program.Logger.ForContext<WebServer>();
 
-    public static void Init()
+    ILogger ILog.Log => Log;
+
+    public void Create()
     {
         _server?.Dispose();
 
@@ -19,16 +23,17 @@ public class WebServer
         if (!File.Exists(indexPath))
             File.WriteAllText(indexPath, "VRCVideoCacher");
 
-        Directory.CreateDirectory(Services.SabrRestreamService.HlsRootPath);
+        Directory.CreateDirectory(SabrRestreamService.HlsRootPath);
 
         _server = CreateWebServer(ConfigManager.Config.YtdlpWebServerUrl);
         _server.RunAsync();
     }
 
-    private static EmbedIO.WebServer CreateWebServer(string url)
+    private EmbedIO.WebServer CreateWebServer(string url)
     {
-        try { Logger.UnregisterLogger<ConsoleLogger>(); } catch { /* Not registered */ }
-        try { Logger.UnregisterLogger<WebServerLogger>(); } catch { /* Not registered */ }
+        Try.Run(Logger.UnregisterLogger<ConsoleLogger>);
+        Try.Run(Logger.UnregisterLogger<WebServerLogger>);
+
         Logger.RegisterLogger<WebServerLogger>();
 
         var urls = new List<string>
@@ -52,7 +57,7 @@ public class WebServer
             // requests the idle reaper would tear a playing session down.
             // Not content-cached: segments appear as the fetch progresses.
             .WithModule(new SabrHlsModule("/hls"))
-            .WithStaticFolder("/hls", Services.SabrRestreamService.HlsRootPath, false, m => m
+            .WithStaticFolder("/hls", SabrRestreamService.HlsRootPath, false, m => m
                 .WithContentCaching(false))
             .WithStaticFolder("/", CacheManager.Instance.CachePath, true, m => m
                 .WithContentCaching(true));
@@ -64,13 +69,13 @@ public class WebServer
         return server;
     }
 
-    private static Task OnHttpException(IHttpContext context, IHttpException httpException)
+    private Task OnHttpException(IHttpContext context, IHttpException httpException)
     {
         Log.Information("OnHttpException Error Occured: {ErrorMessage}", httpException.Message!);
         return Task.CompletedTask;
     }
 
-    private static Task OnUnhandledException(IHttpContext context, Exception exception)
+    private Task OnUnhandledException(IHttpContext context, Exception exception)
     {
         Log.Information(exception, "OnUnhandledException Error Occured");
         return Task.CompletedTask;
@@ -91,15 +96,15 @@ internal sealed class SabrHlsModule(string baseRoute) : WebModuleBase(baseRoute)
         // module would attach an ETag and honour If-None-Match, and a playlist that changes every couple
         // of seconds must never be answered 304. Everything else (segments, init, VOD playlists) falls
         // through as before.
-        if (await Services.SabrRestreamService.TryGetLivePlaylistAsync(context.RequestedPath) is { } playlist)
+        if (await SabrRestreamService.TryGetLivePlaylistAsync(context.RequestedPath) is { } playlist)
         {
             context.Response.ContentType = "application/vnd.apple.mpegurl";
             context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
-            await context.SendStringAsync(playlist, "application/vnd.apple.mpegurl", System.Text.Encoding.UTF8);
+            await context.SendStringAsync(playlist, "application/vnd.apple.mpegurl", Encoding.UTF8);
             context.SetHandled();
             return;
         }
 
-        await Services.SabrRestreamService.EnsureAsync(context.RequestedPath);
+        await SabrRestreamService.EnsureAsync(context.RequestedPath);
     }
 }
