@@ -66,7 +66,7 @@ internal sealed class Program
         }
 #endif
 
-        if (Updater.Instance.RunUpdateHandler())
+        if (Updater.RunUpdateHandler())
         {
             Environment.Exit(0);
             return;
@@ -173,9 +173,9 @@ internal sealed class Program
         // so the updater would consider mainline "newer" and overwrite the test build. Never self-update
         // a feature-branch build.
 #if !STEAMRELEASE && !SABRRELEASE
-        await Updater.Instance.CheckForUpdates();
+        await Updater.CheckForUpdates();
 #endif
-        Updater.Instance.Cleanup();
+        Updater.Cleanup();
         if (Environment.CommandLine.Contains("--Reset"))
         {
             FileTools.RestoreAllYtdl();

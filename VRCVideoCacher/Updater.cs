@@ -39,7 +39,7 @@ public partial class Updater : Singleton<Updater>
         OperatingSystem.IsWindows() ? "VRCVideoCacher.Temp.exe" : "VRCVideoCacher.Temp");
 
     [PublicAPI]
-    public async Task CheckForUpdates()
+    public async Task CheckForUpdates2()
     {
         Log.Information("Checking for updates...");
 
@@ -87,7 +87,8 @@ public partial class Updater : Singleton<Updater>
             "Auto Update is disabled. Please update manually from the releases page. https://github.com/EllyVR/VRCVideoCacher/releases");
     }
 
-    public void Cleanup()
+    [PublicAPI]
+    public void Cleanup2()
     {
         if (!File.Exists(BackupFilePath)) return;
         Log.Information("Leftover temp file found, deleting.");
@@ -181,7 +182,8 @@ public partial class Updater : Singleton<Updater>
         return match;
     }
 
-    public bool RunUpdateHandler()
+    [PublicAPI]
+    public bool RunUpdateHandler2()
     {
         if (LaunchArgs.OldPid == null)
         {
