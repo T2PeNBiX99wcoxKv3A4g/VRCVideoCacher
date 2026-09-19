@@ -165,13 +165,13 @@ public partial class CookieSetupViewModel : ViewModelBase
     [RelayCommand]
     private void OpenExtensionStore()
     {
-        OpenUrl.Instance.Open(IsChrome ? ChromeExtensionUrl : FirefoxExtensionUrl);
+        OpenUrl.Open(IsChrome ? ChromeExtensionUrl : FirefoxExtensionUrl);
     }
 
     [RelayCommand]
     private static void OpenYouTube()
     {
-        OpenUrl.Instance.Open("https://www.youtube.com");
+        OpenUrl.Open("https://www.youtube.com");
     }
 
     [RelayCommand]

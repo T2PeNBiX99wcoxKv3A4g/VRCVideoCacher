@@ -7,7 +7,7 @@ namespace VRCVideoCacher.Utils;
 public partial class OpenUrl : Singleton<OpenUrl>
 {
     [PublicAPI]
-    public bool Open(string url)
+    public bool Open2(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
         {
