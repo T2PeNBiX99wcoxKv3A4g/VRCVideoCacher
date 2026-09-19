@@ -22,7 +22,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         // 1. Query target classes that inherit from Singleton<T>
         var classDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                static (s, _) => IsSyntaxTargetForGeneration(s, _),
+                static (s, cancellationToken) => IsSyntaxTargetForGeneration(s, cancellationToken),
                 static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
             .Where(static m => m is not null)
             .Select(static (item, _) => item!.Value);
@@ -163,12 +163,18 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         foreach (var attr in symbol.GetAttributes())
             if (attr.AttributeClass?.Name is "SingletonStaticProxyAttribute" or "SingletonStaticProxy")
                 foreach (var namedArg in attr.NamedArguments)
-                    if (namedArg is { Key: "Enabled", Value.Value: bool b })
-                        enabled = b;
-                    else if (namedArg is { Key: "Prefix", Value.Value: string p })
-                        prefix = p;
-                    else if (namedArg is { Key: "Suffix", Value.Value: string s })
-                        suffix = s;
+                    switch (namedArg)
+                    {
+                        case { Key: "Enabled", Value.Value: bool b }:
+                            enabled = b;
+                            break;
+                        case { Key: "Prefix", Value.Value: string p }:
+                            prefix = p;
+                            break;
+                        case { Key: "Suffix", Value.Value: string s }:
+                            suffix = s;
+                            break;
+                    }
 
         return (enabled, prefix, suffix);
     }
@@ -207,8 +213,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 {
                     var hasGet = prop.GetMethod != null;
                     var hasSet = prop.SetMethod != null;
-                    var canGet = hasGet && (isExplicitlyIncluded || prop.GetMethod!.DeclaredAccessibility == Accessibility.Public);
-                    var canSet = hasSet && (isExplicitlyIncluded || prop.SetMethod!.DeclaredAccessibility == Accessibility.Public);
+                    var canGet = hasGet && (isExplicitlyIncluded ||
+                                            prop.GetMethod!.DeclaredAccessibility == Accessibility.Public);
+                    var canSet = hasSet && (isExplicitlyIncluded ||
+                                            prop.SetMethod!.DeclaredAccessibility == Accessibility.Public);
 
                     if (!canGet && !canSet)
                         continue;
@@ -347,8 +355,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 {
                     var hasAdd = evt.AddMethod != null;
                     var hasRemove = evt.RemoveMethod != null;
-                    var canAdd = hasAdd && (isExplicitlyIncluded || evt.AddMethod!.DeclaredAccessibility == Accessibility.Public);
-                    var canRemove = hasRemove && (isExplicitlyIncluded || evt.RemoveMethod!.DeclaredAccessibility == Accessibility.Public);
+                    var canAdd = hasAdd && (isExplicitlyIncluded ||
+                                            evt.AddMethod!.DeclaredAccessibility == Accessibility.Public);
+                    var canRemove = hasRemove && (isExplicitlyIncluded ||
+                                                  evt.RemoveMethod!.DeclaredAccessibility == Accessibility.Public);
 
                     if (!canAdd && !canRemove)
                         continue;
@@ -412,9 +422,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             if (attrName is "StaticTrimLastAttribute" or "StaticTrimLast"
                 or "StaticTrimEndAttribute" or "StaticTrimEnd"
                 or "StaticDropLastAttribute" or "StaticDropLast")
-            {
                 return symbol.Name.Length > 1 ? symbol.Name.Substring(0, symbol.Name.Length - 1) : symbol.Name;
-            }
         }
 
         // 2. Check for StaticInclude attribute
