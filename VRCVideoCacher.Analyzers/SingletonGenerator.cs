@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -17,13 +16,14 @@ public sealed class SingletonGenerator : IIncrementalGenerator
     private static readonly SymbolDisplayFormat TypeDisplayFormat =
         SymbolDisplayFormat.FullyQualifiedFormat
             .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // 1. Query target classes that inherit from Singleton<T>
         var classDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (s, _) => IsSyntaxTargetForGeneration(s, _),
-                transform: static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
+                static (s, _) => IsSyntaxTargetForGeneration(s, _),
+                static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
             .Where(static m => m is not null)
             .Select(static (item, _) => item!.Value);
 
@@ -32,22 +32,22 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             .SelectMany(static (items, _) => items.Distinct());
 
         // 2. Register source output
-        context.RegisterSourceOutput(distinctClasses, static (spc, target) =>
-        {
-            spc.AddSource(target.HintName, SourceText.From(target.SourceText, Encoding.UTF8));
-        });
+        context.RegisterSourceOutput(distinctClasses,
+            static (spc, target) =>
+            {
+                spc.AddSource(target.HintName, SourceText.From(target.SourceText, Encoding.UTF8));
+            });
     }
 
-    private static bool IsSyntaxTargetForGeneration(SyntaxNode node, CancellationToken cancellationToken)
-    {
-        return node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 };
-    }
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode node, CancellationToken cancellationToken) =>
+        node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 };
 
-    private static TargetClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+    private static TargetClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context,
+        CancellationToken cancellationToken)
     {
         var classDecl = (ClassDeclarationSyntax)context.Node;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(classDecl, cancellationToken) as INamedTypeSymbol;
-        if (symbol == null || symbol.TypeKind != TypeKind.Class)
+        var symbol = context.SemanticModel.GetDeclaredSymbol(classDecl, cancellationToken);
+        if (symbol is not { TypeKind: TypeKind.Class })
             return null;
 
         if (!InheritsFromSingleton(symbol))
@@ -63,9 +63,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         {
             if (current.Name == "Singleton" &&
                 current.ContainingNamespace?.ToDisplayString() == "VRCVideoCacher.Utils")
-            {
                 return true;
-            }
 
             current = current.BaseType;
         }
@@ -96,16 +94,19 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         // Ensure format starts with ~T:
         var targetSpec = targetDocId.StartsWith("T:") ? $"~{targetDocId}" : $"~T:{fullMetadataOrDocCommentName}";
 
-        sb.AppendLine($"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"Performance\", \"CA1822\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine($"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Global\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine($"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Local\", Scope = \"type\", Target = \"{targetSpec}\")]");
+        sb.AppendLine(
+            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"Performance\", \"CA1822\", Scope = \"type\", Target = \"{targetSpec}\")]");
+        sb.AppendLine(
+            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Global\", Scope = \"type\", Target = \"{targetSpec}\")]");
+        sb.AppendLine(
+            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Local\", Scope = \"type\", Target = \"{targetSpec}\")]");
         sb.AppendLine();
 
         // Class configuration
         var (enabled, prefix, suffix) = GetClassProxyConfig(symbol);
 
         var ns = symbol.ContainingNamespace;
-        var hasNamespace = ns != null && !ns.IsGlobalNamespace;
+        var hasNamespace = ns is { IsGlobalNamespace: false };
         if (hasNamespace)
         {
             sb.AppendLine($"namespace {ns!.ToDisplayString()}");
@@ -133,9 +134,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         sb.AppendLine($"{indent}{{");
 
         if (enabled)
-        {
             GenerateStaticMembers(sb, indent + "    ", symbol, prefix, suffix);
-        }
 
         sb.AppendLine($"{indent}}}");
 
@@ -146,11 +145,9 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         }
 
         if (hasNamespace)
-        {
             sb.AppendLine("}");
-        }
 
-        return new TargetClassInfo(hintName, sb.ToString());
+        return new(hintName, sb.ToString());
     }
 
     private static (bool Enabled, string Prefix, string Suffix) GetClassProxyConfig(INamedTypeSymbol symbol)
@@ -160,26 +157,20 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var suffix = "S";
 
         foreach (var attr in symbol.GetAttributes())
-        {
-            if (attr.AttributeClass?.Name == "SingletonStaticProxyAttribute" ||
-                attr.AttributeClass?.Name == "SingletonStaticProxy")
-            {
+            if (attr.AttributeClass?.Name is "SingletonStaticProxyAttribute" or "SingletonStaticProxy")
                 foreach (var namedArg in attr.NamedArguments)
-                {
-                    if (namedArg.Key == "Enabled" && namedArg.Value.Value is bool b)
+                    if (namedArg is { Key: "Enabled", Value.Value: bool b })
                         enabled = b;
-                    else if (namedArg.Key == "Prefix" && namedArg.Value.Value is string p)
+                    else if (namedArg is { Key: "Prefix", Value.Value: string p })
                         prefix = p;
-                    else if (namedArg.Key == "Suffix" && namedArg.Value.Value is string s)
+                    else if (namedArg is { Key: "Suffix", Value.Value: string s })
                         suffix = s;
-                }
-            }
-        }
 
         return (enabled, prefix, suffix);
     }
 
-    private static void GenerateStaticMembers(StringBuilder sb, string indent, INamedTypeSymbol symbol, string prefix, string suffix)
+    private static void GenerateStaticMembers(StringBuilder sb, string indent, INamedTypeSymbol symbol, string prefix,
+        string suffix)
     {
         var members = symbol.GetMembers();
         var generatedCount = 0;
@@ -206,16 +197,20 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
                 sb.AppendLine($"{indent}public static {typeStr} {staticName}");
                 sb.AppendLine($"{indent}{{");
-                if (prop.GetMethod != null && prop.GetMethod.DeclaredAccessibility == Accessibility.Public)
+                if (prop.GetMethod is { DeclaredAccessibility: Accessibility.Public })
                 {
-                    sb.AppendLine($"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                    sb.AppendLine(
+                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine($"{indent}    get => Instance.{prop.Name};");
                 }
-                if (prop.SetMethod != null && prop.SetMethod.DeclaredAccessibility == Accessibility.Public)
+
+                if (prop.SetMethod is { DeclaredAccessibility: Accessibility.Public })
                 {
-                    sb.AppendLine($"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                    sb.AppendLine(
+                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine($"{indent}    set => Instance.{prop.Name} = value;");
                 }
+
                 sb.AppendLine($"{indent}}}");
                 generatedCount++;
             }
@@ -225,19 +220,20 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 sb.AppendLine();
                 sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{field.Name}\"/></summary>");
                 if (field.IsReadOnly)
-                {
                     sb.AppendLine($"{indent}public static {typeStr} {staticName} => Instance.{field.Name};");
-                }
                 else
                 {
                     sb.AppendLine($"{indent}public static {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
-                    sb.AppendLine($"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                    sb.AppendLine(
+                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine($"{indent}    get => Instance.{field.Name};");
-                    sb.AppendLine($"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                    sb.AppendLine(
+                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine($"{indent}    set => Instance.{field.Name} = value;");
                     sb.AppendLine($"{indent}}}");
                 }
+
                 generatedCount++;
             }
             else if (member is IMethodSymbol method)
@@ -263,15 +259,11 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     if (tp.HasNotNullConstraint) constraints.Add("notnull");
                     if (tp.HasUnmanagedTypeConstraint) constraints.Add("unmanaged");
                     foreach (var ct in tp.ConstraintTypes)
-                    {
                         constraints.Add(ct.ToDisplayString(TypeDisplayFormat));
-                    }
                     if (tp.HasConstructorConstraint) constraints.Add("new()");
 
                     if (constraints.Count > 0)
-                    {
                         typeParamConstraints.Add($"where {tp.Name} : {string.Join(", ", constraints)}");
-                    }
                 }
 
                 var constraintStr = typeParamConstraints.Count > 0
@@ -325,15 +317,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
                 sb.AppendLine();
                 sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{method.Name}\"/></summary>");
-                sb.AppendLine($"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                if (method.ReturnsVoid)
-                {
-                    sb.AppendLine($"{indent}public static void {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
-                }
-                else
-                {
-                    sb.AppendLine($"{indent}public static {returnTypeStr} {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
-                }
+                sb.AppendLine(
+                    $"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                sb.AppendLine(
+                    method.ReturnsVoid
+                        ? $"{indent}public static void {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});"
+                        : $"{indent}public static {returnTypeStr} {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
                 generatedCount++;
             }
             else if (member is IEventSymbol evt)
@@ -343,66 +332,64 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                 sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
                 sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
                 sb.AppendLine($"{indent}{{");
-                if (evt.AddMethod != null && evt.AddMethod.DeclaredAccessibility == Accessibility.Public)
+                if (evt.AddMethod is { DeclaredAccessibility: Accessibility.Public })
                 {
-                    sb.AppendLine($"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                    sb.AppendLine(
+                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine($"{indent}    add => Instance.{evt.Name} += value;");
                 }
-                if (evt.RemoveMethod != null && evt.RemoveMethod.DeclaredAccessibility == Accessibility.Public)
+
+                if (evt.RemoveMethod is { DeclaredAccessibility: Accessibility.Public })
                 {
-                    sb.AppendLine($"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
+                    sb.AppendLine(
+                        $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine($"{indent}    remove => Instance.{evt.Name} -= value;");
                 }
+
                 sb.AppendLine($"{indent}}}");
                 generatedCount++;
             }
         }
     }
 
-    private static string EscapeIdentifier(string name)
-    {
-        return SyntaxFacts.IsKeywordKind(SyntaxFacts.GetKeywordKind(name)) ? "@" + name : name;
-    }
+    private static string EscapeIdentifier(string name) =>
+        SyntaxFacts.IsKeywordKind(SyntaxFacts.GetKeywordKind(name)) ? "@" + name : name;
 
     private static string FormatDefaultValue(object? value)
     {
-        if (value == null) return "default";
-        if (value is bool b) return b ? "true" : "false";
-        if (value is string s) return $"\"{s.Replace("\"", "\\\"")}\"";
-        if (value is char c) return $"'{c}'";
-        if (value is float f) return $"{f}f";
-        if (value is double d) return $"{d}d";
-        if (value is decimal m) return $"{m}m";
-        return value.ToString();
+        return value switch
+        {
+            null => "default",
+            bool b => b ? "true" : "false",
+            string s => $"\"{s.Replace("\"", "\\\"")}\"",
+            char c => $"'{c}'",
+            float f => $"{f}f",
+            double d => $"{d}d",
+            decimal m => $"{m}m",
+            _ => value.ToString()
+        };
     }
 
     private static bool HasAttribute(ISymbol symbol, string attrName1, string attrName2)
     {
-        foreach (var attr in symbol.GetAttributes())
-        {
-            if (attr.AttributeClass?.Name == attrName1 || attr.AttributeClass?.Name == attrName2)
-                return true;
-        }
-        return false;
+        return Enumerable.Any(symbol.GetAttributes(),
+            attr => attr.AttributeClass?.Name == attrName1 || attr.AttributeClass?.Name == attrName2);
     }
 
     private static string? GetCustomMemberName(ISymbol symbol)
     {
-        foreach (var attr in symbol.GetAttributes())
+        foreach (var attr in symbol.GetAttributes()
+                     .Where(attr => attr.AttributeClass?.Name is "StaticMemberAttribute" or "StaticMember"))
         {
-            if (attr.AttributeClass?.Name == "StaticMemberAttribute" ||
-                attr.AttributeClass?.Name == "StaticMember")
-            {
-                if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string s1 && !string.IsNullOrEmpty(s1))
-                    return s1;
+            if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string s1 &&
+                !string.IsNullOrEmpty(s1))
+                return s1;
 
-                foreach (var namedArg in attr.NamedArguments)
-                {
-                    if (namedArg.Key == "Name" && namedArg.Value.Value is string s2 && !string.IsNullOrEmpty(s2))
-                        return s2;
-                }
-            }
+            foreach (var namedArg in attr.NamedArguments)
+                if (namedArg is { Key: "Name", Value.Value: string s2 } && !string.IsNullOrEmpty(s2))
+                    return s2;
         }
+
         return null;
     }
 
@@ -415,32 +402,20 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         return $"{symbol.Name}<{typeParams}>";
     }
 
-    private readonly struct TargetClassInfo : IEquatable<TargetClassInfo>
+    private readonly struct TargetClassInfo(string hintName, string sourceText) : IEquatable<TargetClassInfo>
     {
-        public string HintName { get; }
-        public string SourceText { get; }
+        public string HintName { get; } = hintName;
+        public string SourceText { get; } = sourceText;
 
-        public TargetClassInfo(string hintName, string sourceText)
-        {
-            HintName = hintName;
-            SourceText = sourceText;
-        }
+        public bool Equals(TargetClassInfo other) => HintName == other.HintName && SourceText == other.SourceText;
 
-        public bool Equals(TargetClassInfo other)
-        {
-            return HintName == other.HintName && SourceText == other.SourceText;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is TargetClassInfo other && Equals(other);
-        }
+        public override bool Equals(object? obj) => obj is TargetClassInfo other && Equals(other);
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return (HintName.GetHashCode() * 397) ^ SourceText.GetHashCode();
+                return HintName.GetHashCode() * 397 ^ SourceText.GetHashCode();
             }
         }
     }
