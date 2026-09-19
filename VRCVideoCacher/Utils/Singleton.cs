@@ -12,6 +12,10 @@ public interface ISingleton
 [PublicAPI]
 public abstract class Singleton<T> : ISingleton where T : Singleton<T>, new()
 {
+    static Singleton()
+    {
+    }
+    
     private static readonly Lazy<T> InstanceInternal = new(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
     protected readonly ILogger Log = Program.Logger.ForContext<T>();
 
