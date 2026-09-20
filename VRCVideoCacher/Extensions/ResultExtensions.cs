@@ -29,6 +29,13 @@ public static class ResultExtensions
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<T> OnFinally([InstantHandle] Action action)
+        {
+            action();
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowOnFailure()
         {
             if (result.Exception is not { } exception) return;
@@ -93,6 +100,14 @@ public static class ResultExtensions
             if (!result.IsSuccess)
                 await action(result.Exception!).ConfigureAwait(false);
 
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<Result<T>> OnFinally([InstantHandle] Func<Task> action)
+        {
+            var result = await task.ConfigureAwait(false);
+            await action();
             return result;
         }
 
