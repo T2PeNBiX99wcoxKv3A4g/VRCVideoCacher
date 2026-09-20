@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using ValveKeyValue;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
@@ -121,7 +122,7 @@ public partial class FileTools : Singleton<FileTools>
         Log.Debug("GetAppLibraryPath: Using VDF path {VdfPath}", vdfPath);
 
         List<string> libraryPaths = [];
-        try
+        var result = Try.Run(() =>
         {
             var stream = File.OpenRead(vdfPath);
             KVObject data = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
@@ -131,15 +132,18 @@ public partial class FileTools : Singleton<FileTools>
                 if (apps.Any(app => app.Key == appid))
                     libraryPaths.Add(folder["path"].ToString(CultureInfo.InvariantCulture));
             }
-        }
-        catch (Exception e)
+
+            return true;
+        }).GetOrElse((ex) =>
         {
             if (isEnabled)
-                Log.Error("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", e.Message);
+                Log.Error("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", ex.Message);
             else
-                Log.Warning("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", e.Message);
-            return null;
-        }
+                Log.Warning("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", ex.Message);
+            return false;
+        });
+
+        if (!result) return null;
 
         libraryPaths = [.. libraryPaths.Where(Path.Exists)];
 

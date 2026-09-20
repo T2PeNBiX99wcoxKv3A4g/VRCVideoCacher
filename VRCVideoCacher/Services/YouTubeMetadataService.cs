@@ -1,7 +1,9 @@
 using System.Text.Json;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Database.Models;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
@@ -23,7 +25,7 @@ public static class YouTubeMetadataService
         if (string.IsNullOrEmpty(videoId))
             return null;
 
-        try
+        return await Try.Run(async () =>
         {
             var url = $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={videoId}&format=json";
             var response = await HttpClient.GetStringAsync(url);
@@ -46,13 +48,7 @@ public static class YouTubeMetadataService
             };
             DatabaseManager.AddVideoInfoCache(videoInfo);
             return videoInfo;
-        }
-        catch
-        {
-            // Silently fail - we'll just show the video ID
-        }
-
-        return null;
+        }).GetOrElse((_) => Task.FromResult<VideoInfoCache?>(null));
     }
 
     public static async Task<string?> GetThumbnail(string videoId)

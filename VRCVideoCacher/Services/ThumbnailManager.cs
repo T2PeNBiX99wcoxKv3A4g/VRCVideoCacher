@@ -1,3 +1,6 @@
+using VRCVideoCacher.Extensions;
+using VRCVideoCacher.Utils;
+
 namespace VRCVideoCacher.Services;
 
 public static class ThumbnailManager
@@ -35,7 +38,7 @@ public static class ThumbnailManager
 
     public static async Task<string?> TrySaveThumbnail(string videoId, string url)
     {
-        try
+        return await Try.Run(async () =>
         {
             var thumbnailPath = GetThumbnailPath(videoId);
             if (File.Exists(thumbnailPath))
@@ -45,11 +48,6 @@ public static class ThumbnailManager
             await using var fileStream = new FileStream(thumbnailPath, FileMode.Create, FileAccess.Write);
             await data.CopyToAsync(fileStream);
             return thumbnailPath;
-        }
-        catch
-        {
-            // Silently fail - thumbnail is not critical
-            return null;
-        }
+        }).GetOrElse((_) => Task.FromResult<string?>(null));
     }
 }

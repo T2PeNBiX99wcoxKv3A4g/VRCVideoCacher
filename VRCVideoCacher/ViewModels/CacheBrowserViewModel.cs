@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -54,18 +55,14 @@ public partial class CacheItemViewModel : ViewModelBase
     private void OpenOnYouTube()
     {
         var url = $"https://www.youtube.com/watch?v={VideoId}";
-        try
+        Try.Run(() =>
         {
             Process.Start(new ProcessStartInfo
             {
                 FileName = url,
                 UseShellExecute = true
             });
-        }
-        catch
-        {
-            /* Ignore errors */
-        }
+        });
     }
 
     [RelayCommand]
