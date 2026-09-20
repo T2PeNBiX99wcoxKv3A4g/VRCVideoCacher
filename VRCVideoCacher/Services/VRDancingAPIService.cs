@@ -50,7 +50,7 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
         }).OnFailure((ex) =>
         {
             Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
-            return Task.FromResult(Unit.Value);
+            return Unit.TaskValue;
         });
     }
 }

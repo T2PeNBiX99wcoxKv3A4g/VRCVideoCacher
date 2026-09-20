@@ -148,7 +148,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
             {
                 if (!process.HasExited) process.Kill(true);
             });
-            return Task.FromResult(Unit.Value);
+            return Unit.TaskValue;
         }).Also((_) => Untrack2(process)).GetOrThrow();
     }
 

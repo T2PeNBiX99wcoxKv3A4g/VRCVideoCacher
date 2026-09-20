@@ -122,7 +122,7 @@ public partial class WinGet : Singleton<WinGet>
         }).GetOrElse((ex) =>
         {
             Log.Warning(ex, "Failed on InstallPackage");
-            return Task.FromResult(Unit.Value);
+            return Unit.TaskValue;
         });
     }
 }

@@ -283,7 +283,7 @@ internal static class BgUtilPotProvider
             {
                 _isReady = false;
                 Log.Debug(ex, "bgutil supervisor iteration failed");
-                return Task.FromResult(Unit.Value);
+                return Unit.TaskValue;
             });
 
             await Task.Delay(TimeSpan.FromSeconds(_isReady ? 15 : 3));
@@ -449,7 +449,7 @@ internal static class BgUtilPotProvider
             using var cts = new CancellationTokenSource(timeout);
             await Try.Run(async () => { await process.WaitForExitAsync(cts.Token); }).OnFailure((ex) =>
             {
-                if (ex is not OperationCanceledException) return Task.FromResult(Unit.Value);
+                if (ex is not OperationCanceledException) return Unit.TaskValue;
 
                 Try.Run(() =>
                 {
