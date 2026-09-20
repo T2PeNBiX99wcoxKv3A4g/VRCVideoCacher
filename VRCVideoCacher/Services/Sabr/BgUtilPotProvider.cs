@@ -105,66 +105,32 @@ internal static class BgUtilPotProvider
             processNames.Add(Path.GetFileNameWithoutExtension(denoPath));
 
         string? fullDenoPath = null;
-        try
+        Try.Run(() =>
         {
             if (!string.IsNullOrEmpty(denoPath)) fullDenoPath = Path.GetFullPath(denoPath);
-        }
-        catch
-        {
-            /* Ignore */
-        }
+        });
 
         string? fullUtilsPath = null;
-        try
-        {
-            fullUtilsPath = Path.GetFullPath(Program.UtilsPath);
-        }
-        catch
-        {
-            /* Ignore */
-        }
+        Try.Run(() => { fullUtilsPath = Path.GetFullPath(Program.UtilsPath); });
 
         foreach (var process in processNames.SelectMany(Process.GetProcessesByName))
-            try
+            Try.Run(() =>
             {
                 var pid = process.Id;
-                if (pid == Environment.ProcessId)
-                    continue;
-
-                string? exePath;
-                try
-                {
-                    exePath = process.MainModule?.FileName;
-                }
-                catch
-                {
-                    continue;
-                } // Skip processes whose ownership cannot be verified.
-
-                if (string.IsNullOrEmpty(exePath))
-                    continue;
-
+                if (pid == Environment.ProcessId) return;
+                var exePath = Try.Run(() => process.MainModule?.FileName).GetOrNull();
+                if (string.IsNullOrEmpty(exePath)) return;
                 var fullExePath = Path.GetFullPath(exePath);
                 var matches = !string.IsNullOrEmpty(fullDenoPath) &&
                               string.Equals(fullExePath, fullDenoPath, PathComparison) ||
                               !string.IsNullOrEmpty(fullUtilsPath) &&
                               fullExePath.StartsWith(fullUtilsPath, PathComparison);
 
-                if (!matches)
-                    continue;
-
+                if (!matches) return;
                 Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
                 process.Kill(true);
                 process.WaitForExit(3000);
-            }
-            catch (Exception ex)
-            {
-                Log.Debug(ex, "Could not kill Deno process");
-            }
-            finally
-            {
-                process.Dispose();
-            }
+            }).OnFailure((ex) => Log.Debug(ex, "Could not kill Deno process")).Also((_) => process.Dispose());
     }
 
     /// <summary>
@@ -295,25 +261,14 @@ internal static class BgUtilPotProvider
             preferred, who, free);
     }
 
-    private static bool HasProcessExited(Process? proc)
-    {
-        if (proc is null)
-            return true;
-        try
-        {
-            return proc.HasExited;
-        }
-        catch
-        {
-            return true;
-        }
-    }
+    private static bool HasProcessExited(Process? proc) =>
+        proc is null || Try.Run(() => proc.HasExited).GetOrElse((_) => true);
 
     private static async Task SuperviseAsync()
     {
         while (true)
         {
-            try
+            await Try.Run(async () =>
             {
                 if (IsAutoManaged && (_server is null || HasProcessExited(_server)))
                 {
@@ -324,12 +279,12 @@ internal static class BgUtilPotProvider
                 }
 
                 _isReady = await PingAsync();
-            }
-            catch (Exception ex)
+            }).OnFailure((ex) =>
             {
                 _isReady = false;
                 Log.Debug(ex, "bgutil supervisor iteration failed");
-            }
+                return Task.FromResult(Unit.Value);
+            });
 
             await Task.Delay(TimeSpan.FromSeconds(_isReady ? 15 : 3));
         }
@@ -498,12 +453,10 @@ internal static class BgUtilPotProvider
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
             using var cts = new CancellationTokenSource(timeout);
-            try
+            await Try.Run(async () => { await process.WaitForExitAsync(cts.Token); }).OnFailure((ex) =>
             {
-                await process.WaitForExitAsync(cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
+                if (ex is not OperationCanceledException) return Task.FromResult(Unit.Value);
+
                 Try.Run(() =>
                 {
                     if (!process.HasExited) process.Kill(true);
@@ -511,7 +464,7 @@ internal static class BgUtilPotProvider
 
                 throw new SabrException(
                     $"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
-            }
+            });
 
             var output = string.Join(Environment.NewLine, await stdout, await stderr);
             return (process.ExitCode, output);
@@ -524,14 +477,10 @@ internal static class BgUtilPotProvider
 
     private static void SafeDelete(string dir)
     {
-        try
+        Try.Run(() =>
         {
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Could not delete {Dir} before reinstall", dir);
-        }
+        }).OnFailure((ex) => Log.Debug(ex, "Could not delete {Dir} before reinstall", dir));
     }
 }
