@@ -145,17 +145,13 @@ internal sealed class SabrHlsSession : ISabrSession
         var probe = new SabrClient(http, source, log, reload);
 
         var fetch = probe.DownloadAsync(Stream.Null, Stream.Null, 0, ct: cts.Token);
-        try
+        return await Try.Run(async () =>
         {
             var video = await probe.SegmentIndexAsync.WaitAsync(cts.Token);
             var audio = await probe.AudioSegmentIndexAsync.WaitAsync(cts.Token);
             await cts.CancelAsync();
             return (video, audio);
-        }
-        finally
-        {
-            await Try.Run(async () => await fetch);
-        }
+        }).OnFinally(async () => await Try.Run(async () => await fetch)).GetOrThrow();
     }
 
     // region: fetching raw fragments
@@ -168,7 +164,7 @@ internal sealed class SabrHlsSession : ISabrSession
     private async Task StartFillAsync(long fromMs)
     {
         await _fillLock.WaitAsync();
-        try
+        await Try.Run(async () =>
         {
             await _fillCts.CancelAsync();
             _fillCts = new();
@@ -196,7 +192,7 @@ internal sealed class SabrHlsSession : ISabrSession
 
             _ = Task.Run(async () =>
             {
-                try
+                await Try.Run(async () =>
                 {
                     await client.DownloadAsync(Stream.Null, Stream.Null, fromMs, ct: ct);
                     _log.Debug("SABR {VideoId}: fill complete", _videoId);
@@ -205,28 +201,25 @@ internal sealed class SabrHlsSession : ISabrSession
                     // the beginning, or an earlier fill already covered the gap. HasAllFragments checks.
                     if (OnFullyFetched is { } onFullyFetched && HasAllFragments())
                         await onFullyFetched(this);
-                }
-                catch (OperationCanceledException)
+                }).OnFailure((ex) =>
                 {
-                    /* superseded by a seek */
-                }
-                catch (Exception ex)
-                {
+                    if (ex is OperationCanceledException) return Unit.TaskValue;
                     _log.Error(ex, "SABR {VideoId}: fill from {Start:0.0}s failed", _videoId, fromMs / 1000.0);
-                }
-                finally
+                    return Unit.TaskValue;
+                }).OnFinally(() =>
                 {
                     http.Dispose();
                     // Only the latest fill clears the flag; a fill cancelled by a newer one leaves it set.
                     if (fillGeneration == _fillGeneration)
                         _isFetching = false;
-                }
+                    return Unit.TaskValue;
+                });
             }, ct);
-        }
-        finally
+        }).OnFinally(() =>
         {
             _fillLock.Release();
-        }
+            return Unit.TaskValue;
+        }).GetOrThrow();
     }
 
     /// <summary>Caches a fragment exactly as YouTube sent it. SABR sequence numbers are 1-based.</summary>
@@ -239,14 +232,12 @@ internal sealed class SabrHlsSession : ISabrSession
         {
             var temp = path + ".part";
             await File.WriteAllBytesAsync(temp, data);
-            try
+            Try.Run(() => File.Move(temp, path, true)).GetOrElse((ex) =>
             {
-                File.Move(temp, path, true);
-            }
-            catch (IOException)
-            {
+                if (ex is not IOException) ex.Throw();
                 Try.Run(() => File.Delete(temp));
-            }
+                return Unit.Value;
+            });
         }
 
         // Track the running fill's real progress. SABR delivers forward-contiguously from the seek point,
@@ -308,16 +299,13 @@ internal sealed class SabrHlsSession : ISabrSession
             var building = _building.GetOrAdd(segment, s => new(
                 () => BuildSegmentCoreAsync(s, allowSeek), LazyThreadSafetyMode.ExecutionAndPublication));
 
-            try
-            {
-                await building.Value;
-            }
-            finally
+            await Try.Run(async () => await building.Value).OnFinally(() =>
             {
                 // Never cache a build that produced nothing (skipped prebuild, or a failure).
                 if (!File.Exists(path))
                     _building.TryRemove(segment, out _);
-            }
+                return Unit.TaskValue;
+            });
 
             if (File.Exists(path) || !allowSeek)
                 return;
@@ -416,20 +404,20 @@ internal sealed class SabrHlsSession : ISabrSession
     {
         var videoTrack = Path.Combine(_dir, "complete_v.tmp");
         var audioTrack = Path.Combine(_dir, "complete_a.tmp");
-        try
+        await Try.Run(async () =>
         {
             await ConcatTrackAsync(videoTrack, true, _videoIndex.Count, ct);
             await ConcatTrackAsync(audioTrack, false, _audioIndex.Count, ct);
             await _muxer.MuxCompleteAsync(videoTrack, audioTrack, outputPath, ct);
-        }
-        finally
+        }).OnFinally(() =>
         {
             foreach (var path in new[]
                      {
                          videoTrack, audioTrack
                      })
                 Try.Run(() => File.Delete(path));
-        }
+            return Unit.TaskValue;
+        });
     }
 
     /// <summary>init + every fragment in order is a complete, playable stream — exactly how yt-dlp builds one.</summary>
