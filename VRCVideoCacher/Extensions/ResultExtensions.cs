@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
@@ -11,13 +10,6 @@ namespace VRCVideoCacher.Extensions;
 [StackTraceHidden]
 public static class ResultExtensions
 {
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Throw(Exception exception)
-    {
-        ExceptionDispatchInfo.Throw(exception);
-    }
-
     extension<T>(Result<T> result)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -40,7 +32,7 @@ public static class ResultExtensions
         private void ThrowOnFailure()
         {
             if (result.Exception is not { } exception) return;
-            Throw(exception);
+            ExceptionDispatchInfo.Throw(exception);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
