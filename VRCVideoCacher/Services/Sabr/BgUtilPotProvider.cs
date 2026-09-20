@@ -323,7 +323,7 @@ internal static class BgUtilPotProvider
 
         var stagingPath = Path.Join(RootPath, $"install-{Guid.NewGuid():N}");
         Directory.CreateDirectory(stagingPath);
-        try
+        Try.Run(() =>
         {
             if (OperatingSystem.IsWindows())
                 ZipFile.ExtractToDirectory(resource, stagingPath);
@@ -341,11 +341,7 @@ internal static class BgUtilPotProvider
             if (Directory.Exists(ServerPath))
                 SafeDelete(ServerPath);
             Directory.Move(extractedPath, ServerPath);
-        }
-        finally
-        {
-            SafeDelete(stagingPath);
-        }
+        }).Also((_) => SafeDelete(stagingPath)).GetOrThrow();
 
         Versions.CurrentVersion.BgUtil = Program.BgUtilsVersion;
         Versions.Save();

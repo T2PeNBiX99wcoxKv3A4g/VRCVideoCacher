@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Newtonsoft.Json;
 using VRCVideoCacher.Database;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 
@@ -32,7 +33,7 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
     [PublicAPI]
     public async Task DownloadMetadata2(string code, string videoId)
     {
-        try
+        await Try.Run(async () =>
         {
             var vrdData = await GetVideoInfo(code);
             if (vrdData == null)
@@ -46,11 +47,11 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
                 Author = vrdData.Artist,
                 Type = UrlType.VRDancing
             });
-        }
-        catch (Exception ex)
+        }).OnFailure((ex) =>
         {
             Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
-        }
+            return Task.FromResult(Unit.Value);
+        });
     }
 }
 

@@ -71,7 +71,7 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
     [PublicAPI]
     public async Task DownloadMetadata2(int idInt, string videoId)
     {
-        try
+        await Try.Run(async () =>
         {
             var thumbnailUrl = $"https://api.pypy.dance/thumb?id={idInt}";
             await ThumbnailManager.TrySaveThumbnail(videoId, thumbnailUrl);
@@ -91,10 +91,10 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
                 Duration = duration,
                 Type = UrlType.PyPyDance
             });
-        }
-        catch (Exception ex)
+        }).OnFailure((ex) =>
         {
             Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
-        }
+            return Task.FromResult(Unit.Value);
+        });
     }
 }
