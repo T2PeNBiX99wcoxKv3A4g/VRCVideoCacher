@@ -406,11 +406,10 @@ internal static class BgUtilPotProvider
             if (HasProcessExited(process)) return;
             process.Kill(true);
             process.WaitForExit(3000);
-        }).GetOrElse((ex) =>
+        }).OnFailure((ex) =>
         {
-            if (ex is InvalidOperationException) return Unit.Value;
+            if (ex is InvalidOperationException) return;
             Log.Debug(ex, "Failed to stop bgutil server");
-            return Unit.Value;
         }).Also((_) => process.TryDispose());
     }
 
