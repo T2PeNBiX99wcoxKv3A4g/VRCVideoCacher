@@ -16,7 +16,7 @@ public class ProtectedStringConverter : JsonConverter<string>
     private const int KeySize = 32; // AES-256
     private const int NonceSize = 12; // Recommended GCM nonce size
     private const int TagSize = 16; // 128-bit authentication tag
-    private const int Version = 2;
+    private const int Version = 3;
 
     private static readonly string Prefix = $"enc:v{Version}:";
     private static readonly string KeyInfo = $"VRCVideoCacher.ProtectedString.v{Version}";
