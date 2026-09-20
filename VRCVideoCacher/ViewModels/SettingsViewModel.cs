@@ -8,6 +8,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.API;
+using VRCVideoCacher.Extensions;
+using VRCVideoCacher.Utils;
 
 // ReSharper disable MemberCanBeMadeStatic.Global
 
@@ -126,15 +128,14 @@ public partial class SettingsViewModel : ViewModelBase
         StatusMessage = message;
         StatusMessageColor = color;
 
-        if (string.IsNullOrEmpty(message) || autoHideSeconds <= 0)
-            return;
+        if (string.IsNullOrEmpty(message) || autoHideSeconds <= 0) return;
 
         var cts = new CancellationTokenSource();
         _statusMessageCts = cts;
 
         _ = Task.Run(async () =>
         {
-            try
+            await Try.Run(async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(autoHideSeconds), cts.Token);
                 if (!cts.IsCancellationRequested)
@@ -143,12 +144,13 @@ public partial class SettingsViewModel : ViewModelBase
                         if (!cts.IsCancellationRequested)
                             StatusMessage = string.Empty;
                     });
-            }
-            catch (OperationCanceledException)
+            }).OnFailure((ex) =>
             {
+                if (ex is not OperationCanceledException) ex.Throw();
                 // Expected when a new status message is set or cleared
-            }
-        });
+                return Unit.TaskValue;
+            });
+        }, cts.Token);
     }
 
     [ObservableProperty] public partial bool StartWithSteamVr { get; set; }
