@@ -270,6 +270,16 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     var typeStr = prop.Type.ToDisplayString(TypeDisplayFormat);
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
+                    foreach (var attr in prop.GetAttributes())
+                    {
+                        if (ShouldIncludeMemberAttribute(attr))
+                        {
+                            var formatted = FormatAttribute(attr);
+                            if (formatted != null)
+                                sb.AppendLine($"{indent}{formatted}");
+                        }
+                    }
+
                     sb.AppendLine($"{indent}public static {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
                     if (canGet)
@@ -294,6 +304,16 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     var typeStr = field.Type.ToDisplayString(TypeDisplayFormat);
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{field.Name}\"/></summary>");
+                    foreach (var attr in field.GetAttributes())
+                    {
+                        if (ShouldIncludeMemberAttribute(attr))
+                        {
+                            var formatted = FormatAttribute(attr);
+                            if (formatted != null)
+                                sb.AppendLine($"{indent}{formatted}");
+                        }
+                    }
+
                     if (field.IsReadOnly)
                         sb.AppendLine($"{indent}public static {typeStr} {staticName} => Instance.{field.Name};");
                     else
@@ -371,7 +391,19 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                             ? $" = {FormatDefaultValue(p.ExplicitDefaultValue)}"
                             : "";
 
-                        paramList.Add($"{isParams}{refPrefix}{pType} {pName}{defaultVal}");
+                        var paramAttrs = new List<string>();
+                        foreach (var attr in p.GetAttributes())
+                        {
+                            if (ShouldIncludeParameterAttribute(attr))
+                            {
+                                var formatted = FormatAttribute(attr);
+                                if (formatted != null)
+                                    paramAttrs.Add(formatted);
+                            }
+                        }
+
+                        var paramAttrStr = paramAttrs.Count > 0 ? $"{string.Join(" ", paramAttrs)} " : "";
+                        paramList.Add($"{paramAttrStr}{isParams}{refPrefix}{pType} {pName}{defaultVal}");
                         callArgs.Add($"{callRefPrefix}{pName}");
                     }
 
@@ -384,6 +416,29 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{method.Name}\"/></summary>");
+                    foreach (var attr in method.GetAttributes())
+                    {
+                        if (ShouldIncludeMemberAttribute(attr))
+                        {
+                            var formatted = FormatAttribute(attr);
+                            if (formatted != null)
+                                sb.AppendLine($"{indent}{formatted}");
+                        }
+                    }
+
+                    foreach (var attr in method.GetReturnTypeAttributes())
+                    {
+                        if (ShouldIncludeParameterAttribute(attr))
+                        {
+                            var formatted = FormatAttribute(attr);
+                            if (formatted != null)
+                            {
+                                var returnAttr = formatted.Insert(1, "return: ");
+                                sb.AppendLine($"{indent}{returnAttr}");
+                            }
+                        }
+                    }
+
                     sb.AppendLine(
                         $"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
                     sb.AppendLine(
@@ -407,6 +462,16 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     var typeStr = evt.Type.ToDisplayString(TypeDisplayFormat);
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
+                    foreach (var attr in evt.GetAttributes())
+                    {
+                        if (ShouldIncludeMemberAttribute(attr))
+                        {
+                            var formatted = FormatAttribute(attr);
+                            if (formatted != null)
+                                sb.AppendLine($"{indent}{formatted}");
+                        }
+                    }
+
                     sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
                     if (canAdd)
@@ -429,6 +494,144 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             }
         }
     }
+
+    private static bool ShouldIncludeParameterAttribute(AttributeData attr)
+    {
+        var className = attr.AttributeClass?.Name;
+        var fullNamespace = attr.AttributeClass?.ContainingNamespace?.ToDisplayString();
+
+        if (className == null)
+            return false;
+
+        if (fullNamespace == "System.Runtime.CompilerServices")
+        {
+            if (className is "NullableAttribute" or "NullableContextAttribute" or "ParamArrayAttribute"
+                or "IsReadOnlyAttribute" or "ScopedRefAttribute" or "RefSafetyRulesAttribute"
+                or "TupleElementNamesAttribute" or "NativeIntegerAttribute" or "DynamicAttribute"
+                or "ExtensionAttribute" or "AsyncStateMachineAttribute" or "IteratorStateMachineAttribute"
+                or "CompilerGeneratedAttribute")
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool ShouldIncludeMemberAttribute(AttributeData attr)
+    {
+        var className = attr.AttributeClass?.Name;
+        var fullNamespace = attr.AttributeClass?.ContainingNamespace?.ToDisplayString();
+
+        if (className == null)
+            return false;
+
+        if (className is "SingletonStaticProxyAttribute" or "SingletonStaticProxy"
+            or "StaticIncludeAttribute" or "StaticInclude"
+            or "StaticIgnoreAttribute" or "StaticIgnore"
+            or "StaticTrimLastAttribute" or "StaticTrimLast"
+            or "StaticTrimEndAttribute" or "StaticTrimEnd"
+            or "StaticDropLastAttribute" or "StaticDropLast"
+            or "MethodImplAttribute")
+            return false;
+
+        if (fullNamespace == "System.Runtime.CompilerServices")
+        {
+            if (className is "NullableAttribute" or "NullableContextAttribute"
+                or "AsyncStateMachineAttribute" or "IteratorStateMachineAttribute"
+                or "CompilerGeneratedAttribute" or "ExtensionAttribute")
+                return false;
+        }
+
+        return true;
+    }
+
+    private static string? FormatAttribute(AttributeData attr)
+    {
+        if (attr.AttributeClass == null)
+            return null;
+
+        var attrTypeStr = attr.AttributeClass.ToDisplayString(TypeDisplayFormat);
+        var args = new List<string>();
+
+        foreach (var ctorArg in attr.ConstructorArguments)
+        {
+            args.Add(FormatTypedConstant(ctorArg));
+        }
+
+        foreach (var namedArg in attr.NamedArguments)
+        {
+            args.Add($"{namedArg.Key} = {FormatTypedConstant(namedArg.Value)}");
+        }
+
+        return args.Count > 0 ? $"[{attrTypeStr}({string.Join(", ", args)})]" : $"[{attrTypeStr}]";
+    }
+
+    private static string FormatTypedConstant(TypedConstant tc)
+    {
+        if (tc.IsNull)
+            return "null";
+
+        switch (tc.Kind)
+        {
+            case TypedConstantKind.Primitive:
+                return tc.Value switch
+                {
+                    null => "null",
+                    bool b => b ? "true" : "false",
+                    string s => $"\"{EscapeString(s)}\"",
+                    char c => $"'{EscapeChar(c)}'",
+                    float f => $"{f}f",
+                    double d => $"{d}d",
+                    decimal m => $"{m}m",
+                    long l => $"{l}L",
+                    ulong ul => $"{ul}UL",
+                    uint u => $"{u}U",
+                    _ => tc.Value.ToString()
+                };
+            case TypedConstantKind.Enum:
+            {
+                var typeStr = tc.Type?.ToDisplayString(TypeDisplayFormat);
+                if (typeStr != null)
+                {
+                    if (tc.Type is INamedTypeSymbol namedType)
+                    {
+                        var field = namedType.GetMembers().OfType<IFieldSymbol>()
+                            .FirstOrDefault(f => f.HasConstantValue && Equals(f.ConstantValue, tc.Value));
+                        if (field != null)
+                            return $"{typeStr}.{field.Name}";
+                    }
+                    return $"({typeStr})({tc.Value})";
+                }
+                return tc.Value?.ToString() ?? "0";
+            }
+            case TypedConstantKind.Type:
+                return tc.Value is ITypeSymbol typeSym
+                    ? $"typeof({typeSym.ToDisplayString(TypeDisplayFormat)})"
+                    : "typeof(object)";
+            case TypedConstantKind.Array:
+            {
+                var elementValues = tc.Values.Select(FormatTypedConstant);
+                var arrayType = tc.Type?.ToDisplayString(TypeDisplayFormat) ?? "object[]";
+                return $"new {arrayType} {{ {string.Join(", ", elementValues)} }}";
+            }
+            default:
+                return tc.Value?.ToString() ?? "null";
+        }
+    }
+
+    private static string EscapeString(string s) =>
+        s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+
+    private static string EscapeChar(char c) =>
+        c switch
+        {
+            '\\' => "\\\\",
+            '\'' => "\\'",
+            '\r' => "\\r",
+            '\n' => "\\n",
+            '\t' => "\\t",
+            '\0' => "\\0",
+            _ => c.ToString()
+        };
 
     private static string EscapeIdentifier(string name) =>
         SyntaxFacts.IsKeywordKind(SyntaxFacts.GetKeywordKind(name)) ? "@" + name : name;
