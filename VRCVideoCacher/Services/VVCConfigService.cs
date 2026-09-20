@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
@@ -23,7 +24,7 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
     [PublicAPI]
     public async Task GetConfig2()
     {
-        try
+        await Try.Run(async () =>
         {
             var req = await _httpClient.GetAsync("https://vvc.ellyvr.dev/api/v1/config");
             if (req.IsSuccessStatusCode)
@@ -35,11 +36,11 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
                     OnApiConfigChanged?.Invoke();
                 }
             }
-        }
-        catch (Exception ex)
+        }).OnFailure((ex) =>
         {
             Log.Warning(ex, "Failed to get config from Video Cacher API.");
-        }
+            return Unit.TaskValue;
+        });
     }
 }
 

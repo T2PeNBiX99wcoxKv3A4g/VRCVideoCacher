@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using VRCVideoCacher.Database.Models;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.ViewModels;
 
 namespace VRCVideoCacher.Database;
@@ -79,7 +81,7 @@ public static class DatabaseManager
             return;
 
         var db = existing ?? ContextFactory.CreateDbContext();
-        try
+        Try.Run(() =>
         {
             // Find the Timestamp of the Nth-newest row; anything strictly older is deleted. Delete by that
             // boundary rather than materialising ids, so it stays one round-trip regardless of table size.
@@ -92,12 +94,11 @@ public static class DatabaseManager
                 return; // fewer than max rows; nothing to trim
 
             db.PlayHistory.Where(h => h.Timestamp <= cutoff.Value).ExecuteDelete();
-        }
-        finally
+        }).Also((_) =>
         {
             if (existing is null)
                 db.Dispose();
-        }
+        }).GetOrThrow();
     }
 
     public static void AddVideoInfoCache(VideoInfoCache videoInfoCache)

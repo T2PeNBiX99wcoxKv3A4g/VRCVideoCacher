@@ -6,6 +6,7 @@ using Avalonia;
 using JetBrains.Annotations;
 using Serilog;
 using VRCVideoCacher.API;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Services.Sabr;
 using VRCVideoCacher.Utils;
@@ -155,14 +156,7 @@ internal sealed class Program
 
     private static async Task InitVrcVideoCacher()
     {
-        try
-        {
-            Console.Title = $"VRCVideoCacher v{Version}";
-        }
-        catch
-        {
-            /* GUI mode, no console */
-        }
+        Try.Run(() => Console.Title = $"VRCVideoCacher v{Version}");
 
         OpenVRService.Start(CurrentProcessPath);
 
@@ -272,7 +266,7 @@ internal sealed class Program
         if (!IsCookiesEnabledAndValid())
             return null;
 
-        try
+        return await Try.Run<bool?>(async () =>
         {
             var cookieContainer = new CookieContainer();
             var lines = await File.ReadAllLinesAsync(YtdlManager.CookiesPath);
@@ -285,7 +279,7 @@ internal sealed class Program
                 if (parts.Length < 7)
                     continue;
 
-                try
+                Try.Run(() =>
                 {
                     var domain = parts[0];
                     var path = parts[2];
@@ -297,11 +291,7 @@ internal sealed class Program
                     {
                         Secure = secure
                     });
-                }
-                catch
-                {
-                    // Skip malformed cookie lines
-                }
+                });
             }
 
             using var handler = new HttpClientHandler();
@@ -315,12 +305,11 @@ internal sealed class Program
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             using var response = await client.GetAsync("https://www.youtube.com/new", cts.Token);
             return response.StatusCode == HttpStatusCode.OK;
-        }
-        catch (Exception ex)
+        }).GetOrElse(ex =>
         {
             Logger.Warning("Failed to validate cookies online: {Error}", ex.ToString());
-            return null;
-        }
+            return Task.FromResult<bool?>(null);
+        });
     }
 
     public static Stream GetYtDlpStub(bool useLinuxStub)

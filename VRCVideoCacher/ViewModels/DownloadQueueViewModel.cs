@@ -5,7 +5,9 @@ using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.ViewModels;
@@ -128,7 +130,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
             return;
         }
 
-        try
+        await Try.Run(async () =>
         {
             var videoInfo = await VideoId.GetVideoId(ManualUrl, true);
             if (videoInfo != null)
@@ -139,11 +141,11 @@ public partial class DownloadQueueViewModel : ViewModelBase
             }
             else
                 StatusMessage = "Could not parse URL";
-        }
-        catch (Exception ex)
+        }).OnFailure((ex) =>
         {
             StatusMessage = $"Error: {ex}";
-        }
+            return Unit.TaskValue;
+        });
     }
 
     [RelayCommand]
