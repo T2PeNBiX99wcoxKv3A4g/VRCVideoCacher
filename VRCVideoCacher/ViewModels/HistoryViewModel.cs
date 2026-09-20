@@ -12,6 +12,7 @@ using VRCVideoCacher.Database;
 using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.Views;
 
 namespace VRCVideoCacher.ViewModels;
@@ -112,18 +113,11 @@ public partial class HistoryItemViewModel : ViewModelBase
     [RelayCommand]
     private void OpenUrl()
     {
-        try
+        Try.Run(() => Process.Start(new ProcessStartInfo
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = Url,
-                UseShellExecute = true
-            });
-        }
-        catch
-        {
-            /* Ignore errors */
-        }
+            FileName = Url,
+            UseShellExecute = true
+        }));
     }
 
     [RelayCommand]
