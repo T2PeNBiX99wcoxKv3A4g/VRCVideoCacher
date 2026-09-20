@@ -82,19 +82,15 @@ internal sealed class Program
             {
                 foreach (var process in processes)
                     if (process.Id != Environment.ProcessId)
-                        try
+                        Try.Run(() =>
                         {
                             process.Kill(true);
                             process.WaitForExit(3000);
                             Logger.Information(
                                 "Killed existing instance with PID {Pid} due to kill existing instance argument.",
                                 process.Id);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Warning(ex,
-                                "Failed to kill existing instance with PID {Pid}. It may still be running.", process.Id);
-                        }
+                        }).OnFailure((ex) => Logger.Warning(ex,
+                            "Failed to kill existing instance with PID {Pid}. It may still be running.", process.Id));
             }
             else
             {
@@ -143,14 +139,11 @@ internal sealed class Program
         // Start backend on background thread
         Task.Run(async () =>
         {
-            try
-            {
-                await InitVrcVideoCacher();
-            }
-            catch (Exception ex)
+            await Try.Run(async () => await InitVrcVideoCacher()).OnFailure((ex) =>
             {
                 Logger.Error(ex, "Backend error: {Message}", ex.Message);
-            }
+                return Unit.TaskValue;
+            });
         });
     }
 
