@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -63,28 +64,24 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             using var activity = StatusService.Begin(StatusCategory.Downloading,
                 string.Format(Localizer.Get("StatusDownloading"), queueItem.VideoId));
 
-            bool success;
-            try
+            var success = await Try.Run(async () => queueItem.UrlType switch
             {
-                success = queueItem.UrlType switch
-                {
-                    UrlType.YouTube => await DownloadYouTubeVideo(queueItem),
-                    UrlType.PyPyDance => await DownloadVideoWithId(queueItem),
-                    UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem),
-                    UrlType.Other => await DownloadGenericVideo(queueItem),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            }
-            catch (Exception ex)
+                UrlType.YouTube => await DownloadYouTubeVideo(queueItem),
+                UrlType.PyPyDance => await DownloadVideoWithId(queueItem),
+                UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem),
+                UrlType.Other => await DownloadGenericVideo(queueItem),
+                _ => throw new ArgumentOutOfRangeException()
+            }).GetOrElse((ex) =>
             {
                 Log.Error("Exception during download: {Ex}", ex.ToString());
-                success = false;
-            }
+                return Task.FromResult(false);
+            });
 
             OnDownloadCompleted?.Invoke(queueItem, success);
             OnQueueChanged?.Invoke();
             _currentDownload = null;
         }
+        // ReSharper disable once FunctionNeverReturns
     }
 
     [PublicAPI]
