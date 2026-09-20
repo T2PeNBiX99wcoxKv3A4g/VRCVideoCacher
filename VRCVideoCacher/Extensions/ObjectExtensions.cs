@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Extensions;
 
@@ -29,5 +30,8 @@ public static class ObjectExtensions
             await block(value);
             return value;
         }
+
+        public UsingUntil.UsingUntilScope<T> UsingUntil([InstantHandle] Action<T> disposeAction) =>
+            new(value, disposeAction);
     }
 }
