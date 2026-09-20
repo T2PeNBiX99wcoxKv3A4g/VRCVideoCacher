@@ -447,7 +447,7 @@ internal static class BgUtilPotProvider
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
             using var cts = new CancellationTokenSource(timeout);
-            await Try.Run(async () => { await process.WaitForExitAsync(cts.Token); }).OnFailure((ex) =>
+            await Try.Run(async () => await process.WaitForExitAsync(cts.Token)).OnFailure((ex) =>
             {
                 if (ex is not OperationCanceledException) return Unit.TaskValue;
 
