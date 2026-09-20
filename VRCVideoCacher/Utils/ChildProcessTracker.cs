@@ -129,7 +129,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
     
     [PublicAPI]
-    public T? TrackWhile2<T>(Process process, [InstantHandle] Func<T> callback)
+    public T TrackWhile2<T>(Process process, [InstantHandle] Func<T> callback)
     {
         Track2(process);
         return Try.Run(callback).GetOrElse((ex) =>
@@ -144,7 +144,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
     
     [PublicAPI]
-    public async Task<T?> TrackWhile2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback)
+    public async Task<T> TrackWhile2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback)
     {
         Track2(process);
         return await Try.Run(callback).GetOrElse((ex) =>

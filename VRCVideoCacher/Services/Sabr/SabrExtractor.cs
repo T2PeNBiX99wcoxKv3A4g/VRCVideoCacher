@@ -450,6 +450,6 @@ internal static class SabrExtractor
             return process.ExitCode != 0
                 ? throw new SabrException($"yt-dlp extraction failed: {(await stderr).Trim()}")
                 : JObject.Parse(await stdout);
-        })!;
+        });
     }
 }
