@@ -6,6 +6,7 @@ using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Semver;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -98,7 +99,7 @@ public partial class Updater : Singleton<Updater>
     private async Task UpdateAsync(GitHubRelease release)
     {
         foreach (var asset in release.assets.Where(asset => asset.name == FileName))
-            try
+            await Try.Run(async () =>
             {
                 if (File.Exists(TempFilePath))
                 {
@@ -147,13 +148,13 @@ public partial class Updater : Singleton<Updater>
                 };
                 process.Start();
                 Environment.Exit(0);
-            }
-            catch (Exception ex)
+            }).OnFailure((ex) =>
             {
                 Console.Error.WriteLine("Failed to update: {0}", ex);
                 if (File.Exists(TempFilePath))
                     File.Delete(TempFilePath);
-            }
+                return Unit.TaskValue;
+            });
     }
 
     private async Task<bool> HashCheck(string githubHash)
@@ -208,29 +209,33 @@ public partial class Updater : Singleton<Updater>
             return false;
         }
 
-        try
         {
-            using var oldProcess = Process.GetProcessById(LaunchArgs.OldPid.Value);
-            if (!oldProcess.WaitForExit(10_000))
+            var result = Try.Run(() =>
             {
-                Console.Error.WriteLine(
-                    "Old process did not exit within the timeout period. Aborting update to prevent potential issues.");
-                return false;
-            }
-        }
-        catch
-        {
-            // Process already gone — that's fine
+                using var oldProcess = Process.GetProcessById(LaunchArgs.OldPid.Value);
+                if (!oldProcess.WaitForExit(10_000))
+                {
+                    Console.Error.WriteLine(
+                        "Old process did not exit within the timeout period. Aborting update to prevent potential issues.");
+                    return false;
+                }
+
+                return true;
+            }).GetOrElse((_) => true);
+            if (!result) return false;
         }
 
-        try
         {
-            File.Copy(Environment.ProcessPath, FilePath, true);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine("Failed to copy new version to target path: {0}", ex);
-            return false;
+            var result = Try.Run(() =>
+            {
+                File.Copy(Environment.ProcessPath, FilePath, true);
+                return true;
+            }).GetOrElse((ex) =>
+            {
+                Console.Error.WriteLine("Failed to copy new version to target path: {0}", ex);
+                return false;
+            });
+            if (!result) return false;
         }
 
         // Verify the copy matches self
