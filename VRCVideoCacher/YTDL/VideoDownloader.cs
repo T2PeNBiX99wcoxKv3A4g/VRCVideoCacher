@@ -198,15 +198,15 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
         // corrupts the session and gets us bot-checked. See YtdlCookieJar.
-        var error = "";
+        string error;
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            await ChildProcessTracker.TrackWhile(process, async () =>
+            using (ChildProcessTracker.Tracking(process))
             {
                 await process.WaitForExitAsync();
                 error = (await process.StandardError.ReadToEndAsync()).Trim();
-            });
+            }
         }
 
         if (process.ExitCode != 0)
@@ -219,7 +219,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        Thread.Sleep(100);
+        await Task.Delay(100);
 
         var fileName = $"{videoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
@@ -288,7 +288,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        Thread.Sleep(100);
+        await Task.Delay(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
@@ -414,7 +414,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        Thread.Sleep(100);
+        await Task.Delay(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
         var filePath = Path.Join(CacheManager.CachePath, fileName);
