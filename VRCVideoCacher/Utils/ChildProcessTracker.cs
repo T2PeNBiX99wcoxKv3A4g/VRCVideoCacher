@@ -119,7 +119,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public void TrackWhile2(Process? process, Action<Process> callback)
+    public void TrackWhile2(Process? process, [InstantHandle] Action<Process> callback)
     {
         if (process == null) return;
         Track2(process);
