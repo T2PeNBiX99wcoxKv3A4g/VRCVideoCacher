@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Jeek.Avalonia.Localization;
 using Serilog;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
@@ -445,31 +446,17 @@ internal static class BgUtilPotProvider
         if (process is null)
             return;
         ChildProcessTracker.Untrack(process);
-        try
+        Try.Run(() =>
         {
             if (HasProcessExited(process)) return;
             process.Kill(true);
             process.WaitForExit(3000);
-        }
-        catch (InvalidOperationException)
+        }).GetOrElse((ex) =>
         {
-            // Process already exited, not associated, or disposed
-        }
-        catch (Exception ex)
-        {
+            if (ex is InvalidOperationException) return Unit.Value;
             Log.Debug(ex, "Failed to stop bgutil server");
-        }
-        finally
-        {
-            try
-            {
-                process.Dispose();
-            }
-            catch
-            {
-                /* Ignore */
-            }
-        }
+            return Unit.Value;
+        }).Also((_) => process.TryDispose());
     }
 
     /// <summary>
@@ -479,16 +466,12 @@ internal static class BgUtilPotProvider
 
     private static async Task<bool> PingAsync()
     {
-        try
+        return await Try.Run(async () =>
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             using var response = await HttpClient.GetAsync(PingUrl, cts.Token);
             return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
+        }).GetOrElse((_) => Task.FromResult(false));
     }
 
     private static async Task<(int exitCode, string output)> RunProcessAsync(
@@ -521,14 +504,10 @@ internal static class BgUtilPotProvider
             }
             catch (OperationCanceledException)
             {
-                try
+                Try.Run(() =>
                 {
                     if (!process.HasExited) process.Kill(true);
-                }
-                catch
-                {
-                    /* best effort */
-                }
+                });
 
                 throw new SabrException(
                     $"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
