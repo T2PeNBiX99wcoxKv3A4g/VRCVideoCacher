@@ -123,7 +123,10 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     {
         if (process == null) return;
         Track2(process);
-        Try.Run(() => callback(process)).Also((_) => Untrack2(process));
+        Try.Run(() => callback(process)).OnFailure((_) => Try.Run(() =>
+        {
+            if (!process.HasExited) process.Kill(true);
+        })).Also((_) => Untrack2(process));
     }
 
     /// <summary>
