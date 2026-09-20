@@ -104,7 +104,10 @@ public static class LoggerUtils
         if (exception is AggregateException aggregate)
         {
             var exceptions = aggregate.Flatten().InnerExceptions;
-            return exceptions.Count != 0 && exceptions.All(inner => inner is DBusErrorReplyException { ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown" });
+            return exceptions.Count != 0 && exceptions.All(inner => inner is DBusErrorReplyException
+            {
+                ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown"
+            });
         }
 
         return exception is DBusErrorReplyException
