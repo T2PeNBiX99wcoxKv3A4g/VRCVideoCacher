@@ -63,10 +63,11 @@ public static class Try
     }
 }
 
+[PublicAPI]
 public readonly struct Unit : IEquatable<Unit>
 {
-    public static readonly Unit Value = new();
-    [PublicAPI] public static readonly Task<Unit> TaskValue = Task.FromResult(Value);
+    public static readonly Unit Value;
+    public static readonly Task<Unit> TaskValue = Task.FromResult(Value);
 
     public bool Equals(Unit other) => true;
     public override bool Equals(object? obj) => obj is Unit;
