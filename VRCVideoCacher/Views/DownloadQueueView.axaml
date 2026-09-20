@@ -12,7 +12,7 @@
             <StackPanel Orientation="Vertical" Spacing="4">
                 <TextBlock Text="{l:Localize DownloadQueue}" FontSize="24" FontWeight="Bold"
                            Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Text="Manage ongoing and queued background video downloads and manual caching tasks"
+                <TextBlock Text="{l:Localize DownloadQueueSubtitle}"
                            FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
             </StackPanel>
 

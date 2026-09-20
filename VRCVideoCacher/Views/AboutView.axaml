@@ -13,7 +13,7 @@
                 <StackPanel Orientation="Vertical" Spacing="4">
                     <TextBlock Text="{l:Localize About}" FontSize="24" FontWeight="Bold"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="Project information, release version, and community links"
+                    <TextBlock Text="{l:Localize AboutSubtitle}"
                                FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
                 </StackPanel>
             </Grid>
@@ -62,16 +62,16 @@
                         </Grid>
 
                         <TextBlock
-                            Text="A lightweight, high-performance local caching &amp; streaming proxy server designed specifically for VRChat video players."
+                            Text="{l:Localize AboutDescription}"
                             Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap" />
 
                         <Separator Background="{StaticResource DividerBrush}" Margin="0,4" />
 
-                        <TextBlock Text="Official Community &amp; Links" FontWeight="Bold" FontSize="13"
+                        <TextBlock Text="{l:Localize OfficialCommunityAndLinks}" FontWeight="Bold" FontSize="13"
                                    Foreground="{StaticResource TextPrimaryBrush}" />
 
                         <WrapPanel Orientation="Horizontal">
-                            <Button Click="OnDiscordClick" Classes="secondary" ToolTip.Tip="Discord Community"
+                            <Button Click="OnDiscordClick" Classes="secondary" ToolTip.Tip="{l:Localize DiscordCommunityTooltip}"
                                     Padding="14, 8" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <mi:MaterialIcon Kind="Forum" Width="18" Height="18"
@@ -79,7 +79,7 @@
                                     <TextBlock Text="Discord" VerticalAlignment="Center" FontSize="13" />
                                 </StackPanel>
                             </Button>
-                            <Button Click="OnGitHubClick" Classes="secondary" ToolTip.Tip="GitHub Repository"
+                            <Button Click="OnGitHubClick" Classes="secondary" ToolTip.Tip="{l:Localize GitHubRepositoryTooltip}"
                                     Padding="14, 8" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <mi:MaterialIcon Kind="Github" Width="18" Height="18"
@@ -87,7 +87,7 @@
                                     <TextBlock Text="GitHub" VerticalAlignment="Center" FontSize="13" />
                                 </StackPanel>
                             </Button>
-                            <Button Click="OnSteamClick" Classes="secondary" ToolTip.Tip="Steam Page" Padding="14, 8"
+                            <Button Click="OnSteamClick" Classes="secondary" ToolTip.Tip="{l:Localize SteamPageTooltip}" Padding="14, 8"
                                     Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <mi:MaterialIcon Kind="Steam" Width="18" Height="18"
@@ -115,7 +115,7 @@
                     </StackPanel>
 
                     <TextBlock
-                        Text="Encountered an issue or have a feature suggestion? Connect with us on GitHub or Discord."
+                        Text="{l:Localize ReportIssueDescription}"
                         Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" />
 
                     <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">

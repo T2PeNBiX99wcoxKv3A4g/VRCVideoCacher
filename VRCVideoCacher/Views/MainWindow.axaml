@@ -49,7 +49,7 @@
                                                    FontWeight="Bold"
                                                    FontSize="14"
                                                    Foreground="{StaticResource TextPrimaryBrush}" />
-                                        <TextBlock Text="Video Stream Proxy"
+                                        <TextBlock Text="{l:Localize VideoStreamProxy}"
                                                    FontSize="11"
                                                    Foreground="{StaticResource PrimaryLightBrush}" />
                                     </StackPanel>
@@ -62,7 +62,7 @@
                     <ScrollViewer Grid.Row="1">
                         <StackPanel Spacing="4">
                             <!-- Category: MAIN -->
-                            <TextBlock Text="OVERVIEW"
+                            <TextBlock Text="{l:Localize NavOverview}"
                                        FontSize="10"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource TextMutedBrush}"
@@ -80,7 +80,7 @@
                             </Button>
 
                             <!-- Category: MEDIA -->
-                            <TextBlock Text="MEDIA &amp; CACHE"
+                            <TextBlock Text="{l:Localize NavMediaAndCache}"
                                        FontSize="10"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource TextMutedBrush}"
@@ -120,7 +120,7 @@
                             </Button>
 
                             <!-- Category: SYSTEM -->
-                            <TextBlock Text="SYSTEM"
+                            <TextBlock Text="{l:Localize NavSystem}"
                                        FontSize="10"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource TextMutedBrush}"
@@ -186,7 +186,7 @@
                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="CACHE STORAGE" FontSize="9.5" FontWeight="Bold"
+                                <TextBlock Text="{l:Localize NavCacheStorage}" FontSize="9.5" FontWeight="Bold"
                                            Foreground="{StaticResource TextMutedBrush}" />
                                 <TextBlock Text="{Binding CacheStatusText}"
                                            FontSize="11"
@@ -277,7 +277,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <mi:MaterialIcon Kind="CheckCircleOutline" Width="13" Height="13"
                                              Foreground="{StaticResource SuccessBrush}" />
-                            <TextBlock Text="Ready"
+                            <TextBlock Text="{l:Localize StatusReady}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        FontSize="11.5"
                                        VerticalAlignment="Center" />

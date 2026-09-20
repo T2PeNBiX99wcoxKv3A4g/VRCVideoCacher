@@ -14,7 +14,7 @@
             <StackPanel Orientation="Vertical" Spacing="4">
                 <TextBlock Text="{l:Localize History}" FontSize="24" FontWeight="Bold"
                            Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Text="Historical playback records and video stream intercepts from VRChat"
+                <TextBlock Text="{l:Localize HistorySubtitle}"
                            FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
             </StackPanel>
 

@@ -12,7 +12,7 @@
             <StackPanel Orientation="Vertical" Spacing="4">
                 <TextBlock Text="{l:Localize Settings}" FontSize="24" FontWeight="Bold"
                            Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Text="Configure proxy endpoints, caching limits, authentication and playback behavior"
+                <TextBlock Text="{l:Localize SettingsSubtitle}"
                            FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
             </StackPanel>
 
@@ -147,7 +147,7 @@
                         <StackPanel Spacing="6" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize SabrAdditionalArgs}"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Text="{Binding SabrAdditionalArgs}" PlaceholderText="Optional arguments" />
+                            <TextBox Text="{Binding SabrAdditionalArgs}" PlaceholderText="{l:Localize OptionalArgumentsPlaceholder}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -176,7 +176,7 @@
                         <StackPanel Spacing="6" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize AdditionalYtdlpArgs}"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="Optional arguments" />
+                            <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="{l:Localize OptionalArgumentsPlaceholder}" />
                         </StackPanel>
 
                         <StackPanel Spacing="6" IsVisible="{Binding ShowAdvanced}">
@@ -190,7 +190,7 @@
                                        VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
                             <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}"
-                                     PlaceholderText="Leave empty for original" />
+                                     PlaceholderText="{l:Localize DubLanguagePlaceholder}" />
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -372,7 +372,7 @@
                             <StackPanel Spacing="6" Margin="0,10,0,0">
                                 <TextBlock Text="{l:Localize BlockedUrlRedirect}"
                                            Foreground="{StaticResource TextSecondaryBrush}" />
-                                <TextBox Text="{Binding BlockRedirect}" PlaceholderText="Redirect URL" />
+                                <TextBox Text="{Binding BlockRedirect}" PlaceholderText="{l:Localize RedirectUrlPlaceholder}" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -407,10 +407,10 @@
                                         <Grid ColumnDefinitions="*, *, Auto" Margin="0,3">
                                             <TextBox Grid.Column="0"
                                                      Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                     PlaceholderText="Source pattern" />
+                                                     PlaceholderText="{l:Localize SourcePatternPlaceholder}" />
                                             <TextBox Grid.Column="1" Margin="6,0,0,0"
                                                      Text="{Binding RedirectUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                     PlaceholderText="Target URL" />
+                                                     PlaceholderText="{l:Localize TargetUrlPlaceholder}" />
                                             <Button Grid.Column="2" Margin="6,0,0,0" Classes="subtle-danger"
                                                     Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveRedirectUrlCommand}"
                                                     CommandParameter="{Binding}">

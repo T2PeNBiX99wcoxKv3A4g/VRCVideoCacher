@@ -14,7 +14,7 @@
             <StackPanel Orientation="Vertical" Spacing="4">
                 <TextBlock Text="{l:Localize CacheBrowser}" FontSize="24" FontWeight="Bold"
                            Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Text="Manage, search and inspect local video files cached by the proxy engine"
+                <TextBlock Text="{l:Localize CacheBrowserSubtitle}"
                            FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
             </StackPanel>
 

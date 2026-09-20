@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:Jeek.Avalonia.Localization"
         x:Class="VRCVideoCacher.Views.PopupWindow"
         Title="VRCVideoCacher"
         Width="540"
@@ -14,7 +15,7 @@
                        FontSize="13"
                        LineHeight="20"
                        TextWrapping="Wrap" />
-            <Button Content="OK"
+            <Button Content="{l:Localize OK}"
                     Classes="primary"
                     Width="90"
                     Padding="12,7"
