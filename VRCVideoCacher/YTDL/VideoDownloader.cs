@@ -198,33 +198,15 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
         // corrupts the session and gets us bot-checked. See YtdlCookieJar.
-        string error;
+        var error = "";
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            ChildProcessTracker.Track(process);
-            try
+            await ChildProcessTracker.TrackWhile(process, async () =>
             {
                 await process.WaitForExitAsync();
                 error = (await process.StandardError.ReadToEndAsync()).Trim();
-            }
-            catch
-            {
-                try
-                {
-                    if (!process.HasExited) process.Kill(true);
-                }
-                catch
-                {
-                    /* best effort */
-                }
-
-                throw;
-            }
-            finally
-            {
-                ChildProcessTracker.Untrack(process);
-            }
+            });
         }
 
         if (process.ExitCode != 0)
