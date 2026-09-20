@@ -458,7 +458,7 @@ internal static class BgUtilPotProvider
 
                 throw new SabrException(
                     $"'{Path.GetFileName(fileName)} {arguments}' timed out after {timeout.TotalMinutes:0} min");
-            });
+            }).GetOrThrow();
 
             var output = string.Join(Environment.NewLine, await stdout, await stderr);
             return (process.ExitCode, output);
