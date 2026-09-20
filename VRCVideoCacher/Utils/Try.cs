@@ -36,7 +36,7 @@ public static class Try
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<T>> Run<T>([InstantHandle] Func<Task<T>> func)
+    public static async Task<Result<T>> Run<T>([InstantHandle(RequireAwait = true)] Func<Task<T>> func)
     {
         try
         {
@@ -49,7 +49,7 @@ public static class Try
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<Unit>> Run([InstantHandle] Func<Task> func)
+    public static async Task<Result<Unit>> Run([InstantHandle(RequireAwait = true)] Func<Task> func)
     {
         try
         {
