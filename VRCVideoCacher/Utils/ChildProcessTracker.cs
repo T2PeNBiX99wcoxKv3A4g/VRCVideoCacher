@@ -119,14 +119,43 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public void TrackWhile2(Process? process, [InstantHandle] Action callback)
+    public void TrackWhile2(Process process, [InstantHandle] Action callback)
     {
-        if (process == null) return;
         Track2(process);
         Try.Run(callback).OnFailure((_) => Try.Run(() =>
         {
             if (!process.HasExited) process.Kill(true);
         })).Also((_) => Untrack2(process));
+    }
+    
+    [PublicAPI]
+    public T? TrackWhile2<T>(Process process, [InstantHandle] Func<T> callback)
+    {
+        Track2(process);
+        return Try.Run(callback).GetOrElse((ex) =>
+        {
+            Try.Run(() =>
+            {
+                if (!process.HasExited) process.Kill(true);
+            });
+            ex.Throw();
+            return default;
+        }).Also((_) => Untrack2(process));
+    }
+    
+    [PublicAPI]
+    public async Task<T?> TrackWhile2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback)
+    {
+        Track2(process);
+        return await Try.Run(callback).GetOrElse((ex) =>
+        {
+            Try.Run(() =>
+            {
+                if (!process.HasExited) process.Kill(true);
+            });
+            ex.Throw();
+            return null;
+        }).Also((_) => Untrack2(process));
     }
 
     /// <summary>
