@@ -21,13 +21,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
-        {
             Try.Run(InitJobObject).GetOrElse((ex) =>
             {
                 Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
                 return Unit.Value;
             });
-        }
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll2();
     }
@@ -54,7 +52,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 
         var length = Marshal.SizeOf<JobObjectExtendedLimitInformation>();
 
-        try
+        Try.Run(() =>
         {
             if (!SetInformationJobObject(jobHandle, JobObjectInfoType.ExtendedLimitInformation, ref extendedInfo,
                     (uint)length))
@@ -73,12 +71,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 
             _jobHandle = jobHandle;
             jobHandle = IntPtr.Zero;
-        }
-        finally
+        }).Also((_) =>
         {
             if (jobHandle != IntPtr.Zero && !CloseHandle(jobHandle))
                 Log.Debug("CloseHandle failed with error {Error}", Marshal.GetLastPInvokeError());
-        }
+        });
     }
 
     /// <summary>
@@ -102,7 +99,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
                 KillProcess(process);
             return;
         }
-        
+
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
         Try.Run(() =>
         {
@@ -143,27 +140,12 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 
     private static void KillProcess(Process proc)
     {
-        try
+        Try.Run(() =>
         {
             if (proc.HasExited) return;
             proc.Kill(true);
             proc.WaitForExit(1000);
-        }
-        catch
-        {
-            // Best-effort cleanup
-        }
-        finally
-        {
-            try
-            {
-                proc.Dispose();
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
+        }).Also((_) => Try.Run(proc.Dispose));
     }
 
     #region Win32 P/Invoke
