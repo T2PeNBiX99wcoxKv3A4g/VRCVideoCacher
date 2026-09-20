@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Serilog;
+using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
@@ -14,25 +16,21 @@ namespace VRCVideoCacher.Utils;
 /// use, not <i>by whom</i> — attributing it to a process needs a platform call (Win32 GetExtendedTcpTable
 /// or, on Linux, <c>/proc</c> scanning). "Who" is best-effort and degrades to "an unknown process".
 /// </summary>
-public static class PortAudit
+public static partial class PortAudit
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(PortAudit));
 
     /// <summary>True if any process is already listening on <paramref name="port"/> (IPv4 or IPv6).</summary>
     public static bool IsInUse(int port)
     {
-        try
-        {
-            return IPGlobalProperties.GetIPGlobalProperties()
-                .GetActiveTcpListeners()
-                .Any(ep => ep.Port == port);
-        }
-        catch (Exception ex)
+        return Try.Run(() => IPGlobalProperties.GetIPGlobalProperties()
+            .GetActiveTcpListeners()
+            .Any(ep => ep.Port == port)).GetOrElse((ex) =>
         {
             // Never block startup on a diagnostics failure — assume free and let the real bind decide.
             Log.Debug(ex, "Could not enumerate TCP listeners while checking port {Port}", port);
             return false;
-        }
+        });
     }
 
     /// <summary>
@@ -51,19 +49,16 @@ public static class PortAudit
     /// <summary>
     /// Finds the PID of the process currently listening on <paramref name="port"/>, or null if unknown / not found.
     /// </summary>
+    [PublicAPI]
     public static int? FindOwningPid(int port)
     {
-        try
-        {
-            return OperatingSystem.IsWindows() ? FindOwningPidWindows(port)
-                : OperatingSystem.IsLinux() ? FindOwningPidLinux(port)
-                : null;
-        }
-        catch (Exception ex)
+        return Try.Run(() => OperatingSystem.IsWindows() ? FindOwningPidWindows(port)
+            : OperatingSystem.IsLinux() ? FindOwningPidLinux(port)
+            : null).GetOrElse((ex) =>
         {
             Log.Debug(ex, "Could not identify owning PID for port {Port}", port);
             return null;
-        }
+        });
     }
 
     /// <summary>
@@ -72,7 +67,7 @@ public static class PortAudit
     /// </summary>
     public static bool TryKillListener(int port, string? expectedProcessNameSubstring = null, int timeoutMs = 3000)
     {
-        try
+        return Try.Run(() =>
         {
             var pid = FindOwningPid(port);
             if (pid is not { } id || id == Environment.ProcessId)
@@ -84,16 +79,7 @@ public static class PortAudit
             if (!string.IsNullOrEmpty(expectedProcessNameSubstring))
             {
                 var matchesName = procName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
-                string? exeName = null;
-                try
-                {
-                    exeName = proc.MainModule?.FileName;
-                }
-                catch
-                {
-                    /* Ignore */
-                }
-
+                var exeName = Try.Run(() => proc.MainModule?.FileName).GetOrElse((_) => null);
                 var matchesExe = !string.IsNullOrEmpty(exeName) &&
                                  exeName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
 
@@ -121,12 +107,11 @@ public static class PortAudit
             }
 
             return !IsInUse(port);
-        }
-        catch (Exception ex)
+        }).GetOrElse((ex) =>
         {
             Log.Debug(ex, "Failed to kill listener on port {Port}", port);
             return false;
-        }
+        });
     }
 
     /// <summary>
@@ -135,27 +120,22 @@ public static class PortAudit
     /// </summary>
     public static string DescribeListener(int port)
     {
-        try
+        return Try.Run(() =>
         {
             var pid = FindOwningPid(port);
             if (pid is not { } id)
                 return "an unknown process";
 
-            try
+            return Try.Run(() =>
             {
                 using var proc = Process.GetProcessById(id);
                 return $"{proc.ProcessName} (PID {id})";
-            }
-            catch
-            {
-                return $"PID {id}";
-            }
-        }
-        catch (Exception ex)
+            }).GetOrElse((_) => $"PID {id}");
+        }).GetOrElse((ex) =>
         {
             Log.Debug(ex, "Could not identify the process listening on port {Port}", port);
             return "an unknown process";
-        }
+        });
     }
 
     // ---------- Windows: iphlpapi GetExtendedTcpTable ----------
@@ -164,8 +144,9 @@ public static class PortAudit
     private const int AfInet6 = 23;
     private const int TcpTableOwnerPidListener = 3;
 
-    [DllImport("iphlpapi.dll", SetLastError = true)]
-    private static extern uint GetExtendedTcpTable(IntPtr pTcpTable, ref int dwOutBufLen, bool sort,
+    [LibraryImport("iphlpapi.dll", SetLastError = true)]
+    private static partial uint GetExtendedTcpTable(IntPtr pTcpTable, ref uint dwOutBufLen,
+        [MarshalAs(UnmanagedType.Bool)] bool sort,
         int ipVersion, int tableClass, int reserved);
 
     [SupportedOSPlatform("windows")]
@@ -175,13 +156,13 @@ public static class PortAudit
     [SupportedOSPlatform("windows")]
     private static int? FindOwningPid(int port, int family)
     {
-        var size = 0;
+        var size = 0U;
         GetExtendedTcpTable(IntPtr.Zero, ref size, false, family, TcpTableOwnerPidListener, 0);
         if (size <= 0)
             return null;
 
-        var buffer = Marshal.AllocHGlobal(size);
-        try
+        var buffer = Marshal.AllocHGlobal((nint)size);
+        using (buffer.UsingUntil(Marshal.FreeHGlobal))
         {
             if (GetExtendedTcpTable(buffer, ref size, false, family, TcpTableOwnerPidListener, 0) != 0)
                 return null;
@@ -211,10 +192,6 @@ public static class PortAudit
             }
 
             return null;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(buffer);
         }
     }
 
@@ -264,19 +241,16 @@ public static class PortAudit
         {
             if (!int.TryParse(Path.GetFileName(pidDir), out var pid))
                 continue;
-            try
+            var result = Try.Run<int?>(() =>
             {
-                foreach (var fd in Directory.EnumerateFileSystemEntries($"{pidDir}/fd"))
-                {
-                    var target = File.ResolveLinkTarget(fd, false)?.Name;
-                    if (target == needle)
-                        return pid;
-                }
-            }
-            catch
-            {
-                // Not our process to read (permissions) or it vanished — keep scanning.
-            }
+                if (Directory.EnumerateFileSystemEntries($"{pidDir}/fd")
+                    .Select(fd => File.ResolveLinkTarget(fd, false)?.Name).Any(target => target == needle))
+                    return pid;
+
+                return null;
+            }).GetOrNull();
+            // Not our process to read (permissions) or it vanished — keep scanning.
+            if (result != null) return result;
         }
 
         return null;
@@ -289,21 +263,14 @@ public static class PortAudit
             return null;
 
         var hexPort = port.ToString("X4");
-        foreach (var line in File.ReadLines(procFile).Skip(1))
-        {
-            var cols = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            // cols: sl local_address rem_address st ... inode
-            if (cols.Length < 10)
-                continue;
-            if (cols[3] != "0A") // TCP_LISTEN
-                continue;
-            var colon = cols[1].LastIndexOf(':');
-            if (colon < 0 || !cols[1][(colon + 1)..].Equals(hexPort, StringComparison.OrdinalIgnoreCase))
-                continue;
-            return cols[9];
-        }
-
-        return null;
+        return (from line in File.ReadLines(procFile).Skip(1)
+            select line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            into cols
+            where cols.Length >= 10
+            where cols[3] == "0A"
+            let colon = cols[1].LastIndexOf(':')
+            where colon >= 0 && cols[1][(colon + 1)..].Equals(hexPort, StringComparison.OrdinalIgnoreCase)
+            select cols[9]).FirstOrDefault();
     }
 
     /// <summary>
