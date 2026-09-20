@@ -115,7 +115,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         _trackedProcesses.TryRemove(process, out _);
     }
 
-    private sealed class TrackingScope(ChildProcessTracker tracker, Process process, bool forceKill = false) : IDisposable
+    private sealed class TrackingScope(ChildProcessTracker tracker, Process process, bool forceKill = true) : IDisposable
     {
         public void Dispose()
         {
@@ -129,7 +129,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public IDisposable Tracking2(Process process, bool forceKill = false)
+    public IDisposable Tracking2(Process process, bool forceKill = true)
     {
         Track2(process);
         return new TrackingScope(this, process, forceKill);
