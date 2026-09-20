@@ -346,8 +346,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         };
 
         process.Start();
-        ChildProcessTracker.Track(process);
-        try
+        await ChildProcessTracker.TrackWhile(process, async () =>
         {
             var stderr = await process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
@@ -362,24 +361,6 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
 
             if (!string.IsNullOrWhiteSpace(stderr))
                 log.Debug("[sabr-mux] {Error}", stderr.Trim());
-        }
-        catch
-        {
-            try
-            {
-                if (!process.HasExited)
-                    process.Kill(true);
-            }
-            catch
-            {
-                /* best effort */
-            }
-
-            throw;
-        }
-        finally
-        {
-            ChildProcessTracker.Untrack(process);
-        }
+        });
     }
 }

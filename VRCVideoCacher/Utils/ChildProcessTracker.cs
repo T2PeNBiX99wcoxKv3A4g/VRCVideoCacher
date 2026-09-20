@@ -21,7 +21,8 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
-            Try.Run(InitJobObject).OnFailure((ex) => Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup"));
+            Try.Run(InitJobObject).OnFailure((ex) =>
+                Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup"));
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll2();
     }

@@ -276,30 +276,11 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         };
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        ChildProcessTracker.Track(process);
-        string error;
-        try
+        var error = await ChildProcessTracker.TrackWhile(process, async () =>
         {
             await process.WaitForExitAsync();
-            error = (await process.StandardError.ReadToEndAsync()).Trim();
-        }
-        catch
-        {
-            try
-            {
-                if (!process.HasExited) process.Kill(true);
-            }
-            catch
-            {
-                /* best effort */
-            }
-
-            throw;
-        }
-        finally
-        {
-            ChildProcessTracker.Untrack(process);
-        }
+            return (await process.StandardError.ReadToEndAsync()).Trim();
+        });
 
         if (process.ExitCode != 0)
         {
@@ -421,30 +402,11 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        ChildProcessTracker.Track(process);
-        string error;
-        try
+        var error = await ChildProcessTracker.TrackWhile(process, async () =>
         {
             await process.WaitForExitAsync();
-            error = (await process.StandardError.ReadToEndAsync()).Trim();
-        }
-        catch
-        {
-            try
-            {
-                if (!process.HasExited) process.Kill(true);
-            }
-            catch
-            {
-                /* best effort */
-            }
-
-            throw;
-        }
-        finally
-        {
-            ChildProcessTracker.Untrack(process);
-        }
+            return (await process.StandardError.ReadToEndAsync()).Trim();
+        });
 
         if (process.ExitCode != 0)
         {

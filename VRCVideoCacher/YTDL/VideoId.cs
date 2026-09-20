@@ -52,35 +52,16 @@ public partial class VideoId : Singleton<VideoId>
         // session and gets us bot-checked. See YtdlCookieJar.
         using var cookieJar = await YtdlCookieJar.AcquireAsync();
 
-        Log.Information("Starting yt-dlp with args: {args:l}", ytdlpProcess.StartInfo.Arguments);
+        Log.Information("Starting yt-dlp with args: {Args:l}", ytdlpProcess.StartInfo.Arguments);
         ytdlpProcess.Start();
-        ChildProcessTracker.Track(ytdlpProcess);
-        try
+        return await ChildProcessTracker.TrackWhile(ytdlpProcess, async () =>
         {
             var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
             var error = await ytdlpProcess.StandardError.ReadToEndAsync();
             await ytdlpProcess.WaitForExitAsync();
             Log.Information("Finished yt-dlp");
             return (output.Trim(), error.Trim(), ytdlpProcess.ExitCode);
-        }
-        catch
-        {
-            try
-            {
-                if (!ytdlpProcess.HasExited)
-                    ytdlpProcess.Kill(true);
-            }
-            catch
-            {
-                /* best effort */
-            }
-
-            throw;
-        }
-        finally
-        {
-            ChildProcessTracker.Untrack(ytdlpProcess);
-        }
+        });
     }
 
     [PublicAPI]

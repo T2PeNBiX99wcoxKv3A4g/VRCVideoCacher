@@ -5,6 +5,7 @@ using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using SharpCompress.Readers;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -597,7 +598,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
     private async Task<bool> CheckIfProcessStarts(string path, string arg = "--version")
     {
         var processName = Path.GetFileNameWithoutExtension(path);
-        try
+        return await Try.Run(async () =>
         {
             using var process = new Process();
             process.StartInfo = new()
@@ -612,44 +613,20 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            ChildProcessTracker.Track(process);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            try
+            return await ChildProcessTracker.TrackWhile(process, async () =>
             {
                 await process.WaitForExitAsync(cts.Token);
-                if (process.ExitCode != 0)
-                {
-                    var output = await process.StandardOutput.ReadToEndAsync(cts.Token);
-                    var error = await process.StandardError.ReadToEndAsync(cts.Token);
-                    Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
-                    return false;
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                try
-                {
-                    if (!process.HasExited) process.Kill(true);
-                }
-                catch
-                {
-                    /* ignore */
-                }
-
-                Log.Error("Process {ProcessName} timed out during startup check", processName);
+                if (process.ExitCode == 0) return true;
+                var output = await process.StandardOutput.ReadToEndAsync(cts.Token);
+                var error = await process.StandardError.ReadToEndAsync(cts.Token);
+                Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
                 return false;
-            }
-            finally
-            {
-                ChildProcessTracker.Untrack(process);
-            }
-        }
-        catch (Exception ex)
+            });
+        }).GetOrElse((ex) =>
         {
             Log.Error("Exception while starting {ProcessName}: {Message}", processName, ex.Message);
-            return false;
-        }
-
-        return true;
+            return Task.FromResult(false);
+        });
     }
 }

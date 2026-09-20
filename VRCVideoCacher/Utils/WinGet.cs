@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
 using JetBrains.Annotations;
+using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
@@ -54,39 +55,31 @@ public partial class WinGet : Singleton<WinGet>
 
     private bool IsPackageInstalled(string packageId)
     {
-        try
+        return Try.Run(() =>
         {
-            using var process = new Process
+            using var process = new Process();
+            process.StartInfo = new()
             {
-                StartInfo =
-                {
-                    FileName = WingetPath,
-                    Arguments = $"list \"{packageId}\" -s msstore --accept-source-agreements",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8
-                }
+                FileName = WingetPath,
+                Arguments = $"list \"{packageId}\" -s msstore --accept-source-agreements",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            ChildProcessTracker.Track(process);
-            try
+            return ChildProcessTracker.TrackWhile(process, () =>
             {
                 process.WaitForExit(10_000);
                 return process.ExitCode == 0;
-            }
-            finally
-            {
-                ChildProcessTracker.Untrack(process);
-            }
-        }
-        catch (Exception ex)
+            });
+        }).GetOrElse((ex) =>
         {
             Log.Warning(ex, "Failed on IsPackageInstalled");
             return false;
-        }
+        });
     }
 
     private async Task InstallAllPackages()
@@ -97,7 +90,7 @@ public partial class WinGet : Singleton<WinGet>
 
     private async Task InstallPackage(string packageId)
     {
-        try
+        await Try.Run(async () =>
         {
             using var process = new Process();
             process.StartInfo = new()
@@ -112,8 +105,7 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            ChildProcessTracker.Track(process);
-            try
+            await ChildProcessTracker.TrackWhile(process, async () =>
             {
                 while (await process.StandardOutput.ReadLineAsync() is { } line)
                     if (!string.IsNullOrEmpty(line.Trim()))
@@ -126,15 +118,11 @@ public partial class WinGet : Singleton<WinGet>
                 var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
                 if (process.ExitCode == 0)
                     Log.Information("Successfully installed package: {PackageName}", packageName);
-            }
-            finally
-            {
-                ChildProcessTracker.Untrack(process);
-            }
-        }
-        catch (Exception ex)
+            });
+        }).GetOrElse((ex) =>
         {
             Log.Warning(ex, "Failed on InstallPackage");
-        }
+            return Task.FromResult(Unit.Value);
+        });
     }
 }

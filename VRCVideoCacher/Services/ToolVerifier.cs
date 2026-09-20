@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Sabr;
 using VRCVideoCacher.Utils;
@@ -59,7 +60,7 @@ public static class ToolVerifier
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
             return new(false, false, string.Empty);
 
-        try
+        return await Try.Run(async () =>
         {
             using var process = new Process();
             process.StartInfo = new()
@@ -74,44 +75,22 @@ public static class ToolVerifier
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            ChildProcessTracker.Track(process);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            try
+            return await ChildProcessTracker.TrackWhile(process, async () =>
             {
                 var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);
                 var stderr = process.StandardError.ReadToEndAsync(cts.Token);
                 await process.WaitForExitAsync(cts.Token);
 
                 if (process.ExitCode != 0)
-                    return new(false, true, string.Empty);
+                    return new ToolCheck(false, true, string.Empty);
 
                 var raw = await stdout;
                 if (string.IsNullOrWhiteSpace(raw))
                     raw = await stderr;
                 return new(true, true, ExtractVersion(raw));
-            }
-            catch (OperationCanceledException)
-            {
-                try
-                {
-                    if (!process.HasExited) process.Kill(true);
-                }
-                catch
-                {
-                    /* ignore */
-                }
-
-                return new(false, true, string.Empty);
-            }
-            finally
-            {
-                ChildProcessTracker.Untrack(process);
-            }
-        }
-        catch
-        {
-            return new(false, true, string.Empty);
-        }
+            });
+        }).GetOrElse((_) => Task.FromResult(new ToolCheck(false, true, string.Empty)));
     }
 
     /// <summary>Best-effort version string from the first line of <c>--version</c> output.</summary>
