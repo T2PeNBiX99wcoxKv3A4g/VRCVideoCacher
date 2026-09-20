@@ -9,7 +9,7 @@ namespace VRCVideoCacher.Utils;
 public static class Try
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T> Run<T>(Func<T> func)
+    public static Result<T> Run<T>([InstantHandle] Func<T> func)
     {
         try
         {
@@ -22,7 +22,7 @@ public static class Try
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<Unit> Run(Action action)
+    public static Result<Unit> Run([InstantHandle] Action action)
     {
         try
         {
@@ -36,7 +36,7 @@ public static class Try
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<T>> Run<T>(Func<Task<T>> func)
+    public static async Task<Result<T>> Run<T>([InstantHandle] Func<Task<T>> func)
     {
         try
         {
@@ -49,7 +49,7 @@ public static class Try
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<Unit>> Run(Func<Task> func)
+    public static async Task<Result<Unit>> Run([InstantHandle] Func<Task> func)
     {
         try
         {
