@@ -94,7 +94,7 @@ public static class DatabaseManager
                 return; // fewer than max rows; nothing to trim
 
             db.PlayHistory.Where(h => h.Timestamp <= cutoff.Value).ExecuteDelete();
-        }).Also((_) =>
+        }).OnFinally(() =>
         {
             if (existing is null)
                 db.Dispose();

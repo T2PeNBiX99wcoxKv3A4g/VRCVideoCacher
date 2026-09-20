@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Serilog;
+using VRCVideoCacher.Extensions;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services.Sabr;
 
@@ -137,10 +139,8 @@ internal sealed class SabrHlsSession : ISabrSession
     private static async Task<(SegmentIndex Video, SegmentIndex Audio)> ProbeIndexesAsync(SabrSource source,
         Func<CancellationToken, Task<SabrSource>> reload, ILogger log)
     {
-        using var http = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(60)
-        };
+        using var http = new HttpClient();
+        http.Timeout = TimeSpan.FromSeconds(60);
         using var cts = new CancellationTokenSource(StartTimeout);
         var probe = new SabrClient(http, source, log, reload);
 
@@ -154,14 +154,7 @@ internal sealed class SabrHlsSession : ISabrSession
         }
         finally
         {
-            try
-            {
-                await fetch;
-            }
-            catch
-            {
-                /* cancelled, as intended */
-            }
+            await Try.Run(async () => await fetch);
         }
     }
 
@@ -252,14 +245,7 @@ internal sealed class SabrHlsSession : ISabrSession
             }
             catch (IOException)
             {
-                try
-                {
-                    File.Delete(temp);
-                }
-                catch
-                {
-                    /* raced */
-                }
+                Try.Run(() => File.Delete(temp));
             }
         }
 
@@ -442,14 +428,7 @@ internal sealed class SabrHlsSession : ISabrSession
                      {
                          videoTrack, audioTrack
                      })
-                try
-                {
-                    File.Delete(path);
-                }
-                catch
-                {
-                    /* best effort */
-                }
+                Try.Run(() => File.Delete(path));
         }
     }
 
@@ -477,27 +456,9 @@ internal sealed class SabrHlsSession : ISabrSession
 
     public void Dispose()
     {
-        try
-        {
-            _fillCts.Cancel();
-        }
-        catch
-        {
-            /* already gone */
-        }
-
+        Try.Run(() => _fillCts.Cancel());
         TryDelete(_dir);
     }
 
-    private static void TryDelete(string dir)
-    {
-        try
-        {
-            Directory.Delete(dir, true);
-        }
-        catch
-        {
-            /* best effort */
-        }
-    }
+    private static void TryDelete(string dir) => Try.Run(() => Directory.Delete(dir, true));
 }

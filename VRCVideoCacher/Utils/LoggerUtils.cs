@@ -23,7 +23,7 @@ public static class LoggerUtils
     /// the Debug/trace output never spams the log or the log file; the LogViewer's Debug toggle flips this
     /// to <see cref="LogEventLevel.Debug"/> at runtime to bring it back.
     /// </summary>
-    public static readonly LoggingLevelSwitch LevelSwitch = new(LogEventLevel.Information);
+    public static readonly LoggingLevelSwitch LevelSwitch = new();
 
     public static void InitializeLogger()
     {
@@ -55,17 +55,9 @@ public static class LoggerUtils
     internal static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         e.SetObserved();
-        ThreadPool.QueueUserWorkItem(static (AggregateException exception) =>
-        {
-            try
-            {
-                LogUnhandledException(exception, "Unobserved task exception");
-            }
-            catch
-            {
-                // Never turn a failure in exception reporting into another unhandled exception.
-            }
-        }, e.Exception, false);
+        ThreadPool.QueueUserWorkItem(
+            static exception => Try.Run(() => LogUnhandledException(exception, "Unobserved task exception")), e.Exception,
+            false);
     }
 
     public static void LogUnhandledException(Exception ex, string message)
@@ -73,61 +65,36 @@ public static class LoggerUtils
         if (OperatingSystem.IsLinux() && LaunchArgs.HasGui && IsUnavailableDesktopServiceException(ex))
         {
             if (Interlocked.Exchange(ref _desktopServiceNoticeLogged, 1) == 0)
-                try
-                {
-                    Program.Logger.Information(
-                        "A Linux desktop D-Bus service is unavailable; some desktop integration may not work");
-                }
-                catch
-                {
-                }
+                Try.Run(() => Program.Logger.Information(
+                    "A Linux desktop D-Bus service is unavailable; some desktop integration may not work"));
 
             return;
         }
 
-        try
-        {
-            Console.WriteLine($"{message}: " + ex);
-        }
-        catch
-        {
-        }
+        Try.Run(() => Console.WriteLine($"{message}: " + ex));
 
-        try
+        Try.Run(() =>
         {
-            if (LaunchArgs.ErrorReporting)
+            if (!LaunchArgs.ErrorReporting) return;
+            SentrySdk.ConfigureScope(scope =>
             {
-                SentrySdk.ConfigureScope(scope =>
-                {
-                    var configPath = Path.Join(Program.DataPath, "Config.json");
-                    if (File.Exists(configPath))
-                        scope.AddAttachment(configPath);
-                });
-                SentrySdk.CaptureException(ex);
-            }
-        }
-        catch
-        {
-        }
+                var configPath = Path.Join(Program.DataPath, "Config.json");
+                if (File.Exists(configPath))
+                    scope.AddAttachment(configPath);
+            });
+            SentrySdk.CaptureException(ex);
+        });
 
-        try
+        Try.Run(() =>
         {
             Program.Logger.Error(ex, "{Message}", message);
 
             var logFile = Path.Combine(LogsPath, $"VRCVideoCacher{LoggerStartDateTime ?? DateTime.Now:yyyyMMdd}.log");
             if (OperatingSystem.IsWindows())
-            {
-                if (File.Exists(logFile))
-                    Process.Start("explorer.exe", $"/select,\"{logFile}\"");
-                else
-                    Process.Start("explorer.exe", LogsPath);
-            }
+                Process.Start("explorer.exe", File.Exists(logFile) ? $"/select,\"{logFile}\"" : LogsPath);
             else if (OperatingSystem.IsLinux())
                 Process.Start("xdg-open", LogsPath);
-        }
-        catch
-        {
-        }
+        });
     }
 
     // Keep D-Bus type resolution and aggregate traversal out of non-Linux/headless handling.
@@ -137,17 +104,7 @@ public static class LoggerUtils
         if (exception is AggregateException aggregate)
         {
             var exceptions = aggregate.Flatten().InnerExceptions;
-            if (exceptions.Count == 0)
-                return false;
-
-            foreach (var inner in exceptions)
-                if (inner is not DBusErrorReplyException
-                    {
-                        ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown"
-                    })
-                    return false;
-
-            return true;
+            return exceptions.Count != 0 && exceptions.All(inner => inner is DBusErrorReplyException { ErrorName: "org.freedesktop.DBus.Error.ServiceUnknown" });
         }
 
         return exception is DBusErrorReplyException

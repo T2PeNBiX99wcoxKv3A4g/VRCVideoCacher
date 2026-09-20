@@ -130,7 +130,7 @@ internal static class BgUtilPotProvider
                 Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
                 process.Kill(true);
                 process.WaitForExit(3000);
-            }).OnFailure((ex) => Log.Debug(ex, "Could not kill Deno process")).Also((_) => process.Dispose());
+            }).OnFailure((ex) => Log.Debug(ex, "Could not kill Deno process")).OnFinally(() => process.Dispose());
     }
 
     /// <summary>
