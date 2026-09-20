@@ -21,11 +21,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
-            Try.Run(InitJobObject).GetOrElse((ex) =>
-            {
-                Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
-                return Unit.Value;
-            });
+            Try.Run(InitJobObject).OnFailure((ex) => Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup"));
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll2();
     }
@@ -132,7 +128,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public T TrackWhile2<T>(Process process, [InstantHandle] Func<T> callback)
     {
         Track2(process);
-        return Try.Run(callback).OnFailure((ex) =>
+        return Try.Run(callback).OnFailure((_) =>
         {
             Try.Run(() =>
             {
@@ -145,7 +141,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public async Task<T> TrackWhile2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback)
     {
         Track2(process);
-        return await Try.Run(callback).OnFailure((ex) =>
+        return await Try.Run(callback).OnFailure((_) =>
         {
             Try.Run(() =>
             {
