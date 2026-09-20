@@ -7,9 +7,9 @@ public static class ObjectExtensions
 {
     extension<T>(T value)
     {
-        public TResult Let<TResult>(Func<T, TResult> block) => block(value);
+        public TResult Let<TResult>([InstantHandle] Func<T, TResult> block) => block(value);
 
-        public T Also(Action<T> block)
+        public T Also([InstantHandle] Action<T> block)
         {
             block(value);
             return value;
