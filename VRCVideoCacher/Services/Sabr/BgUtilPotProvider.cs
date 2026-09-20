@@ -442,7 +442,7 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        return await ChildProcessTracker.Tracking(process, async () =>
+        using (ChildProcessTracker.Tracking(process))
         {
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
@@ -462,7 +462,7 @@ internal static class BgUtilPotProvider
 
             var output = string.Join(Environment.NewLine, await stdout, await stderr);
             return (process.ExitCode, output);
-        });
+        }
     }
 
     private static void SafeDelete(string dir)
