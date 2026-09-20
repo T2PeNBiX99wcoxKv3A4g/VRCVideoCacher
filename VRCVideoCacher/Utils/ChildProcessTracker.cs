@@ -119,11 +119,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public void TrackWhile2(Process? process, [InstantHandle] Action<Process> callback)
+    public void TrackWhile2(Process? process, [InstantHandle] Action callback)
     {
         if (process == null) return;
         Track2(process);
-        Try.Run(() => callback(process)).OnFailure((_) => Try.Run(() =>
+        Try.Run(callback).OnFailure((_) => Try.Run(() =>
         {
             if (!process.HasExited) process.Kill(true);
         })).Also((_) => Untrack2(process));
