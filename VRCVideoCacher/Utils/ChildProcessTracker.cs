@@ -115,6 +115,26 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         _trackedProcesses.TryRemove(process, out _);
     }
 
+    private sealed class TrackingScope(ChildProcessTracker tracker, Process process, bool forceKill = false) : IDisposable
+    {
+        public void Dispose()
+        {
+            Try.Run(() =>
+            {
+                if (!forceKill) return;
+                if (!process.HasExited) process.Kill(true);
+            });
+            tracker.Untrack2(process);
+        }
+    }
+
+    [PublicAPI]
+    public IDisposable Tracking2(Process process, bool forceKill = false)
+    {
+        Track2(process);
+        return new TrackingScope(this, process, forceKill);
+    }
+
     [PublicAPI]
     public void TrackWhile2(Process process, [InstantHandle] Action callback)
     {
