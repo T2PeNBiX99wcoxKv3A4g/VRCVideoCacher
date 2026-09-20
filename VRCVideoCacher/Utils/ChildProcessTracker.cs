@@ -136,40 +136,48 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public void TrackWhile2(Process process, [InstantHandle] Action callback)
+    public void Tracking2(Process process, [InstantHandle] Action callback, bool forceKill = true)
     {
         Track2(process);
-        Try.Run(callback).OnFailure((_) => Try.Run(() =>
+        Try.Run(callback).Also((_) =>
         {
-            if (!process.HasExited) process.Kill(true);
-        })).Also((_) => Untrack2(process)).GetOrThrow();
+            Try.Run(() =>
+            {
+                if (!forceKill) return;
+                if (!process.HasExited) process.Kill(true);
+            });
+            Untrack2(process);
+        }).GetOrThrow();
     }
 
     [PublicAPI]
-    public T TrackWhile2<T>(Process process, [InstantHandle] Func<T> callback)
+    public T Tracking2<T>(Process process, [InstantHandle] Func<T> callback, bool forceKill = true)
     {
         Track2(process);
-        return Try.Run(callback).OnFailure((_) =>
+        return Try.Run(callback).Also((_) =>
+        {
+            Try.Run(() =>
+            {
+                if (!forceKill) return;
+                if (!process.HasExited) process.Kill(true);
+            });
+            Untrack2(process);
+        }).GetOrThrow();
+    }
+
+    [PublicAPI]
+    public async Task<T> Tracking2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback,
+        bool forceKill = true)
+    {
+        Track2(process);
+        return await Try.Run(callback).Also((_) =>
         {
             Try.Run(() =>
             {
                 if (!process.HasExited) process.Kill(true);
             });
-        }).Also((_) => Untrack2(process)).GetOrThrow();
-    }
-
-    [PublicAPI]
-    public async Task<T> TrackWhile2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback)
-    {
-        Track2(process);
-        return await Try.Run(callback).OnFailure((_) =>
-        {
-            Try.Run(() =>
-            {
-                if (!process.HasExited) process.Kill(true);
-            });
-            return Unit.TaskValue;
-        }).Also((_) => Untrack2(process)).GetOrThrow();
+            Untrack2(process);
+        }).GetOrThrow();
     }
 
     /// <summary>
