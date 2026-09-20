@@ -31,7 +31,7 @@ public static class ObjectExtensions
             return value;
         }
 
-        public UsingUntil.UsingUntilScope<T> UsingUntil([InstantHandle] Action<T> disposeAction) =>
-            new(value, disposeAction);
+        public IDisposable UsingUntil([InstantHandle] Action<T> disposeAction) =>
+            new UsingUntil.UsingUntilScope<T>(value, disposeAction);
     }
 }
