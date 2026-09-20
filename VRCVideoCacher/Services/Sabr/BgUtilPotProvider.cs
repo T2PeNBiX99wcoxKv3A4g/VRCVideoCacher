@@ -192,14 +192,16 @@ internal static class BgUtilPotProvider
                 return true;
             if (_initFailed)
                 return false;
-            try
+            var result = await Try.Run(async () =>
             {
                 await Task.Delay(500, ct);
-            }
-            catch (OperationCanceledException)
+                return true;
+            }).GetOrElse((ex) =>
             {
-                return false;
-            }
+                if (ex is not OperationCanceledException) ex.Throw();
+                return Task.FromResult(false);
+            });
+            if (!result) return false;
         }
 
         return _isReady;
