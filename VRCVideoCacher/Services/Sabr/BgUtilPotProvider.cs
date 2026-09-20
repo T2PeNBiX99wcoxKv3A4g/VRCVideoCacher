@@ -341,7 +341,7 @@ internal static class BgUtilPotProvider
             if (Directory.Exists(ServerPath))
                 SafeDelete(ServerPath);
             Directory.Move(extractedPath, ServerPath);
-        }).Also((_) => SafeDelete(stagingPath)).GetOrThrow();
+        }).OnFinally(() => SafeDelete(stagingPath)).GetOrThrow();
 
         Versions.CurrentVersion.BgUtil = Program.BgUtilsVersion;
         Versions.Save();
@@ -406,7 +406,7 @@ internal static class BgUtilPotProvider
         {
             if (ex is InvalidOperationException) return;
             Log.Debug(ex, "Failed to stop bgutil server");
-        }).Also((_) => process.TryDispose());
+        }).OnFinally(() => process.TryDispose());
     }
 
     /// <summary>

@@ -68,7 +68,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
 
             _jobHandle = jobHandle;
             jobHandle = IntPtr.Zero;
-        }).Also((_) =>
+        }).OnFinally(() =>
         {
             if (jobHandle != IntPtr.Zero && !CloseHandle(jobHandle))
                 Log.Debug("CloseHandle failed with error {Error}", Marshal.GetLastPInvokeError());
@@ -139,7 +139,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public void Tracking2(Process process, [InstantHandle] Action callback, bool forceKill = true)
     {
         Track2(process);
-        Try.Run(callback).Also((_) =>
+        Try.Run(callback).OnFinally(() =>
         {
             Try.Run(() =>
             {
@@ -154,7 +154,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public T Tracking2<T>(Process process, [InstantHandle] Func<T> callback, bool forceKill = true)
     {
         Track2(process);
-        return Try.Run(callback).Also((_) =>
+        return Try.Run(callback).OnFinally(() =>
         {
             Try.Run(() =>
             {
@@ -170,13 +170,14 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
         bool forceKill = true)
     {
         Track2(process);
-        return await Try.Run(callback).Also((_) =>
+        return await Try.Run(callback).OnFinally(() =>
         {
             Try.Run(() =>
             {
                 if (!process.HasExited) process.Kill(true);
             });
             Untrack2(process);
+            return Unit.TaskValue;
         }).GetOrThrow();
     }
 
@@ -199,7 +200,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
             if (proc.HasExited) return;
             proc.Kill(true);
             proc.WaitForExit(1000);
-        }).Also((_) => Try.Run(proc.Dispose));
+        }).OnFinally(() => Try.Run(proc.Dispose));
     }
 
     #region Win32 P/Invoke

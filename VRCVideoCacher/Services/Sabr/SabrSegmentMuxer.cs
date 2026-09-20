@@ -114,13 +114,14 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
                 await WriteAtomicAsync(initPath, init, ct);
 
             await WriteAtomicAsync(segmentPath, media, ct);
-        }).Also((_) =>
+        }).OnFinally(() =>
         {
             foreach (var path in new[]
                      {
                          videoInput, audioInput, audioTrimmed, output
                      })
                 Try.Run(() => File.Delete(path));
+            return Unit.TaskValue;
         }).GetOrThrow();
     }
 
