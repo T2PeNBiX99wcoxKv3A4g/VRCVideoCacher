@@ -70,7 +70,7 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            return ChildProcessTracker.TrackWhile(process, () =>
+            return ChildProcessTracker.Tracking(process, () =>
             {
                 process.WaitForExit(10_000);
                 return process.ExitCode == 0;
@@ -105,7 +105,7 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            await ChildProcessTracker.TrackWhile(process, async () =>
+            await ChildProcessTracker.Tracking(process, async () =>
             {
                 while (await process.StandardOutput.ReadLineAsync() is { } line)
                     if (!string.IsNullOrEmpty(line.Trim()))

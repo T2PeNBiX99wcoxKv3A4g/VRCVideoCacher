@@ -54,7 +54,7 @@ public partial class VideoId : Singleton<VideoId>
 
         Log.Information("Starting yt-dlp with args: {Args:l}", ytdlpProcess.StartInfo.Arguments);
         ytdlpProcess.Start();
-        return await ChildProcessTracker.TrackWhile(ytdlpProcess, async () =>
+        return await ChildProcessTracker.Tracking(ytdlpProcess, async () =>
         {
             var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
             var error = await ytdlpProcess.StandardError.ReadToEndAsync();

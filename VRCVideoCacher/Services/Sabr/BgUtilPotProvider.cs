@@ -442,7 +442,7 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        return await ChildProcessTracker.TrackWhile(process, async () =>
+        return await ChildProcessTracker.Tracking(process, async () =>
         {
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();

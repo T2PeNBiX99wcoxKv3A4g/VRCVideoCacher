@@ -614,7 +614,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            return await ChildProcessTracker.TrackWhile(process, async () =>
+            return await ChildProcessTracker.Tracking(process, async () =>
             {
                 await process.WaitForExitAsync(cts.Token);
                 if (process.ExitCode == 0) return true;
