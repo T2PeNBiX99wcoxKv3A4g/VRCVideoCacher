@@ -32,7 +32,7 @@ public static class ResultExtensions
         private void ThrowOnFailure()
         {
             if (result.Exception is not { } exception) return;
-            ExceptionDispatchInfo.Throw(exception);
+            exception.Throw();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
