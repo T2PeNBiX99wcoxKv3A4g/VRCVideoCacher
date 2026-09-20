@@ -76,7 +76,7 @@ public static class ToolVerifier
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            return await ChildProcessTracker.Tracking(process, async () =>
+            using (ChildProcessTracker.Tracking(process))
             {
                 var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);
                 var stderr = process.StandardError.ReadToEndAsync(cts.Token);
@@ -89,7 +89,7 @@ public static class ToolVerifier
                 if (string.IsNullOrWhiteSpace(raw))
                     raw = await stderr;
                 return new(true, true, ExtractVersion(raw));
-            });
+            }
         }).GetOrElse((_) => Task.FromResult(new ToolCheck(false, true, string.Empty)));
     }
 

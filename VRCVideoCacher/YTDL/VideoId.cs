@@ -54,14 +54,14 @@ public partial class VideoId : Singleton<VideoId>
 
         Log.Information("Starting yt-dlp with args: {Args:l}", ytdlpProcess.StartInfo.Arguments);
         ytdlpProcess.Start();
-        return await ChildProcessTracker.Tracking(ytdlpProcess, async () =>
+        using (ChildProcessTracker.Tracking(ytdlpProcess))
         {
             var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
             var error = await ytdlpProcess.StandardError.ReadToEndAsync();
             await ytdlpProcess.WaitForExitAsync();
             Log.Information("Finished yt-dlp");
             return (output.Trim(), error.Trim(), ytdlpProcess.ExitCode);
-        });
+        }
     }
 
     [PublicAPI]

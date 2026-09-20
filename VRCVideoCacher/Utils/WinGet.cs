@@ -70,11 +70,11 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            return ChildProcessTracker.Tracking(process, () =>
+            using (ChildProcessTracker.Tracking(process))
             {
                 process.WaitForExit(10_000);
                 return process.ExitCode == 0;
-            });
+            }
         }).GetOrElse((ex) =>
         {
             Log.Warning(ex, "Failed on IsPackageInstalled");
@@ -105,7 +105,7 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            await ChildProcessTracker.Tracking(process, async () =>
+            using (ChildProcessTracker.Tracking(process))
             {
                 while (await process.StandardOutput.ReadLineAsync() is { } line)
                     if (!string.IsNullOrEmpty(line.Trim()))
@@ -118,7 +118,7 @@ public partial class WinGet : Singleton<WinGet>
                 var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
                 if (process.ExitCode == 0)
                     Log.Information("Successfully installed package: {PackageName}", packageName);
-            });
+            }
         }).GetOrElse((ex) =>
         {
             Log.Warning(ex, "Failed on InstallPackage");
