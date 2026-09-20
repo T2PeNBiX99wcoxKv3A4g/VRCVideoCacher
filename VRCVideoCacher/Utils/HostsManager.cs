@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
@@ -17,30 +18,28 @@ public partial class HostsManager : Singleton<HostsManager>
     public void TryRun2()
     {
         if (Environment.CommandLine.Contains("--addhost"))
-            try
+            Try.Run(() =>
             {
                 Add();
                 Log.Information("Host entry added successfully.");
                 Environment.Exit(0);
-            }
-            catch (Exception ex)
+            }).OnFailure((ex) =>
             {
                 Log.Error(ex, "Failed to add host entry");
                 Environment.Exit(1);
-            }
+            });
 
         if (Environment.CommandLine.Contains("--removehost"))
-            try
+            Try.Run(() =>
             {
                 Remove();
                 Log.Information("Host entry removed successfully.");
                 Environment.Exit(0);
-            }
-            catch (Exception ex)
+            }).OnFailure((ex) =>
             {
                 Log.Error(ex, "Failed to remove host entry");
                 Environment.Exit(1);
-            }
+            });
     }
 
     private void Add()

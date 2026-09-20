@@ -4,6 +4,7 @@ using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Serilog;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
@@ -19,18 +20,17 @@ public partial class ConfigManager : Singleton<ConfigManager>
             $"{(!string.IsNullOrWhiteSpace(LaunchArgs.ConfigName) ? LaunchArgs.ConfigName : "Config")}.json");
         Log.Debug("Using config file path: {ConfigFilePath}", _configFilePath);
 
-        ConfigModel? newConfig = null;
-        try
-        {
-            if (File.Exists(_configFilePath))
-                newConfig = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath));
-            if (newConfig != null)
-                Config2 = newConfig;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to load config, creating new one...");
-        }
+        var newConfig = Try
+            .Run(() => File.Exists(_configFilePath)
+                ? JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath))
+                : null).GetOrElse((ex) =>
+            {
+                Log.Error(ex, "Failed to load config, creating new one...");
+                return null;
+            });
+
+        if (newConfig != null)
+            Config2 = newConfig;
 
         if (Config2 == null)
         {

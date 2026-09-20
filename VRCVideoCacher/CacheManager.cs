@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using JetBrains.Annotations;
 using VRCVideoCacher.Database;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -160,23 +161,17 @@ public partial class CacheManager : Singleton<CacheManager>
             if (!File.Exists(filePath))
                 continue;
 
-            try
+            Try.Run(() =>
             {
                 File.Delete(filePath);
 
                 // delete thumbnail if not in recent history
                 var videoId = Path.GetFileNameWithoutExtension(fileName);
-                if (recentPlayHistory.All(h => h.Id != videoId))
-                {
-                    var thumbnailPath = ThumbnailManager.GetThumbnailPath(videoId);
-                    if (File.Exists(thumbnailPath))
-                        File.Delete(thumbnailPath);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Failed to delete {FileName}: {Error}", fileName, ex.ToString());
-            }
+                if (recentPlayHistory.Any(h => h.Id == videoId)) return;
+                var thumbnailPath = ThumbnailManager.GetThumbnailPath(videoId);
+                if (File.Exists(thumbnailPath))
+                    File.Delete(thumbnailPath);
+            }).OnFailure((ex) => Log.Error("Failed to delete {FileName}: {Error}", fileName, ex.ToString()));
         }
 
         _cachedAssets.Clear();
