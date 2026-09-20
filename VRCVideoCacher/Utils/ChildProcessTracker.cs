@@ -127,7 +127,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
             if (!process.HasExited) process.Kill(true);
         })).Also((_) => Untrack2(process)).GetOrThrow();
     }
-    
+
     [PublicAPI]
     public T TrackWhile2<T>(Process process, [InstantHandle] Func<T> callback)
     {
@@ -140,7 +140,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
             });
         }).Also((_) => Untrack2(process)).GetOrThrow();
     }
-    
+
     [PublicAPI]
     public async Task<T> TrackWhile2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback)
     {
