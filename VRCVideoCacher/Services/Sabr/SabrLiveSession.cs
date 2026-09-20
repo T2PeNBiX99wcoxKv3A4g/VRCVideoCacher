@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using Serilog;
+using VRCVideoCacher.Extensions;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services.Sabr;
 
@@ -123,14 +125,12 @@ internal sealed class SabrLiveSession : ISabrSession
 
     private async Task FillLoopAsync(CancellationToken ct)
     {
-        try
+        await Try.Run(async () =>
         {
             // No timeout: a live fetch runs for as long as the broadcast does. The VOD session caps its
             // HttpClient at 15 minutes, which would silently kill a longer stream.
-            using var http = new HttpClient
-            {
-                Timeout = Timeout.InfiniteTimeSpan
-            };
+            using var http = new HttpClient();
+            http.Timeout = Timeout.InfiniteTimeSpan;
             var client = new SabrClient(http, _source, _log)
             {
                 OnFragment = WriteFragmentAsync
@@ -140,15 +140,12 @@ internal sealed class SabrLiveSession : ISabrSession
             Ended = client.BroadcastEnded;
             if (Ended)
                 _log.Information("SABR LIVE {VideoId}: broadcast ended", _videoId);
-        }
-        catch (OperationCanceledException)
+        }).OnFailure(ex =>
         {
-            // Session torn down; normal.
-        }
-        catch (Exception ex)
-        {
+            if (ex is OperationCanceledException) return Unit.TaskValue;
             _log.Error(ex, "SABR LIVE {VideoId}: fill failed", _videoId);
-        }
+            return Unit.TaskValue;
+        });
     }
 
     /// <summary>
@@ -282,7 +279,7 @@ internal sealed class SabrLiveSession : ISabrSession
             return;
 
         await _buildGate.WaitAsync(_cts.Token);
-        try
+        await Try.Run(async () =>
         {
             if (File.Exists(path))
                 return;
@@ -324,31 +321,20 @@ internal sealed class SabrLiveSession : ISabrSession
             var videoFragment = await File.ReadAllBytesAsync(RawPath(true, sequence));
 
             var audioFragments = new List<byte[]>();
-            foreach (var f in audio)
-            {
-                var audioPath = RawPath(false, f.Sequence);
-                if (File.Exists(audioPath))
-                    audioFragments.Add(await File.ReadAllBytesAsync(audioPath));
-            }
+            foreach (var audioPath in audio.Select(f => RawPath(false, f.Sequence)).Where(File.Exists))
+                audioFragments.Add(await File.ReadAllBytesAsync(audioPath));
 
             if (audioFragments.Count == 0)
                 return;
 
             await _muxer.MuxAsync(videoInit, videoFragment, audioInit, audioFragments, startMs, endMs,
                 (int)(sequence % int.MaxValue), path, Path.Combine(_dir, HlsPlaylist.InitName));
-        }
-        catch (OperationCanceledException)
+        }).OnFailure((ex) =>
         {
-            // torn down
-        }
-        catch (Exception ex)
-        {
+            if (ex is OperationCanceledException) return Unit.TaskValue;
             _log.Warning(ex, "SABR LIVE {VideoId}: failed to build segment {Seq}", _videoId, sequence);
-        }
-        finally
-        {
-            _buildGate.Release();
-        }
+            return Unit.TaskValue;
+        });
     }
 
     // endregion
@@ -370,58 +356,30 @@ internal sealed class SabrLiveSession : ISabrSession
     {
         var temp = path + ".part";
         await File.WriteAllBytesAsync(temp, data);
-        try
+        Try.Run(() => File.Move(temp, path, true)).GetOrElse((ex) =>
         {
-            File.Move(temp, path, true);
-        }
-        catch (IOException)
-        {
-            try
-            {
-                File.Delete(temp);
-            }
-            catch
-            {
-                /* raced */
-            }
-        }
+            if (ex is not IOException) ex.Throw();
+            Try.Run(() => File.Delete(temp));
+            return Unit.Value;
+        });
     }
 
     private static void TryDeleteFile(string path)
     {
-        try
+        Try.Run(() =>
         {
             if (File.Exists(path)) File.Delete(path);
-        }
-        catch
-        {
-            /* best effort */
-        }
+        });
     }
 
     private static void TryDelete(string dir)
     {
-        try
-        {
-            Directory.Delete(dir, true);
-        }
-        catch
-        {
-            /* best effort */
-        }
+        Try.Run(() => Directory.Delete(dir, true));
     }
 
     public void Dispose()
     {
-        try
-        {
-            _cts.Cancel();
-        }
-        catch
-        {
-            /* already gone */
-        }
-
+        Try.Run(() => _cts.Cancel());
         _cts.Dispose();
         _buildGate.Dispose();
         TryDelete(_dir);
