@@ -247,7 +247,7 @@ public partial class SettingsViewModel : ViewModelBase
             return;
 
         HasChanges = true;
-        SetStatusMessage(Localizer.Get("SettingsUnsavedChanges"), "#FFB74D");
+        SetStatusMessage(Localizer.Get("SettingsUnsavedChanges"), "#FFB74D", 0);
     }
 
     private void OnBlockedUrlsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
