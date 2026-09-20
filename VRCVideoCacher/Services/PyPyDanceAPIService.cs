@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using VRCVideoCacher.Database;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 
@@ -49,17 +50,13 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
     {
         if (videoId is 0 or null) return null;
 
-        try
+        return await Try.Run(async () =>
         {
             if ((DateTime.Now - _lastFetch).TotalMinutes > 60)
                 await FetchBundle();
 
             return _songs.Find(song => song.Id == videoId);
-        }
-        catch
-        {
-            return null;
-        }
+        }).GetOrElse((_) => Task.FromResult<PyPyDanceSong?>(null));
     }
 
     private async Task FetchBundle()

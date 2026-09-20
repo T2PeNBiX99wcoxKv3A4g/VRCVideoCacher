@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
 using Jeek.Avalonia.Localization;
 using Serilog;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Sabr;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.Services;
@@ -102,22 +104,12 @@ public static class SabrRestreamService
     /// </summary>
     private static void CleanOrphanedSessions()
     {
-        try
+        Try.Run(() =>
         {
             foreach (var dir in Directory.EnumerateDirectories(HlsRootPath))
-                try
-                {
-                    Directory.Delete(dir, true);
-                }
-                catch (Exception ex)
-                {
-                    Log.Debug(ex, "Could not remove orphaned SABR session {Dir}", dir);
-                }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to clean orphaned SABR sessions in {Path}", HlsRootPath);
-        }
+                Try.Run(() => Directory.Delete(dir, true)).OnFailure((ex) =>
+                    Log.Debug(ex, "Could not remove orphaned SABR session {Dir}", dir));
+        }).OnFailure((ex) => Log.Warning(ex, "Failed to clean orphaned SABR sessions in {Path}", HlsRootPath));
     }
 
     /// <summary>
@@ -393,6 +385,7 @@ public static class SabrRestreamService
                 session.Dispose();
             }
         }
+        // ReSharper disable once FunctionNeverReturns
     }
 
     /// <summary>

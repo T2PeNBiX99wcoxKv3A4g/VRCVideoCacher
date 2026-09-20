@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Serilog;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services.Sabr;
@@ -49,7 +50,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         var audioTrimmed = temp + ".at";
         var output = temp + ".out";
 
-        try
+        await Try.Run(async () =>
         {
             // Init + fragments is a complete stream on its own — that is exactly how yt-dlp's own writer
             // produces a playable file.
@@ -113,22 +114,14 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
                 await WriteAtomicAsync(initPath, init, ct);
 
             await WriteAtomicAsync(segmentPath, media, ct);
-        }
-        finally
+        }).Also((_) =>
         {
             foreach (var path in new[]
                      {
                          videoInput, audioInput, audioTrimmed, output
                      })
-                try
-                {
-                    File.Delete(path);
-                }
-                catch
-                {
-                    /* best effort */
-                }
-        }
+                Try.Run(() => File.Delete(path));
+        }).GetOrThrow();
     }
 
     /// <summary>
@@ -174,21 +167,12 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         // Write-then-move, so a request never reads a half-written file.
         var temp = path + ".part";
         await File.WriteAllBytesAsync(temp, data, ct);
-        try
+        Try.Run(() => File.Move(temp, path, true)).OnFailure((ex) =>
         {
-            File.Move(temp, path, true);
-        }
-        catch (IOException)
-        {
-            try
-            {
-                File.Delete(temp);
-            }
-            catch
-            {
-                /* raced */
-            }
-        }
+            if (ex is IOException)
+                Try.Run(() => File.Delete(temp));
+            ex.Throw();
+        });
     }
 
     /// <summary>
