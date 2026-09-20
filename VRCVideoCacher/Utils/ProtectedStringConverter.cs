@@ -12,9 +12,15 @@ namespace VRCVideoCacher.Utils;
 public class ProtectedStringConverter : JsonConverter<string>
 {
     private static readonly ILogger Log = Program.Logger.ForContext<ProtectedStringConverter>();
-    private const string Prefix = "enc:";
 
-    // Dynamic machine & user derived key
+    private const int KeySize = 32; // AES-256
+    private const int NonceSize = 12; // Recommended GCM nonce size
+    private const int TagSize = 16; // 128-bit authentication tag
+    private const int Version = 2;
+
+    private static readonly string Prefix = $"enc:v{Version}:";
+    private static readonly string KeyInfo = $"VRCVideoCacher.ProtectedString.v{Version}";
+
     private static readonly Lazy<byte[]> EncryptionKey = new(GetDerivedKey);
 
     // Fallback key for backward compatibility with v1 static encryption
@@ -27,13 +33,47 @@ public class ProtectedStringConverter : JsonConverter<string>
         {
             var machineId = GetMachineId();
             var userName = Environment.UserName;
-            var rawEntropy = $"VRCVideoCacher:{machineId}:{userName}:ProtectedSalt.v2";
-            return SHA256.HashData(Encoding.UTF8.GetBytes(rawEntropy));
+
+            // Secret generated once per local installation/user profile.
+            var installationSecret = GetOrCreateInstallationSecret();
+
+            // Public context that binds the key to this machine and user.
+            var context = Encoding.UTF8.GetBytes($"VRCVideoCacher:{machineId}:{userName}:v{Version}");
+
+            // HKDF-Extract
+            var prk = HKDF.Extract(HashAlgorithmName.SHA256, installationSecret, context);
+
+            // HKDF-Expand -> 32-byte AES-256 key
+            return HKDF.Expand(HashAlgorithmName.SHA256, prk, KeySize, Encoding.UTF8.GetBytes(KeyInfo));
         }).GetOrElse((ex) =>
         {
             Log.Warning(ex, "Failed to derive dynamic encryption key, falling back to static entropy");
             return LegacyStaticKey.Value;
         });
+    }
+
+    private static byte[] GetOrCreateInstallationSecret()
+    {
+        var path = Path.Join(Program.DataPath, "secret.key");
+
+        if (File.Exists(path))
+        {
+            var existing = File.ReadAllBytes(path);
+            return existing.Length != KeySize
+                ? throw new CryptographicException("Invalid installation secret")
+                : existing;
+        }
+
+        // Generate a cryptographically secure random 256-bit secret.
+        var secret = RandomNumberGenerator.GetBytes(KeySize);
+
+        File.WriteAllBytes(path, secret);
+
+        // Restrict Unix permissions to owner read/write.
+        if (!OperatingSystem.IsWindows())
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+
+        return secret;
     }
 
     [SuppressMessage("Interoperability", "CA1416")]
@@ -43,10 +83,9 @@ public class ProtectedStringConverter : JsonConverter<string>
         {
             var result = Try.Run(() =>
             {
-                var guid = Registry.GetValue(
-                    @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography",
-                    "MachineGuid",
-                    null) as string;
+                var guid =
+                    Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography", "MachineGuid",
+                        null) as string;
                 return !string.IsNullOrWhiteSpace(guid) ? guid.Trim() : null;
             }).GetOrNull();
             if (result != null) return result;
@@ -85,19 +124,21 @@ public class ProtectedStringConverter : JsonConverter<string>
 
         return Try.Run(() =>
         {
-            using var aes = Aes.Create();
-            aes.Key = EncryptionKey.Value;
-            aes.GenerateIV();
+            var plaintextBytes = Encoding.UTF8.GetBytes(plainText);
+            var nonce = RandomNumberGenerator.GetBytes(NonceSize);
+            var ciphertext = new byte[plaintextBytes.Length];
+            var tag = new byte[TagSize];
+            var associatedData = Encoding.UTF8.GetBytes(Prefix);
 
-            using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-            var plainBytes = Encoding.UTF8.GetBytes(plainText);
-            var cipherBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+            using var aes = new AesGcm(EncryptionKey.Value, TagSize);
+            aes.Encrypt(nonce, plaintextBytes, ciphertext, tag, associatedData);
 
-            // Combine IV + ciphertext
-            var result = new byte[aes.IV.Length + cipherBytes.Length];
-            Buffer.BlockCopy(aes.IV, 0, result, 0, aes.IV.Length);
-            Buffer.BlockCopy(cipherBytes, 0, result, aes.IV.Length, cipherBytes.Length);
+            // nonce + ciphertext + tag
+            var result = new byte[nonce.Length + ciphertext.Length + tag.Length];
 
+            Buffer.BlockCopy(nonce, 0, result, 0, nonce.Length);
+            Buffer.BlockCopy(ciphertext, 0, result, nonce.Length, ciphertext.Length);
+            Buffer.BlockCopy(tag, 0, result, nonce.Length + ciphertext.Length, tag.Length);
             return Prefix + Convert.ToBase64String(result);
         }).GetOrElse((ex) =>
         {
@@ -112,49 +153,35 @@ public class ProtectedStringConverter : JsonConverter<string>
         if (string.IsNullOrEmpty(cipherText))
             return string.Empty;
 
+        // Plain-text compatibility.
         if (!cipherText.StartsWith(Prefix, StringComparison.Ordinal))
-            return cipherText; // Plain text backward compatibility
+            return cipherText;
 
         return Try.Run(() =>
         {
             var rawBase64 = cipherText[Prefix.Length..];
+
             var combinedBytes = Convert.FromBase64String(rawBase64);
 
-            if (combinedBytes.Length < 16)
-                return cipherText;
+            if (combinedBytes.Length < NonceSize + TagSize)
+                throw new CryptographicException("Invalid encrypted payload");
 
-            var iv = new byte[16];
-            Buffer.BlockCopy(combinedBytes, 0, iv, 0, 16);
-            var cipherBytes = new byte[combinedBytes.Length - 16];
-            Buffer.BlockCopy(combinedBytes, 16, cipherBytes, 0, cipherBytes.Length);
+            var nonce = combinedBytes.AsSpan(0, NonceSize);
+            var ciphertextLength = combinedBytes.Length - NonceSize - TagSize;
+            if (ciphertextLength < 0) throw new CryptographicException("Invalid encrypted payload");
+            var ciphertext = combinedBytes.AsSpan(NonceSize, ciphertextLength);
+            var tag = combinedBytes.AsSpan(NonceSize + ciphertextLength, TagSize);
+            var plaintext = new byte[ciphertextLength];
+            var associatedData = Encoding.UTF8.GetBytes(Prefix);
 
-            // 1. Try decrypting with dynamic derived key
-            return Try.Run(() => DecryptWithKey(cipherBytes, iv, EncryptionKey.Value)).GetOrElse((ex) =>
-            {
-                if (ex is not CryptographicException) ex.Throw();
-                // 2. Fallback to legacy static key if encrypted under previous version
-                return Try.Run(() => DecryptWithKey(cipherBytes, iv, LegacyStaticKey.Value)).GetOrElse((ex) =>
-                {
-                    Log.Warning("Failed to decrypt protected string: invalid key or payload mismatch");
-                    return string.Empty;
-                });
-            });
+            using var aes = new AesGcm(EncryptionKey.Value, TagSize);
+            aes.Decrypt(nonce, ciphertext, tag, plaintext, associatedData);
+            return Encoding.UTF8.GetString(plaintext);
         }).GetOrElse((ex) =>
         {
-            Log.Warning(ex, "Failed to decrypt protected string, falling back to raw value");
-            return cipherText;
+            Log.Warning(ex, "Failed to decrypt protected string");
+            return string.Empty;
         });
-    }
-
-    private static string DecryptWithKey(byte[] cipherBytes, byte[] iv, byte[] key)
-    {
-        using var aes = Aes.Create();
-        aes.Key = key;
-        aes.IV = iv;
-
-        using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-        var plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
-        return Encoding.UTF8.GetString(plainBytes);
     }
 
     public override void WriteJson(JsonWriter writer, string? value, JsonSerializer serializer)
@@ -173,11 +200,7 @@ public class ProtectedStringConverter : JsonConverter<string>
     {
         if (reader.TokenType == JsonToken.Null)
             return string.Empty;
-
         var str = reader.Value?.ToString();
-        if (string.IsNullOrEmpty(str))
-            return string.Empty;
-
-        return Decrypt(str);
+        return string.IsNullOrEmpty(str) ? string.Empty : Decrypt(str);
     }
 }
