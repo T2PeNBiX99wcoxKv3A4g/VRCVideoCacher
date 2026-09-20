@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
+using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
@@ -20,14 +21,13 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
-            try
-            {
-                InitJobObject();
-            }
-            catch (Exception ex)
+        {
+            Try.Run(InitJobObject).GetOrElse((ex) =>
             {
                 Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup");
-            }
+                return Unit.Value;
+            });
+        }
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll2();
     }
@@ -102,17 +102,13 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
                 KillProcess(process);
             return;
         }
-
+        
         if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
-        try
+        Try.Run(() =>
         {
             if (!process.HasExited)
                 AssignProcessToJobObject(_jobHandle, process.Handle);
-        }
-        catch
-        {
-            // Process may have already exited or handle cannot be assigned
-        }
+        });
     }
 
     /// <summary>
@@ -130,14 +126,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     {
         if (process == null) return;
         Track2(process);
-        try
-        {
-            callback(process);
-        }
-        finally
-        {
-            Untrack2(process);
-        }
+        Try.Run(() => callback(process)).Also((_) => Untrack2(process));
     }
 
     /// <summary>
