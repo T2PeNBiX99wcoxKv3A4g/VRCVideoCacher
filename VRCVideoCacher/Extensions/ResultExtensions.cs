@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 using VRCVideoCacher.Utils;
@@ -5,6 +6,7 @@ using VRCVideoCacher.Utils;
 namespace VRCVideoCacher.Extensions;
 
 [PublicAPI]
+[StackTraceHidden]
 public static class ResultExtensions
 {
     extension<T>(Result<T> result)

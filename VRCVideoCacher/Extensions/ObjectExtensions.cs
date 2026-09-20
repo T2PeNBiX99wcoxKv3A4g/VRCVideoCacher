@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using JetBrains.Annotations;
 
 namespace VRCVideoCacher.Extensions;
 
 [PublicAPI]
+[StackTraceHidden]
 public static class ObjectExtensions
 {
     extension<T>(T value)
