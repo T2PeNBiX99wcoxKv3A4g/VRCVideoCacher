@@ -27,7 +27,7 @@ public static class ObjectExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public async Task<T> Also([InstantHandle] Func<T, Task> block)
         {
-            await block(value);
+            await block(value).ConfigureAwait(false);
             return value;
         }
 
