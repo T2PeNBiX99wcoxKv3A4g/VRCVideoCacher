@@ -18,20 +18,20 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
     private static readonly DiagnosticDescriptor MemberNameTooShortRule = new(
-        id: "VVC0001",
-        title: "Singleton member name is too short for static proxy generation",
-        messageFormat: "Member '{0}' in singleton '{1}' cannot generate a static proxy because its name has only {2} character(s) (must have at least 2 characters to trim the last character)",
-        category: "SingletonGenerator",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        "VVC0001",
+        "Singleton member name is too short for static proxy generation",
+        "Member '{0}' in singleton '{1}' cannot generate a static proxy because its name has only {2} character(s) (must have at least 2 characters to trim the last character)",
+        "SingletonGenerator",
+        DiagnosticSeverity.Error,
+        true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // 1. Query target classes that inherit from Singleton<T>
         var classDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (s, cancellationToken) => IsSyntaxTargetForGeneration(s, cancellationToken),
-                transform: static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
+                static (s, cancellationToken) => IsSyntaxTargetForGeneration(s, cancellationToken),
+                static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
             .Where(static m => m is not null)
             .Select(static (item, _) => item!.Value);
 
@@ -44,14 +44,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             static (spc, target) =>
             {
                 foreach (var diagnostic in target.Diagnostics)
-                {
                     spc.ReportDiagnostic(diagnostic);
-                }
 
                 if (!string.IsNullOrEmpty(target.SourceText))
-                {
                     spc.AddSource(target.HintName, SourceText.From(target.SourceText, Encoding.UTF8));
-                }
             });
     }
 
@@ -226,7 +222,8 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     continue;
                 case IPropertySymbol:
                 case IFieldSymbol:
-                case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary && method.ContainingType.SpecialType != SpecialType.System_Object:
+                case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary &&
+                                               method.ContainingType.SpecialType != SpecialType.System_Object:
                 case IEventSymbol:
                     break;
                 default:
@@ -237,15 +234,14 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             string staticName;
 
             if (customName != null)
-            {
                 staticName = customName;
-            }
             else
             {
                 if (member.Name.Length <= 1)
                 {
                     var location = member.Locations.FirstOrDefault() ?? Location.None;
-                    diagnostics.Add(Diagnostic.Create(MemberNameTooShortRule, location, member.Name, symbol.Name, member.Name.Length));
+                    diagnostics.Add(Diagnostic.Create(MemberNameTooShortRule, location, member.Name, symbol.Name,
+                        member.Name.Length));
                     continue;
                 }
 
@@ -271,14 +267,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
                     foreach (var attr in prop.GetAttributes())
-                    {
                         if (ShouldIncludeMemberAttribute(attr))
                         {
                             var formatted = FormatAttribute(attr);
                             if (formatted != null)
                                 sb.AppendLine($"{indent}{formatted}");
                         }
-                    }
 
                     sb.AppendLine($"{indent}public static {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
@@ -305,14 +299,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{field.Name}\"/></summary>");
                     foreach (var attr in field.GetAttributes())
-                    {
                         if (ShouldIncludeMemberAttribute(attr))
                         {
                             var formatted = FormatAttribute(attr);
                             if (formatted != null)
                                 sb.AppendLine($"{indent}{formatted}");
                         }
-                    }
 
                     if (field.IsReadOnly)
                         sb.AppendLine($"{indent}public static {typeStr} {staticName} => Instance.{field.Name};");
@@ -393,14 +385,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
 
                         var paramAttrs = new List<string>();
                         foreach (var attr in p.GetAttributes())
-                        {
                             if (ShouldIncludeParameterAttribute(attr))
                             {
                                 var formatted = FormatAttribute(attr);
                                 if (formatted != null)
                                     paramAttrs.Add(formatted);
                             }
-                        }
 
                         var paramAttrStr = paramAttrs.Count > 0 ? $"{string.Join(" ", paramAttrs)} " : "";
                         paramList.Add($"{paramAttrStr}{isParams}{refPrefix}{pType} {pName}{defaultVal}");
@@ -417,17 +407,14 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{method.Name}\"/></summary>");
                     foreach (var attr in method.GetAttributes())
-                    {
                         if (ShouldIncludeMemberAttribute(attr))
                         {
                             var formatted = FormatAttribute(attr);
                             if (formatted != null)
                                 sb.AppendLine($"{indent}{formatted}");
                         }
-                    }
 
                     foreach (var attr in method.GetReturnTypeAttributes())
-                    {
                         if (ShouldIncludeParameterAttribute(attr))
                         {
                             var formatted = FormatAttribute(attr);
@@ -437,7 +424,6 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                                 sb.AppendLine($"{indent}{returnAttr}");
                             }
                         }
-                    }
 
                     sb.AppendLine(
                         $"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
@@ -463,14 +449,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     sb.AppendLine();
                     sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
                     foreach (var attr in evt.GetAttributes())
-                    {
                         if (ShouldIncludeMemberAttribute(attr))
                         {
                             var formatted = FormatAttribute(attr);
                             if (formatted != null)
                                 sb.AppendLine($"{indent}{formatted}");
                         }
-                    }
 
                     sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
                     sb.AppendLine($"{indent}{{");
@@ -504,14 +488,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             return false;
 
         if (fullNamespace == "System.Runtime.CompilerServices")
-        {
             if (className is "NullableAttribute" or "NullableContextAttribute" or "ParamArrayAttribute"
                 or "IsReadOnlyAttribute" or "ScopedRefAttribute" or "RefSafetyRulesAttribute"
                 or "TupleElementNamesAttribute" or "NativeIntegerAttribute" or "DynamicAttribute"
                 or "ExtensionAttribute" or "AsyncStateMachineAttribute" or "IteratorStateMachineAttribute"
                 or "CompilerGeneratedAttribute")
                 return false;
-        }
 
         return true;
     }
@@ -534,12 +516,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             return false;
 
         if (fullNamespace == "System.Runtime.CompilerServices")
-        {
             if (className is "NullableAttribute" or "NullableContextAttribute"
                 or "AsyncStateMachineAttribute" or "IteratorStateMachineAttribute"
                 or "CompilerGeneratedAttribute" or "ExtensionAttribute")
                 return false;
-        }
 
         return true;
     }
@@ -553,14 +533,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var args = new List<string>();
 
         foreach (var ctorArg in attr.ConstructorArguments)
-        {
             args.Add(FormatTypedConstant(ctorArg));
-        }
 
         foreach (var namedArg in attr.NamedArguments)
-        {
             args.Add($"{namedArg.Key} = {FormatTypedConstant(namedArg.Value)}");
-        }
 
         return args.Count > 0 ? $"[{attrTypeStr}({string.Join(", ", args)})]" : $"[{attrTypeStr}]";
     }
@@ -599,8 +575,10 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                         if (field != null)
                             return $"{typeStr}.{field.Name}";
                     }
+
                     return $"({typeStr})({tc.Value})";
                 }
+
                 return tc.Value?.ToString() ?? "0";
             }
             case TypedConstantKind.Type:
@@ -669,10 +647,8 @@ public sealed class SingletonGenerator : IIncrementalGenerator
                     return s1;
 
                 foreach (var namedArg in attr.NamedArguments)
-                {
                     if (namedArg is { Key: "Name", Value.Value: string s2 } && !string.IsNullOrEmpty(s2))
                         return s2;
-                }
             }
         }
 
@@ -688,18 +664,12 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         return $"{symbol.Name}<{typeParams}>";
     }
 
-    private readonly struct TargetClassInfo : IEquatable<TargetClassInfo>
+    private readonly struct TargetClassInfo(string hintName, string sourceText, IReadOnlyList<Diagnostic> diagnostics)
+        : IEquatable<TargetClassInfo>
     {
-        public string HintName { get; }
-        public string SourceText { get; }
-        public IReadOnlyList<Diagnostic> Diagnostics { get; }
-
-        public TargetClassInfo(string hintName, string sourceText, IReadOnlyList<Diagnostic> diagnostics)
-        {
-            HintName = hintName;
-            SourceText = sourceText;
-            Diagnostics = diagnostics;
-        }
+        public string HintName { get; } = hintName;
+        public string SourceText { get; } = sourceText;
+        public IReadOnlyList<Diagnostic> Diagnostics { get; } = diagnostics;
 
         public bool Equals(TargetClassInfo other)
         {
@@ -709,13 +679,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             if (Diagnostics.Count != other.Diagnostics.Count)
                 return false;
 
-            for (var i = 0; i < Diagnostics.Count; i++)
-            {
-                if (!Diagnostics[i].Equals(other.Diagnostics[i]))
-                    return false;
-            }
-
-            return true;
+            return !Diagnostics.Where((t, i) => !t.Equals(other.Diagnostics[i])).Any();
         }
 
         public override bool Equals(object? obj) => obj is TargetClassInfo other && Equals(other);
@@ -725,11 +689,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
             unchecked
             {
                 var hash = HintName.GetHashCode() * 397 ^ SourceText.GetHashCode();
-                foreach (var d in Diagnostics)
-                {
-                    hash = hash * 31 ^ d.GetHashCode();
-                }
-                return hash;
+                return Diagnostics.Aggregate(hash, (current, d) => current * 31 ^ d.GetHashCode());
             }
         }
     }
