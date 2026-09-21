@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Security;
 using System.Text;
+using JetBrains.Annotations;
 using Microsoft.Win32;
 using VRCVideoCacher.Utils;
 
@@ -18,29 +19,27 @@ public static class NotificationService
         if (_isAumidRegistered)
             return;
 
-        try
+        Try.Run(() =>
         {
-            using var key = Registry.CurrentUser.CreateSubKey($@"SOFTWARE\Classes\AppUserModelId\{AppId}");
-            if (key != null)
-            {
-                key.SetValue("DisplayName", "VRCVideoCacher");
-                if (!string.IsNullOrEmpty(Environment.ProcessPath))
-                    key.SetValue("IconUri", Environment.ProcessPath);
-            }
+            // ReSharper disable once CanReplaceCastWithVariableType
+            using var key = (RegistryKey?)Registry.CurrentUser.CreateSubKey($@"SOFTWARE\Classes\AppUserModelId\{AppId}");
+            if (key == null) return;
+
+            key.SetValue("DisplayName", "VRCVideoCacher");
+            if (!string.IsNullOrEmpty(Environment.ProcessPath))
+                key.SetValue("IconUri", Environment.ProcessPath);
 
             _isAumidRegistered = true;
-        }
-        catch
-        {
-            // Ignore registry errors
-        }
+        });
     }
 
+    [PublicAPI]
     public static void ShowErrorNotification(string title, string message)
     {
-        ShowNotification(title, message, true);
+        ShowNotification(title, message);
     }
 
+    [PublicAPI]
     public static void ShowNotification(string title, string message, bool isError = true)
     {
         if (OperatingSystem.IsWindows())
@@ -49,6 +48,7 @@ public static class NotificationService
             ShowLinuxNotification(title, message, isError);
     }
 
+    [SupportedOSPlatform("windows")]
     private static void ShowWindowsToastNotification(string title, string message, bool isError)
     {
         Task.Run(() =>
@@ -97,6 +97,7 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
         });
     }
 
+    [SupportedOSPlatform("linux")]
     private static void ShowLinuxNotification(string title, string message, bool isError)
     {
         Task.Run(() =>
