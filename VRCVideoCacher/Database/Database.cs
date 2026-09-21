@@ -15,11 +15,9 @@ public class Database(DbContextOptions<Database> options) : DbContext(options)
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured)
-        {
-            Directory.CreateDirectory(CacheDir);
-            optionsBuilder.UseSqlite($"Data Source={DbPath}");
-            optionsBuilder.EnableSensitiveDataLogging();
-        }
+        if (optionsBuilder.IsConfigured) return;
+        Directory.CreateDirectory(CacheDir);
+        optionsBuilder.UseSqlite($"Data Source={DbPath}");
+        optionsBuilder.EnableSensitiveDataLogging();
     }
 }
