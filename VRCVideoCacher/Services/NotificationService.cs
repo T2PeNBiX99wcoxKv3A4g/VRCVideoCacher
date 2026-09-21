@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
-using System.Security;
-using System.Text;
+using Avalonia.Platform;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using VRCVideoCacher.Utils;
@@ -12,6 +11,8 @@ public static class NotificationService
 {
     private const string AppId = "VRCVideoCacher";
     private static bool _isAumidRegistered;
+    private static string? _scriptPath;
+    private static readonly object ScriptLock = new();
 
     [SupportedOSPlatform("windows")]
     private static void EnsureAppUserModelIdRegistered()
@@ -31,6 +32,40 @@ public static class NotificationService
 
             _isAumidRegistered = true;
         });
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string? EnsureScriptExtracted()
+    {
+        if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath))
+            return _scriptPath;
+
+        lock (ScriptLock)
+        {
+            if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath))
+                return _scriptPath;
+
+            try
+            {
+                var targetDir = !string.IsNullOrEmpty(Program.UtilsPath)
+                    ? Program.UtilsPath
+                    : Path.Combine(Path.GetTempPath(), "VRCVideoCacher");
+
+                Directory.CreateDirectory(targetDir);
+                var targetFile = Path.Combine(targetDir, "ToastNotification.ps1");
+
+                using var resourceStream = AssetLoader.Open(new Uri("avares://VRCVideoCacher/Assets/ToastNotification.ps1"));
+                using var fileStream = File.Create(targetFile);
+                resourceStream.CopyTo(fileStream);
+
+                _scriptPath = targetFile;
+                return _scriptPath;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
     [PublicAPI]
@@ -57,36 +92,23 @@ public static class NotificationService
             {
                 EnsureAppUserModelIdRegistered();
 
-                var escapedTitle = EscapeXml(Truncate(title, 128));
-                var escapedMessage = EscapeXml(Truncate(message, 1024));
-
-                var script = $@"
-[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
-[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
-
-$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
-$template = @""
-<toast>
-    <visual>
-        <binding template=""""ToastGeneric"""">
-            <text>{escapedTitle}</text>
-            <text>{escapedMessage}</text>
-        </binding>
-    </visual>
-</toast>
-""@
-$xml.LoadXml($template)
-$toast = New-Object Windows.UI.Notifications.ToastNotification $xml
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier(""{AppId}"").Show($toast)
-";
-
-                var bytes = Encoding.Unicode.GetBytes(script);
-                var encoded = Convert.ToBase64String(bytes);
+                var scriptPath = EnsureScriptExtracted();
+                if (string.IsNullOrEmpty(scriptPath) || !File.Exists(scriptPath))
+                    return;
 
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
-                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -EncodedCommand {encoded}",
+                    ArgumentList =
+                    {
+                        "-NoProfile",
+                        "-NonInteractive",
+                        "-ExecutionPolicy", "Bypass",
+                        "-File", scriptPath,
+                        "-AppId", AppId,
+                        "-Title", Truncate(title, 128),
+                        "-Message", Truncate(message, 1024)
+                    },
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden
@@ -121,14 +143,6 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
                 });
             });
         });
-    }
-
-    private static string EscapeXml(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return string.Empty;
-
-        return SecurityElement.Escape(text) ?? string.Empty;
     }
 
     private static string Truncate(string value, int maxLength)

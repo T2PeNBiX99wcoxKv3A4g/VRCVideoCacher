@@ -129,6 +129,7 @@
     <ItemGroup>
         <AvaloniaResource Include="Assets\icon.ico" />
         <AvaloniaResource Include="Assets\SmallBanner.png" />
+        <AvaloniaResource Include="Assets\ToastNotification.ps1" />
     </ItemGroup>
 
     <ItemGroup>
