@@ -15,6 +15,13 @@ public partial class AboutView : UserControl
     {
         InitializeComponent();
         DataContext = new AboutViewModel();
+#if DEBUG
+        Task.Run(async () =>
+        {
+            await Task.Delay(5000);
+            Program.Logger.Error("Test Error");
+        });
+#endif
     }
 
     private void OnDiscordClick(object? sender, RoutedEventArgs e)
