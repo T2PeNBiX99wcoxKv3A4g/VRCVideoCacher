@@ -84,19 +84,16 @@ public static class NotificationService
     {
         if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath) &&
             !string.IsNullOrEmpty(_iconPath) && File.Exists(_iconPath))
-        {
             return (_scriptPath, _iconPath);
-        }
 
         lock (ResourceLock)
         {
             if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath) &&
                 !string.IsNullOrEmpty(_iconPath) && File.Exists(_iconPath))
-            {
                 return (_scriptPath, _iconPath);
-            }
 
-            _scriptPath = EnsureAssetExtracted("ToastNotification.ps1", "avares://VRCVideoCacher/Assets/ToastNotification.ps1");
+            _scriptPath = EnsureAssetExtracted("ToastNotification.ps1",
+                "avares://VRCVideoCacher/Assets/ToastNotification.ps1");
             _iconPath = EnsureAssetExtracted("icon.ico", "avares://VRCVideoCacher/Assets/icon.ico");
 
             return (_scriptPath, _iconPath);
