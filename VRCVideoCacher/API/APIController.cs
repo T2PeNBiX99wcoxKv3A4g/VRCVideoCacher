@@ -140,7 +140,7 @@ public class ApiController : WebApiController
             return;
         }
 
-        DatabaseManager.AddPlayHistory(videoInfo);
+        await DatabaseManager.AddPlayHistoryAsync(videoInfo);
 
         if (source == "resonite")
         {

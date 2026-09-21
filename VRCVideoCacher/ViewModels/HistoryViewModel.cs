@@ -133,11 +133,11 @@ public partial class HistoryItemViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Delete()
+    private async Task Delete()
     {
         // Removes the video from history entirely (all of its play records), so it doesn't just reappear
         // from an earlier play. DatabaseManager raises OnPlayHistoryChanged, which the list refreshes on.
-        DatabaseManager.DeletePlayHistoryForVideo(Id, Url);
+        await DatabaseManager.DeletePlayHistoryForVideoAsync(Id, Url);
     }
 }
 
@@ -153,8 +153,8 @@ public partial class HistoryViewModel : ViewModelBase
 
     public HistoryViewModel()
     {
-        DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.Post(Refresh);
-        DatabaseManager.OnPlayHistoryChanged += () => Dispatcher.UIThread.Post(Refresh);
+        DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.Post(async () => await Refresh());
+        DatabaseManager.OnPlayHistoryChanged += () => Dispatcher.UIThread.Post(async () => await Refresh());
         ConfigManager.OnConfigChanged += LoadFromConfig;
         LoadFromConfig();
 
@@ -163,7 +163,7 @@ public partial class HistoryViewModel : ViewModelBase
         // (a guard that dropped refreshes while metadata loaded) also swallowed delete-triggered refreshes.
         // Metadata is applied to the rows in place by LoadMetadata, so a full reload here isn't needed.
 
-        Dispatcher.UIThread.Post(Refresh);
+        Dispatcher.UIThread.Post(async () => await Refresh());
     }
 
     private void LoadFromConfig()
@@ -180,8 +180,11 @@ public partial class HistoryViewModel : ViewModelBase
         ConfigManager.Config.HistoryMaxSize = value;
         ConfigManager.TrySaveConfigWithoutWait(false);
         // Apply the new cap immediately (trims the DB if it was lowered), then reload the list.
-        DatabaseManager.TrimPlayHistory(value);
-        Dispatcher.UIThread.Post(Refresh);
+        _ = Task.Run(async () =>
+        {
+            await DatabaseManager.TrimPlayHistoryAsync(value);
+            await Dispatcher.UIThread.InvokeAsync(Refresh);
+        });
     }
 
     partial void OnSearchFilterChanged(string value)
@@ -215,10 +218,10 @@ public partial class HistoryViewModel : ViewModelBase
     private readonly List<HistoryItemViewModel> _pendingMetadata = [];
 
     [RelayCommand]
-    private void Refresh()
+    private async Task Refresh()
     {
-        var fresh = DatabaseManager
-            .GetVideoHistoryAsCache(ConfigManager.Config.HistoryMaxSize, true)
+        var fresh = (await DatabaseManager
+            .GetVideoHistoryAsCacheAsync(ConfigManager.Config.HistoryMaxSize, true))
             .OrderByDescending(h => h.Timestamp)
             .ToList();
 
@@ -323,6 +326,6 @@ public partial class HistoryViewModel : ViewModelBase
             Localizer.Get("ClearAllHistory"),
             Localizer.Get("ClearAllHistoryConfirm"));
         if (confirmed)
-            DatabaseManager.ClearPlayHistory();
+            await DatabaseManager.ClearPlayHistoryAsync();
     }
 }

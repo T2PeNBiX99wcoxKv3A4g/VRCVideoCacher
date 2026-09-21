@@ -211,7 +211,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
             Localizer.Get("DeleteAllCache"),
             Localizer.Get("DeleteAllCacheConfirm"));
         if (confirmed)
-            CacheManager.ClearCache();
+            await CacheManager.ClearCache();
     }
 
     [RelayCommand]

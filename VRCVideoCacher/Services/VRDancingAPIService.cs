@@ -40,7 +40,7 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
                 return;
 
             await ThumbnailManager.TrySaveThumbnail(videoId, vrdData.ThumbnailURL);
-            DatabaseManager.AddVideoInfoCache(new()
+            await DatabaseManager.AddVideoInfoCacheAsync(new()
             {
                 Id = videoId,
                 Title = vrdData.Song,

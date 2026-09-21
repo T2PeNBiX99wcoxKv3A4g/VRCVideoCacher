@@ -83,7 +83,7 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
             if (songInfo?.StartTime != null && duration != null)
                 duration -= songInfo.StartTime;
 
-            DatabaseManager.AddVideoInfoCache(new()
+            await DatabaseManager.AddVideoInfoCacheAsync(new()
             {
                 Id = videoId,
                 Title = songInfo?.Name,

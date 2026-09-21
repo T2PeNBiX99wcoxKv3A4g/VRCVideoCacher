@@ -107,7 +107,7 @@ public partial class VideoId : Singleton<VideoId>
             return string.Empty;
         }
 
-        DatabaseManager.AddVideoInfoCache(new()
+        await DatabaseManager.AddVideoInfoCacheAsync(new()
         {
             Id = data.Id,
             Title = data.Name,

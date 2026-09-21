@@ -48,7 +48,7 @@ public static class YouTubeMetadataService
                 Author = author,
                 Type = UrlType.YouTube
             };
-            DatabaseManager.AddVideoInfoCache(videoInfo);
+            await DatabaseManager.AddVideoInfoCacheAsync(videoInfo);
             return videoInfo;
         }).GetOrElse((_) => Task.FromResult<VideoInfoCache?>(null));
     }
@@ -69,7 +69,7 @@ public static class YouTubeMetadataService
 
     public static async Task<VideoInfoCache?> GetVideoMetadataAsync(string videoId)
     {
-        var cachedInfo = DatabaseManager.GetVideoInfoCache(videoId);
+        var cachedInfo = await DatabaseManager.GetVideoInfoCacheAsync(videoId);
 
         if (videoId.Length == 11 && (cachedInfo == null || string.IsNullOrEmpty(cachedInfo?.Title)))
             cachedInfo = await GetVideoTitleAsync(videoId);

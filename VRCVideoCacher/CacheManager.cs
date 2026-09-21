@@ -31,7 +31,7 @@ public partial class CacheManager : Singleton<CacheManager>
 
         Log.Debug("Using cache path {CachePath}", CachePath2);
         BuildCache();
-        TryFlushCache2();
+        _ = TryFlushCache2();
     }
 
     // Events for UI
@@ -62,7 +62,7 @@ public partial class CacheManager : Singleton<CacheManager>
     }
 
     [PublicAPI]
-    public void TryFlushCache2()
+    public async Task TryFlushCache2()
     {
         if (ConfigManager.Config.CacheMaxSizeInGb <= 0f)
             return;
@@ -72,7 +72,7 @@ public partial class CacheManager : Singleton<CacheManager>
         if (cacheSize < maxCacheSize)
             return;
 
-        var recentPlayHistory = DatabaseManager.GetPlayHistory();
+        var recentPlayHistory = await DatabaseManager.GetPlayHistoryAsync();
         var oldestFiles = _cachedAssets.OrderBy(x => x.Value.LastModified).ToList();
         while (cacheSize >= maxCacheSize && oldestFiles.Count > 0)
         {
@@ -118,7 +118,7 @@ public partial class CacheManager : Singleton<CacheManager>
         existingCache.LastModified = fileInfo.LastWriteTimeUtc;
 
         OnCacheChanged?.Invoke(fileName, CacheChangeType.Added);
-        TryFlushCache2();
+        _ = TryFlushCache2();
     }
 
     private long GetCacheSize()
@@ -151,9 +151,9 @@ public partial class CacheManager : Singleton<CacheManager>
     }
 
     [PublicAPI]
-    public void ClearCache2()
+    public async Task ClearCache2()
     {
-        var recentPlayHistory = DatabaseManager.GetPlayHistory();
+        var recentPlayHistory = await DatabaseManager.GetPlayHistoryAsync();
         var files = _cachedAssets.Keys.ToList();
         foreach (var fileName in files)
         {
