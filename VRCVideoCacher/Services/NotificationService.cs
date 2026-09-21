@@ -54,7 +54,7 @@ public static class NotificationService
                 Directory.CreateDirectory(targetDir);
                 var targetFile = Path.Combine(targetDir, "ToastNotification.ps1");
 
-                using var resourceStream = AssetLoader.Open(new Uri("avares://VRCVideoCacher/Assets/ToastNotification.ps1"));
+                using var resourceStream = AssetLoader.Open(new("avares://VRCVideoCacher/Assets/ToastNotification.ps1"));
                 using var fileStream = File.Create(targetFile);
                 resourceStream.CopyTo(fileStream);
 
@@ -103,11 +103,16 @@ public static class NotificationService
                     {
                         "-NoProfile",
                         "-NonInteractive",
-                        "-ExecutionPolicy", "Bypass",
-                        "-File", scriptPath,
-                        "-AppId", AppId,
-                        "-Title", Truncate(title, 128),
-                        "-Message", Truncate(message, 1024)
+                        "-ExecutionPolicy",
+                        "Bypass",
+                        "-File",
+                        scriptPath,
+                        "-AppId",
+                        AppId,
+                        "-Title",
+                        Truncate(title, 128),
+                        "-Message",
+                        Truncate(message, 1024)
                     },
                     UseShellExecute = false,
                     CreateNoWindow = true,
