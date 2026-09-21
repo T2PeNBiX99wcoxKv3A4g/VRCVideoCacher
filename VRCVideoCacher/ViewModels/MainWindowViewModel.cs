@@ -12,7 +12,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private const string StatusNormalColor = "#CCCCCC";
     private const string StatusWarningColor = "#FFB74D";
 
-    [ObservableProperty] private ViewModelBase _currentView;
+    [ObservableProperty] public partial ViewModelBase CurrentView { get; set; }
 
     partial void OnCurrentViewChanged(ViewModelBase value)
     {
@@ -33,20 +33,19 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsLogViewerActive => CurrentView == LogViewer;
     public bool IsAboutActive => CurrentView == About;
 
-    [ObservableProperty] private string _statusText = Localizer.Get("ServerRunning");
+    [ObservableProperty] public partial string StatusText { get; set; } = Localizer.Get("ServerRunning");
 
-    [ObservableProperty] private string _statusColor = StatusNormalColor;
+    [ObservableProperty] public partial string StatusColor { get; set; } = StatusNormalColor;
 
-    [ObservableProperty] private bool _statusShowBar;
+    [ObservableProperty] public partial bool StatusShowBar { get; set; }
 
-    [ObservableProperty] private bool _statusIndeterminate;
+    [ObservableProperty] public partial bool StatusIndeterminate { get; set; }
 
-    [ObservableProperty] private double _statusProgress;
+    [ObservableProperty] public partial double StatusProgress { get; set; }
 
-    [ObservableProperty] private string _cacheStatusText = "Cache: 0 B";
+    [ObservableProperty] public partial string CacheStatusText { get; set; } = "Cache: 0 B";
 
-    [ObservableProperty] private string _title = $"VRCVideoCacher v{Program.Version}";
-
+    [ObservableProperty] public partial string Title { get; set; } = $"VRCVideoCacher v{Program.Version}";
     public DashboardViewModel Dashboard { get; }
     public SettingsViewModel Settings { get; }
     public CacheBrowserViewModel CacheBrowser { get; }
@@ -64,8 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
         LogViewer = new();
         History = new();
         About = new();
-
-        _currentView = Dashboard;
+        CurrentView = Dashboard;
 
         // Subscribe to cache changes for status bar
         CacheManager.OnCacheChanged += (_, _) => UpdateCacheStatus();

@@ -20,9 +20,9 @@ public partial class CacheItemViewModel : ViewModelBase
     public DateTime LastModified { get; init; }
     public string Extension { get; init; } = string.Empty;
 
-    [ObservableProperty] private string _title = string.Empty;
+    [ObservableProperty] public partial string Title { get; set; } = string.Empty;
 
-    [ObservableProperty] private string _thumbnailSource = string.Empty;
+    [ObservableProperty] public partial string ThumbnailSource { get; set; } = string.Empty;
 
     public string DisplayTitle => string.IsNullOrEmpty(Title) ? VideoId : Title;
 
@@ -97,12 +97,11 @@ public partial class CacheItemViewModel : ViewModelBase
 
 public partial class CacheBrowserViewModel : ViewModelBase
 {
-    [ObservableProperty] private string _searchFilter = string.Empty;
+    [ObservableProperty] public partial string SearchFilter { get; set; } = string.Empty;
 
-    [ObservableProperty] private CacheItemViewModel? _selectedItem;
+    [ObservableProperty] public partial CacheItemViewModel? SelectedItem { get; set; }
 
-    [ObservableProperty] private string _statusText = string.Empty;
-
+    [ObservableProperty] public partial string StatusText { get; set; } = string.Empty;
     public ObservableCollection<CacheItemViewModel> CachedVideos { get; } = [];
     public ObservableCollection<CacheItemViewModel> FilteredVideos { get; } = [];
 

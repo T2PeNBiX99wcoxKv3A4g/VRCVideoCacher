@@ -33,14 +33,13 @@ public partial class DownloadItemViewModel : ViewModelBase
 
 public partial class DownloadQueueViewModel : ViewModelBase
 {
-    [ObservableProperty] private DownloadItemViewModel? _currentDownload;
+    [ObservableProperty] public partial DownloadItemViewModel? CurrentDownload { get; set; }
 
-    [ObservableProperty] private string _currentStatus = "Idle";
+    [ObservableProperty] public partial string CurrentStatus { get; set; } = "Idle";
 
-    [ObservableProperty] private string _manualUrl = string.Empty;
+    [ObservableProperty] public partial string ManualUrl { get; set; } = string.Empty;
 
-    [ObservableProperty] private string _statusMessage = string.Empty;
-
+    [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
     public ObservableCollection<DownloadItemViewModel> QueuedDownloads { get; } = [];
 
     public DownloadQueueViewModel()

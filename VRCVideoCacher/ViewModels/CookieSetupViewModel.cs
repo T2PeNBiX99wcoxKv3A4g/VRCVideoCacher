@@ -25,15 +25,15 @@ public partial class CookieSetupViewModel : ViewModelBase
 
     public event Action? RequestClose;
 
-    [ObservableProperty] private int _currentStep = 1;
+    [ObservableProperty] public partial int CurrentStep { get; set; } = 1;
 
-    [ObservableProperty] private bool _isChrome;
+    [ObservableProperty] public partial bool IsChrome { get; set; }
 
-    [ObservableProperty] private bool _cookiesReceived;
+    [ObservableProperty] public partial bool CookiesReceived { get; set; }
 
-    [ObservableProperty] private bool _hostState;
+    [ObservableProperty] public partial bool HostState { get; set; }
 
-    [ObservableProperty] private bool _dontShowAgainChecked;
+    [ObservableProperty] public partial bool DontShowAgainChecked { get; set; }
 
     public bool IsDontShowAgainCheckboxVisible => !IsStep5 && !(ConfigManager.Config?.CookieSetupCompleted ?? false);
 
@@ -89,7 +89,7 @@ public partial class CookieSetupViewModel : ViewModelBase
     {
         Program.OnCookiesUpdated += OnCookiesUpdated;
         CookiesReceived = Program.IsCookiesEnabledAndValid();
-        _hostState = ElevatorManager.HasHostsLine;
+        HostState = ElevatorManager.HasHostsLine;
 
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedComputedProperties);
         DontShowAgainChecked = false;

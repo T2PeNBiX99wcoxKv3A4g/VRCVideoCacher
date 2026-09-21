@@ -19,15 +19,17 @@ public partial class ToolStatusItem : ObservableObject
 {
     public string Name { get; }
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IconKind))] [NotifyPropertyChangedFor(nameof(StatusBrush))]
-    private ToolState _state;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IconKind))]
+    [NotifyPropertyChangedFor(nameof(StatusBrush))]
+    public partial ToolState State { get; set; }
 
-    [ObservableProperty] private string _detail = string.Empty;
+    [ObservableProperty] public partial string Detail { get; set; } = string.Empty;
 
     public ToolStatusItem(string name, ToolState state = ToolState.Checking)
     {
         Name = name;
-        _state = state;
+        State = state;
     }
 
     public MaterialIconKind IconKind => State switch

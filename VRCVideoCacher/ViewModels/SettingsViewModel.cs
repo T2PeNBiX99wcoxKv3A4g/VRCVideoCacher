@@ -161,7 +161,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     // Pure view state: reveals the advanced setting sections. Not a config value, so it is neither
     // loaded/saved nor tracked as an unsaved change.
-    [ObservableProperty] private bool _showAdvanced;
+    [ObservableProperty] public partial bool ShowAdvanced { get; set; }
 
     // Language selection
     public static IReadOnlyList<LanguageOption> AvailableLanguageOptions =>
