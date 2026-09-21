@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public static class NotificationService
+public static partial class NotificationService
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct NOTIFYICONDATA
@@ -14,15 +15,21 @@ public static class NotificationService
         public uint uFlags;
         public uint uCallbackMessage;
         public IntPtr hIcon;
+
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string szTip;
+
         public uint dwState;
         public uint dwStateMask;
+
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
         public string szInfo;
+
         public uint uTimeoutOrVersion;
+
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
         public string szInfoTitle;
+
         public uint dwInfoFlags;
         public Guid guidItem;
         public IntPtr hBalloonIcon;
@@ -48,8 +55,8 @@ public static class NotificationService
     [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
 
-    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern IntPtr CreateWindowExW(
+    [LibraryImport("user32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial IntPtr CreateWindowExW(
         uint dwExStyle,
         string lpClassName,
         string lpWindowName,
@@ -63,37 +70,35 @@ public static class NotificationService
         IntPtr hInstance,
         IntPtr lpParam);
 
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern bool DestroyWindow(IntPtr hWnd);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DestroyWindow(IntPtr hWnd);
 
     public static void ShowErrorNotification(string title, string message)
     {
-        ShowNotification(title, message, isError: true);
+        ShowNotification(title, message, true);
     }
 
     public static void ShowNotification(string title, string message, bool isError = true)
     {
         if (OperatingSystem.IsWindows())
-        {
             ShowWindowsNotification(title, message, isError);
-        }
         else if (OperatingSystem.IsLinux())
-        {
             ShowLinuxNotification(title, message, isError);
-        }
     }
 
     private static void ShowWindowsNotification(string title, string message, bool isError)
     {
         Task.Run(() =>
         {
-            try
+            Try.Run(() =>
             {
-                var hWnd = CreateWindowExW(0, "STATIC", "VRCVideoCacher_Notification", 0, 0, 0, 0, 0, (IntPtr)(-3), IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                var hWnd = CreateWindowExW(0, "STATIC", "VRCVideoCacher_Notification", 0, 0, 0, 0, 0, (IntPtr)(-3),
+                    IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
                 if (hWnd == IntPtr.Zero)
                     return;
 
-                try
+                using (UsingUntil.Run(() => DestroyWindow(hWnd)))
                 {
                     var nid = new NOTIFYICONDATA
                     {
@@ -114,15 +119,7 @@ public static class NotificationService
                     Thread.Sleep(10000);
                     Shell_NotifyIcon(NIM_DELETE, ref nid);
                 }
-                finally
-                {
-                    DestroyWindow(hWnd);
-                }
-            }
-            catch
-            {
-                // Ignore notification display failures
-            }
+            });
         });
     }
 
@@ -130,7 +127,7 @@ public static class NotificationService
     {
         Task.Run(() =>
         {
-            try
+            Try.Run(() =>
             {
                 Process.Start(new ProcessStartInfo
                 {
@@ -147,11 +144,7 @@ public static class NotificationService
                     UseShellExecute = false,
                     CreateNoWindow = true
                 });
-            }
-            catch
-            {
-                // Ignore if notify-send is unavailable
-            }
+            });
         });
     }
 

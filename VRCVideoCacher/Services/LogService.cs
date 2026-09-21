@@ -77,7 +77,6 @@ public class UiLogSink : ILogEventSink
                 message += Environment.NewLine + logEvent.Exception;
 
             if (ConfigManager.Config is { ErrorPopups: true })
-            {
                 Dispatcher.UIThread.Post(() =>
                 {
                     _currentPopup?.Close();
@@ -95,12 +94,9 @@ public class UiLogSink : ILogEventSink
                     };
                     popup.Show();
                 });
-            }
 
             if (ConfigManager.Config is { ErrorNotifications: true })
-            {
                 NotificationService.ShowErrorNotification($"Error from {source}", message);
-            }
         }
 
         LogService.EmitLogEntry(logEvent);
