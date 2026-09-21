@@ -185,7 +185,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
             }
 
             if (updatedTitle && !string.IsNullOrWhiteSpace(SearchFilter))
-                Dispatcher.UIThread.InvokeAsync(ApplyFilter);
+                _ = Dispatcher.UIThread.InvokeAsync(ApplyFilter);
         });
     }
 
