@@ -571,6 +571,33 @@
             <Setter Property="Foreground" Value="{StaticResource TextWhiteBrush}" />
         </Style>
 
+        <!-- Cancel Button -->
+        <Style Selector="Button.cancel">
+            <Setter Property="Background" Value="{StaticResource SurfaceElevatedBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style Selector="Button.cancel /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.cancel:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource CardHoverBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderHoverBrush}" />
+        </Style>
+
         <!-- Subtle Danger Button -->
         <Style Selector="Button.subtle-danger">
             <Setter Property="Background" Value="{StaticResource DangerSubtleBrush}" />

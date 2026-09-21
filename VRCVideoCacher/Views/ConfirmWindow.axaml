@@ -14,7 +14,7 @@
             <TextBlock x:Name="MessageTextBlock" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"
                        FontSize="13" LineHeight="20" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,4,0,0">
-                <Button x:Name="CancelButton" Width="95" Padding="12,7" HorizontalContentAlignment="Center"
+                <Button x:Name="CancelButton" Width="95" Classes="cancel" HorizontalContentAlignment="Center"
                         Click="Cancel_Click" />
                 <Button x:Name="ConfirmButton" Width="95" Classes="danger" HorizontalContentAlignment="Center"
                         Click="Confirm_Click" />
