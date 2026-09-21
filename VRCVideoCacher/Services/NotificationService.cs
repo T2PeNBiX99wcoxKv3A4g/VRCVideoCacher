@@ -6,6 +6,8 @@ using JetBrains.Annotations;
 using Microsoft.Win32;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
+using Swan;
+using OperatingSystem = System.OperatingSystem;
 
 namespace VRCVideoCacher.Services;
 
@@ -142,9 +144,9 @@ public static class NotificationService
                         "-AppId",
                         AppId,
                         "-Title",
-                        Truncate(title, 128),
+                        title.Truncate(128, "...") ?? "Unknown Title",
                         "-Message",
-                        Truncate(message, 1024)
+                        message.Truncate(1024, "...") ?? "Unknown Message"
                     },
                     UseShellExecute = false,
                     CreateNoWindow = true,
@@ -186,13 +188,5 @@ public static class NotificationService
                 });
             });
         });
-    }
-
-    private static string Truncate(string value, int maxLength)
-    {
-        if (string.IsNullOrEmpty(value))
-            return string.Empty;
-
-        return value.Length <= maxLength ? value : value[..(maxLength - 3)] + "...";
     }
 }
