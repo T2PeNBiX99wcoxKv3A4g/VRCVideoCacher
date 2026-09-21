@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using VRCVideoCacher.Extensions;
-using VRCVideoCacher.Utils;
 using ILogger = Swan.Logging.ILogger;
 using LogLevel = Swan.Logging.LogLevel;
 using LogMessageReceivedEventArgs = Swan.Logging.LogMessageReceivedEventArgs;

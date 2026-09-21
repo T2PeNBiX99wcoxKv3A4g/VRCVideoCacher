@@ -3,7 +3,6 @@ using System.Globalization;
 using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Serilog;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 

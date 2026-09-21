@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;

@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using Jeek.Avalonia.Localization;
 using JetBrains.Annotations;

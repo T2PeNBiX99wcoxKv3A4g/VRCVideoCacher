@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.Services;
-using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.ViewModels;
 

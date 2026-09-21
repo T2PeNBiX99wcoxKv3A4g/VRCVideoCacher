@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using VRCVideoCacher.Database.Models;
-using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
-using VRCVideoCacher.Utils;
 using VRCVideoCacher.ViewModels;
 
 namespace VRCVideoCacher.Database;
