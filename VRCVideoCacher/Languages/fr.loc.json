@@ -104,6 +104,7 @@
   "OpenUrl": "Ouvrir l'URL",
   "CopyUrl": "Copier l'URL",
   "DeleteAllCache": "Vider tout le cache",
+  "DeleteAllCacheConfirm": "Supprimer tous les fichiers vidéo en cache ? Cette action est irréversible.",
   "SearchVideosWatermark": "Rechercher des vidéos…",
   "VideosCountFormat": "{0} vidéos sur {1}",
   "DownloadQueue": "File d’attente des téléchargements",

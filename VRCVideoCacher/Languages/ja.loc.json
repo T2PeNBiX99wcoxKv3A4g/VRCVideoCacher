@@ -104,6 +104,7 @@
   "OpenUrl": "URLを開く",
   "CopyUrl": "URLをコピー",
   "DeleteAllCache": "すべてのキャッシュを削除",
+  "DeleteAllCacheConfirm": "キャッシュされたすべての動画ファイルを削除しますか？この操作は元に戻せません。",
   "SearchVideosWatermark": "動画を検索...",
   "VideosCountFormat": "{1} 件中、{0} 件の動画",
   "DownloadQueue": "ダウンロードキュー",

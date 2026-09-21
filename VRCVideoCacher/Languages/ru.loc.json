@@ -104,6 +104,7 @@
   "OpenUrl": "Открыть URL",
   "CopyUrl": "Скопировать URL",
   "DeleteAllCache": "Удалить весь кэш",
+  "DeleteAllCacheConfirm": "Удалить все кэшированные видеофайлы? Это действие нельзя отменить.",
   "SearchVideosWatermark": "Поиск видео...",
   "VideosCountFormat": "{0} из {1} видео",
   "DownloadQueue": "Очередь загрузки",

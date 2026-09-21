@@ -104,6 +104,7 @@
   "OpenUrl": "Apri URL",
   "CopyUrl": "Copia URL",
   "DeleteAllCache": "Elimina tutta la cache",
+  "DeleteAllCacheConfirm": "Eliminare tutti i file video memorizzati nella cache? L'operazione non può essere annullata.",
   "SearchVideosWatermark": "Cerca video...",
   "VideosCountFormat": "{0} di {1} video",
   "DownloadQueue": "Coda Download",

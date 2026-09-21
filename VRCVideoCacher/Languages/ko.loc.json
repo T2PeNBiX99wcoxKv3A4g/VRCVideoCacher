@@ -104,6 +104,7 @@
   "OpenUrl": "URL 열기",
   "CopyUrl": "URL 복사",
   "DeleteAllCache": "모든 캐시 삭제",
+  "DeleteAllCacheConfirm": "캐시된 모든 비디오 파일을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
   "SearchVideosWatermark": "동영상 검색...",
   "VideosCountFormat": "동영상 {1}개 중 {0}개",
   "DownloadQueue": "다운로드 대기열",

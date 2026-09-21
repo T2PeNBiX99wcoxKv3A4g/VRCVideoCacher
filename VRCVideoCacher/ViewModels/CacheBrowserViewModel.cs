@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
+using VRCVideoCacher.Views;
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -121,11 +122,13 @@ public partial class CacheBrowserViewModel : ViewModelBase
     {
         FilteredVideos.Clear();
 
-        var filter = SearchFilter.ToLowerInvariant();
+        var filter = SearchFilter.Trim();
         foreach (var video in CachedVideos)
             if (string.IsNullOrEmpty(filter) ||
                 video.FileName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                video.VideoId.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                video.VideoId.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(video.Title) && video.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(video.DisplayTitle) && video.DisplayTitle.Contains(filter, StringComparison.OrdinalIgnoreCase)))
                 FilteredVideos.Add(video);
 
         StatusText = string.Format(Localizer.Get("VideosCountFormat"), FilteredVideos.Count, CachedVideos.Count);
@@ -170,8 +173,19 @@ public partial class CacheBrowserViewModel : ViewModelBase
         // Load metadata (titles + thumbnails) asynchronously in the background
         _ = Task.Run(async () =>
         {
+            var updatedTitle = false;
             foreach (var item in itemsToLoad)
+            {
+                var prevTitle = item.Title;
                 await item.LoadMetadataAsync();
+                if (item.Title != prevTitle)
+                    updatedTitle = true;
+            }
+
+            if (updatedTitle && !string.IsNullOrWhiteSpace(SearchFilter))
+            {
+                Dispatcher.UIThread.InvokeAsync(ApplyFilter);
+            }
         });
     }
 
@@ -186,9 +200,18 @@ public partial class CacheBrowserViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static void DeleteAll()
+    private static async Task DeleteAll()
     {
-        CacheManager.ClearCache();
+        if (Application.Current?.ApplicationLifetime is not
+            IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var confirmed = await ConfirmWindow.ShowAsync(
+            desktop.MainWindow!,
+            Localizer.Get("DeleteAllCache"),
+            Localizer.Get("DeleteAllCacheConfirm"));
+        if (confirmed)
+            CacheManager.ClearCache();
     }
 
     [RelayCommand]

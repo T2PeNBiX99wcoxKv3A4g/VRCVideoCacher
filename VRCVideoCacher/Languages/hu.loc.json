@@ -104,6 +104,7 @@
   "OpenUrl": "URL Megnyitása",
   "CopyUrl": "URL Másolása",
   "DeleteAllCache": "Összes gyorsítótár Törlése",
+  "DeleteAllCacheConfirm": "Törli az összes gyorsítótárazott videofájlt? Ez nem vonható vissza.",
   "SearchVideosWatermark": "Videók Keresése...",
   "VideosCountFormat": "{0} az {1} videóból",
   "DownloadQueue": "Letöltési Sor",

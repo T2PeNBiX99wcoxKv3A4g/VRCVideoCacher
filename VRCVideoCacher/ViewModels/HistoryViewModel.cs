@@ -143,10 +143,13 @@ public partial class HistoryItemViewModel : ViewModelBase
 
 public partial class HistoryViewModel : ViewModelBase
 {
+    [ObservableProperty] public partial string SearchFilter { get; set; } = string.Empty;
+
     [ObservableProperty] public partial string StatusText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial int MaxSize { get; set; } = 1000;
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
+    public ObservableCollection<HistoryItemViewModel> FilteredHistoryItems { get; } = [];
 
     public HistoryViewModel()
     {
@@ -179,6 +182,34 @@ public partial class HistoryViewModel : ViewModelBase
         // Apply the new cap immediately (trims the DB if it was lowered), then reload the list.
         DatabaseManager.TrimPlayHistory(value);
         Dispatcher.UIThread.Post(Refresh);
+    }
+
+    partial void OnSearchFilterChanged(string value)
+    {
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        FilteredHistoryItems.Clear();
+
+        var filter = SearchFilter.Trim();
+        foreach (var item in HistoryItems)
+        {
+            if (string.IsNullOrEmpty(filter) ||
+                (!string.IsNullOrEmpty(item.DisplayTitle) && item.DisplayTitle.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(item.Id) && item.Id.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(item.Url) && item.Url.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(item.Author) && item.Author.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+            {
+                FilteredHistoryItems.Add(item);
+            }
+        }
+
+        if (string.IsNullOrEmpty(filter))
+            StatusText = string.Format(Localizer.Get("EntriesCountFormat"), HistoryItems.Count);
+        else
+            StatusText = string.Format(Localizer.Get("VideosCountFormat"), FilteredHistoryItems.Count, HistoryItems.Count);
     }
 
     private bool _isLoadingMetadata;
@@ -231,7 +262,7 @@ public partial class HistoryViewModel : ViewModelBase
                 HistoryItems.Insert(i, desired[i]);
         }
 
-        StatusText = string.Format(Localizer.Get("EntriesCountFormat"), HistoryItems.Count);
+        ApplyFilter();
 
         // Only genuinely-new rows need their titles/thumbnails fetched.
         QueueMetadata(newItems);
@@ -269,6 +300,8 @@ public partial class HistoryViewModel : ViewModelBase
             Dispatcher.UIThread.Post(() =>
             {
                 _isLoadingMetadata = false;
+                if (!string.IsNullOrWhiteSpace(SearchFilter))
+                    ApplyFilter();
                 if (_pendingMetadata.Count > 0)
                 {
                     var next = _pendingMetadata.ToList();

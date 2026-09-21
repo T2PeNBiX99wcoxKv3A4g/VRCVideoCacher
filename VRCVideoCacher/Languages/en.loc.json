@@ -104,6 +104,7 @@
   "OpenUrl": "Open URL",
   "CopyUrl": "Copy URL",
   "DeleteAllCache": "Delete All Cache",
+  "DeleteAllCacheConfirm": "Delete all cached video files? This cannot be undone.",
   "SearchVideosWatermark": "Search videos...",
   "VideosCountFormat": "{0} of {1} videos",
   "DownloadQueue": "Download Queue",
