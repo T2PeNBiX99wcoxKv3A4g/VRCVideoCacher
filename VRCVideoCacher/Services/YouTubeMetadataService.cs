@@ -1,4 +1,5 @@
 using System.Text.Json;
+using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Extensions;
@@ -20,6 +21,7 @@ public static class YouTubeMetadataService
         Timeout = TimeSpan.FromSeconds(10)
     };
 
+    [PublicAPI]
     public static async Task<VideoInfoCache?> GetVideoTitleAsync(string videoId)
     {
         if (string.IsNullOrEmpty(videoId))
@@ -62,10 +64,7 @@ public static class YouTubeMetadataService
 
         var url = $"https://img.youtube.com/vi/{videoId}/mqdefault.jpg";
         var thumbnailPath = await ThumbnailManager.TrySaveThumbnail(videoId, url);
-        if (!string.IsNullOrEmpty(thumbnailPath))
-            return thumbnailPath;
-
-        return url;
+        return !string.IsNullOrEmpty(thumbnailPath) ? thumbnailPath : url;
     }
 
     public static async Task<VideoInfoCache?> GetVideoMetadataAsync(string videoId)
