@@ -1,6 +1,6 @@
 namespace VRCVideoCacher.Utils;
 
-public class LaunchArgs
+public static class LaunchArgs
 {
     private const string AdminBypassArg = "--bypass-admin-warning";
     private const string NoGuiArg = "--no-gui";
