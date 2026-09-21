@@ -3,6 +3,7 @@ using System.Runtime.Versioning;
 using Avalonia.Platform;
 using JetBrains.Annotations;
 using Microsoft.Win32;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
@@ -12,7 +13,7 @@ public static class NotificationService
     private const string AppId = "VRCVideoCacher";
     private static bool _isAumidRegistered;
     private static string? _scriptPath;
-    private static readonly object ScriptLock = new();
+    private static readonly Lock ScriptLock = new();
 
     [SupportedOSPlatform("windows")]
     private static void EnsureAppUserModelIdRegistered()
@@ -45,7 +46,7 @@ public static class NotificationService
             if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath))
                 return _scriptPath;
 
-            try
+            return Try.Run(() =>
             {
                 var targetDir = !string.IsNullOrEmpty(Program.UtilsPath)
                     ? Program.UtilsPath
@@ -60,11 +61,7 @@ public static class NotificationService
 
                 _scriptPath = targetFile;
                 return _scriptPath;
-            }
-            catch
-            {
-                return null;
-            }
+            }).GetOrNull();
         }
     }
 
