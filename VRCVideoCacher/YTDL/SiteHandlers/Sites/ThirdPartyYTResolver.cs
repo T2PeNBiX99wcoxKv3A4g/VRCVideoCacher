@@ -60,7 +60,7 @@ public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>, ISiteHandler
                 // Stop as soon as the redirect target has a specific handler
                 if (SiteHandlerRegistry.HasSpecificHandler(nextUri))
                 {
-                    Log.Information("Resolved redirect: {URL} -> {Resolved}", url, next);
+                    Log.Information("Resolved redirect: {Url} -> {Resolved}", url, next);
                     return next;
                 }
 
