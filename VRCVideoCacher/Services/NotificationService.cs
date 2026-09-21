@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using System.Security.Cryptography;
 using Avalonia.Platform;
 using JetBrains.Annotations;
 using Microsoft.Win32;
@@ -12,13 +13,15 @@ public static class NotificationService
 {
     private const string AppId = "VRCVideoCacher";
     private static bool _isAumidRegistered;
+    private static string? _registeredIconPath;
     private static string? _scriptPath;
-    private static readonly Lock ScriptLock = new();
+    private static string? _iconPath;
+    private static readonly Lock ResourceLock = new();
 
     [SupportedOSPlatform("windows")]
-    private static void EnsureAppUserModelIdRegistered()
+    private static void EnsureAppUserModelIdRegistered(string? iconPath)
     {
-        if (_isAumidRegistered)
+        if (_isAumidRegistered && _registeredIconPath == iconPath)
             return;
 
         Try.Run(() =>
@@ -28,40 +31,75 @@ public static class NotificationService
             if (key == null) return;
 
             key.SetValue("DisplayName", "VRCVideoCacher");
-            if (!string.IsNullOrEmpty(Environment.ProcessPath))
+            if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
+                key.SetValue("IconUri", iconPath);
+            else if (!string.IsNullOrEmpty(Environment.ProcessPath))
                 key.SetValue("IconUri", Environment.ProcessPath);
 
+            _registeredIconPath = iconPath;
             _isAumidRegistered = true;
         });
     }
 
     [SupportedOSPlatform("windows")]
-    private static string? EnsureScriptExtracted()
+    private static string? EnsureAssetExtracted(string fileName, string resourcePath)
     {
-        if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath))
-            return _scriptPath;
-
-        lock (ScriptLock)
+        return Try.Run(() =>
         {
-            if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath))
-                return _scriptPath;
+            var targetDir = !string.IsNullOrEmpty(Program.UtilsPath)
+                ? Program.UtilsPath
+                : Path.Combine(Path.GetTempPath(), "VRCVideoCacher");
 
-            return Try.Run(() =>
+            Directory.CreateDirectory(targetDir);
+            var targetFile = Path.Combine(targetDir, fileName);
+            var resourceUri = new Uri(resourcePath);
+
+            if (File.Exists(targetFile))
             {
-                var targetDir = !string.IsNullOrEmpty(Program.UtilsPath)
-                    ? Program.UtilsPath
-                    : Path.Combine(Path.GetTempPath(), "VRCVideoCacher");
+                var isMatch = Try.Run(() =>
+                {
+                    using var resStream = AssetLoader.Open(resourceUri);
+                    using var fileStream = File.OpenRead(targetFile);
 
-                Directory.CreateDirectory(targetDir);
-                var targetFile = Path.Combine(targetDir, "ToastNotification.ps1");
+                    var resHash = SHA256.HashData(resStream);
+                    var fileHash = SHA256.HashData(fileStream);
 
-                using var resourceStream = AssetLoader.Open(new("avares://VRCVideoCacher/Assets/ToastNotification.ps1"));
-                using var fileStream = File.Create(targetFile);
-                resourceStream.CopyTo(fileStream);
+                    return resHash.AsSpan().SequenceEqual(fileHash);
+                }).GetOrElse(_ => false);
 
-                _scriptPath = targetFile;
-                return _scriptPath;
-            }).GetOrNull();
+                if (isMatch)
+                    return targetFile;
+            }
+
+            using var resourceStream = AssetLoader.Open(resourceUri);
+            using var targetStream = File.Create(targetFile);
+            resourceStream.CopyTo(targetStream);
+
+            return targetFile;
+        }).GetOrNull();
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static (string? ScriptPath, string? IconPath) EnsureWindowsAssets()
+    {
+        if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath) &&
+            !string.IsNullOrEmpty(_iconPath) && File.Exists(_iconPath))
+        {
+            return (_scriptPath, _iconPath);
+        }
+
+        lock (ResourceLock)
+        {
+            if (!string.IsNullOrEmpty(_scriptPath) && File.Exists(_scriptPath) &&
+                !string.IsNullOrEmpty(_iconPath) && File.Exists(_iconPath))
+            {
+                return (_scriptPath, _iconPath);
+            }
+
+            _scriptPath = EnsureAssetExtracted("ToastNotification.ps1", "avares://VRCVideoCacher/Assets/ToastNotification.ps1");
+            _iconPath = EnsureAssetExtracted("icon.ico", "avares://VRCVideoCacher/Assets/icon.ico");
+
+            return (_scriptPath, _iconPath);
         }
     }
 
@@ -87,11 +125,11 @@ public static class NotificationService
         {
             Try.Run(() =>
             {
-                EnsureAppUserModelIdRegistered();
-
-                var scriptPath = EnsureScriptExtracted();
+                var (scriptPath, iconPath) = EnsureWindowsAssets();
                 if (string.IsNullOrEmpty(scriptPath) || !File.Exists(scriptPath))
                     return;
+
+                EnsureAppUserModelIdRegistered(iconPath);
 
                 var psi = new ProcessStartInfo
                 {
@@ -115,6 +153,12 @@ public static class NotificationService
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
+
+                if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
+                {
+                    psi.ArgumentList.Add("-IconUri");
+                    psi.ArgumentList.Add(iconPath);
+                }
 
                 using var process = Process.Start(psi);
             });

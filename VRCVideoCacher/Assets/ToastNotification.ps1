@@ -6,7 +6,10 @@ param(
     [string]$Title = "VRCVideoCacher",
 
     [Parameter(Mandatory = $false)]
-    [string]$Message = ""
+    [string]$Message = "",
+
+    [Parameter(Mandatory = $false)]
+    [string]$IconUri = ""
 )
 
 try {
@@ -15,6 +18,9 @@ try {
         New-Item -Path $regPath -Force | Out-Null
     }
     Set-ItemProperty -Path $regPath -Name "DisplayName" -Value "VRCVideoCacher" -Force | Out-Null
+    if (-not [string]::IsNullOrEmpty($IconUri) -and (Test-Path $IconUri)) {
+        Set-ItemProperty -Path $regPath -Name "IconUri" -Value $IconUri -Force | Out-Null
+    }
 } catch {
 }
 
