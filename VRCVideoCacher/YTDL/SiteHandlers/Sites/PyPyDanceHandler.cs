@@ -30,14 +30,14 @@ public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
             var videoId = !fileName.Contains('.') ? fileName : fileName.Split('.')[0];
 
             var query = HttpUtility.ParseQueryString(uri.Query);
-            var success = int.TryParse(query.Get("id"), out var idInt);
-            if (!success)
+            if (int.TryParse(query.Get("id"), out var idInt))
             {
-                Log.Error("Failed to get video ID from PypyDance URL: {Url}", url);
-                return null;
+                _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
             }
-
-            _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
+            else
+            {
+                Log.Warning("Failed to parse numeric ID from PypyDance URL query for metadata: {Url}", url);
+            }
 
             return new()
             {

@@ -250,6 +250,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
+        var args = new List<string>
+        {
+            "-q",
+            $"-o \"{tempDownloadMp4Path}\"",
+            "--remux-video mp4"
+        };
         using var process = new Process();
         process.StartInfo = new()
         {
@@ -260,15 +266,19 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             CreateNoWindow = true,
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
-            Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\""
+            Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"")
         };
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
-        process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async () =>
+        string error;
+        using (await YtdlCookieJar.AcquireAsync())
         {
-            await process.WaitForExitAsync();
-            return (await process.StandardError.ReadToEndAsync()).Trim();
-        });
+            process.Start();
+            using (ChildProcessTracker.Tracking(process))
+            {
+                await process.WaitForExitAsync();
+                error = (await process.StandardError.ReadToEndAsync()).Trim();
+            }
+        }
 
         if (process.ExitCode != 0)
         {
@@ -365,6 +375,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
+        var args = new List<string>
+        {
+            "-q",
+            $"-o \"{tempDownloadMp4Path}\"",
+            "--remux-video mp4"
+        };
         using var process = new Process();
         process.StartInfo = new()
         {
@@ -375,16 +391,20 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             CreateNoWindow = true,
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
-            Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\""
+            Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"")
         };
 
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
-        process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async () =>
+        string error;
+        using (await YtdlCookieJar.AcquireAsync())
         {
-            await process.WaitForExitAsync();
-            return (await process.StandardError.ReadToEndAsync()).Trim();
-        });
+            process.Start();
+            using (ChildProcessTracker.Tracking(process))
+            {
+                await process.WaitForExitAsync();
+                error = (await process.StandardError.ReadToEndAsync()).Trim();
+            }
+        }
 
         if (process.ExitCode != 0)
         {

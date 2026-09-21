@@ -40,33 +40,41 @@ public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>, ISiteHandler
         const int maxHops = 5;
         var current = url;
 
-        for (var i = 0; i < maxHops; i++)
+        try
         {
-            using var req = new HttpRequestMessage(HttpMethod.Head, current);
-            using var res = await _client.SendAsync(req);
-
-            var location = res.Headers.Location;
-            if (location == null)
-                break;
-
-            // Resolve relative redirects against the current URL
-            var next = location.IsAbsoluteUri ? location.ToString() : new Uri(new(current), location).ToString();
-
-            if (!Uri.TryCreate(next, UriKind.Absolute, out var nextUri))
-                break;
-
-            // Stop as soon as the redirect target has a specific handler
-            if (SiteHandlerRegistry.HasSpecificHandler(nextUri))
+            for (var i = 0; i < maxHops; i++)
             {
-                Log.Information("Resolved redirect: {URL} -> {Resolved}", url, next);
-                return next;
+                using var req = new HttpRequestMessage(HttpMethod.Head, current);
+                using var res = await _client.SendAsync(req);
+
+                var location = res.Headers.Location;
+                if (location == null)
+                    break;
+
+                // Resolve relative redirects against the current URL
+                var next = location.IsAbsoluteUri ? location.ToString() : new Uri(new(current), location).ToString();
+
+                if (!Uri.TryCreate(next, UriKind.Absolute, out var nextUri))
+                    break;
+
+                // Stop as soon as the redirect target has a specific handler
+                if (SiteHandlerRegistry.HasSpecificHandler(nextUri))
+                {
+                    Log.Information("Resolved redirect: {URL} -> {Resolved}", url, next);
+                    return next;
+                }
+
+                current = next;
+
+                var status = (int)res.StatusCode;
+                if (status is < 300 or >= 400)
+                    break;
             }
-
-            current = next;
-
-            var status = (int)res.StatusCode;
-            if (status is < 300 or >= 400)
-                break;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to resolve redirect for URL: {URL}", url);
+            return url;
         }
 
         if (current != url)

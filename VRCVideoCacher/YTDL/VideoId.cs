@@ -56,8 +56,10 @@ public partial class VideoId : Singleton<VideoId>
         ytdlpProcess.Start();
         using (ChildProcessTracker.Tracking(ytdlpProcess))
         {
-            var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
-            var error = await ytdlpProcess.StandardError.ReadToEndAsync();
+            var outputTask = ytdlpProcess.StandardOutput.ReadToEndAsync();
+            var errorTask = ytdlpProcess.StandardError.ReadToEndAsync();
+            var output = await outputTask;
+            var error = await errorTask;
             await ytdlpProcess.WaitForExitAsync();
             Log.Information("Finished yt-dlp");
             return (output.Trim(), error.Trim(), ytdlpProcess.ExitCode);
@@ -123,8 +125,8 @@ public partial class VideoId : Singleton<VideoId>
         // ReSharper disable once InvertIf
         if (data.Duration > ConfigManager.Config.CacheYouTubeMaxLength * 60)
         {
-            Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length})",
-                data.Duration / 60 / ConfigManager.Config.CacheYouTubeMaxLength);
+            Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length}s > {Max}s)",
+                data.Duration, ConfigManager.Config.CacheYouTubeMaxLength * 60);
             return string.Empty;
         }
 
