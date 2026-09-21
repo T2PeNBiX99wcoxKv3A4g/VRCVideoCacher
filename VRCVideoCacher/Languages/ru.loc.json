@@ -93,6 +93,7 @@
   "StartMinimized": "Запускать свёрнутым",
   "StartWithSteamVr": "Запустить приложение с помощью SteamVR",
   "ErrorPopups": "Всплывающие окна ошибок",
+  "ErrorNotifications": "Уведомления об ошибках",
   "BlockedUrls": "Заблокированный URL",
   "BlockedUrlRedirect": "Перенаправление заблокированного URL",
   "RedirectUrls": "URL-адреса перенаправления",

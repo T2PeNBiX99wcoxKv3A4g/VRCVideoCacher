@@ -93,6 +93,7 @@
   "StartMinimized": "Start Minimized",
   "StartWithSteamVr": "Start with SteamVR",
   "ErrorPopups": "Error Popups",
+  "ErrorNotifications": "Error Notifications",
   "BlockedUrls": "Blocked URLs",
   "BlockedUrlRedirect": "Blocked URL Redirect",
   "RedirectUrls": "Redirect URLs",

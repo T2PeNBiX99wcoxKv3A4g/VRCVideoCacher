@@ -93,6 +93,7 @@
   "StartMinimized": "Démarrer en mode réduit",
   "StartWithSteamVr": "Démarrer avec SteamVR",
   "ErrorPopups": "Fenêtres d’erreur",
+  "ErrorNotifications": "Notifications d'erreur",
   "BlockedUrls": "URL bloquées",
   "BlockedUrlRedirect": "Redirection des URL bloquées",
   "RedirectUrls": "URL de redirection",

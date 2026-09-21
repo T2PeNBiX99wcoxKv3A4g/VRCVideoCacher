@@ -93,6 +93,7 @@
   "StartMinimized": "最小化して起動する",
   "StartWithSteamVr": "SteamVR と同時に起動する",
   "ErrorPopups": "エラーポップアップを表示",
+  "ErrorNotifications": "エラー通知を表示",
   "BlockedUrls": "ブロックする URL",
   "BlockedUrlRedirect": "ブロックした URL のリダイレクト",
   "RedirectUrls": "リダイレクト URL",

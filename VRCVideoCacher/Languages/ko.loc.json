@@ -93,6 +93,7 @@
   "StartMinimized": "최소화된 상태로 시작",
   "StartWithSteamVr": "SteamVR이 켜질 때 시작",
   "ErrorPopups": "오류 팝업",
+  "ErrorNotifications": "오류 알림",
   "BlockedUrls": "차단된 URL",
   "BlockedUrlRedirect": "차단된 URL 리디렉션",
   "RedirectUrls": "리디렉션 URL",

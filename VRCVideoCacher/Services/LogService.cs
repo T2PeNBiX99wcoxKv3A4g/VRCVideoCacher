@@ -67,25 +67,42 @@ public class UiLogSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
-        if (ConfigManager.IsInitialized && ConfigManager.Config is { ErrorPopups: true } &&
-            logEvent.Level >= LogEventLevel.Error)
-            Dispatcher.UIThread.Post(() =>
+        if (ConfigManager.IsInitialized && logEvent.Level >= LogEventLevel.Error)
+        {
+            var source = logEvent.Properties.TryGetValue("SourceContext", out var sourceContext)
+                ? sourceContext.ToString().Trim('"')
+                : "Unknown";
+            var message = logEvent.RenderMessage();
+            if (logEvent.Exception != null)
+                message += Environment.NewLine + logEvent.Exception;
+
+            if (ConfigManager.Config is { ErrorPopups: true })
             {
-                App.MainWindow?.Show();
-                _currentPopup?.Close();
-                _currentPopup = null;
-                var source = logEvent.Properties.TryGetValue("SourceContext", out var sourceContext)
-                    ? sourceContext.ToString()
-                    : "Unknown";
-                var message = logEvent.RenderMessage();
-                if (logEvent.Exception != null)
-                    message += Environment.NewLine + logEvent.Exception;
-                _currentPopup = new(message)
+                Dispatcher.UIThread.Post(() =>
                 {
-                    Title = $"Error from {source}"
-                };
-                _ = _currentPopup.ShowDialog(App.MainWindow!);
-            });
+                    _currentPopup?.Close();
+                    _currentPopup = null;
+                    var popup = new PopupWindow(message)
+                    {
+                        Title = $"Error from {source}",
+                        Topmost = true
+                    };
+                    _currentPopup = popup;
+                    popup.Closed += (_, _) =>
+                    {
+                        if (_currentPopup == popup)
+                            _currentPopup = null;
+                    };
+                    popup.Show();
+                });
+            }
+
+            if (ConfigManager.Config is { ErrorNotifications: true })
+            {
+                NotificationService.ShowErrorNotification($"Error from {source}", message);
+            }
+        }
+
         LogService.EmitLogEntry(logEvent);
     }
 }

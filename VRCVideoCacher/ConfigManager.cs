@@ -234,6 +234,7 @@ public class ConfigModel
     public bool CookieSetupCompleted = false;
     public bool RedirectVRDancing = false;
     public bool ErrorPopups = true;
+    public bool ErrorNotifications = false;
 
     // Localization
     public string Language = "en";

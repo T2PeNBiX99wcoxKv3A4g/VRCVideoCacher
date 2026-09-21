@@ -159,6 +159,8 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ErrorPopups { get; set; }
 
+    [ObservableProperty] public partial bool ErrorNotifications { get; set; }
+
     // Pure view state: reveals the advanced setting sections. Not a config value, so it is neither
     // loaded/saved nor tracked as an unsaved change.
     [ObservableProperty] public partial bool ShowAdvanced { get; set; }
@@ -224,6 +226,7 @@ public partial class SettingsViewModel : ViewModelBase
         StartMinimized = config.StartMinimized;
         StartWithSteamVr = config.StartWithSteamVr;
         ErrorPopups = config.ErrorPopups;
+        ErrorNotifications = config.ErrorNotifications;
         RedirectVRDancing = config.RedirectVRDancing;
         BlockedUrls.Clear();
         foreach (var url in config.BlockedUrls)
@@ -298,6 +301,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
     partial void OnBlockRedirectChanged(string value) => SetHasChanges();
     partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
+    partial void OnErrorNotificationsChanged(bool value) => SetHasChanges();
     // ReSharper restore UnusedParameterInPartialMethod
 
     [RelayCommand]
@@ -338,6 +342,7 @@ public partial class SettingsViewModel : ViewModelBase
         config.StartMinimized = StartMinimized;
         config.StartWithSteamVr = StartWithSteamVr;
         config.ErrorPopups = ErrorPopups;
+        config.ErrorNotifications = ErrorNotifications;
         config.BlockedUrls =
         [
             .. BlockedUrls.Select(item => item.Url)

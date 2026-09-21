@@ -77,7 +77,7 @@
                             </ComboBox>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="16" RowSpacing="12"
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="16" RowSpacing="12"
                               Margin="0,4,0,0">
                             <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding CloseToTray}"
                                       Content="{l:Localize CloseToTray}" />
@@ -87,6 +87,8 @@
                                       Content="{l:Localize StartWithSteamVr}" />
                             <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding ErrorPopups}"
                                       Content="{l:Localize ErrorPopups}" />
+                            <CheckBox Grid.Row="2" Grid.Column="0" IsChecked="{Binding ErrorNotifications}"
+                                      Content="{l:Localize ErrorNotifications}" />
                         </Grid>
 
                         <Border Background="{StaticResource SurfaceSubtleBackgroundBrush}"

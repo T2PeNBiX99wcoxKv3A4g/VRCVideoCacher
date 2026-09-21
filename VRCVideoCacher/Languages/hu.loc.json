@@ -93,6 +93,7 @@
   "StartMinimized": "Indítás Minimalizálva",
   "StartWithSteamVr": "Indítsd el az alkalmazást a SteamVR segítségével",
   "ErrorPopups": "Hiba felugró ablakok",
+  "ErrorNotifications": "Hibaértesítések",
   "BlockedUrls": "Letiltott Linkek",
   "BlockedUrlRedirect": "Blokkolt Link Átirányítás",
   "RedirectUrls": "Átirányítási URL-ek",
