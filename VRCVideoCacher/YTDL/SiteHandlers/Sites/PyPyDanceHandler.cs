@@ -31,13 +31,9 @@ public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
 
             var query = HttpUtility.ParseQueryString(uri.Query);
             if (int.TryParse(query.Get("id"), out var idInt))
-            {
                 _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
-            }
             else
-            {
                 Log.Warning("Failed to parse numeric ID from PypyDance URL query for metadata: {Url}", url);
-            }
 
             return new()
             {
