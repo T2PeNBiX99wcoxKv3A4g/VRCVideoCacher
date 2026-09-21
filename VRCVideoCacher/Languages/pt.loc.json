@@ -38,6 +38,7 @@
   "OpenCacheFolder": "Abrir pasta de cachê",
   "SetupYouTubeCookieExtension": "Configurar a extensão de cookies do YouTube",
   "ClearCookies": "Limpar cookies do YouTube",
+  "ClearCookiesConfirm": "Excluir os cookies do YouTube? Isso não pode ser desfeito.",
   "Running": "Executando",
   "Stopped": "Suspenso",
   "None": "Nenhum",

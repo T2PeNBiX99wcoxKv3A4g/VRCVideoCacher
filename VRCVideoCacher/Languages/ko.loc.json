@@ -38,6 +38,7 @@
   "OpenCacheFolder": "캐시 폴더 열기",
   "SetupYouTubeCookieExtension": "YouTube 쿠키 확장 설정",
   "ClearCookies": "YouTube 쿠키 지우기",
+  "ClearCookiesConfirm": "YouTube 쿠키를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
   "Running": "실행 중",
   "Stopped": "멈춤",
   "None": "없음",

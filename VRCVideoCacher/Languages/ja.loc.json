@@ -38,6 +38,7 @@
   "OpenCacheFolder": "キャッシュフォルダーを開く",
   "SetupYouTubeCookieExtension": "YouTube の Cookie 拡張機能をセットアップ",
   "ClearCookies": "YouTube の Cookie を消去",
+  "ClearCookiesConfirm": "YouTube の Cookie を削除しますか？この操作は元に戻せません。",
   "Running": "実行中",
   "Stopped": "停止",
   "None": "なし",

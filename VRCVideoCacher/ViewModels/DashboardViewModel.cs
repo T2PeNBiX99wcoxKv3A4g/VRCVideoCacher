@@ -391,6 +391,17 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private async Task ClearCookies()
     {
+        if (Application.Current?.ApplicationLifetime is not
+            IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var confirmed = await ConfirmWindow.ShowAsync(
+            desktop.MainWindow!,
+            Localizer.Get("ClearCookies"),
+            Localizer.Get("ClearCookiesConfirm"));
+        if (!confirmed)
+            return;
+
         Program.DeleteCookieFile();
         await ValidateCookiesAsync();
     }

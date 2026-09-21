@@ -38,6 +38,7 @@
   "OpenCacheFolder": "Apri cartella Cache",
   "SetupYouTubeCookieExtension": "Configura estensione Cookie YouTube",
   "ClearCookies": "Svuota Cookie YouTube",
+  "ClearCookiesConfirm": "Eliminare i cookie di YouTube? L'operazione non può essere annullata.",
   "Running": "In esecuzione",
   "Stopped": "Fermo",
   "None": "Nessuno",

@@ -38,6 +38,7 @@
   "OpenCacheFolder": "打开缓存文件夹",
   "SetupYouTubeCookieExtension": "设置 YouTube Cookie 扩展",
   "ClearCookies": "清除 YouTube Cookie",
+  "ClearCookiesConfirm": "删除 YouTube Cookie？此操作无法撤销。",
   "Running": "运行中",
   "Stopped": "已停止",
   "None": "无",

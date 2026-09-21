@@ -38,6 +38,7 @@
   "OpenCacheFolder": "Открыть Файлы кэша",
   "SetupYouTubeCookieExtension": "Настроить расщирения для YouTube Cookie",
   "ClearCookies": "Очистить YouTube Cookies",
+  "ClearCookiesConfirm": "Удалить файлы cookie YouTube? Это действие нельзя отменить.",
   "Running": "Работает..",
   "Stopped": "Остановлен",
   "None": "Отсутствует",

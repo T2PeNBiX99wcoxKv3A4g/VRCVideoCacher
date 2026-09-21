@@ -696,7 +696,6 @@
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0:0:0.2" />
                     <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
-                    <BrushTransition Property="Foreground" Duration="0:0:0.2" />
                 </Transitions>
             </Setter>
         </Style>

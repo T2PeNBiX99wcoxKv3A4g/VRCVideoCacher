@@ -38,6 +38,7 @@
   "OpenCacheFolder": "Open Cache Folder",
   "SetupYouTubeCookieExtension": "Setup YouTube Cookie Extension",
   "ClearCookies": "Clear YouTube Cookies",
+  "ClearCookiesConfirm": "Delete YouTube cookies? This cannot be undone.",
   "Running": "Running",
   "Stopped": "Stopped",
   "None": "None",

@@ -38,6 +38,7 @@
   "OpenCacheFolder": "Ouvrir le dossier du cache",
   "SetupYouTubeCookieExtension": "Configurer l’extension de cookies YouTube",
   "ClearCookies": "Effacer les cookies YouTube",
+  "ClearCookiesConfirm": "Supprimer les cookies YouTube ? Cette action est irréversible.",
   "Running": "En cours d’exécution",
   "Stopped": "Arrêté",
   "None": "Aucun",

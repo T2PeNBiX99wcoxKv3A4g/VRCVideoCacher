@@ -38,6 +38,7 @@
   "OpenCacheFolder": "Gyorsítótár Mappa Megnyitás",
   "SetupYouTubeCookieExtension": "YouTube Süti Bővítmény Beállítás",
   "ClearCookies": "YouTube Sütik Törlése",
+  "ClearCookiesConfirm": "Törli a YouTube sütiket? Ez nem vonható vissza.",
   "Running": "Fut",
   "Stopped": "Áll",
   "None": "Semmi",
