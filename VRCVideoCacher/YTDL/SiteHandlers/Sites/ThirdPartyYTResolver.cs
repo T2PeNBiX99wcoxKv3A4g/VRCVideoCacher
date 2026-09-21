@@ -73,16 +73,16 @@ public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>, ISiteHandler
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to resolve redirect for URL: {URL}", url);
+            Log.Warning(ex, "Failed to resolve redirect for URL: {Url}", url);
             return url;
         }
 
         if (current != url)
         {
-            Log.Information("Resolved redirect: {URL} -> {Resolved}", url, current);
+            Log.Information("Resolved redirect: {Url} -> {Resolved}", url, current);
             if (Uri.TryCreate(current, UriKind.Absolute, out var finalUri) &&
                 !SiteHandlerRegistry.HasSpecificHandler(finalUri))
-                Log.Warning("Resolved URL has no specific handler, will use generic: {URL}", current);
+                Log.Warning("Resolved URL has no specific handler, will use generic: {Url}", current);
         }
 
         return current;
