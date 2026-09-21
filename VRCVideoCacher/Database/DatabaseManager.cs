@@ -14,7 +14,7 @@ public static class DatabaseManager
     public static event Action? OnVideoInfoCacheUpdated;
 
     private static readonly PooledDbContextFactory<Database> ContextFactory;
-    private static readonly SemaphoreSlim DbLock = new(1, 1);
+    private static readonly SemaphoreSlim DbWriteLock = new(1, 1);
 
     static DatabaseManager()
     {
@@ -42,8 +42,8 @@ public static class DatabaseManager
             Type = videoInfo.UrlType
         };
 
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
+        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using (UsingUntil.Run(() => DbWriteLock.Release()))
         {
             await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             await db.PlayHistory.AddAsync(history, cancellationToken).ConfigureAwait(false);
@@ -63,8 +63,8 @@ public static class DatabaseManager
     public static async Task DeletePlayHistoryForVideoAsync(string? id, string url,
         CancellationToken cancellationToken = default)
     {
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
+        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using (UsingUntil.Run(() => DbWriteLock.Release()))
         {
             await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(id))
@@ -79,8 +79,8 @@ public static class DatabaseManager
     /// <summary>Deletes every play record.</summary>
     public static async Task ClearPlayHistoryAsync(CancellationToken cancellationToken = default)
     {
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
+        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using (UsingUntil.Run(() => DbWriteLock.Release()))
         {
             await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             await db.PlayHistory.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
@@ -98,8 +98,8 @@ public static class DatabaseManager
         if (max <= 0)
             return;
 
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
+        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using (UsingUntil.Run(() => DbWriteLock.Release()))
         {
             await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             await TrimPlayHistoryInternalAsync(max, db, cancellationToken).ConfigureAwait(false);
@@ -130,8 +130,8 @@ public static class DatabaseManager
     {
         if (string.IsNullOrEmpty(videoInfoCache.Id)) return;
 
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
+        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using (UsingUntil.Run(() => DbWriteLock.Release()))
         {
             await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             var existingCache = await db.VideoInfoCache.FindAsync([videoInfoCache.Id], cancellationToken)
@@ -162,75 +162,63 @@ public static class DatabaseManager
     public static async Task<List<History>> GetPlayHistoryAsync(int limit = 50,
         CancellationToken cancellationToken = default)
     {
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
-        {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-            return await db.PlayHistory
-                .AsNoTracking()
-                .OrderByDescending(h => h.Timestamp)
-                .Take(limit)
-                .ToListAsync(cancellationToken).ConfigureAwait(false);
-        }
+        await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        return await db.PlayHistory
+            .AsNoTracking()
+            .OrderByDescending(h => h.Timestamp)
+            .Take(limit)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<List<HistoryItemViewModel>> GetVideoHistoryAsCacheAsync(int limit = 50,
         bool distinctOnly = false, CancellationToken cancellationToken = default)
     {
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
-        {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-            List<History> histories;
+        List<History> histories;
 
-            if (distinctOnly)
-                histories = await db.PlayHistory
-                    .FromSqlRaw($@"
-                    SELECT ph.* FROM {nameof(Database.PlayHistory)} ph
-                    INNER JOIN (
-                        SELECT {nameof(History.Id)}, MAX({nameof(History.Timestamp)}) as MaxTimestamp
-                        FROM {nameof(Database.PlayHistory)}
-                        GROUP BY {nameof(History.Id)}
-                    ) latest ON ph.{nameof(History.Id)} = latest.{nameof(History.Id)} AND ph.{nameof(History.Timestamp)} = latest.MaxTimestamp
-                    ORDER BY ph.{nameof(History.Timestamp)} DESC
-                    LIMIT {{0}}", limit)
-                    .AsNoTracking()
-                    .ToListAsync(cancellationToken).ConfigureAwait(false);
-            else
-                histories = await db.PlayHistory
-                    .AsNoTracking()
-                    .OrderByDescending(h => h.Timestamp)
-                    .Take(limit)
-                    .ToListAsync(cancellationToken).ConfigureAwait(false);
-
-            // Fetch matching VideoInfoCache entries
-            var ids = histories.Select(h => h.Id).Where(id => id != null).Distinct().ToList();
-            var cacheDict = await db.VideoInfoCache
+        if (distinctOnly)
+            histories = await db.PlayHistory
+                .FromSqlRaw($@"
+                SELECT ph.* FROM {nameof(Database.PlayHistory)} ph
+                INNER JOIN (
+                    SELECT {nameof(History.Id)}, MAX({nameof(History.Timestamp)}) as MaxTimestamp
+                    FROM {nameof(Database.PlayHistory)}
+                    GROUP BY {nameof(History.Id)}
+                ) latest ON ph.{nameof(History.Id)} = latest.{nameof(History.Id)} AND ph.{nameof(History.Timestamp)} = latest.MaxTimestamp
+                ORDER BY ph.{nameof(History.Timestamp)} DESC
+                LIMIT {{0}}", limit)
                 .AsNoTracking()
-                .Where(v => ids.Contains(v.Id))
-                .ToDictionaryAsync(v => v.Id, cancellationToken).ConfigureAwait(false);
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
+        else
+            histories = await db.PlayHistory
+                .AsNoTracking()
+                .OrderByDescending(h => h.Timestamp)
+                .Take(limit)
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
 
-            // Project to ViewModel in-memory
-            return
-            [
-                .. histories.Select(h =>
-                {
-                    cacheDict.TryGetValue(h.Id ?? string.Empty, out var meta);
-                    return new HistoryItemViewModel(h, meta);
-                })
-            ];
-        }
+        // Fetch matching VideoInfoCache entries
+        var ids = histories.Select(h => h.Id).Where(id => id != null).Distinct().ToList();
+        var cacheDict = await db.VideoInfoCache
+            .AsNoTracking()
+            .Where(v => ids.Contains(v.Id))
+            .ToDictionaryAsync(v => v.Id, cancellationToken).ConfigureAwait(false);
+
+        // Project to ViewModel in-memory
+        return
+        [
+            .. histories.Select(h =>
+            {
+                cacheDict.TryGetValue(h.Id ?? string.Empty, out var meta);
+                return new HistoryItemViewModel(h, meta);
+            })
+        ];
     }
 
     public static async Task<VideoInfoCache?> GetVideoInfoCacheAsync(string videoId,
         CancellationToken cancellationToken = default)
     {
-        await DbLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbLock.Release()))
-        {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-            return await db.VideoInfoCache.FindAsync([videoId], cancellationToken).ConfigureAwait(false);
-        }
+        await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        return await db.VideoInfoCache.FindAsync([videoId], cancellationToken).ConfigureAwait(false);
     }
 }
