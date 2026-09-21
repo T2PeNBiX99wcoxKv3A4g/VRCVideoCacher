@@ -379,7 +379,7 @@ public partial class DashboardViewModel : ViewModelBase
                 DataContext = viewModel
             };
 
-            viewModel.RequestClose += () => window.Close();
+            viewModel.RequestClose += window.Close;
 
             await window.ShowDialog(desktop.MainWindow!);
 
