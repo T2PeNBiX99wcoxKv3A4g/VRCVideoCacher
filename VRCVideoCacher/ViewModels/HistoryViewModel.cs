@@ -153,8 +153,8 @@ public partial class HistoryViewModel : ViewModelBase
 
     public HistoryViewModel()
     {
-        DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.Post(async () => await Refresh());
-        DatabaseManager.OnPlayHistoryChanged += () => Dispatcher.UIThread.Post(async () => await Refresh());
+        DatabaseManager.OnPlayHistoryAdded += () => Dispatcher.UIThread.InvokeAsync(async () => await Refresh());
+        DatabaseManager.OnPlayHistoryChanged += () => Dispatcher.UIThread.InvokeAsync(async () => await Refresh());
         ConfigManager.OnConfigChanged += LoadFromConfig;
         LoadFromConfig();
 
@@ -163,7 +163,7 @@ public partial class HistoryViewModel : ViewModelBase
         // (a guard that dropped refreshes while metadata loaded) also swallowed delete-triggered refreshes.
         // Metadata is applied to the rows in place by LoadMetadata, so a full reload here isn't needed.
 
-        Dispatcher.UIThread.Post(async () => await Refresh());
+        Dispatcher.UIThread.InvokeAsync(async () => await Refresh());
     }
 
     private void LoadFromConfig()

@@ -250,7 +250,7 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void OnToolActivityChanged()
     {
-        Dispatcher.UIThread.Post(async () =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
         {
             var active = StatusService.ActiveKeys();
             // Ignore ticks that don't change which tools are active (progress updates fire this a lot).
