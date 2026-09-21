@@ -193,23 +193,22 @@ public partial class HistoryViewModel : ViewModelBase
     {
         FilteredHistoryItems.Clear();
 
-        var filter = SearchFilter.Trim();
+        var filter = SearchFilter.ToLowerInvariant().Trim();
         foreach (var item in HistoryItems)
-        {
             if (string.IsNullOrEmpty(filter) ||
-                (!string.IsNullOrEmpty(item.DisplayTitle) && item.DisplayTitle.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(item.Id) && item.Id.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(item.Url) && item.Url.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(item.Author) && item.Author.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-            {
+                !string.IsNullOrEmpty(item.DisplayTitle) && item.DisplayTitle.ToLowerInvariant()
+                    .Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(item.Id) &&
+                item.Id.ToLowerInvariant().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(item.Url) &&
+                item.Url.ToLowerInvariant().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(item.Author) &&
+                item.Author.ToLowerInvariant().Contains(filter, StringComparison.OrdinalIgnoreCase))
                 FilteredHistoryItems.Add(item);
-            }
-        }
 
-        if (string.IsNullOrEmpty(filter))
-            StatusText = string.Format(Localizer.Get("EntriesCountFormat"), HistoryItems.Count);
-        else
-            StatusText = string.Format(Localizer.Get("VideosCountFormat"), FilteredHistoryItems.Count, HistoryItems.Count);
+        StatusText = string.IsNullOrEmpty(filter)
+            ? string.Format(Localizer.Get("EntriesCountFormat"), HistoryItems.Count)
+            : string.Format(Localizer.Get("VideosCountFormat"), FilteredHistoryItems.Count, HistoryItems.Count);
     }
 
     private bool _isLoadingMetadata;

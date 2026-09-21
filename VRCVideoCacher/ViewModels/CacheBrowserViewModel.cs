@@ -122,13 +122,15 @@ public partial class CacheBrowserViewModel : ViewModelBase
     {
         FilteredVideos.Clear();
 
-        var filter = SearchFilter.Trim();
+        var filter = SearchFilter.ToLowerInvariant().Trim();
         foreach (var video in CachedVideos)
             if (string.IsNullOrEmpty(filter) ||
-                video.FileName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                video.VideoId.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(video.Title) && video.Title.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(video.DisplayTitle) && video.DisplayTitle.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+                video.FileName.ToLowerInvariant().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                video.VideoId.ToLowerInvariant().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(video.Title) &&
+                video.Title.ToLowerInvariant().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(video.DisplayTitle) && video.DisplayTitle.ToLowerInvariant()
+                    .Contains(filter, StringComparison.OrdinalIgnoreCase))
                 FilteredVideos.Add(video);
 
         StatusText = string.Format(Localizer.Get("VideosCountFormat"), FilteredVideos.Count, CachedVideos.Count);
@@ -183,9 +185,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
             }
 
             if (updatedTitle && !string.IsNullOrWhiteSpace(SearchFilter))
-            {
                 Dispatcher.UIThread.InvokeAsync(ApplyFilter);
-            }
         });
     }
 
