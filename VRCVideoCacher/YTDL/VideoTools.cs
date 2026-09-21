@@ -13,7 +13,7 @@ public partial class VideoTools : Singleton<VideoTools>
         // If the URL is invalid, skip prefetching
         if (string.IsNullOrWhiteSpace(videoUrl) || !Uri.IsWellFormedUriString(videoUrl, UriKind.RelativeOrAbsolute))
         {
-            Log.Warning("Invalid video URL provided for prefetch: {URL}", videoUrl);
+            Log.Warning("Invalid video URL provided for prefetch: {Url}", videoUrl);
             return false;
         }
 
@@ -27,7 +27,7 @@ public partial class VideoTools : Singleton<VideoTools>
         string? firstM3U8Url = null;
         using var prefetchRequest = new HttpRequestMessage(isM3U8 ? HttpMethod.Get : HttpMethod.Head, videoUrl);
         using var prefetchResponse = await _httpClient.SendAsync(prefetchRequest);
-        Log.Information("Video prefetch request returned status code {status}.", (int)prefetchResponse.StatusCode);
+        Log.Information("Video prefetch request returned status code {Status}.", (int)prefetchResponse.StatusCode);
 
         if (prefetchRequest.Method == HttpMethod.Get && prefetchResponse.Content.Headers.ContentType?.MediaType ==
             "application/vnd.apple.mpegurl")
@@ -52,13 +52,13 @@ public partial class VideoTools : Singleton<VideoTools>
             if (statusCode >= 400)
             {
                 Log.Warning(
-                    "Prefetching M3U8 stream returned status code {status}, retrying... ({attempt}/{limit})",
+                    "Prefetching M3U8 stream returned status code {Status}, retrying... ({Attempt}/{Limit})",
                     statusCode, i + 1, maxRetryCount);
                 await Task.Delay(wait);
             }
             else
             {
-                Log.Information("Prefetching M3U8 stream returned status code {status}, proceeding.", statusCode);
+                Log.Information("Prefetching M3U8 stream returned status code {Status}, proceeding.", statusCode);
                 break;
             }
         }
@@ -66,7 +66,7 @@ public partial class VideoTools : Singleton<VideoTools>
         if (statusCode != 200)
         {
             Log.Error(
-                "Prefetching M3U8 stream failed after {limit} attempts, status code {status}. Video may not play.",
+                "Prefetching M3U8 stream failed after {Limit} attempts, status code {Status}. Video may not play.",
                 maxRetryCount, statusCode);
             return false;
         }
