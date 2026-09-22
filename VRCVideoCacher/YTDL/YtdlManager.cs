@@ -623,7 +623,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
                 return false;
             }
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Error("Exception while starting {ProcessName}: {Message}", processName, ex.Message);
             return Task.FromResult(false);

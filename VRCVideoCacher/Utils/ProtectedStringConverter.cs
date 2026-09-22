@@ -45,7 +45,7 @@ public class ProtectedStringConverter : JsonConverter<string>
 
             // HKDF-Expand -> 32-byte AES-256 key
             return HKDF.Expand(HashAlgorithmName.SHA256, prk, KeySize, Encoding.UTF8.GetBytes(KeyInfo));
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed to derive dynamic encryption key, falling back to static entropy");
             return LegacyStaticKey.Value;
@@ -140,7 +140,7 @@ public class ProtectedStringConverter : JsonConverter<string>
             Buffer.BlockCopy(ciphertext, 0, result, nonce.Length, ciphertext.Length);
             Buffer.BlockCopy(tag, 0, result, nonce.Length + ciphertext.Length, tag.Length);
             return Prefix + Convert.ToBase64String(result);
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed to encrypt protected string");
             return plainText;
@@ -177,7 +177,7 @@ public class ProtectedStringConverter : JsonConverter<string>
             using var aes = new AesGcm(EncryptionKey.Value, TagSize);
             aes.Decrypt(nonce, ciphertext, tag, plaintext, associatedData);
             return Encoding.UTF8.GetString(plaintext);
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed to decrypt protected string");
             return string.Empty;

@@ -35,7 +35,7 @@ public partial class OpenUrl : Singleton<OpenUrl>
                 UseShellExecute = true
             };
             return Process.Start(psi) != null;
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Error(ex, "Failed to open link: {Url}", url);
             return false;

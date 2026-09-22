@@ -140,7 +140,7 @@ public partial class DownloadQueueViewModel : ViewModelBase
             }
             else
                 StatusMessage = "Could not parse URL";
-        }).OnFailure((ex) =>
+        }).OnFailure(ex =>
         {
             StatusMessage = $"Error: {ex}";
             return Unit.TaskValue;

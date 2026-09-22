@@ -22,7 +22,7 @@ public partial class ConfigManager : Singleton<ConfigManager>
         var newConfig = Try
             .Run(() => File.Exists(_configFilePath)
                 ? JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath))
-                : null).GetOrElse((ex) =>
+                : null).GetOrElse(ex =>
             {
                 Log.Error(ex, "Failed to load config, creating new one...");
                 return null;
@@ -203,11 +203,11 @@ public class ConfigModel
     // Caching
     public string CachedAssetPath = "";
     public float CacheMaxSizeInGb = 10f;
-    public bool CacheYouTube = false;
+    public bool CacheYouTube;
     public int CacheYouTubeMaxResolution = 1080;
     public int CacheYouTubeMaxLength = 120;
-    public bool CachePyPyDance = false;
-    public bool CacheVrDancing = false;
+    public bool CachePyPyDance;
+    public bool CacheVrDancing;
     public bool CacheGeneric = false;
     public bool CacheOnly = false;
 
@@ -222,7 +222,7 @@ public class ConfigModel
     public Dictionary<string, string> RedirectUrls = [];
 
     // Patching
-    public bool PatchResonite = false;
+    public bool PatchResonite;
     public string ResonitePath = "";
     public bool PatchVrChat = true;
 

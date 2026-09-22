@@ -144,7 +144,7 @@ public partial class SettingsViewModel : ViewModelBase
                         if (!cts.IsCancellationRequested)
                             StatusMessage = string.Empty;
                     });
-            }).OnFailure((ex) =>
+            }).OnFailure(ex =>
             {
                 if (ex is not OperationCanceledException) ex.Throw();
                 // Expected when a new status message is set or cleared

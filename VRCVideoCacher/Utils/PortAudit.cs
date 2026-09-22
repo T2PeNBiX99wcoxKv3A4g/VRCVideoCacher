@@ -25,7 +25,7 @@ public static partial class PortAudit
     {
         return Try.Run(() => IPGlobalProperties.GetIPGlobalProperties()
             .GetActiveTcpListeners()
-            .Any(ep => ep.Port == port)).GetOrElse((ex) =>
+            .Any(ep => ep.Port == port)).GetOrElse(ex =>
         {
             // Never block startup on a diagnostics failure — assume free and let the real bind decide.
             Log.Debug(ex, "Could not enumerate TCP listeners while checking port {Port}", port);
@@ -54,7 +54,7 @@ public static partial class PortAudit
     {
         return Try.Run(() => OperatingSystem.IsWindows() ? FindOwningPidWindows(port)
             : OperatingSystem.IsLinux() ? FindOwningPidLinux(port)
-            : null).GetOrElse((ex) =>
+            : null).GetOrElse(ex =>
         {
             Log.Debug(ex, "Could not identify owning PID for port {Port}", port);
             return null;
@@ -79,7 +79,7 @@ public static partial class PortAudit
             if (!string.IsNullOrEmpty(expectedProcessNameSubstring))
             {
                 var matchesName = procName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
-                var exeName = Try.Run(() => proc.MainModule?.FileName).GetOrElse((_) => null);
+                var exeName = Try.Run(() => proc.MainModule?.FileName).GetOrElse(_ => null);
                 var matchesExe = !string.IsNullOrEmpty(exeName) &&
                                  exeName.Contains(expectedProcessNameSubstring, StringComparison.OrdinalIgnoreCase);
 
@@ -107,7 +107,7 @@ public static partial class PortAudit
             }
 
             return !IsInUse(port);
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Debug(ex, "Failed to kill listener on port {Port}", port);
             return false;
@@ -130,8 +130,8 @@ public static partial class PortAudit
             {
                 using var proc = Process.GetProcessById(id);
                 return $"{proc.ProcessName} (PID {id})";
-            }).GetOrElse((_) => $"PID {id}");
-        }).GetOrElse((ex) =>
+            }).GetOrElse(_ => $"PID {id}");
+        }).GetOrElse(ex =>
         {
             Log.Debug(ex, "Could not identify the process listening on port {Port}", port);
             return "an unknown process";

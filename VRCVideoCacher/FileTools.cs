@@ -134,7 +134,7 @@ public partial class FileTools : Singleton<FileTools>
             }
 
             return true;
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             if (isEnabled)
                 Log.Error("GetAppLibraryPath: Exception while reading libraryfolders.vdf: {Error}", ex.Message);

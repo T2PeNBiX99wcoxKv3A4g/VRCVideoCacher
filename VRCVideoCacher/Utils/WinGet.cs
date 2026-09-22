@@ -75,7 +75,7 @@ public partial class WinGet : Singleton<WinGet>
                 process.WaitForExit(10_000);
                 return process.ExitCode == 0;
             }
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed on IsPackageInstalled");
             return false;
@@ -119,7 +119,7 @@ public partial class WinGet : Singleton<WinGet>
                 if (process.ExitCode == 0)
                     Log.Information("Successfully installed package: {PackageName}", packageName);
             }
-        }).GetOrElse((ex) =>
+        }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed on InstallPackage");
             return Unit.TaskValue;

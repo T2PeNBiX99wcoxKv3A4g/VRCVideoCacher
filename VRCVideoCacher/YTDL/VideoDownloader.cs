@@ -71,7 +71,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                 UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem),
                 UrlType.Other => await DownloadGenericVideo(queueItem),
                 _ => throw new ArgumentOutOfRangeException()
-            }).GetOrElse((ex) =>
+            }).GetOrElse(ex =>
             {
                 Log.Error("Exception during download: {Ex}", ex.ToString());
                 return Task.FromResult(false);
@@ -130,7 +130,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        var videoId = await Try.Run<string?>(async () => await VideoId.TryGetYouTubeVideoId(url)).GetOrElse((ex) =>
+        var videoId = await Try.Run<string?>(async () => await VideoId.TryGetYouTubeVideoId(url)).GetOrElse(ex =>
         {
             Log.Error("Not downloading YouTube video: {Url} {Ex}", url, ex.ToString());
             return Task.FromResult<string?>(null);
@@ -225,7 +225,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                     File.Delete(tempDownloadMp4Path);
                 if (File.Exists(tempDownloadWebmPath))
                     File.Delete(tempDownloadWebmPath);
-            }).OnFailure((ex) => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
+            }).OnFailure(ex => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
             return false;
         }
 
@@ -287,7 +287,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             {
                 if (File.Exists(tempDownloadMp4Path))
                     File.Delete(tempDownloadMp4Path);
-            }).OnFailure((ex) => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
+            }).OnFailure(ex => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
             return false;
         }
 
@@ -342,7 +342,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             {
                 if (File.Exists(tempDownloadMp4Path))
                     File.Delete(tempDownloadMp4Path);
-            }).OnFailure((ex) => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
+            }).OnFailure(ex => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
             return false;
         }
 
@@ -403,7 +403,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             {
                 if (File.Exists(tempDownloadMp4Path))
                     File.Delete(tempDownloadMp4Path);
-            }).OnFailure((ex) => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
+            }).OnFailure(ex => Log.Error("Failed to delete temp file: {Ex}", ex.ToString()));
             return false;
         }
 

@@ -1,6 +1,6 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia;
-using System.Collections.ObjectModel;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;

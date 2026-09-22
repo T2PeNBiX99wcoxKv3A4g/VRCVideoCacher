@@ -23,7 +23,7 @@ public partial class HostsManager : Singleton<HostsManager>
                 Add();
                 Log.Information("Host entry added successfully.");
                 Environment.Exit(0);
-            }).OnFailure((ex) =>
+            }).OnFailure(ex =>
             {
                 Log.Error(ex, "Failed to add host entry");
                 Environment.Exit(1);
@@ -35,7 +35,7 @@ public partial class HostsManager : Singleton<HostsManager>
                 Remove();
                 Log.Information("Host entry removed successfully.");
                 Environment.Exit(0);
-            }).OnFailure((ex) =>
+            }).OnFailure(ex =>
             {
                 Log.Error(ex, "Failed to remove host entry");
                 Environment.Exit(1);

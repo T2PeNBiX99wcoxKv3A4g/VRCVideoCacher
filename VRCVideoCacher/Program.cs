@@ -89,7 +89,7 @@ internal sealed class Program
                             Logger.Information(
                                 "Killed existing instance with PID {Pid} due to kill existing instance argument.",
                                 process.Id);
-                        }).OnFailure((ex) => Logger.Warning(ex,
+                        }).OnFailure(ex => Logger.Warning(ex,
                             "Failed to kill existing instance with PID {Pid}. It may still be running.", process.Id));
             }
             else
@@ -139,7 +139,7 @@ internal sealed class Program
         // Start backend on background thread
         Task.Run(async () =>
         {
-            await Try.Run(async () => await InitVrcVideoCacher()).OnFailure((ex) =>
+            await Try.Run(async () => await InitVrcVideoCacher()).OnFailure(ex =>
             {
                 Logger.Error(ex, "Backend error: {Message}", ex.Message);
                 return Unit.TaskValue;

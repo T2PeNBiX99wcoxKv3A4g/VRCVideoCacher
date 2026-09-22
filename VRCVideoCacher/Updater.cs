@@ -146,7 +146,7 @@ public partial class Updater : Singleton<Updater>
                 };
                 process.Start();
                 Environment.Exit(0);
-            }).OnFailure((ex) =>
+            }).OnFailure(ex =>
             {
                 Console.Error.WriteLine("Failed to update: {0}", ex);
                 if (File.Exists(TempFilePath))
@@ -219,7 +219,7 @@ public partial class Updater : Singleton<Updater>
                 }
 
                 return true;
-            }).GetOrElse((_) => true);
+            }).GetOrElse(_ => true);
             if (!result) return false;
         }
 
@@ -228,7 +228,7 @@ public partial class Updater : Singleton<Updater>
             {
                 File.Copy(Environment.ProcessPath, FilePath, true);
                 return true;
-            }).GetOrElse((ex) =>
+            }).GetOrElse(ex =>
             {
                 Console.Error.WriteLine("Failed to copy new version to target path: {0}", ex);
                 return false;
