@@ -197,6 +197,37 @@
                     </StackPanel>
                 </Border>
 
+                <!-- VR Overlay Settings -->
+                <Border Classes="card">
+                    <StackPanel Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26"
+                                    Height="26">
+                                <mi:MaterialIcon Kind="VirtualReality" Width="16" Height="16"
+                                                 Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="{l:Localize VrOverlaySettings}" FontWeight="Bold" FontSize="15"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <CheckBox IsChecked="{Binding VrOverlayEnabled}"
+                                  Content="{l:Localize EnableVrOverlay}" />
+
+                        <StackPanel Spacing="12" Margin="16,0,0,0" IsVisible="{Binding VrOverlayEnabled}">
+                            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="16" RowSpacing="12">
+                                <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding VrDashboardOverlayEnabled}"
+                                          Content="{l:Localize EnableVrDashboardOverlay}" />
+                                <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding VrFloatingOverlayEnabled}"
+                                          Content="{l:Localize EnableVrFloatingOverlay}" />
+                                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding VrFloatingOverlayOnlyWhenDownloading}"
+                                          Content="{l:Localize VrFloatingOnlyWhenDownloading}"
+                                          IsVisible="{Binding VrFloatingOverlayEnabled}" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Cache Storage Settings -->
                 <Border Classes="card">
                     <StackPanel Spacing="16">

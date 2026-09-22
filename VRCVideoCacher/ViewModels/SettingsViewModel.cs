@@ -155,6 +155,12 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool StartWithSteamVr { get; set; }
 
+    // VR Overlay
+    [ObservableProperty] public partial bool VrOverlayEnabled { get; set; }
+    [ObservableProperty] public partial bool VrDashboardOverlayEnabled { get; set; }
+    [ObservableProperty] public partial bool VrFloatingOverlayEnabled { get; set; }
+    [ObservableProperty] public partial bool VrFloatingOverlayOnlyWhenDownloading { get; set; }
+
     [ObservableProperty] public partial bool HasChanges { get; set; }
 
     [ObservableProperty] public partial bool ErrorPopups { get; set; }
@@ -225,6 +231,10 @@ public partial class SettingsViewModel : ViewModelBase
         CloseToTray = config.CloseToTray;
         StartMinimized = config.StartMinimized;
         StartWithSteamVr = config.StartWithSteamVr;
+        VrOverlayEnabled = config.VrOverlayEnabled;
+        VrDashboardOverlayEnabled = config.VrDashboardOverlayEnabled;
+        VrFloatingOverlayEnabled = config.VrFloatingOverlayEnabled;
+        VrFloatingOverlayOnlyWhenDownloading = config.VrFloatingOverlayOnlyWhenDownloading;
         ErrorPopups = config.ErrorPopups;
         ErrorNotifications = config.ErrorNotifications;
         RedirectVRDancing = config.RedirectVRDancing;
@@ -299,6 +309,10 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
     partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
     partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
+    partial void OnVrOverlayEnabledChanged(bool value) => SetHasChanges();
+    partial void OnVrDashboardOverlayEnabledChanged(bool value) => SetHasChanges();
+    partial void OnVrFloatingOverlayEnabledChanged(bool value) => SetHasChanges();
+    partial void OnVrFloatingOverlayOnlyWhenDownloadingChanged(bool value) => SetHasChanges();
     partial void OnBlockRedirectChanged(string value) => SetHasChanges();
     partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
     partial void OnErrorNotificationsChanged(bool value) => SetHasChanges();
@@ -341,6 +355,10 @@ public partial class SettingsViewModel : ViewModelBase
         config.CloseToTray = CloseToTray;
         config.StartMinimized = StartMinimized;
         config.StartWithSteamVr = StartWithSteamVr;
+        config.VrOverlayEnabled = VrOverlayEnabled;
+        config.VrDashboardOverlayEnabled = VrDashboardOverlayEnabled;
+        config.VrFloatingOverlayEnabled = VrFloatingOverlayEnabled;
+        config.VrFloatingOverlayOnlyWhenDownloading = VrFloatingOverlayOnlyWhenDownloading;
         config.ErrorPopups = ErrorPopups;
         config.ErrorNotifications = ErrorNotifications;
         config.BlockedUrls =

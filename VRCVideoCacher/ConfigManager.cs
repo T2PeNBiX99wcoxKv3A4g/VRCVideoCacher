@@ -236,6 +236,14 @@ public class ConfigModel
     public bool ErrorPopups = true;
     public bool ErrorNotifications = false;
 
+    // VR Overlay
+    public bool VrOverlayEnabled = true;
+    public bool VrDashboardOverlayEnabled = true;
+    public bool VrFloatingOverlayEnabled = true;
+    public bool VrFloatingOverlayOnlyWhenDownloading = true;
+    public float VrFloatingOverlayDistance = 1.2f;
+    public float VrFloatingOverlayScale = 0.5f;
+
     // Localization
     public string Language = "en";
 

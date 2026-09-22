@@ -28,7 +28,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
                 var initError = EVRInitError.None;
                 try
                 {
-                    OpenVR.Init(ref initError, EVRApplicationType.VRApplication_Background);
+                    OpenVR.Init(ref initError, EVRApplicationType.VRApplication_Overlay);
                     switch (initError)
                     {
                         case EVRInitError.None:
@@ -55,6 +55,8 @@ public partial class OpenVRService : Singleton<OpenVRService>
                                     Log.Warning("Failed to register startup manifest");
                             }
 
+                            VROverlayService.Start();
+
                             if (LaunchArgs.CloseWithSteamVr || true)
                                 await PollEventsUntilQuit();
                             break;
@@ -77,6 +79,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
 
                 try
                 {
+                    VROverlayService.Stop();
                     OpenVR.Shutdown();
                 }
                 catch (Exception ex)
