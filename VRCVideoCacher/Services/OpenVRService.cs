@@ -114,7 +114,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
 
         if (LaunchArgs.HasGui &&
             Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-            await Dispatcher.UIThread.InvokeAsync(() => { lifetime.Shutdown(); });
+            await Dispatcher.UIThread.InvokeAsync(() => lifetime.Shutdown());
         else
             Environment.Exit(0);
     }
