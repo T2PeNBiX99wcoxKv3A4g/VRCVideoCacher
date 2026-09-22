@@ -1,6 +1,5 @@
+using JetBrains.Annotations;
 using Valve.VR;
-using VRCVideoCacher.Extensions;
-using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
@@ -17,10 +16,12 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
     private CancellationTokenSource? _updateLoopCts;
     private float _progressAnim;
+    private static CVROverlay? Overlay => (CVROverlay?)OpenVR.Overlay;
 
+    [PublicAPI]
     public void Start2()
     {
-        if (OpenVR.Overlay == null)
+        if (Overlay == null)
         {
             Log.Warning("OpenVR Overlay interface is not available");
             return;
@@ -30,13 +31,14 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
         _updateLoopCts?.Cancel();
         _updateLoopCts?.Dispose();
-        _updateLoopCts = new CancellationTokenSource();
+        _updateLoopCts = new();
 
         _ = Task.Run(() => UpdateLoop(_updateLoopCts.Token));
 
         ConfigManager.OnConfigChanged += OnConfigChanged;
     }
 
+    [PublicAPI]
     public void Stop2()
     {
         ConfigManager.OnConfigChanged -= OnConfigChanged;
@@ -63,7 +65,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
     private void InitializeOverlays()
     {
         var config = ConfigManager.Config;
-        if (!config.VrOverlayEnabled || OpenVR.Overlay == null)
+        if (!config.VrOverlayEnabled || Overlay == null)
             return;
 
         // 1. Dashboard Overlay
@@ -137,7 +139,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
     private void DestroyOverlays()
     {
-        if (OpenVR.Overlay == null)
+        if (Overlay == null)
             return;
 
         if (_dashboardOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
@@ -162,7 +164,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
             {
                 await Task.Delay(300, token);
 
-                if (OpenVR.Overlay == null)
+                if (Overlay == null)
                     continue;
 
                 var config = ConfigManager.Config;
@@ -171,7 +173,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
                 var currentDownload = VideoDownloader.GetCurrentDownload();
                 var queueSnapshot = VideoDownloader.GetQueueSnapshot();
-                bool hasActivity = currentDownload != null || queueSnapshot.Count > 0;
+                var hasActivity = currentDownload != null || queueSnapshot.Count > 0;
 
                 // Check floating overlay visibility condition
                 if (_floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
@@ -187,10 +189,10 @@ public partial class VROverlayService : Singleton<VROverlayService>
                         OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
                 }
 
-                bool isDashboardVisible = _dashboardOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
-                                          OpenVR.Overlay.IsOverlayVisible(_dashboardOverlayHandle);
-                bool isFloatingVisible = _floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
-                                         OpenVR.Overlay.IsOverlayVisible(_floatingOverlayHandle);
+                var isDashboardVisible = _dashboardOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
+                                         OpenVR.Overlay.IsOverlayVisible(_dashboardOverlayHandle);
+                var isFloatingVisible = _floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
+                                        OpenVR.Overlay.IsOverlayVisible(_floatingOverlayHandle);
 
                 // Only render if at least one overlay is currently visible
                 if (!isDashboardVisible && !isFloatingVisible)
@@ -229,18 +231,18 @@ public partial class VROverlayService : Singleton<VROverlayService>
             }
             catch (Exception ex)
             {
-                Log.Warning("Error during VR Overlay update: {Message}", ex.Message);
+                Log.Warning(ex, "Error during VR Overlay update: {Message}", ex.Message);
             }
         }
     }
 
     private static HmdMatrix34_t CreateTransformMatrix(float x, float y, float z, float pitchDegrees = 0f)
     {
-        float rad = pitchDegrees * (MathF.PI / 180f);
-        float cos = MathF.Cos(rad);
-        float sin = MathF.Sin(rad);
+        var rad = pitchDegrees * (MathF.PI / 180f);
+        var cos = MathF.Cos(rad);
+        var sin = MathF.Sin(rad);
 
-        return new HmdMatrix34_t
+        return new()
         {
             m0 = 1.0f, m1 = 0.0f, m2 = 0.0f, m3 = x,
             m4 = 0.0f, m5 = cos,  m6 = -sin, m7 = y,
