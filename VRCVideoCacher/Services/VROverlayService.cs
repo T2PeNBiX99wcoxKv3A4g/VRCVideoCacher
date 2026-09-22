@@ -106,29 +106,41 @@ public partial class VROverlayService : Singleton<VROverlayService>
         }
 
         // 2. In-VR Floating Overlay (HUD)
-        if (config.VrFloatingOverlayEnabled && _floatingOverlayHandle == OpenVR.k_ulOverlayHandleInvalid)
+        if (config.VrFloatingOverlayEnabled)
         {
-            var err = OpenVR.Overlay.CreateOverlay(FloatingKey, "VRC Video Cacher HUD", ref _floatingOverlayHandle);
-            if (err == EVROverlayError.None)
+            if (_floatingOverlayHandle == OpenVR.k_ulOverlayHandleInvalid)
             {
-                Log.Information("VR Floating HUD Overlay created successfully");
-                OpenVR.Overlay.SetOverlayWidthInMeters(_floatingOverlayHandle, config.VrFloatingOverlayScale);
-                OpenVR.Overlay.SetOverlayAlpha(_floatingOverlayHandle, 0.95f);
+                var err = OpenVR.Overlay.CreateOverlay(FloatingKey, "VRC Video Cacher HUD", ref _floatingOverlayHandle);
+                if (err == EVROverlayError.None)
+                {
+                    Log.Information("VR Floating HUD Overlay created successfully");
+                    OpenVR.Overlay.SetOverlayWidthInMeters(_floatingOverlayHandle, config.VrFloatingOverlayScale);
+                    OpenVR.Overlay.SetOverlayAlpha(_floatingOverlayHandle, 0.95f);
 
-                // Position relative to HMD: lower and tilted up towards eyes
+                    // Position relative to HMD: lower and tilted up towards eyes
+                    var mat = CreateTransformMatrix(0.0f, -0.28f, -config.VrFloatingOverlayDistance, 12f);
+                    OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(
+                        _floatingOverlayHandle,
+                        OpenVR.k_unTrackedDeviceIndex_Hmd,
+                        ref mat);
+
+                    if (config.VrFloatingOverlayOnlyWhenDownloading)
+                        OpenVR.Overlay.HideOverlay(_floatingOverlayHandle);
+                    else
+                        OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
+                }
+                else
+                    Log.Warning("Failed to create Floating Overlay: {Error}", err);
+            }
+            else
+            {
+                OpenVR.Overlay.SetOverlayWidthInMeters(_floatingOverlayHandle, config.VrFloatingOverlayScale);
                 var mat = CreateTransformMatrix(0.0f, -0.28f, -config.VrFloatingOverlayDistance, 12f);
                 OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(
                     _floatingOverlayHandle,
                     OpenVR.k_unTrackedDeviceIndex_Hmd,
                     ref mat);
-
-                if (config.VrFloatingOverlayOnlyWhenDownloading)
-                    OpenVR.Overlay.HideOverlay(_floatingOverlayHandle);
-                else
-                    OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
             }
-            else
-                Log.Warning("Failed to create Floating Overlay: {Error}", err);
         }
         else if (!config.VrFloatingOverlayEnabled && _floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
         {

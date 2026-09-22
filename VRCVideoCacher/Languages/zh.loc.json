@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "启用 SteamVR 仪表板标签页",
   "EnableVrFloatingOverlay": "启用 VR 空间悬浮面板",
   "VrFloatingOnlyWhenDownloading": "仅在下载时显示悬浮面板",
+  "VrFloatingOverlayDistance": "悬浮面板距离（米）",
+  "VrFloatingOverlayScale": "悬浮面板大小 / 缩放（米）",
   "ErrorPopups": "错误弹窗",
   "ErrorNotifications": "错误通知",
   "BlockedUrls": "屏蔽的 URL",

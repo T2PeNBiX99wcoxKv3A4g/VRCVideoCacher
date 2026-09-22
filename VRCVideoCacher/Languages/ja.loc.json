@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "SteamVR ダッシュボードタブを有効化",
   "EnableVrFloatingOverlay": "VR 空間フローティング HUD を有効化",
   "VrFloatingOnlyWhenDownloading": "ダウンロード中のみフローティング HUD を表示",
+  "VrFloatingOverlayDistance": "フローティング HUD の距離（メートル）",
+  "VrFloatingOverlayScale": "フローティング HUD のサイズ / スケール（メートル）",
   "ErrorPopups": "エラーポップアップを表示",
   "ErrorNotifications": "エラー通知を表示",
   "BlockedUrls": "ブロックする URL",

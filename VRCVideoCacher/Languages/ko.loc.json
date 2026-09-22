@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "SteamVR 대시보드 탭 활성화",
   "EnableVrFloatingOverlay": "VR 공간 플로팅 HUD 활성화",
   "VrFloatingOnlyWhenDownloading": "다운로드 중에만 플로팅 HUD 표시",
+  "VrFloatingOverlayDistance": "플로팅 HUD 거리 (미터)",
+  "VrFloatingOverlayScale": "플로팅 HUD 크기 / 배율 (미터)",
   "ErrorPopups": "오류 팝업",
   "ErrorNotifications": "오류 알림",
   "BlockedUrls": "차단된 URL",

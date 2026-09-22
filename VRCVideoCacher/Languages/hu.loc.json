@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "SteamVR Vezérlőpult fül engedélyezése",
   "EnableVrFloatingOverlay": "VR lebegő HUD engedélyezése",
   "VrFloatingOnlyWhenDownloading": "Lebegő HUD megjelenítése csak letöltés közben",
+  "VrFloatingOverlayDistance": "Lebegő HUD távolsága (méter)",
+  "VrFloatingOverlayScale": "Lebegő HUD mérete / méretaránya (méter)",
   "ErrorPopups": "Hiba felugró ablakok",
   "ErrorNotifications": "Hibaértesítések",
   "BlockedUrls": "Letiltott Linkek",

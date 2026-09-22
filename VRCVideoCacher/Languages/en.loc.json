@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "Enable SteamVR Dashboard Tab",
   "EnableVrFloatingOverlay": "Enable In-VR Floating HUD",
   "VrFloatingOnlyWhenDownloading": "Only show floating HUD while downloading",
+  "VrFloatingOverlayDistance": "Floating HUD Distance (meters)",
+  "VrFloatingOverlayScale": "Floating HUD Size / Scale (meters)",
   "ErrorPopups": "Error Popups",
   "ErrorNotifications": "Error Notifications",
   "BlockedUrls": "Blocked URLs",

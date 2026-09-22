@@ -160,6 +160,8 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial bool VrDashboardOverlayEnabled { get; set; }
     [ObservableProperty] public partial bool VrFloatingOverlayEnabled { get; set; }
     [ObservableProperty] public partial bool VrFloatingOverlayOnlyWhenDownloading { get; set; }
+    [ObservableProperty] public partial float VrFloatingOverlayDistance { get; set; }
+    [ObservableProperty] public partial float VrFloatingOverlayScale { get; set; }
 
     [ObservableProperty] public partial bool HasChanges { get; set; }
 
@@ -235,6 +237,8 @@ public partial class SettingsViewModel : ViewModelBase
         VrDashboardOverlayEnabled = config.VrDashboardOverlayEnabled;
         VrFloatingOverlayEnabled = config.VrFloatingOverlayEnabled;
         VrFloatingOverlayOnlyWhenDownloading = config.VrFloatingOverlayOnlyWhenDownloading;
+        VrFloatingOverlayDistance = config.VrFloatingOverlayDistance;
+        VrFloatingOverlayScale = config.VrFloatingOverlayScale;
         ErrorPopups = config.ErrorPopups;
         ErrorNotifications = config.ErrorNotifications;
         RedirectVRDancing = config.RedirectVRDancing;
@@ -313,6 +317,8 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnVrDashboardOverlayEnabledChanged(bool value) => SetHasChanges();
     partial void OnVrFloatingOverlayEnabledChanged(bool value) => SetHasChanges();
     partial void OnVrFloatingOverlayOnlyWhenDownloadingChanged(bool value) => SetHasChanges();
+    partial void OnVrFloatingOverlayDistanceChanged(float value) => SetHasChanges();
+    partial void OnVrFloatingOverlayScaleChanged(float value) => SetHasChanges();
     partial void OnBlockRedirectChanged(string value) => SetHasChanges();
     partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
     partial void OnErrorNotificationsChanged(bool value) => SetHasChanges();
@@ -359,6 +365,8 @@ public partial class SettingsViewModel : ViewModelBase
         config.VrDashboardOverlayEnabled = VrDashboardOverlayEnabled;
         config.VrFloatingOverlayEnabled = VrFloatingOverlayEnabled;
         config.VrFloatingOverlayOnlyWhenDownloading = VrFloatingOverlayOnlyWhenDownloading;
+        config.VrFloatingOverlayDistance = VrFloatingOverlayDistance;
+        config.VrFloatingOverlayScale = VrFloatingOverlayScale;
         config.ErrorPopups = ErrorPopups;
         config.ErrorNotifications = ErrorNotifications;
         config.BlockedUrls =

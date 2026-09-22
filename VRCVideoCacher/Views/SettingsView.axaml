@@ -214,16 +214,31 @@
                         <CheckBox IsChecked="{Binding VrOverlayEnabled}"
                                   Content="{l:Localize EnableVrOverlay}" />
 
-                        <StackPanel Spacing="12" Margin="16,0,0,0" IsVisible="{Binding VrOverlayEnabled}">
-                            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="16" RowSpacing="12">
-                                <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding VrDashboardOverlayEnabled}"
-                                          Content="{l:Localize EnableVrDashboardOverlay}" />
-                                <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding VrFloatingOverlayEnabled}"
-                                          Content="{l:Localize EnableVrFloatingOverlay}" />
-                                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding VrFloatingOverlayOnlyWhenDownloading}"
-                                          Content="{l:Localize VrFloatingOnlyWhenDownloading}"
-                                          IsVisible="{Binding VrFloatingOverlayEnabled}" />
-                            </Grid>
+                        <StackPanel Spacing="12" Margin="24,0,0,0" IsVisible="{Binding VrOverlayEnabled}">
+                            <CheckBox IsChecked="{Binding VrDashboardOverlayEnabled}"
+                                      Content="{l:Localize EnableVrDashboardOverlay}" />
+
+                            <CheckBox IsChecked="{Binding VrFloatingOverlayEnabled}"
+                                      Content="{l:Localize EnableVrFloatingOverlay}" />
+
+                            <StackPanel Spacing="12" Margin="24,0,0,0" IsVisible="{Binding VrFloatingOverlayEnabled}">
+                                <CheckBox IsChecked="{Binding VrFloatingOverlayOnlyWhenDownloading}"
+                                          Content="{l:Localize VrFloatingOnlyWhenDownloading}" />
+
+                                <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="0" Text="{l:Localize VrFloatingOverlayDistance}"
+                                               VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <NumericUpDown Grid.Column="1" Value="{Binding VrFloatingOverlayDistance}"
+                                                   Minimum="0.2" Maximum="10.0" Increment="0.1" FormatString="0.00" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="0" Text="{l:Localize VrFloatingOverlayScale}"
+                                               VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <NumericUpDown Grid.Column="1" Value="{Binding VrFloatingOverlayScale}"
+                                                   Minimum="0.1" Maximum="5.0" Increment="0.05" FormatString="0.00" />
+                                </Grid>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>

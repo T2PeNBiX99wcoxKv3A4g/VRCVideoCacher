@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "Ativar Aba do Painel do SteamVR",
   "EnableVrFloatingOverlay": "Ativar HUD Flutuante em VR",
   "VrFloatingOnlyWhenDownloading": "Mostrar HUD flutuante apenas durante o download",
+  "VrFloatingOverlayDistance": "Distância do HUD Flutuante (metros)",
+  "VrFloatingOverlayScale": "Tamanho / Escala do HUD Flutuante (metros)",
   "ErrorPopups": "Pop-ups de erro",
   "ErrorNotifications": "Notificações de erro",
   "BlockedUrls": "URLs bloqueadas",

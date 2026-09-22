@@ -98,6 +98,8 @@
   "EnableVrDashboardOverlay": "Activer l'onglet du tableau de bord SteamVR",
   "EnableVrFloatingOverlay": "Activer le HUD flottant dans la VR",
   "VrFloatingOnlyWhenDownloading": "Afficher le HUD flottant uniquement pendant le téléchargement",
+  "VrFloatingOverlayDistance": "Distance du HUD flottant (mètres)",
+  "VrFloatingOverlayScale": "Taille / Échelle du HUD flottant (mètres)",
   "ErrorPopups": "Fenêtres d’erreur",
   "ErrorNotifications": "Notifications d'erreur",
   "BlockedUrls": "URL bloquées",
