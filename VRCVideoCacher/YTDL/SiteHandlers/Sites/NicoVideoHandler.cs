@@ -24,7 +24,7 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>, ISiteHandler
 
         var rawId = m.Groups[group].Value;
         var cleanId = rawId.Split('?')[0].Split('#')[0];
-        var newUrl = $"https://www.nicovideo.life/watch/{cleanId}";
+        var newUrl = $"https://www.nicovideo.life/watch?v={cleanId}";
         Log.Information("Incompatible URL, passing to external resolver: {Url}", newUrl);
         return Task.FromResult(newUrl);
     }
