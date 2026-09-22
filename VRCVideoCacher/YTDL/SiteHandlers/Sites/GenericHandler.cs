@@ -2,7 +2,7 @@
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class GenericHandler : Handler<GenericHandler>, ISiteHandler
+public class GenericHandler : Handler<GenericHandler>
 {
     public override bool CanHandle(Uri uri) => true; // always matches, must be last in registry
 
@@ -18,8 +18,4 @@ public class GenericHandler : Handler<GenericHandler>, ISiteHandler
             DownloadFormat = DownloadFormat.MP4
         });
     }
-
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
-
-    public Task<string> RewriteUrl(string url, Uri uri) => Task.FromResult(url);
 }

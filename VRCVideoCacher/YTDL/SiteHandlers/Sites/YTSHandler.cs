@@ -2,7 +2,7 @@
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class YTSHandler : Handler<YTSHandler>, ISiteHandler
+public class YTSHandler : Handler<YTSHandler>
 {
     public override bool CanHandle(Uri uri) => false; // rewrite only
 
@@ -17,6 +17,4 @@ public class YTSHandler : Handler<YTSHandler>, ISiteHandler
         Log.Information("YTS URL detected, modified to: {Url}", newUrl);
         return Task.FromResult(newUrl);
     }
-
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
 }

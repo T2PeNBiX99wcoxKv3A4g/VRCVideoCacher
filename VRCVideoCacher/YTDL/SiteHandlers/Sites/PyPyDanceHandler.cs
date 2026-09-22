@@ -5,7 +5,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class PyPyDanceHandler : Handler<PyPyDanceHandler>, ISiteHandler
+public class PyPyDanceHandler : Handler<PyPyDanceHandler>
 {
     private static readonly string[] Prefixes = ["http://api.pypy.dance/video", "https://api.pypy.dance/video"];
 

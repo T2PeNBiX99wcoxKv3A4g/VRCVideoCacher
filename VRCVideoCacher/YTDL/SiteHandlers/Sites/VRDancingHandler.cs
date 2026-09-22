@@ -2,7 +2,7 @@ using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class VRDancingHandler : Handler<VRDancingHandler>, ISiteHandler
+public class VRDancingHandler : Handler<VRDancingHandler>
 {
     private static readonly string[] Prefixes =
         ["https://na2.vrdancing.club", "https://eu2.vrdancing.club", "https://mpegts-beta.vrdancing.club"];
@@ -27,8 +27,4 @@ public class VRDancingHandler : Handler<VRDancingHandler>, ISiteHandler
             DownloadFormat = DownloadFormat.MP4
         });
     }
-
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
-
-    public Task<string> RewriteUrl(string url, Uri uri) => Task.FromResult(url);
 }

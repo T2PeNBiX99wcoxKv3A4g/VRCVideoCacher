@@ -3,7 +3,7 @@ using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public partial class NicoVideoHandler : Handler<NicoVideoHandler>, ISiteHandler
+public partial class NicoVideoHandler : Handler<NicoVideoHandler>
 {
     public override bool CanHandle(Uri uri) => false; // rewrite only, GenericHandler picks up after
 

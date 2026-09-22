@@ -2,7 +2,7 @@ using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>, ISiteHandler
+public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>
 {
     // AllowAutoRedirect=false so we can check each hop and stop as soon as
     // the destination is a URL a specific handler recognises
@@ -87,6 +87,4 @@ public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>, ISiteHandler
 
         return current;
     }
-
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
 }

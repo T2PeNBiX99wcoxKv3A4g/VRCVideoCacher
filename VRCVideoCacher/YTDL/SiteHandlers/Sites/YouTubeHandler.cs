@@ -4,7 +4,7 @@ using VRCVideoCacher.Services.Sabr;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public partial class YouTubeHandler : Handler<YouTubeHandler>, ISiteHandler
+public partial class YouTubeHandler : Handler<YouTubeHandler>
 {
     private static readonly string[] Hosts =
         ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];

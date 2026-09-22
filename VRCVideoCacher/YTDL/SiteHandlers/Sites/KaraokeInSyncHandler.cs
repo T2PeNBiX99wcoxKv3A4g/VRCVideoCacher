@@ -3,7 +3,7 @@ using VRCVideoCacher.Models;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
-public class KaraokeInSyncHandler : Handler<KaraokeInSyncHandler>, ISiteHandler
+public class KaraokeInSyncHandler : Handler<KaraokeInSyncHandler>
 {
     public override bool CanHandle(Uri uri) => false; // rewrite only
 
@@ -26,6 +26,4 @@ public class KaraokeInSyncHandler : Handler<KaraokeInSyncHandler>, ISiteHandler
         Log.Information("Karaoke in Sync Custom URL detected, stripped to: {Url}", newUrl);
         return Task.FromResult(newUrl);
     }
-
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro) => [];
 }

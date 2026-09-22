@@ -11,7 +11,7 @@ namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 /// return the m3u8, which VRChat/AVPro cannot play without restreaming — but the muxed MP4 is right there,
 /// so we just ask for it. See https://github.com/EllyVR/VRCVideoCacher/issues/200
 /// </summary>
-public class TwitterHandler : Handler<TwitterHandler>, ISiteHandler
+public class TwitterHandler : Handler<TwitterHandler>
 {
     private static readonly string[] Hosts =
         ["twitter.com", "www.twitter.com", "mobile.twitter.com", "x.com", "www.x.com", "mobile.x.com"];
@@ -37,6 +37,4 @@ public class TwitterHandler : Handler<TwitterHandler>, ISiteHandler
 
     public List<string> GetYtdlpArguments(Uri uri, bool avPro) =>
         [$"-f \"{MuxedHttpFormat}\""];
-
-    public Task<string> RewriteUrl(string url, Uri uri) => Task.FromResult(url);
 }
