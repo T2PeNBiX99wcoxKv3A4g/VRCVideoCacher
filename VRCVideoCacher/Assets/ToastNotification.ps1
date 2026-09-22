@@ -20,6 +20,8 @@ try {
     Set-ItemProperty -Path $regPath -Name "DisplayName" -Value "VRCVideoCacher" -Force | Out-Null
     if (-not [string]::IsNullOrEmpty($IconUri) -and (Test-Path $IconUri)) {
         Set-ItemProperty -Path $regPath -Name "IconUri" -Value $IconUri -Force | Out-Null
+    } elseif (-not [string]::IsNullOrEmpty($env:ProcessPath)) {
+        Set-ItemProperty -Path $regPath -Name "IconUri" -Value $env:ProcessPath -Force | Out-Null
     }
 } catch {
 }
