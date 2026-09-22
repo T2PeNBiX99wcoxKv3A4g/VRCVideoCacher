@@ -221,7 +221,7 @@ public partial class HistoryViewModel : ViewModelBase
     private async Task Refresh()
     {
         var fresh = (await DatabaseManager
-            .GetVideoHistoryAsCacheAsync(ConfigManager.Config.HistoryMaxSize, true))
+                .GetVideoHistoryAsCacheAsync(ConfigManager.Config.HistoryMaxSize, true))
             .OrderByDescending(h => h.Timestamp)
             .ToList();
 

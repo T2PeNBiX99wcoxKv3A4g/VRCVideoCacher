@@ -106,7 +106,8 @@
                                            Foreground="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center" />
                             </StackPanel>
 
-                            <TextBlock Text="{l:Localize VrcVideoCacherIsActive}" HorizontalAlignment="Left" FontSize="18"
+                            <TextBlock Text="{l:Localize VrcVideoCacherIsActive}" HorizontalAlignment="Left"
+                                       FontSize="18"
                                        FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
                             <TextBlock
                                 Text="{l:Localize VrcVideoCacherActiveDescription}"

@@ -171,7 +171,6 @@ public partial class VROverlayService : Singleton<VROverlayService>
     private async Task UpdateLoop(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
-        {
             try
             {
                 await Task.Delay(300, token);
@@ -245,7 +244,6 @@ public partial class VROverlayService : Singleton<VROverlayService>
             {
                 Log.Warning(ex, "Error during VR Overlay update: {Message}", ex.Message);
             }
-        }
     }
 
     private static HmdMatrix34_t CreateTransformMatrix(float x, float y, float z, float pitchDegrees = 0f)
@@ -256,9 +254,18 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
         return new()
         {
-            m0 = 1.0f, m1 = 0.0f, m2 = 0.0f, m3 = x,
-            m4 = 0.0f, m5 = cos,  m6 = -sin, m7 = y,
-            m8 = 0.0f, m9 = sin,  m10 = cos, m11 = z
+            m0 = 1.0f,
+            m1 = 0.0f,
+            m2 = 0.0f,
+            m3 = x,
+            m4 = 0.0f,
+            m5 = cos,
+            m6 = -sin,
+            m7 = y,
+            m8 = 0.0f,
+            m9 = sin,
+            m10 = cos,
+            m11 = z
         };
     }
 }

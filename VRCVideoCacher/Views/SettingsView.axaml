@@ -77,7 +77,8 @@
                             </ComboBox>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="16" RowSpacing="12"
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="16"
+                              RowSpacing="12"
                               Margin="0,4,0,0">
                             <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding CloseToTray}"
                                       Content="{l:Localize CloseToTray}" />
@@ -149,7 +150,8 @@
                         <StackPanel Spacing="6" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize SabrAdditionalArgs}"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Text="{Binding SabrAdditionalArgs}" PlaceholderText="{l:Localize OptionalArgumentsPlaceholder}" />
+                            <TextBox Text="{Binding SabrAdditionalArgs}"
+                                     PlaceholderText="{l:Localize OptionalArgumentsPlaceholder}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -178,7 +180,8 @@
                         <StackPanel Spacing="6" IsVisible="{Binding ShowAdvanced}">
                             <TextBlock Text="{l:Localize AdditionalYtdlpArgs}"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="{l:Localize OptionalArgumentsPlaceholder}" />
+                            <TextBox Text="{Binding YtdlAdditionalArgs}"
+                                     PlaceholderText="{l:Localize OptionalArgumentsPlaceholder}" />
                         </StackPanel>
 
                         <StackPanel Spacing="6" IsVisible="{Binding ShowAdvanced}">
@@ -204,7 +207,8 @@
                             <Border Background="{StaticResource PrimarySubtleBrush}" CornerRadius="6" Width="26"
                                     Height="26">
                                 <mi:MaterialIcon Kind="VirtualReality" Width="16" Height="16"
-                                                 Foreground="{StaticResource PrimaryLightBrush}" HorizontalAlignment="Center"
+                                                 Foreground="{StaticResource PrimaryLightBrush}"
+                                                 HorizontalAlignment="Center"
                                                  VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="{l:Localize VrOverlaySettings}" FontWeight="Bold" FontSize="15"
@@ -227,14 +231,16 @@
 
                                 <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                                     <TextBlock Grid.Column="0" Text="{l:Localize VrFloatingOverlayDistance}"
-                                               VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
                                     <NumericUpDown Grid.Column="1" Value="{Binding VrFloatingOverlayDistance}"
                                                    Minimum="0.2" Maximum="10.0" Increment="0.1" FormatString="0.00" />
                                 </Grid>
 
                                 <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                                     <TextBlock Grid.Column="0" Text="{l:Localize VrFloatingOverlayScale}"
-                                               VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
                                     <NumericUpDown Grid.Column="1" Value="{Binding VrFloatingOverlayScale}"
                                                    Minimum="0.1" Maximum="5.0" Increment="0.05" FormatString="0.00" />
                                 </Grid>
@@ -420,7 +426,8 @@
                             <StackPanel Spacing="6" Margin="0,10,0,0">
                                 <TextBlock Text="{l:Localize BlockedUrlRedirect}"
                                            Foreground="{StaticResource TextSecondaryBrush}" />
-                                <TextBox Text="{Binding BlockRedirect}" PlaceholderText="{l:Localize RedirectUrlPlaceholder}" />
+                                <TextBox Text="{Binding BlockRedirect}"
+                                         PlaceholderText="{l:Localize RedirectUrlPlaceholder}" />
                             </StackPanel>
                         </StackPanel>
                     </Border>

@@ -153,7 +153,8 @@ public static class VROverlayRenderer
             using var idleSubPaint = new SKPaint();
             idleSubPaint.Color = new(107, 114, 128);
             idleSubPaint.IsAntialias = true;
-            canvas.DrawText("Video requests from VRChat video players will appear here automatically.", 40, cardY + 135, idleSubFont, idleSubPaint);
+            canvas.DrawText("Video requests from VRChat video players will appear here automatically.", 40, cardY + 135,
+                idleSubFont, idleSubPaint);
         }
 
         // 3. Queue Section
@@ -183,7 +184,7 @@ public static class VROverlayRenderer
             {
                 var item = queuedDownloads[i];
                 var line = $"{i + 1}. {item.VideoId}  [{item.UrlType} / {item.DownloadFormat}]";
-                canvas.DrawText(TruncateText(line, 60), 40, queueY + 70 + (i * 30), itemFont, itemPaint);
+                canvas.DrawText(TruncateText(line, 60), 40, queueY + 70 + i * 30, itemFont, itemPaint);
             }
 
             if (queuedDownloads.Count > 3)
@@ -192,7 +193,8 @@ public static class VROverlayRenderer
                 using var morePaint = new SKPaint();
                 morePaint.Color = new(156, 163, 175);
                 morePaint.IsAntialias = true;
-                canvas.DrawText($"+ {queuedDownloads.Count - 3} more items in queue", 40, queueY + 150, moreFont, morePaint);
+                canvas.DrawText($"+ {queuedDownloads.Count - 3} more items in queue", 40, queueY + 150, moreFont,
+                    morePaint);
             }
         }
         else

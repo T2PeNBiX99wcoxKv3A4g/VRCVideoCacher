@@ -141,7 +141,8 @@
                     </StackPanel>
                 </Border>
 
-                <Button Command="{Binding ToggleHostCommand}" Classes="secondary" HorizontalAlignment="Left" Padding="12, 7">
+                <Button Command="{Binding ToggleHostCommand}" Classes="secondary" HorizontalAlignment="Left"
+                        Padding="12, 7">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <mi:MaterialIcon Kind="ShieldEdit" Width="16" Height="16" />
                         <TextBlock Text="{Binding HostButtonText}" />
