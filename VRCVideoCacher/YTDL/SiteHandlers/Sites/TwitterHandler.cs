@@ -25,7 +25,7 @@ public class TwitterHandler : Handler<TwitterHandler>, ISiteHandler
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
     {
         var videoId = VideoId.HashUrl(url);
-        Log.Information("Handling Twitter/X URL: {URL}", url);
+        Log.Information("Handling Twitter/X URL: {Url}", url);
         return Task.FromResult<VideoInfo?>(new()
         {
             VideoUrl = url,

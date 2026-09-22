@@ -9,7 +9,7 @@ public class GenericHandler : Handler<GenericHandler>, ISiteHandler
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
     {
         var videoId = VideoId.HashUrl(url);
-        Log.Information("No specific handler found for URL, using generic handler: {URL}", url);
+        Log.Information("No specific handler found for URL, using generic handler: {Url}", url);
         return Task.FromResult<VideoInfo?>(new()
         {
             VideoUrl = url,

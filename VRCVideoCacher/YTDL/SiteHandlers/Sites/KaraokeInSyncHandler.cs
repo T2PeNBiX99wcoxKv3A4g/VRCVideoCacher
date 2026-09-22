@@ -18,12 +18,12 @@ public class KaraokeInSyncHandler : Handler<KaraokeInSyncHandler>, ISiteHandler
 
         if (!url.Contains("Paste%20the%20YouTube%20Link%20after%20the%20colon:") || splitQuery.Length != 2)
         {
-            Log.Warning("Unknown Karaoke in Sync Custom URL {URL} detected, passing through", url);
+            Log.Warning("Unknown Karaoke in Sync Custom URL {Url} detected, passing through", url);
             return Task.FromResult(url);
         }
 
         var newUrl = WebUtility.UrlDecode(splitQuery[1]);
-        Log.Information("Karaoke in Sync Custom URL detected, stripped to: {URL}", newUrl);
+        Log.Information("Karaoke in Sync Custom URL detected, stripped to: {Url}", newUrl);
         return Task.FromResult(newUrl);
     }
 

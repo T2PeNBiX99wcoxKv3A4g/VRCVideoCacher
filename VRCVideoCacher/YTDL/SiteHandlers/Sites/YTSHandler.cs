@@ -14,7 +14,7 @@ public class YTSHandler : Handler<YTSHandler>, ISiteHandler
             return Task.FromResult(url);
 
         var newUrl = url.Replace("/sr/", "/yt/");
-        Log.Information("YTS URL detected, modified to: {URL}", newUrl);
+        Log.Information("YTS URL detected, modified to: {Url}", newUrl);
         return Task.FromResult(newUrl);
     }
 

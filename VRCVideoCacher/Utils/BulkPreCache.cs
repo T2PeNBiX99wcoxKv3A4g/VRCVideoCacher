@@ -49,12 +49,12 @@ public partial class BulkPreCache : Singleton<BulkPreCache>
             var files = JsonConvert.DeserializeObject<List<DownloadInfo>>(content);
             if (files == null || files.Count == 0)
             {
-                Log.Information("No files to download for {URL}", url);
+                Log.Information("No files to download for {Url}", url);
                 return;
             }
 
             await DownloadVideos(files);
-            Log.Information("All {Count} files for {URL} are up to date.", files.Count, url);
+            Log.Information("All {Count} files for {Url} are up to date.", files.Count, url);
         }
     }
 

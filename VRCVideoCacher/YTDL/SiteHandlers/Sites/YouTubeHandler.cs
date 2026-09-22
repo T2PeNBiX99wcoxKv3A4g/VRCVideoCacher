@@ -30,7 +30,7 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>, ISiteHandler
 
         if (string.IsNullOrEmpty(videoId))
         {
-            Log.Warning("Failed to parse video ID from YouTube URL: {URL}", url);
+            Log.Warning("Failed to parse video ID from YouTube URL: {Url}", url);
             return Task.FromResult<VideoInfo?>(null);
         }
 
