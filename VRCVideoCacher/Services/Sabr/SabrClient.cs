@@ -247,7 +247,7 @@ internal sealed class SabrClient(
                 // A retry re-sends an identical request — the protocol is idempotent at request level,
                 // because our buffered_ranges already tell the server exactly what we have.
                 transportRetries++;
-                log.Warning("SABR request failed ({Attempt}/{Max}), retrying: {Error}",
+                log.Warning(ex, "SABR request failed ({Attempt}/{Max}), retrying: {Error}",
                     transportRetries, MaxTransportRetries, ex.Message);
                 await Task.Delay(TimeSpan.FromSeconds(Math.Min(transportRetries, 5)), ct);
                 continue;

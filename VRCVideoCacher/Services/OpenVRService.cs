@@ -73,7 +73,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning("Exception during init: {Msg}", ex.Message);
+                    Log.Warning(ex, "Exception during init: {Msg}", ex.Message);
                     return;
                 }
 
@@ -84,7 +84,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning("Exception during shutdown: {Msg}", ex.Message);
+                    Log.Warning(ex, "Exception during shutdown: {Msg}", ex.Message);
                     return;
                 }
             }

@@ -625,7 +625,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             }
         }).GetOrElse(ex =>
         {
-            Log.Error("Exception while starting {ProcessName}: {Message}", processName, ex.Message);
+            Log.Error(ex, "Exception while starting {ProcessName}: {Message}", processName, ex.Message);
             return Task.FromResult(false);
         });
     }
