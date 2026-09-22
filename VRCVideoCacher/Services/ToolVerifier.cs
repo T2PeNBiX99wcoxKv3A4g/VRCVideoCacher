@@ -90,7 +90,7 @@ public static class ToolVerifier
                     raw = await stderr;
                 return new(true, true, ExtractVersion(raw));
             }
-        }).GetOrElse((_) => Task.FromResult(new ToolCheck(false, true, string.Empty)));
+        }).GetOrElse(_ => Task.FromResult(new ToolCheck(false, true, string.Empty)));
     }
 
     /// <summary>Best-effort version string from the first line of <c>--version</c> output.</summary>

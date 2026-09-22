@@ -47,7 +47,7 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
                 Author = vrdData.Artist,
                 Type = UrlType.VRDancing
             });
-        }).OnFailure((ex) =>
+        }).OnFailure(ex =>
         {
             Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
             return Unit.TaskValue;

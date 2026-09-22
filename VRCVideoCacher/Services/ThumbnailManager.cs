@@ -48,6 +48,6 @@ public static class ThumbnailManager
             await using var fileStream = new FileStream(thumbnailPath, FileMode.Create, FileAccess.Write);
             await data.CopyToAsync(fileStream);
             return thumbnailPath;
-        }).GetOrElse((_) => Task.FromResult<string?>(null));
+        }).GetOrElse(_ => Task.FromResult<string?>(null));
     }
 }

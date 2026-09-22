@@ -130,7 +130,7 @@ internal static class BgUtilPotProvider
                 Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
                 process.Kill(true);
                 process.WaitForExit(3000);
-            }).OnFailure((ex) => Log.Debug(ex, "Could not kill Deno process")).OnFinally(() => process.Dispose());
+            }).OnFailure(ex => Log.Debug(ex, "Could not kill Deno process")).OnFinally(() => process.Dispose());
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ internal static class BgUtilPotProvider
             {
                 await Task.Delay(500, ct);
                 return true;
-            }).GetOrElse((ex) =>
+            }).GetOrElse(ex =>
             {
                 if (ex is not OperationCanceledException) ex.Throw();
                 return Task.FromResult(false);
@@ -264,7 +264,7 @@ internal static class BgUtilPotProvider
     }
 
     private static bool HasProcessExited(Process? proc) =>
-        proc is null || Try.Run(() => proc.HasExited).GetOrElse((_) => true);
+        proc is null || Try.Run(() => proc.HasExited).GetOrElse(_ => true);
 
     private static async Task SuperviseAsync()
     {
@@ -281,7 +281,7 @@ internal static class BgUtilPotProvider
                 }
 
                 _isReady = await PingAsync();
-            }).OnFailure((ex) =>
+            }).OnFailure(ex =>
             {
                 _isReady = false;
                 Log.Debug(ex, "bgutil supervisor iteration failed");
@@ -404,7 +404,7 @@ internal static class BgUtilPotProvider
             if (HasProcessExited(process)) return;
             process.Kill(true);
             process.WaitForExit(3000);
-        }).OnFailure((ex) =>
+        }).OnFailure(ex =>
         {
             if (ex is InvalidOperationException) return;
             Log.Debug(ex, "Failed to stop bgutil server");
@@ -423,7 +423,7 @@ internal static class BgUtilPotProvider
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             using var response = await HttpClient.GetAsync(PingUrl, cts.Token);
             return response.IsSuccessStatusCode;
-        }).GetOrElse((_) => Task.FromResult(false));
+        }).GetOrElse(_ => Task.FromResult(false));
     }
 
     private static async Task<(int exitCode, string output)> RunProcessAsync(
@@ -449,7 +449,7 @@ internal static class BgUtilPotProvider
             var stdout = process.StandardOutput.ReadToEndAsync();
             var stderr = process.StandardError.ReadToEndAsync();
             using var cts = new CancellationTokenSource(timeout);
-            await Try.Run(async () => await process.WaitForExitAsync(cts.Token)).OnFailure((ex) =>
+            await Try.Run(async () => await process.WaitForExitAsync(cts.Token)).OnFailure(ex =>
             {
                 if (ex is not OperationCanceledException) return Unit.TaskValue;
 
@@ -473,6 +473,6 @@ internal static class BgUtilPotProvider
         {
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
-        }).OnFailure((ex) => Log.Debug(ex, "Could not delete {Dir} before reinstall", dir));
+        }).OnFailure(ex => Log.Debug(ex, "Could not delete {Dir} before reinstall", dir));
     }
 }

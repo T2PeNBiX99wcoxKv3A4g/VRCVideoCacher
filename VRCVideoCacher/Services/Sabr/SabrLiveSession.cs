@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using Serilog;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
@@ -255,7 +256,7 @@ internal sealed class SabrLiveSession : ISabrSession
 
         var playlist = HlsPlaylist.BuildLive(window, _source.TargetDurationSec);
         await WriteAtomicAsync(Path.Combine(_dir, HlsPlaylist.PlaylistName),
-            System.Text.Encoding.UTF8.GetBytes(playlist));
+            Encoding.UTF8.GetBytes(playlist));
     }
 
     /// <summary>
@@ -329,7 +330,7 @@ internal sealed class SabrLiveSession : ISabrSession
 
             await _muxer.MuxAsync(videoInit, videoFragment, audioInit, audioFragments, startMs, endMs,
                 (int)(sequence % int.MaxValue), path, Path.Combine(_dir, HlsPlaylist.InitName));
-        }).OnFailure((ex) =>
+        }).OnFailure(ex =>
         {
             if (ex is OperationCanceledException) return Unit.TaskValue;
             _log.Warning(ex, "SABR LIVE {VideoId}: failed to build segment {Seq}", _videoId, sequence);
@@ -356,7 +357,7 @@ internal sealed class SabrLiveSession : ISabrSession
     {
         var temp = path + ".part";
         await File.WriteAllBytesAsync(temp, data);
-        Try.Run(() => File.Move(temp, path, true)).GetOrElse((ex) =>
+        Try.Run(() => File.Move(temp, path, true)).GetOrElse(ex =>
         {
             if (ex is not IOException) ex.Throw();
             Try.Run(() => File.Delete(temp));

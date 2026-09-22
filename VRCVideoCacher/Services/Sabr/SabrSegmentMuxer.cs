@@ -1,10 +1,10 @@
 using System.Buffers.Binary;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using Serilog;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
+using Process = System.Diagnostics.Process;
 
 namespace VRCVideoCacher.Services.Sabr;
 
@@ -168,7 +168,7 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         // Write-then-move, so a request never reads a half-written file.
         var temp = path + ".part";
         await File.WriteAllBytesAsync(temp, data, ct);
-        Try.Run(() => File.Move(temp, path, true)).OnFailure((ex) =>
+        Try.Run(() => File.Move(temp, path, true)).OnFailure(ex =>
         {
             if (ex is IOException)
                 Try.Run(() => File.Delete(temp));

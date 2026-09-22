@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using Avalonia.Platform;
 using JetBrains.Annotations;
 using Microsoft.Win32;
+using Swan;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
-using Swan;
 using OperatingSystem = System.OperatingSystem;
 
 namespace VRCVideoCacher.Services;

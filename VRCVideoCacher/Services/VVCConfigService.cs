@@ -36,7 +36,7 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
                     OnApiConfigChanged?.Invoke();
                 }
             }
-        }).OnFailure((ex) =>
+        }).OnFailure(ex =>
         {
             Log.Warning(ex, "Failed to get config from Video Cacher API.");
             return Unit.TaskValue;

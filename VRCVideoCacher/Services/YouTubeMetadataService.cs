@@ -50,7 +50,7 @@ public static class YouTubeMetadataService
             };
             await DatabaseManager.AddVideoInfoCacheAsync(videoInfo);
             return videoInfo;
-        }).GetOrElse((_) => Task.FromResult<VideoInfoCache?>(null));
+        }).GetOrElse(_ => Task.FromResult<VideoInfoCache?>(null));
     }
 
     public static async Task<string?> GetThumbnail(string videoId)

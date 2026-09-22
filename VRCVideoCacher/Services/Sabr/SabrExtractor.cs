@@ -185,7 +185,7 @@ internal static class SabrExtractor
             AudioCodec = audio["acodec"]?.Value<string>() ?? "mp4a.40.2",
             Width = video["width"]?.Value<int>() ?? 1920,
             Height = video["height"]?.Value<int>() ?? 1080,
-            Bandwidth = (long)((Bitrate(video) + Bitrate(audio)) * 1000),
+            Bandwidth = (Bitrate(video) + Bitrate(audio)) * 1000,
             IsLive = isLive,
             TargetDurationSec = targetDurationSec
         };

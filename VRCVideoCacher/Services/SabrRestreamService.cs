@@ -107,9 +107,9 @@ public static class SabrRestreamService
         Try.Run(() =>
         {
             foreach (var dir in Directory.EnumerateDirectories(HlsRootPath))
-                Try.Run(() => Directory.Delete(dir, true)).OnFailure((ex) =>
+                Try.Run(() => Directory.Delete(dir, true)).OnFailure(ex =>
                     Log.Debug(ex, "Could not remove orphaned SABR session {Dir}", dir));
-        }).OnFailure((ex) => Log.Warning(ex, "Failed to clean orphaned SABR sessions in {Path}", HlsRootPath));
+        }).OnFailure(ex => Log.Warning(ex, "Failed to clean orphaned SABR sessions in {Path}", HlsRootPath));
     }
 
     /// <summary>

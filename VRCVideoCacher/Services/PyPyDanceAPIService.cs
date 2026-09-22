@@ -56,7 +56,7 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
                 await FetchBundle();
 
             return _songs.Find(song => song.Id == videoId);
-        }).GetOrElse((_) => Task.FromResult<PyPyDanceSong?>(null));
+        }).GetOrElse(_ => Task.FromResult<PyPyDanceSong?>(null));
     }
 
     private async Task FetchBundle()
@@ -91,7 +91,7 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
                 Duration = duration,
                 Type = UrlType.PyPyDance
             });
-        }).OnFailure((ex) =>
+        }).OnFailure(ex =>
         {
             Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
             return Unit.TaskValue;

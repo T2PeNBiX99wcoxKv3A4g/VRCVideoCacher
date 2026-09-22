@@ -201,7 +201,7 @@ internal sealed class SabrHlsSession : ISabrSession
                     // the beginning, or an earlier fill already covered the gap. HasAllFragments checks.
                     if (OnFullyFetched is { } onFullyFetched && HasAllFragments())
                         await onFullyFetched(this);
-                }).OnFailure((ex) =>
+                }).OnFailure(ex =>
                 {
                     if (ex is OperationCanceledException) return Unit.TaskValue;
                     _log.Error(ex, "SABR {VideoId}: fill from {Start:0.0}s failed", _videoId, fromMs / 1000.0);
@@ -232,7 +232,7 @@ internal sealed class SabrHlsSession : ISabrSession
         {
             var temp = path + ".part";
             await File.WriteAllBytesAsync(temp, data);
-            Try.Run(() => File.Move(temp, path, true)).GetOrElse((ex) =>
+            Try.Run(() => File.Move(temp, path, true)).GetOrElse(ex =>
             {
                 if (ex is not IOException) ex.Throw();
                 Try.Run(() => File.Delete(temp));
