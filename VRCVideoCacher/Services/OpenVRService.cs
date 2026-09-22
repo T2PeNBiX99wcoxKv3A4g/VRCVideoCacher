@@ -28,7 +28,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
                 var initError = EVRInitError.None;
                 try
                 {
-                    OpenVR.Init(ref initError, EVRApplicationType.VRApplication_Overlay);
+                    OpenVR.Init(ref initError, EVRApplicationType.VRApplication_Background);
                     switch (initError)
                     {
                         case EVRInitError.None:
