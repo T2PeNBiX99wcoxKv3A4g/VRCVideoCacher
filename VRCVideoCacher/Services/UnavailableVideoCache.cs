@@ -42,6 +42,7 @@ public static class UnavailableVideoCache
         "Private video",
         "This video is private",
         "account associated with this video has been terminated",
+        "live stream recording is not available"
     ];
 
     /// <summary>
