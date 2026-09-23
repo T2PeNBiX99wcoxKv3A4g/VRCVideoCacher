@@ -26,6 +26,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
             File.WriteAllText(indexPath, "VRCVideoCacher");
 
         Directory.CreateDirectory(SabrRestreamService.HlsRootPath);
+        Directory.CreateDirectory(NicoRestreamService.HlsRootPath);
 
         _server = CreateWebServer(ConfigManager.Config.YtdlpWebServerUrl);
         _server.RunAsync();
@@ -52,7 +53,10 @@ public partial class WebServer : Singleton<WebServer>, ILog
             // First, we will configure our web server by adding Modules.
             .WithWebApi("/api", m => m
                 .WithController<ApiController>())
-            .WithModule(new NicoRestreamModule("/nico"))
+            // NicoVideo HLS sessions and temp video streaming.
+            .WithModule(new NicoHlsModule("/nico"))
+            .WithStaticFolder("/nico", NicoRestreamService.HlsRootPath, false, m => m
+                .WithContentCaching(false))
             // SABR HLS sessions. The module runs first and falls through to the static file module:
             // it builds the requested segment on demand (fetching or seeking as needed) so the file
             // exists by the time the static module sends it. It is also the session's only liveness
@@ -113,56 +117,29 @@ internal sealed class SabrHlsModule(string baseRoute) : WebModuleBase(baseRoute)
 }
 
 /// <summary>
-/// Handles NicoVideo HLS restream proxy and temporary video streaming.
+/// Materialises the requested NicoVideo HLS file, then lets the static file module actually serve it
+/// (<see cref="IsFinalHandler"/> is false, so routing continues), and handles temp video streaming.
 /// </summary>
-internal sealed class NicoRestreamModule(string baseRoute) : WebModuleBase(baseRoute)
+internal sealed class NicoHlsModule(string baseRoute) : WebModuleBase(baseRoute)
 {
-    public override bool IsFinalHandler => true;
+    public override bool IsFinalHandler => false;
 
     protected override async Task OnRequestAsync(IHttpContext context)
     {
         var path = context.RequestedPath.TrimStart('/');
         if (path.StartsWith("temp/", StringComparison.OrdinalIgnoreCase))
         {
-            var fileName = path[5..];
-            await NicoRestreamService.HandleTempVideoAsync(context, fileName);
+            var tempFileName = path[5..];
+            await NicoRestreamService.HandleTempVideoAsync(context, tempFileName);
             return;
         }
 
-        var parts = path.Split('/');
-        if (parts.Length >= 2)
-        {
-            var videoId = parts[0];
-            var action = parts[1];
+        var slash = path.IndexOf('/');
+        if (slash < 0) return;
+        var videoId = path[..slash];
+        var fileName = path[(slash + 1)..];
+        if (string.IsNullOrEmpty(videoId) || string.IsNullOrEmpty(fileName)) return;
 
-            if (action.Equals("master.m3u8", StringComparison.OrdinalIgnoreCase))
-            {
-                await NicoRestreamService.HandleMasterPlaylistAsync(context, videoId);
-                return;
-            }
-
-            if (action.Equals("audio.m3u8", StringComparison.OrdinalIgnoreCase))
-            {
-                await NicoRestreamService.HandleAudioPlaylistAsync(context, videoId);
-                return;
-            }
-
-            if (action.Equals("video.m3u8", StringComparison.OrdinalIgnoreCase))
-            {
-                await NicoRestreamService.HandleVideoPlaylistAsync(context, videoId);
-                return;
-            }
-
-            if (action.Equals("proxy", StringComparison.OrdinalIgnoreCase) && parts.Length >= 3)
-            {
-                var segmentName = parts[2];
-                await NicoRestreamService.HandleProxyAsync(context, videoId, segmentName);
-                return;
-            }
-        }
-
-        context.Response.StatusCode = 404;
-        await context.SendStringAsync("Not Found", "text/plain", Encoding.UTF8);
-        context.SetHandled();
+        await NicoRestreamService.EnsureAsync(videoId, fileName);
     }
 }
