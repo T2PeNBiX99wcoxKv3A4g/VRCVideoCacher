@@ -71,7 +71,6 @@ public class UiLogSink : ILogEventSink
         {
             Dispatcher.UIThread.Post(() =>
             {
-                App.MainWindow?.Show();
                 _currentPopup?.Close();
                 _currentPopup = null;
                 var source = logEvent.Properties.TryGetValue("SourceContext", out var sourceContext)
@@ -80,11 +79,18 @@ public class UiLogSink : ILogEventSink
                 var message = logEvent.RenderMessage();
                 if (logEvent.Exception != null)
                     message += Environment.NewLine + logEvent.Exception;
-                _currentPopup = new PopupWindow(message)
+                var popup = new PopupWindow(message)
                 {
-                    Title = $"Error from {source}"
+                    Title = $"Error from {source}",
+                    Topmost = true
                 };
-                _ = _currentPopup.ShowDialog(App.MainWindow!);
+                _currentPopup = popup;
+                popup.Closed += (_, _) =>
+                {
+                    if (_currentPopup == popup)
+                        _currentPopup = null;
+                };
+                popup.Show();
             });
         }
         LogService.EmitLogEntry(logEvent);
