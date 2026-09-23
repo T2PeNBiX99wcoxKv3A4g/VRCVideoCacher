@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -35,6 +36,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
     private readonly HttpClient _httpClient;
+    private readonly ConcurrentDictionary<string, (DateTime ExpireAt, NicoVideoResult Result)> _cache = new();
 
     public NicoVideoApiService()
     {
@@ -59,9 +61,12 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [PublicAPI]
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoIdOrUrl)
     {
+        var cleanId = ExtractNicoId(videoIdOrUrl);
+        if (_cache.TryGetValue(cleanId, out var cached) && DateTime.UtcNow < cached.ExpireAt)
+            return cached.Result;
+
         return await Try.Run<NicoVideoResult?>(async () =>
         {
-            var cleanId = ExtractNicoId(videoIdOrUrl);
             var watchUrl = cleanId.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                 ? cleanId
                 : $"https://www.nicovideo.jp/watch/{cleanId}";
@@ -256,6 +261,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             }
 
             result.Cookies = cookieMap;
+            _cache[cleanId] = (DateTime.UtcNow.AddMinutes(5), result);
             return result;
         }).GetOrElse(ex =>
         {
@@ -281,7 +287,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 Title = res.Title,
                 Author = null,
                 Duration = res.Duration != null ? (int?)res.Duration.Value : null,
-                Type = UrlType.Other
+                Type = UrlType.NicoVideo
             });
         }).OnFailure(ex =>
         {

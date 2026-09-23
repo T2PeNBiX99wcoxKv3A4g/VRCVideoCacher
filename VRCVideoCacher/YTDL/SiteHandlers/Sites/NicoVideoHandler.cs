@@ -34,8 +34,8 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
         {
             VideoUrl = url,
             VideoId = videoId,
-            UrlType = UrlType.Other,
-            DownloadFormat = DownloadFormat.MP4
+            UrlType = UrlType.NicoVideo,
+            DownloadFormat = avPro ? DownloadFormat.Webm : DownloadFormat.MP4
         });
     }
 

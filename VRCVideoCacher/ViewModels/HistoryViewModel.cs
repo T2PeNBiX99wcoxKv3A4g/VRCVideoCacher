@@ -43,6 +43,7 @@ public partial class HistoryItemViewModel : ViewModelBase
         UrlType.YouTube => "YouTube",
         UrlType.PyPyDance => "PyPyDance",
         UrlType.VRDancing => "VRDancing",
+        UrlType.NicoVideo => "NicoVideo",
         _ => "Other"
     };
 
@@ -51,6 +52,7 @@ public partial class HistoryItemViewModel : ViewModelBase
         UrlType.YouTube => new SolidColorBrush(Color.Parse("#CC0000")),
         UrlType.PyPyDance => new SolidColorBrush(Color.Parse("#4A90D9")),
         UrlType.VRDancing => new SolidColorBrush(Color.Parse("#7B68EE")),
+        UrlType.NicoVideo => new SolidColorBrush(Color.Parse("#252525")),
         _ => new SolidColorBrush(Color.Parse("#555555"))
     };
 

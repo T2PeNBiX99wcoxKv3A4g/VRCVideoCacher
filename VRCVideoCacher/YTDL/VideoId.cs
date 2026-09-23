@@ -170,6 +170,13 @@ public partial class VideoId : Singleton<VideoId>
     [PublicAPI]
     public async Task<Tuple<string, bool>> GetUrl2(VideoInfo videoInfo, bool avPro)
     {
+        if (videoInfo.UrlType == UrlType.NicoVideo)
+        {
+            var nicoResult = await NicoVideoApiService.FetchVideoResult(videoInfo.VideoId);
+            if (!string.IsNullOrEmpty(nicoResult?.StreamUrl))
+                return new(nicoResult.StreamUrl, true);
+        }
+
         // if url contains "results?" then it's a search
         if (videoInfo.VideoUrl.Contains("results?") && videoInfo.UrlType == UrlType.YouTube)
         {

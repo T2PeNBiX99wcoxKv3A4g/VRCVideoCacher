@@ -72,6 +72,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                 UrlType.YouTube => await DownloadYouTubeVideo(queueItem),
                 UrlType.PyPyDance => await DownloadVideoWithId(queueItem),
                 UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem),
+                UrlType.NicoVideo => await DownloadNicoVideo(queueItem),
                 UrlType.Other => await DownloadGenericVideo(queueItem),
                 _ => throw new ArgumentOutOfRangeException()
             }).GetOrElse(ex =>
@@ -419,6 +420,67 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         CacheManager.AddToCache(fileName);
         Log.Information("Generic Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        return true;
+    }
+
+    private async Task<bool> DownloadNicoVideo(VideoInfo videoInfo)
+    {
+        using var tempDir = new TempDir();
+        var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
+
+        var url = videoInfo.VideoUrl;
+        using var process = new Process();
+        process.StartInfo = new()
+        {
+            FileName = YtdlManager.YtdlPath,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+            Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\""
+        };
+
+        Log.Information("Downloading NicoVideo Video: {Args}", process.StartInfo.Arguments);
+        process.Start();
+        var error = await ChildProcessTracker.Tracking(process, async () =>
+        {
+            await process.WaitForExitAsync();
+            return (await process.StandardError.ReadToEndAsync()).Trim();
+        });
+
+        if (process.ExitCode != 0)
+        {
+            Log.Error("Failed to download NicoVideo Video: {ExitCode} {Url} {Error}", process.ExitCode, url, error);
+            return false;
+        }
+
+        await Task.Delay(100);
+
+        var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        if (File.Exists(filePath))
+        {
+            Log.Error("File already exists, canceling...");
+            Try.Run(() =>
+            {
+                if (File.Exists(tempDownloadMp4Path))
+                    File.Delete(tempDownloadMp4Path);
+            }).OnFailure(ex => Log.Error(ex, "Failed to delete temp file: {Ex}", ex.ToString()));
+            return false;
+        }
+
+        if (File.Exists(tempDownloadMp4Path))
+            File.Move(tempDownloadMp4Path, filePath);
+        else
+        {
+            Log.Error("Failed to download NicoVideo Video: {Url}", url);
+            return false;
+        }
+
+        CacheManager.AddToCache(fileName);
+        Log.Information("NicoVideo Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
