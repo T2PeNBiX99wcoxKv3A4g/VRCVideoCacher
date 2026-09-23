@@ -3,7 +3,6 @@ using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using Avalonia.Platform;
 using JetBrains.Annotations;
-using Microsoft.Win32;
 using Swan;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;

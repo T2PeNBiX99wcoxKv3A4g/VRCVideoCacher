@@ -171,7 +171,7 @@ public partial class CacheManager : Singleton<CacheManager>
                 var thumbnailPath = ThumbnailManager.GetThumbnailPath(videoId);
                 if (File.Exists(thumbnailPath))
                     File.Delete(thumbnailPath);
-            }).OnFailure(ex => Log.Error("Failed to delete {FileName}: {Error}", fileName, ex.ToString()));
+            }).OnFailure(ex => Log.Error(ex, "Failed to delete {FileName}: {Error}", fileName, ex.ToString()));
         }
 
         _cachedAssets.Clear();

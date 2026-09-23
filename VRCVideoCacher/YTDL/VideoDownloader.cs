@@ -73,7 +73,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                 _ => throw new ArgumentOutOfRangeException()
             }).GetOrElse(ex =>
             {
-                Log.Error("Exception during download: {Ex}", ex.ToString());
+                Log.Error(ex, "Exception during download: {Ex}", ex.ToString());
                 return Task.FromResult(false);
             });
 
@@ -132,7 +132,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         var videoId = await Try.Run<string?>(async () => await VideoId.TryGetYouTubeVideoId(url)).GetOrElse(ex =>
         {
-            Log.Error("Not downloading YouTube video: {Url} {Ex}", url, ex.ToString());
+            Log.Error(ex, "Not downloading YouTube video: {Url} {Ex}", url, ex.ToString());
             return Task.FromResult<string?>(null);
         });
 

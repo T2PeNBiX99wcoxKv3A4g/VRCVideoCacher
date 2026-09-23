@@ -92,7 +92,7 @@ public partial class BulkPreCache : Singleton<BulkPreCache>
             }
             catch (HttpRequestException ex)
             {
-                Log.Error("Error downloading {FileName}: {ExMessage}", file.FileName, ex.ToString());
+                Log.Error(ex, "Error downloading {FileName}: {ExMessage}", file.FileName, ex.ToString());
             }
         }
     }

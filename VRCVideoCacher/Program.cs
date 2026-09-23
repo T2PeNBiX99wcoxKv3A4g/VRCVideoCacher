@@ -300,7 +300,7 @@ internal sealed class Program
             return response.StatusCode == HttpStatusCode.OK;
         }).GetOrElse(ex =>
         {
-            Logger.Warning("Failed to validate cookies online: {Error}", ex.ToString());
+            Logger.Warning(ex, "Failed to validate cookies online: {Error}", ex.ToString());
             return Task.FromResult<bool?>(null);
         });
     }

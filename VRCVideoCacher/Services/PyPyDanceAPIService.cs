@@ -93,7 +93,7 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
             });
         }).OnFailure(ex =>
         {
-            Log.Error("Failed to download video metadata: {Ex}", ex.ToString());
+            Log.Error(ex, "Failed to download video metadata: {Ex}", ex.ToString());
             return Unit.TaskValue;
         });
     }

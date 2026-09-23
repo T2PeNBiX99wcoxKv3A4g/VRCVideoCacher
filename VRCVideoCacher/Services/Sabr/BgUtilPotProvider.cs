@@ -45,8 +45,7 @@ internal static class BgUtilPotProvider
 
     // Port conflicts change only the runtime URL, not the configured preference.
 
-    [PublicAPI]
-    public static string BaseUrl { get; private set; } = ConfigManager.Config.SabrPotBaseUrl.TrimEnd('/');
+    [PublicAPI] public static string BaseUrl { get; private set; } = ConfigManager.Config.SabrPotBaseUrl.TrimEnd('/');
 
     /// <summary>
     /// Non-blocking readiness snapshot; use <see cref="WaitReadyAsync"/> to wait for startup.
