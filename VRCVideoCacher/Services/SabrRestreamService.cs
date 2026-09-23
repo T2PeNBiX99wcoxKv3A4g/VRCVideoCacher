@@ -74,6 +74,8 @@ public static class SabrRestreamService
     /// <summary>Directory HLS sessions are written to; served by EmbedIO at <c>/hls</c>.</summary>
     public static string HlsRootPath { get; } = Path.Join(Program.DataPath, "hls");
 
+    private static bool _isExit;
+
     /// <summary>
     /// Whether the streamed media can double as the cached copy, so the video is fetched once instead of
     /// twice. Only when the two resolutions agree: <c>SabrMaxResolution</c> governs STREAMING and
@@ -300,7 +302,7 @@ public static class SabrRestreamService
     public static async Task<string?> TryGetLivePlaylistAsync(string requestedPath)
     {
         var parts = requestedPath.Trim('/').Split('/');
-        if (parts.Length != 2 || parts[1] != HlsPlaylist.PlaylistName)
+        if (parts is not [_, HlsPlaylist.PlaylistName])
             return null;
         if (!Sessions.TryGetValue(parts[0], out var session) || session is not SabrLiveSession live)
             return null;
@@ -344,8 +346,9 @@ public static class SabrRestreamService
 
     private static async Task ReaperLoop()
     {
-        while (true)
+        while (!Volatile.Read(ref _isExit))
         {
+            if (Volatile.Read(ref _isExit)) break;
             // Polled often, because the live timeout is short and every extra second of an unwatched
             // live session is bandwidth spent on nothing.
             await Task.Delay(TimeSpan.FromSeconds(5));
@@ -385,7 +388,6 @@ public static class SabrRestreamService
                 session.Dispose();
             }
         }
-        // ReSharper disable once FunctionNeverReturns
     }
 
     /// <summary>
@@ -409,6 +411,7 @@ public static class SabrRestreamService
 
     private static void ShutdownAll()
     {
+        Interlocked.Exchange(ref _isExit, true);
         foreach (var (id, session) in Sessions)
         {
             Sessions.TryRemove(id, out _);
