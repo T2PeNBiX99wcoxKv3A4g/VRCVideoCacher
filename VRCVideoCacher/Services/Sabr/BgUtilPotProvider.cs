@@ -264,7 +264,7 @@ internal static class BgUtilPotProvider
 
     private static async Task SuperviseAsync()
     {
-        while (!_isExit)
+        while (!Volatile.Read(ref _isExit))
         {
             await Try.Run(async () =>
             {
@@ -284,7 +284,7 @@ internal static class BgUtilPotProvider
                 return Unit.TaskValue;
             });
 
-            if (_isExit) break;
+            if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(TimeSpan.FromSeconds(_isReady ? 15 : 3));
         }
     }
