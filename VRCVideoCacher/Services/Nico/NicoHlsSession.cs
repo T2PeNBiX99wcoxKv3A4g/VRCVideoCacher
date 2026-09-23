@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Serilog;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
@@ -14,7 +15,7 @@ internal sealed partial class NicoHlsSession : IDisposable
 {
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
-    public const string UserAgent =
+    private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
     private readonly string _videoId;
@@ -45,7 +46,7 @@ internal sealed partial class NicoHlsSession : IDisposable
     private readonly ConcurrentDictionary<int, Lazy<Task>> _building = new();
     public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
 
-    public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
+    [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
 
     [GeneratedRegex(@"#EXT-X-MEDIA:TYPE=AUDIO[^\n]*URI=""([^""]+)""", RegexOptions.Compiled)]
     private static partial Regex AudioMediaRegex();
@@ -130,7 +131,8 @@ internal sealed partial class NicoHlsSession : IDisposable
 
         var videoText = await FetchTextAsync(httpClient, videoVariantUrl, cookies, cts.Token);
         var videoSegments = new List<NicoSegmentItem>();
-        ParseVariantPlaylist(videoText, videoVariantUrl, out var videoInitUrl, out var videoKeyUrl, out var videoKeyIv, videoSegments);
+        ParseVariantPlaylist(videoText, videoVariantUrl, out var videoInitUrl, out var videoKeyUrl, out var videoKeyIv,
+            videoSegments);
 
         if (videoSegments.Count == 0)
             throw new InvalidOperationException($"No video segments found in video playlist for {videoId}");
@@ -142,7 +144,8 @@ internal sealed partial class NicoHlsSession : IDisposable
         if (!string.IsNullOrEmpty(audioVariantUrl))
         {
             var audioText = await FetchTextAsync(httpClient, audioVariantUrl, cookies, cts.Token);
-            ParseVariantPlaylist(audioText, audioVariantUrl, out audioInitUrl, out audioKeyUrl, out audioKeyIv, audioSegments);
+            ParseVariantPlaylist(audioText, audioVariantUrl, out audioInitUrl, out audioKeyUrl, out audioKeyIv,
+                audioSegments);
         }
 
         var session = new NicoHlsSession(
@@ -166,7 +169,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         log.Information("NicoVideo HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s",
             videoId, videoSegments.Count, session.TotalDurationSeconds);
 
-        _ = Task.Run(() => session.BuildSegmentAsync(0));
+        _ = Task.Run(() => session.BuildSegmentAsync(0), cts.Token);
 
         return session;
     }
@@ -223,6 +226,7 @@ internal sealed partial class NicoHlsSession : IDisposable
             index = parsed;
             return true;
         }
+
         return false;
     }
 
@@ -246,7 +250,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         if (File.Exists(segmentPath) && (segment > 0 || File.Exists(initPath)))
             return;
 
-        var lazy = _building.GetOrAdd(segment, s => new Lazy<Task>(
+        var lazy = _building.GetOrAdd(segment, s => new(
             () => BuildSegmentCoreAsync(s, segmentPath, initPath),
             LazyThreadSafetyMode.ExecutionAndPublication));
 
@@ -273,14 +277,14 @@ internal sealed partial class NicoHlsSession : IDisposable
         if (_cachedVideoKey == null && !string.IsNullOrEmpty(videoKeyUrl))
             _cachedVideoKey = await FetchBytesAsync(_httpClient, videoKeyUrl, _cookies);
 
-        NicoSegmentItem? audioSeg = segment < _audioSegments.Count ? _audioSegments[segment] : null;
+        var audioSeg = segment < _audioSegments.Count ? _audioSegments[segment] : null;
         var audioKeyUrl = audioSeg?.KeyUrl ?? _audioKeyUrl;
         if (_cachedAudioKey == null && !string.IsNullOrEmpty(audioKeyUrl))
             _cachedAudioKey = await FetchBytesAsync(_httpClient, audioKeyUrl, _cookies);
 
         var rawVideoBytes = await FetchBytesAsync(_httpClient, videoSeg.Url, _cookies);
         var videoBytes = rawVideoBytes;
-        if (_cachedVideoKey != null && _cachedVideoKey.Length > 0)
+        if (_cachedVideoKey is { Length: > 0 })
         {
             var iv = ParseIv(videoSeg.KeyIv ?? _videoKeyIv, segment + 1);
             videoBytes = DecryptAes128(rawVideoBytes, _cachedVideoKey, iv);
@@ -291,7 +295,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         {
             var rawAudioBytes = await FetchBytesAsync(_httpClient, audioSeg.Url, _cookies);
             audioBytes = rawAudioBytes;
-            if (_cachedAudioKey != null && _cachedAudioKey.Length > 0)
+            if (_cachedAudioKey is { Length: > 0 })
             {
                 var iv = ParseIv(audioSeg.KeyIv ?? _audioKeyIv, segment + 1);
                 audioBytes = DecryptAes128(rawAudioBytes, _cachedAudioKey, iv);
@@ -299,9 +303,15 @@ internal sealed partial class NicoHlsSession : IDisposable
         }
 
         var startMs = _startMs[segment];
-        var audioList = audioBytes != null ? new List<byte[]> { audioBytes } : (IReadOnlyList<byte[]>)Array.Empty<byte[]>();
+        var audioList = audioBytes != null
+            ? new List<byte[]>
+            {
+                audioBytes
+            }
+            : (IReadOnlyList<byte[]>)Array.Empty<byte[]>();
 
-        await _muxer.MuxDirectSegmentAsync(videoInit, videoBytes, audioInit, audioList, startMs, segment + 1, segmentPath, initPath);
+        await _muxer.MuxDirectSegmentAsync(videoInit, videoBytes, audioInit, audioList, startMs, segment + 1, segmentPath,
+            initPath);
     }
 
     private static byte[] ParseIv(string? ivHex, int sequenceNumber)
@@ -310,7 +320,6 @@ internal sealed partial class NicoHlsSession : IDisposable
         {
             var hex = ivHex.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? ivHex[2..] : ivHex;
             if (hex.Length == 32)
-            {
                 try
                 {
                     return Convert.FromHexString(hex);
@@ -319,8 +328,8 @@ internal sealed partial class NicoHlsSession : IDisposable
                 {
                     // fallback
                 }
-            }
         }
+
         var iv = new byte[16];
         BinaryPrimitives.WriteUInt64BigEndian(iv.AsSpan(8), (ulong)sequenceNumber);
         return iv;
@@ -350,7 +359,8 @@ internal sealed partial class NicoHlsSession : IDisposable
         }
     }
 
-    private static async Task<string> FetchTextAsync(HttpClient client, string url, Dictionary<string, string> cookies, CancellationToken ct = default)
+    private static async Task<string> FetchTextAsync(HttpClient client, string url, Dictionary<string, string> cookies,
+        CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
@@ -367,7 +377,8 @@ internal sealed partial class NicoHlsSession : IDisposable
         return await res.Content.ReadAsStringAsync(ct);
     }
 
-    private static async Task<byte[]> FetchBytesAsync(HttpClient client, string url, Dictionary<string, string> cookies, CancellationToken ct = default)
+    private static async Task<byte[]> FetchBytesAsync(HttpClient client, string url, Dictionary<string, string> cookies,
+        CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
@@ -390,7 +401,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         var maxBandwidth = -1L;
 
         var audioMatch = AudioMediaRegex().Match(masterText);
-        string? audioUrl = audioMatch.Success ? ResolveUrl(masterBaseUrl, audioMatch.Groups[1].Value) : null;
+        var audioUrl = audioMatch.Success ? ResolveUrl(masterBaseUrl, audioMatch.Groups[1].Value) : null;
 
         var lines = masterText.Split('\n');
         for (var i = 0; i < lines.Length; i++)
@@ -414,6 +425,7 @@ internal sealed partial class NicoHlsSession : IDisposable
                         maxBandwidth = bandwidth;
                         bestVideoUrl = candidateUrl;
                     }
+
                     break;
                 }
             }
@@ -448,8 +460,8 @@ internal sealed partial class NicoHlsSession : IDisposable
 
         var lines = playlistText.Split('\n');
         double? currentDuration = null;
-        string? currentKeyUrl = defaultKeyUrl;
-        string? currentKeyIv = defaultKeyIv;
+        var currentKeyUrl = defaultKeyUrl;
+        var currentKeyIv = defaultKeyIv;
 
         foreach (var rawLine in lines)
         {
@@ -464,13 +476,15 @@ internal sealed partial class NicoHlsSession : IDisposable
                     currentKeyUrl = ResolveUrl(playlistBaseUrl, km.Groups[1].Value);
                     currentKeyIv = km.Groups.Count > 2 && km.Groups[2].Success ? km.Groups[2].Value : defaultKeyIv;
                 }
+
                 continue;
             }
 
             if (line.StartsWith("#EXTINF:", StringComparison.OrdinalIgnoreCase))
             {
                 var infMatch = ExtInfRegex().Match(line);
-                if (infMatch.Success && double.TryParse(infMatch.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                if (infMatch.Success && double.TryParse(infMatch.Groups[1].Value, NumberStyles.Any,
+                        CultureInfo.InvariantCulture, out var d))
                     currentDuration = d;
                 continue;
             }
@@ -497,7 +511,7 @@ internal sealed partial class NicoHlsSession : IDisposable
     {
         if (Uri.TryCreate(relativeOrAbsolute, UriKind.Absolute, out var absUri))
             return absUri.ToString();
-        if (Uri.TryCreate(new Uri(baseUrl), relativeOrAbsolute, out var resolvedUri))
+        if (Uri.TryCreate(new(baseUrl), relativeOrAbsolute, out var resolvedUri))
             return resolvedUri.ToString();
         return relativeOrAbsolute;
     }

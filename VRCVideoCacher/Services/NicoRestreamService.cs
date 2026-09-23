@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using EmbedIO;
 using JetBrains.Annotations;
 using Serilog;
-using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Nico;
 using VRCVideoCacher.Utils;
@@ -77,13 +76,9 @@ public static class NicoRestreamService
             await Task.Delay(TimeSpan.FromMinutes(2));
             var now = DateTime.UtcNow;
             foreach (var (id, session) in Sessions)
-            {
                 if (now - session.LastAccess > TimeSpan.FromMinutes(15))
-                {
                     if (Sessions.TryRemove(id, out var removed))
                         Try.Run(removed.Dispose);
-                }
-            }
         }
     }
 
@@ -120,7 +115,7 @@ public static class NicoRestreamService
             return existing;
         }
 
-        var lazy = Starting.GetOrAdd(videoId, id => new Lazy<Task<NicoHlsSession?>>(async () =>
+        var lazy = Starting.GetOrAdd(videoId, id => new(async () =>
         {
             try
             {
@@ -200,7 +195,8 @@ public static class NicoRestreamService
                 if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
                 {
                     tempDir.Dispose();
-                    Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, key, error);
+                    Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode,
+                        key, error);
                     return null;
                 }
 

@@ -1,4 +1,3 @@
-using System.Text;
 using EmbedIO;
 using EmbedIO.Files;
 using EmbedIO.WebApi;

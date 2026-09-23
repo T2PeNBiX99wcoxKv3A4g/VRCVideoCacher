@@ -44,21 +44,17 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
                 : "+delay_moov+default_base_moof";
 
             if (hasAudio)
-            {
                 await RunFfmpegAsync(
                     $"-y -loglevel error -copyts -i \"{videoInput}\" -i \"{audioInput}\" " +
                     $"-map 0:v:0 -map 1:a:0 -c copy -avoid_negative_ts disabled -f mp4 " +
                     $"-frag_duration 600000000 " +
                     $"-movflags {movFlags} \"{output}\"", ct);
-            }
             else
-            {
                 await RunFfmpegAsync(
                     $"-y -loglevel error -copyts -i \"{videoInput}\" " +
                     $"-map 0:v:0 -c copy -avoid_negative_ts disabled -f mp4 " +
                     $"-frag_duration 600000000 " +
                     $"-movflags +delay_moov+default_base_moof \"{output}\"", ct);
-            }
 
             var muxed = await File.ReadAllBytesAsync(output, ct);
             var mediaStart = FindMoof(muxed);
@@ -76,22 +72,24 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
             await WriteAtomicAsync(segmentPath, media, ct);
         }).OnFinally(() =>
         {
-            foreach (var path in new[] { videoInput, audioInput, output })
+            foreach (var path in new[]
+                     {
+                         videoInput, audioInput, output
+                     })
                 Try.Run(() => File.Delete(path));
             return Unit.TaskValue;
         }).GetOrThrow();
     }
 
-    private static async Task WriteConcatenatedAsync(string path, byte[] init, IReadOnlyList<byte[]> fragments, CancellationToken ct)
+    private static async Task WriteConcatenatedAsync(string path, byte[] init, IReadOnlyList<byte[]> fragments,
+        CancellationToken ct)
     {
-        await using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 64 * 1024, useAsync: true);
+        await using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 64 * 1024, true);
         if (init.Length > 0)
             await fs.WriteAsync(init, ct);
         foreach (var fragment in fragments)
-        {
             if (fragment.Length > 0)
                 await fs.WriteAsync(fragment, ct);
-        }
     }
 
     private static async Task WriteAtomicAsync(string path, byte[] data, CancellationToken ct)
@@ -106,8 +104,7 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
         });
     }
 
-    private static bool IsWebmInit(byte[] init) =>
-        init.Length >= 4 && init[0] == 0x1A && init[1] == 0x45 && init[2] == 0xDF && init[3] == 0xA3;
+    private static bool IsWebmInit(byte[] init) => init is [0x1A, 0x45, 0xDF, 0xA3, ..];
 
     private static void StampFragmentIdentity(Span<byte> media, ReadOnlySpan<byte> init, long startMs, int sequenceNumber)
     {
@@ -125,7 +122,8 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
         }
     }
 
-    private static void SetDecodeTimes(Span<byte> media, (int Start, int End) moof, Dictionary<uint, uint> timescales, long startMs)
+    private static void SetDecodeTimes(Span<byte> media, (int Start, int End) moof, Dictionary<uint, uint> timescales,
+        long startMs)
     {
         foreach (var traf in Children(media[moof.Start..moof.End], "traf"u8))
         {
@@ -204,7 +202,7 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
         return found;
     }
 
-    internal static int FindMoof(ReadOnlySpan<byte> data)
+    private static int FindMoof(ReadOnlySpan<byte> data)
     {
         var offset = 0;
         while (offset + 8 <= data.Length)
