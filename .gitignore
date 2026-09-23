@@ -14,3 +14,5 @@ publish/
 # Runtime files
 *.log
 nul
+
+.temp/
