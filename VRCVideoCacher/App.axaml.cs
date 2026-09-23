@@ -8,6 +8,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Jeek.Avalonia.Localization;
+using JetBrains.Annotations;
 using VRCVideoCacher.Languages;
 using VRCVideoCacher.ViewModels;
 using VRCVideoCacher.Views;
@@ -22,6 +23,7 @@ public class App : Application
     private const uint WmQueryEndSession = 0x0011;
     private const uint WmEndSession = 0x0016;
     private const int ScClose = 0xF060;
+    [PublicAPI]
     public static MainWindow? MainWindow;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private NativeMenuItem? _exitItem;
