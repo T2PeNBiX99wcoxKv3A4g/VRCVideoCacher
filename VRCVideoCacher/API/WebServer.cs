@@ -52,6 +52,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
             // First, we will configure our web server by adding Modules.
             .WithWebApi("/api", m => m
                 .WithController<ApiController>())
+            .WithModule(new NicoRestreamModule("/nico"))
             // SABR HLS sessions. The module runs first and falls through to the static file module:
             // it builds the requested segment on demand (fetching or seeking as needed) so the file
             // exists by the time the static module sends it. It is also the session's only liveness
@@ -108,5 +109,48 @@ internal sealed class SabrHlsModule(string baseRoute) : WebModuleBase(baseRoute)
         }
 
         await SabrRestreamService.EnsureAsync(context.RequestedPath);
+    }
+}
+
+/// <summary>
+/// Handles NicoVideo HLS restream proxy and temporary video streaming.
+/// </summary>
+internal sealed class NicoRestreamModule(string baseRoute) : WebModuleBase(baseRoute)
+{
+    public override bool IsFinalHandler => true;
+
+    protected override async Task OnRequestAsync(IHttpContext context)
+    {
+        var path = context.RequestedPath.TrimStart('/');
+        if (path.StartsWith("temp/", StringComparison.OrdinalIgnoreCase))
+        {
+            var fileName = path[5..];
+            var videoId = Path.GetFileNameWithoutExtension(fileName);
+            await NicoRestreamService.HandleTempVideoAsync(context, videoId);
+            return;
+        }
+
+        var parts = path.Split('/');
+        if (parts.Length >= 2)
+        {
+            var videoId = parts[0];
+            var action = parts[1];
+
+            if (action.Equals("master.m3u8", StringComparison.OrdinalIgnoreCase))
+            {
+                await NicoRestreamService.HandleMasterPlaylistAsync(context, videoId);
+                return;
+            }
+
+            if (action.Equals("proxy", StringComparison.OrdinalIgnoreCase))
+            {
+                await NicoRestreamService.HandleProxyAsync(context, videoId);
+                return;
+            }
+        }
+
+        context.Response.StatusCode = 404;
+        await context.SendStringAsync("Not Found", "text/plain", Encoding.UTF8);
+        context.SetHandled();
     }
 }
