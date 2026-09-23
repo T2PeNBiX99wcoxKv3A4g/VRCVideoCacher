@@ -29,7 +29,6 @@ public class App : Application
     private bool _isExiting;
     private NativeMenuItem? _openCacheItem;
     private NativeMenuItem? _showItem;
-    private TrayIcon? _trayIcon;
 
     public override void Initialize()
     {
@@ -93,12 +92,7 @@ public class App : Application
             MainWindow.Opened += OnMainWindowOpened;
 
             // Allow the app to exit cleanly on OS shutdown/logoff
-            desktop.ShutdownRequested += (_, _) =>
-            {
-                _isExiting = true;
-                _trayIcon?.Dispose();
-                _trayIcon = null;
-            };
+            desktop.ShutdownRequested += (_, _) => { _isExiting = true; };
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -142,8 +136,6 @@ public class App : Application
         {
             if (_isExiting) return;
             _isExiting = true;
-            _trayIcon?.Dispose();
-            _trayIcon = null;
             _desktop?.Shutdown();
             handled = true;
         }
@@ -169,8 +161,6 @@ public class App : Application
                 Dispatcher.UIThread.Post(() =>
                 {
                     _isExiting = true;
-                    _trayIcon?.Dispose();
-                    _trayIcon = null;
                     _desktop?.Shutdown();
                 });
             });
@@ -182,8 +172,6 @@ public class App : Application
                     return;
 
                 _isExiting = true;
-                _trayIcon?.Dispose();
-                _trayIcon = null;
                 _desktop?.Shutdown();
             };
         }
@@ -217,7 +205,7 @@ public class App : Application
             _exitItem
         };
 
-        _trayIcon = new()
+        var trayIcon = new TrayIcon
         {
             ToolTipText = "VRCVideoCacher",
             Icon = new(AssetLoader.Open(new("avares://VRCVideoCacher/Assets/icon.ico"))),
@@ -225,7 +213,9 @@ public class App : Application
             IsVisible = true
         };
 
-        _trayIcon.Clicked += (_, _) => ShowMainWindow();
+        trayIcon.Clicked += (_, _) => ShowMainWindow();
+
+        TrayIcon.SetIcons(this, [trayIcon]);
     }
 
     private static void ShowMainWindow()
