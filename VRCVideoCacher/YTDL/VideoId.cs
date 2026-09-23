@@ -81,13 +81,6 @@ public partial class VideoId : Singleton<VideoId>
     [PublicAPI]
     public async Task<string> TryGetYouTubeVideoId2(string url)
     {
-        var (id, _) = await TryGetYouTubeVideoInfo2(url);
-        return id;
-    }
-
-    [PublicAPI]
-    public async Task<(string VideoId, string RawJson)> TryGetYouTubeVideoInfo2(string url)
-    {
         var args = new List<string>
         {
             "-j"
@@ -97,20 +90,20 @@ public partial class VideoId : Singleton<VideoId>
         if (exitCode != 0)
         {
             Log.Warning("Failed to get video ID: {Error}", error.Trim());
-            return (string.Empty, string.Empty);
+            return string.Empty;
         }
 
         if (string.IsNullOrEmpty(rawData))
         {
             Log.Warning("Failed to get video ID");
-            return (string.Empty, string.Empty);
+            return string.Empty;
         }
 
         var data = JsonSerializer.Deserialize(rawData, VideoIdJsonContext.Default.YtdlpVideoInfo);
         if (data?.Id is null || data.Duration is null)
         {
             Log.Warning("Failed to get video ID");
-            return (string.Empty, string.Empty);
+            return string.Empty;
         }
 
         await DatabaseManager.AddVideoInfoCacheAsync(new()
@@ -125,7 +118,7 @@ public partial class VideoId : Singleton<VideoId>
         if (data.IsLive == true)
         {
             Log.Warning("Failed to get video ID: Video is a stream");
-            return (string.Empty, string.Empty);
+            return string.Empty;
         }
 
         // ReSharper disable once InvertIf
@@ -133,10 +126,10 @@ public partial class VideoId : Singleton<VideoId>
         {
             Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length}s > {Max}s)",
                 data.Duration, ConfigManager.Config.CacheYouTubeMaxLength * 60);
-            return (string.Empty, string.Empty);
+            return string.Empty;
         }
 
-        return (data.Id, rawData);
+        return data.Id;
     }
 
     [PublicAPI]
