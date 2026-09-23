@@ -67,7 +67,7 @@ public partial class CacheItemViewModel : ViewModelBase
             ThumbnailSource = thumbnailPath;
     }
 
-    public string GetWebUrl()
+    private string GetWebUrl()
     {
         if (VideoId.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
             VideoId.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
