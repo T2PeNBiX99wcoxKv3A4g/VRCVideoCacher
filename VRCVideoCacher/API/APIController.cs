@@ -182,6 +182,33 @@ public class ApiController : WebApiController
             return;
         }
 
+        if (videoInfo.UrlType == UrlType.NicoVideo)
+        {
+            if (!ConfigManager.Config.CacheNicoVideo)
+            {
+                Log.Warning("CacheNicoVideo is disabled, but NicoVideo cannot be streamed directly: Bypassing.");
+                await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
+                return;
+            }
+
+            Log.Information("NicoVideo requested, downloading and waiting for cache for {VideoId}...", videoInfo.VideoId);
+            var downloaded = await VideoDownloader.DownloadAndWaitAsync(videoInfo, TimeSpan.FromMinutes(2), true);
+            (isCached, filePath, fileName) = GetCachedFile(videoInfo.VideoId, avPro);
+            if (downloaded && isCached)
+            {
+                File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
+                var url = $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}";
+                Log.Information("Responding with Cached NicoVideo URL: {Url}", url);
+                await HttpContext.SendStringAsync(url, "text/plain", Encoding.UTF8);
+                return;
+            }
+
+            Log.Warning("Failed to download or cache NicoVideo: {VideoId}", videoInfo.VideoId);
+            HttpContext.Response.StatusCode = 500;
+            await HttpContext.SendStringAsync("Failed to download NicoVideo.", "text/plain", Encoding.UTF8);
+            return;
+        }
+
         // SABR-first (SabrPreferStreaming): route every AVPro YouTube request through the SABR restream
         // path before trying the legacy direct URL. SABR serves HLS, which only AVPro can play — the Unity
         // built-in player (avpro=false) can't, so it must take the legacy direct-URL path below instead.

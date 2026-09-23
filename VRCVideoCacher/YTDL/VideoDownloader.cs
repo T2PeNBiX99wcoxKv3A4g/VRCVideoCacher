@@ -26,7 +26,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         }
     };
 
-    private readonly ConcurrentQueue<VideoInfo> _downloadQueue = new();
+    private readonly LinkedList<VideoInfo> _downloadQueue = new();
+    private readonly object _queueLock = new();
+    private readonly ConcurrentDictionary<string, List<TaskCompletionSource<bool>>> _waiters = new();
 
     // Current download tracking
     private VideoInfo? _currentDownload;
@@ -43,23 +45,32 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     public static event Action<VideoInfo, bool>? OnDownloadCompleted;
     public static event Action? OnQueueChanged;
 
+    private static string GetDownloadKey(VideoInfo info) => $"{info.VideoId}_{info.DownloadFormat}";
+
     private async Task DownloadThread()
     {
         while (!Volatile.Read(ref _isExit))
         {
             if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(100);
-            if (_downloadQueue.IsEmpty)
+
+            VideoInfo? queueItem;
+            lock (_queueLock)
             {
-                _currentDownload = null;
-                continue;
+                if (_downloadQueue.Count == 0)
+                {
+                    _currentDownload = null;
+                    continue;
+                }
+
+                queueItem = _downloadQueue.First?.Value;
+                if (queueItem == null)
+                    continue;
+
+                _downloadQueue.RemoveFirst();
+                _currentDownload = queueItem;
             }
 
-            _downloadQueue.TryDequeue(out var queueItem);
-            if (queueItem == null)
-                continue;
-
-            _currentDownload = queueItem;
             OnDownloadStarted?.Invoke(queueItem);
 
             // Indeterminate: the download runs through a yt-dlp subprocess (YouTube) or a redirected HTTP
@@ -81,6 +92,16 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                 return Task.FromResult(false);
             });
 
+            var key = GetDownloadKey(queueItem);
+            if (_waiters.TryRemove(key, out var tcsList))
+            {
+                lock (tcsList)
+                {
+                    foreach (var tcs in tcsList)
+                        tcs.TrySetResult(success);
+                }
+            }
+
             OnDownloadCompleted?.Invoke(queueItem, success);
             OnQueueChanged?.Invoke();
             _currentDownload = null;
@@ -88,35 +109,133 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     }
 
     [PublicAPI]
-    public void QueueDownload2(VideoInfo videoInfo)
+    public void QueueDownload2(VideoInfo videoInfo, bool highPriority = false)
     {
-        if (_downloadQueue.Any(x => x.VideoId == videoInfo.VideoId &&
-                                    x.DownloadFormat == videoInfo.DownloadFormat))
-            // Log.Information("URL is already in the download queue.");
-            return;
-        if (_currentDownload != null &&
-            _currentDownload.VideoId == videoInfo.VideoId &&
-            _currentDownload.DownloadFormat == videoInfo.DownloadFormat)
-            // Log.Information("URL is already being downloaded.");
-            return;
+        lock (_queueLock)
+        {
+            if (_currentDownload != null &&
+                _currentDownload.VideoId == videoInfo.VideoId &&
+                _currentDownload.DownloadFormat == videoInfo.DownloadFormat)
+                return;
 
-        _downloadQueue.Enqueue(videoInfo);
-        OnQueueChanged?.Invoke();
+            var existingNode = _downloadQueue.First;
+            while (existingNode != null)
+            {
+                if (existingNode.Value.VideoId == videoInfo.VideoId &&
+                    existingNode.Value.DownloadFormat == videoInfo.DownloadFormat)
+                {
+                    if (highPriority && existingNode != _downloadQueue.First)
+                    {
+                        _downloadQueue.Remove(existingNode);
+                        _downloadQueue.AddFirst(videoInfo);
+                        OnQueueChanged?.Invoke();
+                    }
+                    return;
+                }
+                existingNode = existingNode.Next;
+            }
+
+            if (highPriority)
+                _downloadQueue.AddFirst(videoInfo);
+            else
+                _downloadQueue.AddLast(videoInfo);
+
+            OnQueueChanged?.Invoke();
+        }
+    }
+
+    [PublicAPI]
+    public async Task<bool> DownloadAndWaitAsync2(VideoInfo videoInfo, TimeSpan timeout, bool highPriority = true)
+    {
+        var ext = videoInfo.DownloadFormat.ToString().ToLower();
+        var fileName = $"{videoInfo.VideoId}.{ext}";
+        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        if (File.Exists(filePath))
+            return true;
+
+        if (videoInfo.DownloadFormat == DownloadFormat.Webm)
+        {
+            var mp4Path = Path.Join(CacheManager.CachePath, $"{videoInfo.VideoId}.mp4");
+            if (File.Exists(mp4Path))
+                return true;
+        }
+
+        var key = GetDownloadKey(videoInfo);
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var list = _waiters.GetOrAdd(key, _ => []);
+        lock (list)
+        {
+            list.Add(tcs);
+        }
+
+        QueueDownload2(videoInfo, highPriority);
+
+        if (File.Exists(filePath))
+        {
+            if (_waiters.TryGetValue(key, out var existingList))
+            {
+                lock (existingList)
+                {
+                    existingList.Remove(tcs);
+                }
+            }
+            return true;
+        }
+
+        using var cts = new CancellationTokenSource(timeout);
+        try
+        {
+            var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(timeout, cts.Token));
+            if (completedTask == tcs.Task)
+            {
+                cts.Cancel();
+                return await tcs.Task;
+            }
+
+            Log.Warning("DownloadAndWaitAsync timed out for {VideoId}", videoInfo.VideoId);
+            return false;
+        }
+        finally
+        {
+            if (_waiters.TryGetValue(key, out var existingList))
+            {
+                lock (existingList)
+                {
+                    existingList.Remove(tcs);
+                }
+            }
+        }
     }
 
     [PublicAPI]
     public void ClearQueue2()
     {
-        _downloadQueue.Clear();
-        OnQueueChanged?.Invoke();
+        lock (_queueLock)
+        {
+            _downloadQueue.Clear();
+            OnQueueChanged?.Invoke();
+        }
     }
 
     // Public accessors for UI
     [PublicAPI]
-    public IReadOnlyList<VideoInfo> GetQueueSnapshot2() => [.. _downloadQueue];
+    public IReadOnlyList<VideoInfo> GetQueueSnapshot2()
+    {
+        lock (_queueLock)
+        {
+            return [.. _downloadQueue];
+        }
+    }
 
     [PublicAPI]
-    public int GetQueueCount2() => _downloadQueue.Count;
+    public int GetQueueCount2()
+    {
+        lock (_queueLock)
+        {
+            return _downloadQueue.Count;
+        }
+    }
 
     [PublicAPI]
     public VideoInfo? GetCurrentDownload2() => _currentDownload;
@@ -426,7 +545,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     private async Task<bool> DownloadNicoVideo(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
-        var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
+        var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;
+        var tempDownloadPath = Path.Join(tempDir.FullName, isWebm ? TempDownloadWebmName : TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
         using var process = new Process();
@@ -439,7 +559,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             CreateNoWindow = true,
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
-            Arguments = $"-q -o \"{tempDownloadMp4Path}\" --remux-video mp4 \"{url}\""
+            Arguments = isWebm
+                ? $"-q -o \"{tempDownloadPath}\" --recode-video webm \"{url}\""
+                : $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{url}\""
         };
 
         Log.Information("Downloading NicoVideo Video: {Args}", process.StartInfo.Arguments);
@@ -465,14 +587,14 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             Log.Error("File already exists, canceling...");
             Try.Run(() =>
             {
-                if (File.Exists(tempDownloadMp4Path))
-                    File.Delete(tempDownloadMp4Path);
+                if (File.Exists(tempDownloadPath))
+                    File.Delete(tempDownloadPath);
             }).OnFailure(ex => Log.Error(ex, "Failed to delete temp file: {Ex}", ex.ToString()));
             return false;
         }
 
-        if (File.Exists(tempDownloadMp4Path))
-            File.Move(tempDownloadMp4Path, filePath);
+        if (File.Exists(tempDownloadPath))
+            File.Move(tempDownloadPath, filePath);
         else
         {
             Log.Error("Failed to download NicoVideo Video: {Url}", url);

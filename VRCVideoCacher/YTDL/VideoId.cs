@@ -170,12 +170,7 @@ public partial class VideoId : Singleton<VideoId>
     [PublicAPI]
     public async Task<Tuple<string, bool>> GetUrl2(VideoInfo videoInfo, bool avPro)
     {
-        if (videoInfo.UrlType == UrlType.NicoVideo)
-        {
-            var nicoResult = await NicoVideoApiService.FetchVideoResult(videoInfo.VideoId);
-            if (!string.IsNullOrEmpty(nicoResult?.StreamUrl))
-                return new(nicoResult.StreamUrl, true);
-        }
+        var url = videoInfo.VideoUrl;
 
         // if url contains "results?" then it's a search
         if (videoInfo.VideoUrl.Contains("results?") && videoInfo.UrlType == UrlType.YouTube)
@@ -184,7 +179,6 @@ public partial class VideoId : Singleton<VideoId>
             return new(message, false);
         }
 
-        var url = videoInfo.VideoUrl;
         var uri = ToUri(url);
         var handler = uri != null ? SiteHandlerRegistry.Resolve(uri) : null;
         var args = handler?.GetYtdlpArguments(uri!, avPro) ?? [];
