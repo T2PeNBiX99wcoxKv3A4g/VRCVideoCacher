@@ -101,10 +101,10 @@
                         <Border Classes="video-item">
                             <Border.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="{l:Localize OpenUrl}" Command="{Binding OpenOnYouTubeCommand}">
+                                    <MenuItem Header="{l:Localize OpenUrl}" Command="{Binding OpenUrlCommand}">
                                         <MenuItem.Icon>
-                                            <mi:MaterialIcon Kind="Youtube" Width="16" Height="16"
-                                                             Foreground="{StaticResource DangerBrush}" />
+                                            <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16"
+                                                             Foreground="{StaticResource PrimaryLightBrush}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem Header="{l:Localize CopyUrl}" Command="{Binding CopyUrlCommand}">
@@ -165,10 +165,10 @@
                                 <!-- Action Buttons -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
                                             VerticalAlignment="Center" Margin="6,0">
-                                    <Button Command="{Binding OpenOnYouTubeCommand}" Classes="icon-button"
+                                    <Button Command="{Binding OpenUrlCommand}" Classes="icon-button"
                                             ToolTip.Tip="{l:Localize OpenUrl}">
-                                        <mi:MaterialIcon Kind="Youtube" Width="18" Height="18"
-                                                         Foreground="{StaticResource DangerBrush}" />
+                                        <mi:MaterialIcon Kind="OpenInNew" Width="18" Height="18"
+                                                         Foreground="{StaticResource PrimaryLightBrush}" />
                                     </Button>
                                     <Button Command="{Binding CopyUrlCommand}" Classes="icon-button"
                                             ToolTip.Tip="{l:Localize CopyUrl}">

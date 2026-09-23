@@ -308,11 +308,13 @@
                                       Content="{l:Localize CachePyPyDanceVideos}" />
                             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding CacheVRDancing}"
                                       Content="{l:Localize CacheVRDancingVideos}" />
-                            <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding CacheGeneric}"
+                            <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding CacheNicoVideo}"
+                                      Content="{l:Localize CacheNicoVideoVideos}" />
+                            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding CacheGeneric}"
                                       Content="{l:Localize CacheGenericVideos}" />
-                            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding CacheOnly}"
+                            <CheckBox Grid.Row="2" Grid.Column="0" IsChecked="{Binding CacheOnly}"
                                       Content="{l:Localize OnlyServeCachedVideos}" />
-                            <CheckBox Grid.Row="2" Grid.Column="0" IsChecked="{Binding RedirectVRDancing}"
+                            <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding RedirectVRDancing}"
                                       Content="{l:Localize RedirectVRDancing}" />
                         </Grid>
                     </StackPanel>

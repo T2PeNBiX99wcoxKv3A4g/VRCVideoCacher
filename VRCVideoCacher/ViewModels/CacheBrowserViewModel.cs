@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
+using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.Views;
@@ -20,6 +21,7 @@ public partial class CacheItemViewModel : ViewModelBase
     public long Size { get; init; }
     public DateTime LastModified { get; init; }
     public string Extension { get; init; } = string.Empty;
+    public UrlType Type { get; set; } = UrlType.Other;
 
     [ObservableProperty] public partial string Title { get; set; } = string.Empty;
 
@@ -37,10 +39,23 @@ public partial class CacheItemViewModel : ViewModelBase
         // Load from DB
         var videoInfo = await YouTubeMetadataService.GetVideoMetadataAsync(VideoId);
 
-        if (!string.IsNullOrEmpty(videoInfo?.Title))
+        if (videoInfo != null)
         {
-            Title = videoInfo.Title;
-            OnPropertyChanged(nameof(DisplayTitle));
+            Type = videoInfo.Type;
+            if (!string.IsNullOrEmpty(videoInfo.Title))
+            {
+                Title = videoInfo.Title;
+                OnPropertyChanged(nameof(DisplayTitle));
+            }
+        }
+        else
+        {
+            if (VideoId.StartsWith("sm", StringComparison.OrdinalIgnoreCase) ||
+                VideoId.StartsWith("so", StringComparison.OrdinalIgnoreCase) ||
+                VideoId.StartsWith("nm", StringComparison.OrdinalIgnoreCase))
+                Type = UrlType.NicoVideo;
+            else if (VideoId.Length == 11)
+                Type = UrlType.YouTube;
         }
 
         // Load thumbnail
@@ -52,10 +67,24 @@ public partial class CacheItemViewModel : ViewModelBase
             ThumbnailSource = thumbnailPath;
     }
 
-    [RelayCommand]
-    private void OpenOnYouTube()
+    public string GetWebUrl()
     {
-        var url = $"https://www.youtube.com/watch?v={VideoId}";
+        if (VideoId.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            VideoId.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            return VideoId;
+
+        return Type switch
+        {
+            UrlType.YouTube => $"https://www.youtube.com/watch?v={VideoId}",
+            UrlType.NicoVideo => $"https://www.nicovideo.jp/watch/{VideoId}",
+            _ => $"https://www.youtube.com/watch?v={VideoId}"
+        };
+    }
+
+    [RelayCommand]
+    private void OpenUrl()
+    {
+        var url = GetWebUrl();
         Try.Run(() =>
         {
             Process.Start(new ProcessStartInfo
@@ -65,6 +94,9 @@ public partial class CacheItemViewModel : ViewModelBase
             });
         });
     }
+
+    [RelayCommand]
+    private void OpenOnYouTube() => OpenUrl();
 
     [RelayCommand]
     private async Task CopyUrl()

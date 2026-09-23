@@ -82,6 +82,7 @@
   "MaxYouTubeResolution": "Максимальное разрешение YouTube",
   "MaxVideoLength": "Максимальная длина видео (В минутах)",
   "CachePyPyDanceVideos": "Кэшировать PyPyDance видео",
+  "CacheNicoVideoVideos": "Кэшировать NicoVideo видео",
   "CacheVRDancingVideos": "Кэшировать VrDancing видео",
   "CacheGenericVideos": "Кэшировать общие видео",
   "OnlyServeCachedVideos": "Только серверныйе кэшированные видео",

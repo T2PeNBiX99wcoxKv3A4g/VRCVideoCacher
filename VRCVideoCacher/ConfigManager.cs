@@ -208,6 +208,7 @@ public class ConfigModel
     public int CacheYouTubeMaxLength = 120;
     public bool CachePyPyDance;
     public bool CacheVrDancing;
+    public bool CacheNicoVideo = true;
     public bool CacheGeneric = false;
     public bool CacheOnly = false;
 

@@ -82,6 +82,7 @@
   "MaxYouTubeResolution": "YouTube の最大解像度",
   "MaxVideoLength": "最大の動画の長さ (分単位)",
   "CachePyPyDanceVideos": "PyPyDance の動画をキャッシュする",
+  "CacheNicoVideoVideos": "NicoVideo の動画をキャッシュする",
   "CacheVRDancingVideos": "VRDancing の動画をキャッシュする",
   "CacheGenericVideos": "一般的な動画をキャッシュする",
   "OnlyServeCachedVideos": "キャッシュされた動画のみを配信する",

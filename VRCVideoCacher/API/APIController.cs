@@ -286,7 +286,7 @@ public class ApiController : WebApiController
             videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
             videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
             videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing ||
-            videoInfo.UrlType == UrlType.NicoVideo ||
+            videoInfo.UrlType == UrlType.NicoVideo && ConfigManager.Config.CacheNicoVideo ||
             videoInfo.UrlType == UrlType.Other && ConfigManager.Config.CacheGeneric))
             VideoDownloader.QueueDownload(videoInfo);
     }
