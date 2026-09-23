@@ -201,6 +201,8 @@ public static partial class NicoRestreamService
         session.Cookies = res.Cookies;
         session.ExpiresAt = DateTime.UtcNow.AddMinutes(10);
         session.LastAccess = DateTime.UtcNow;
+        session.UrlMap.Clear();
+        session.ReverseUrlMap.Clear();
         return session;
     }
 
@@ -419,6 +421,9 @@ public static partial class NicoRestreamService
         var bytes = Encoding.UTF8.GetBytes(text);
         context.Response.ContentType = contentType;
         context.Response.ContentLength64 = bytes.Length;
+        context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
         await using var os = context.OpenResponseStream();
         await os.WriteAsync(bytes);
         context.SetHandled();
@@ -580,14 +585,18 @@ public static partial class NicoRestreamService
         sb.AppendLine("#EXT-X-VERSION:6");
         sb.AppendLine("#EXT-X-INDEPENDENT-SEGMENTS");
 
+        var audioGroupId = !string.IsNullOrEmpty(targetAudioGroup) ? targetAudioGroup : "audio-main";
         if (session.SelectedAudioPlaylistUrl != null)
             sb.AppendLine(
-                $"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"{baseUrl}/nico/{session.VideoId}/audio.m3u8\"");
+                $"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"{audioGroupId}\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"{baseUrl}/nico/{session.VideoId}/audio.m3u8\"");
 
         if (bestVideo.StreamInf != null)
         {
             var inf = bestVideo.StreamInf;
-            inf = AudioGroupAttrRegex().Replace(inf, "AUDIO=\"audio\"");
+            if (AudioGroupAttrRegex().IsMatch(inf))
+                inf = AudioGroupAttrRegex().Replace(inf, $"AUDIO=\"{audioGroupId}\"");
+            else
+                inf = $"{inf},AUDIO=\"{audioGroupId}\"";
             sb.AppendLine(inf);
             sb.AppendLine($"{baseUrl}/nico/{session.VideoId}/video.m3u8");
         }
