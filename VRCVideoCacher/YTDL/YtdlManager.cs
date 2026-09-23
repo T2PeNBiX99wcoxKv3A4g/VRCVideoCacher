@@ -97,7 +97,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
     }
 
     [PublicAPI]
-    public string GenerateYtdlArgs2(List<string> args, string urlArg)
+    public string GenerateYtdlArgs2(List<string> args, string urlArg, string? customCookiesPath = null)
     {
         var globalArgs = new List<string>
         {
@@ -118,8 +118,9 @@ public partial class YtdlManager : Singleton<YtdlManager>
         else
             Log.Error("Deno runtime not found at path: {DenoPath}", DenoPath);
 
-        if (Program.IsCookiesEnabledAndValid())
-            args.Add($"--cookies \"{CookiesPath}\"");
+        var cookiesFile = customCookiesPath ?? CookiesPath;
+        if (Program.IsCookiesEnabledAndValid() && File.Exists(cookiesFile))
+            args.Add($"--cookies \"{cookiesFile}\"");
 
         if (!string.IsNullOrEmpty(ConfigManager.Config.YtdlpAdditionalArgs))
             args.Add(ConfigManager.Config.YtdlpAdditionalArgs);
