@@ -348,6 +348,7 @@ internal static class BgUtilPotProvider
 
     private static async Task StartServerAsync()
     {
+        if (Volatile.Read(ref _isExit)) return;
         await StopServerAsync();
 
         // Check if port is still in use before spawning
