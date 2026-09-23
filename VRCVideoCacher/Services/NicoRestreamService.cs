@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
 using EmbedIO;
 using JetBrains.Annotations;
 using Serilog;
@@ -17,11 +17,26 @@ public class NicoSession
 {
     public string VideoId { get; set; } = "";
     public string? MasterUrl { get; set; }
+    public string? SelectedVideoPlaylistUrl { get; set; }
+    public string? SelectedAudioPlaylistUrl { get; set; }
     public Dictionary<string, string> Cookies { get; set; } = new();
-    public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddMinutes(10);
+    public ConcurrentDictionary<string, string> UrlMap { get; } = new();
+    public ConcurrentDictionary<string, string> ReverseUrlMap { get; } = new();
+    public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddMinutes(15);
     public DateTime LastAccess { get; set; } = DateTime.UtcNow;
     public TempDir? TempDir { get; set; }
     public string? TempFilePath { get; set; }
+
+    public string GetOrAddUrlToken(string upstreamUrl, string extension)
+    {
+        return ReverseUrlMap.GetOrAdd(upstreamUrl, u =>
+        {
+            var token = $"{Guid.NewGuid():N}"[..12];
+            var key = $"{token}{extension}";
+            UrlMap[key] = u;
+            return key;
+        });
+    }
 }
 
 public static partial class NicoRestreamService
@@ -45,8 +60,17 @@ public static partial class NicoRestreamService
 
     private static bool _isExit;
 
+    [GeneratedRegex(@"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=""([^""]+)"",NAME=""([^""]+)"",([^\n]*)URI=""([^""]+)""", RegexOptions.Compiled)]
+    private static partial Regex AudioMediaRegex();
+
+    [GeneratedRegex(@"#EXT-X-STREAM-INF:([^\n]*BANDWIDTH=(\d+)[^\n]*)", RegexOptions.Compiled)]
+    private static partial Regex StreamInfRegex();
+
+    [GeneratedRegex(@"AUDIO=""([^""]+)""", RegexOptions.Compiled)]
+    private static partial Regex AudioGroupAttrRegex();
+
     [GeneratedRegex(@"URI=""([^""]+)""", RegexOptions.Compiled)]
-    private static partial Regex UriAttributeRegex();
+    private static partial Regex GenericUriAttrRegex();
 
     static NicoRestreamService()
     {
@@ -130,8 +154,7 @@ public static partial class NicoRestreamService
         if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
         {
             tempDir.Dispose();
-            Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, videoId,
-                error);
+            Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, videoId, error);
             return null;
         }
 
@@ -153,17 +176,14 @@ public static partial class NicoRestreamService
             return existing;
         }
 
-        var res = await NicoVideoApiService.FetchVideoResult(videoId);
+        var res = await NicoVideoApiService.Instance.FetchVideoResult2(videoId);
         if (res == null || string.IsNullOrEmpty(res.StreamUrl))
             return null;
 
-        var session = Sessions.GetOrAdd(videoId, id => new()
-        {
-            VideoId = id
-        });
+        var session = Sessions.GetOrAdd(videoId, id => new() { VideoId = id });
         session.MasterUrl = res.StreamUrl;
         session.Cookies = res.Cookies;
-        session.ExpiresAt = DateTime.UtcNow.AddMinutes(5);
+        session.ExpiresAt = DateTime.UtcNow.AddMinutes(10);
         session.LastAccess = DateTime.UtcNow;
         return session;
     }
@@ -174,8 +194,7 @@ public static partial class NicoRestreamService
         if (session == null || string.IsNullOrEmpty(session.MasterUrl))
         {
             context.Response.StatusCode = 404;
-            await context.SendStringAsync("Master playlist not found", "text/plain", Encoding.UTF8);
-            context.SetHandled();
+            await SendStringWithLengthAsync(context, "Master playlist not found", "text/plain");
             return;
         }
 
@@ -185,6 +204,8 @@ public static partial class NicoRestreamService
         request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
         request.Headers.TryAddWithoutValidation("Accept", "*/*");
         request.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
+        request.Headers.TryAddWithoutValidation("Referer", "https://www.nicovideo.jp/");
+        request.Headers.TryAddWithoutValidation("Origin", "https://www.nicovideo.jp");
 
         var cookieHeader = string.Join("; ", session.Cookies.Select(kv => $"{kv.Key}={kv.Value}"));
         if (!string.IsNullOrEmpty(cookieHeader))
@@ -195,49 +216,129 @@ public static partial class NicoRestreamService
         {
             Log.Warning("Nico master playlist fetch failed with code {Code} for {VideoId}", response.StatusCode, videoId);
             context.Response.StatusCode = (int)response.StatusCode;
-            await context.SendStringAsync("Failed to fetch master playlist", "text/plain", Encoding.UTF8);
-            context.SetHandled();
+            await SendStringWithLengthAsync(context, "Failed to fetch master playlist", "text/plain");
             return;
         }
 
         var text = await response.Content.ReadAsStringAsync();
-        var rewritten = RewritePlaylist(text, session.MasterUrl, videoId);
+        var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
+        var rewritten = RecreateMasterPlaylist(text, session.MasterUrl, session, baseUrl);
 
         context.Response.StatusCode = 200;
-        context.Response.ContentType = "application/vnd.apple.mpegurl";
         context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
         context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
 
-        await context.SendStringAsync(rewritten, "application/vnd.apple.mpegurl", Encoding.UTF8);
-        context.SetHandled();
+        await SendStringWithLengthAsync(context, rewritten, "application/vnd.apple.mpegurl");
     }
 
-    public static async Task HandleProxyAsync(IHttpContext context, string videoId)
+    public static async Task HandleAudioPlaylistAsync(IHttpContext context, string videoId)
     {
         var session = await EnsureSessionAsync(videoId);
-        if (session == null)
+        if (session == null || string.IsNullOrEmpty(session.SelectedAudioPlaylistUrl))
         {
             context.Response.StatusCode = 404;
-            await context.SendStringAsync("Session not found", "text/plain", Encoding.UTF8);
-            context.SetHandled();
+            await SendStringWithLengthAsync(context, "Audio playlist not found", "text/plain");
             return;
         }
 
         session.LastAccess = DateTime.UtcNow;
 
-        var targetUrl = context.Request.QueryString["url"];
-        if (string.IsNullOrEmpty(targetUrl))
+        using var request = new HttpRequestMessage(HttpMethod.Get, session.SelectedAudioPlaylistUrl);
+        request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+        request.Headers.TryAddWithoutValidation("Accept", "*/*");
+        request.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
+        request.Headers.TryAddWithoutValidation("Referer", "https://www.nicovideo.jp/");
+        request.Headers.TryAddWithoutValidation("Origin", "https://www.nicovideo.jp");
+
+        var cookieHeader = string.Join("; ", session.Cookies.Select(kv => $"{kv.Key}={kv.Value}"));
+        if (!string.IsNullOrEmpty(cookieHeader))
+            request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
+
+        using var response = await HttpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
         {
-            var query = context.Request.Url.Query;
-            if (query.StartsWith("?url=", StringComparison.OrdinalIgnoreCase))
-                targetUrl = Uri.UnescapeDataString(query[5..]);
+            Log.Warning("Nico audio playlist fetch failed with code {Code} for {VideoId}", response.StatusCode, videoId);
+            context.Response.StatusCode = (int)response.StatusCode;
+            await SendStringWithLengthAsync(context, "Failed to fetch audio playlist", "text/plain");
+            return;
         }
 
-        if (string.IsNullOrEmpty(targetUrl))
+        var text = await response.Content.ReadAsStringAsync();
+        var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
+        var rewritten = RewriteVariantPlaylist(text, session.SelectedAudioPlaylistUrl, session, baseUrl, isAudio: true);
+
+        context.Response.StatusCode = 200;
+        context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+        context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
+
+        await SendStringWithLengthAsync(context, rewritten, "application/vnd.apple.mpegurl");
+    }
+
+    public static async Task HandleVideoPlaylistAsync(IHttpContext context, string videoId)
+    {
+        var session = await EnsureSessionAsync(videoId);
+        if (session == null || string.IsNullOrEmpty(session.SelectedVideoPlaylistUrl))
         {
-            context.Response.StatusCode = 400;
-            await context.SendStringAsync("Missing url parameter", "text/plain", Encoding.UTF8);
-            context.SetHandled();
+            context.Response.StatusCode = 404;
+            await SendStringWithLengthAsync(context, "Video playlist not found", "text/plain");
+            return;
+        }
+
+        session.LastAccess = DateTime.UtcNow;
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, session.SelectedVideoPlaylistUrl);
+        request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+        request.Headers.TryAddWithoutValidation("Accept", "*/*");
+        request.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
+        request.Headers.TryAddWithoutValidation("Referer", "https://www.nicovideo.jp/");
+        request.Headers.TryAddWithoutValidation("Origin", "https://www.nicovideo.jp");
+
+        var cookieHeader = string.Join("; ", session.Cookies.Select(kv => $"{kv.Key}={kv.Value}"));
+        if (!string.IsNullOrEmpty(cookieHeader))
+            request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
+
+        using var response = await HttpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            Log.Warning("Nico video playlist fetch failed with code {Code} for {VideoId}", response.StatusCode, videoId);
+            context.Response.StatusCode = (int)response.StatusCode;
+            await SendStringWithLengthAsync(context, "Failed to fetch video playlist", "text/plain");
+            return;
+        }
+
+        var text = await response.Content.ReadAsStringAsync();
+        var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
+        var rewritten = RewriteVariantPlaylist(text, session.SelectedVideoPlaylistUrl, session, baseUrl, isAudio: false);
+
+        context.Response.StatusCode = 200;
+        context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+        context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
+
+        await SendStringWithLengthAsync(context, rewritten, "application/vnd.apple.mpegurl");
+    }
+
+    public static async Task HandleProxyAsync(IHttpContext context, string videoId, string fileName)
+    {
+        var session = await EnsureSessionAsync(videoId);
+        if (session == null)
+        {
+            context.Response.StatusCode = 404;
+            await SendStringWithLengthAsync(context, "Session not found", "text/plain");
+            return;
+        }
+
+        session.LastAccess = DateTime.UtcNow;
+
+        if (string.IsNullOrEmpty(fileName) || !session.UrlMap.TryGetValue(fileName, out var targetUrl))
+        {
+            context.Response.StatusCode = 404;
+            await SendStringWithLengthAsync(context, "Segment not found", "text/plain");
             return;
         }
 
@@ -245,6 +346,8 @@ public static partial class NicoRestreamService
         request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
         request.Headers.TryAddWithoutValidation("Accept", "*/*");
         request.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
+        request.Headers.TryAddWithoutValidation("Referer", "https://www.nicovideo.jp/");
+        request.Headers.TryAddWithoutValidation("Origin", "https://www.nicovideo.jp");
 
         var cookieHeader = string.Join("; ", session.Cookies.Select(kv => $"{kv.Key}={kv.Value}"));
         if (!string.IsNullOrEmpty(cookieHeader))
@@ -262,29 +365,23 @@ public static partial class NicoRestreamService
             return;
         }
 
-        var isPlaylist = targetUrl.Contains(".m3u8", StringComparison.OrdinalIgnoreCase) ||
-                         response.Content.Headers.ContentType?.MediaType?.Contains("mpegurl",
-                             StringComparison.OrdinalIgnoreCase) == true;
-
-        if (isPlaylist)
-        {
-            var text = await response.Content.ReadAsStringAsync();
-            var rewritten = RewritePlaylist(text, targetUrl, videoId);
-
-            context.Response.StatusCode = 200;
-            context.Response.ContentType = "application/vnd.apple.mpegurl";
-            context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
-            context.Response.Headers["Access-Control-Allow-Origin"] = "*";
-
-            await context.SendStringAsync(rewritten, "application/vnd.apple.mpegurl", Encoding.UTF8);
-            context.SetHandled();
-            return;
-        }
-
-        // Media segment
         context.Response.StatusCode = (int)response.StatusCode;
-        context.Response.ContentType = response.Content.Headers.ContentType?.ToString() ?? "video/mp4";
+
+        string contentType;
+        if (fileName.EndsWith(".key", StringComparison.OrdinalIgnoreCase))
+            contentType = "application/octet-stream";
+        else if (fileName.EndsWith(".cmfa", StringComparison.OrdinalIgnoreCase))
+            contentType = "audio/mp4";
+        else if (fileName.EndsWith(".cmfv", StringComparison.OrdinalIgnoreCase))
+            contentType = "video/mp4";
+        else
+            contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+
+        context.Response.ContentType = contentType;
         context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
+        context.Response.Headers["Accept-Ranges"] = "bytes";
 
         if (response.Content.Headers.ContentLength.HasValue)
             context.Response.ContentLength64 = response.Content.Headers.ContentLength.Value;
@@ -292,13 +389,22 @@ public static partial class NicoRestreamService
         if (response.Content.Headers.TryGetValues("Content-Range", out var cr))
             context.Response.Headers["Content-Range"] = string.Join(", ", cr);
 
-        if (response.Headers.TryGetValues("Accept-Ranges", out var ar))
-            context.Response.Headers["Accept-Ranges"] = string.Join(", ", ar);
-
         await using (var resStream = context.OpenResponseStream())
         await using (var srcStream = await response.Content.ReadAsStreamAsync())
+        {
             await srcStream.CopyToAsync(resStream);
+        }
 
+        context.SetHandled();
+    }
+
+    private static async Task SendStringWithLengthAsync(IHttpContext context, string text, string contentType)
+    {
+        var bytes = Encoding.UTF8.GetBytes(text);
+        context.Response.ContentType = contentType;
+        context.Response.ContentLength64 = bytes.Length;
+        await using var os = context.OpenResponseStream();
+        await os.WriteAsync(bytes);
         context.SetHandled();
     }
 
@@ -309,8 +415,7 @@ public static partial class NicoRestreamService
             !File.Exists(session.TempFilePath))
         {
             context.Response.StatusCode = 404;
-            await context.SendStringAsync("Temp video not found", "text/plain", Encoding.UTF8);
-            context.SetHandled();
+            await SendStringWithLengthAsync(context, "Temp video not found", "text/plain");
             return;
         }
 
@@ -333,6 +438,8 @@ public static partial class NicoRestreamService
 
         context.Response.Headers["Accept-Ranges"] = "bytes";
         context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
         context.Response.ContentType = contentType;
 
         if (string.IsNullOrEmpty(rangeHeader) || !rangeHeader.StartsWith("bytes=", StringComparison.OrdinalIgnoreCase))
@@ -386,22 +493,102 @@ public static partial class NicoRestreamService
                 remaining -= read;
             }
         }
-
         context.SetHandled();
     }
 
-    [PublicAPI]
-    public static string RewritePlaylist(string playlistText, string baseUrl, string videoId)
+    public static string RecreateMasterPlaylist(string masterText, string masterUrl, NicoSession session, string baseUrl)
+    {
+        var lines = masterText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+        var baseUri = new Uri(masterUrl);
+
+        var audioTracks = new List<(string GroupId, string Name, string Uri)>();
+        var videoStreams = new List<(long Bandwidth, string StreamInf, string StreamUrl)>();
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+            if (line.StartsWith("#EXT-X-MEDIA:TYPE=AUDIO", StringComparison.OrdinalIgnoreCase))
+            {
+                var match = AudioMediaRegex().Match(line);
+                if (match.Success)
+                {
+                    var groupId = match.Groups[1].Value;
+                    var name = match.Groups[2].Value;
+                    var uri = match.Groups[4].Value;
+                    audioTracks.Add((groupId, name, uri));
+                }
+            }
+            else if (line.StartsWith("#EXT-X-STREAM-INF:", StringComparison.OrdinalIgnoreCase))
+            {
+                var match = StreamInfRegex().Match(line);
+                if (match.Success && i + 1 < lines.Length)
+                {
+                    var bwStr = match.Groups[2].Value;
+                    long.TryParse(bwStr, out var bw);
+                    var nextLine = lines[i + 1].Trim();
+                    if (!nextLine.StartsWith('#') && !string.IsNullOrWhiteSpace(nextLine))
+                    {
+                        videoStreams.Add((bw, line, nextLine));
+                        i++;
+                    }
+                }
+            }
+        }
+
+        // Select highest video stream
+        var bestVideo = videoStreams.OrderByDescending(v => v.Bandwidth).FirstOrDefault();
+        if (bestVideo.StreamUrl != null)
+            session.SelectedVideoPlaylistUrl = new Uri(baseUri, bestVideo.StreamUrl).AbsoluteUri;
+
+        // Find matching or highest audio track
+        string? targetAudioGroup = null;
+        if (bestVideo.StreamInf != null)
+        {
+            var audioMatch = AudioGroupAttrRegex().Match(bestVideo.StreamInf);
+            if (audioMatch.Success)
+                targetAudioGroup = audioMatch.Groups[1].Value;
+        }
+
+        var selectedAudio = audioTracks.FirstOrDefault(a => a.GroupId == targetAudioGroup);
+        if (selectedAudio.Uri == null)
+            selectedAudio = audioTracks.FirstOrDefault();
+
+        if (selectedAudio.Uri != null)
+            session.SelectedAudioPlaylistUrl = new Uri(baseUri, selectedAudio.Uri).AbsoluteUri;
+
+        var sb = new StringBuilder();
+        sb.AppendLine("#EXTM3U");
+        sb.AppendLine("#EXT-X-VERSION:6");
+        sb.AppendLine("#EXT-X-INDEPENDENT-SEGMENTS");
+
+        if (session.SelectedAudioPlaylistUrl != null)
+            sb.AppendLine(
+                $"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"{baseUrl}/nico/{session.VideoId}/audio.m3u8\"");
+
+        if (bestVideo.StreamInf != null)
+        {
+            var inf = bestVideo.StreamInf;
+            inf = AudioGroupAttrRegex().Replace(inf, "AUDIO=\"audio\"");
+            sb.AppendLine(inf);
+            sb.AppendLine($"{baseUrl}/nico/{session.VideoId}/video.m3u8");
+        }
+
+        return sb.ToString();
+    }
+
+    public static string RewriteVariantPlaylist(string playlistText, string playlistUrl, NicoSession session, string baseUrl, bool isAudio)
     {
         var lines = playlistText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
         var sb = new StringBuilder(playlistText.Length + 512);
-        var baseUri = new Uri(baseUrl);
+        var baseUri = new Uri(playlistUrl);
+        var defaultExt = isAudio ? ".cmfa" : ".cmfv";
 
-        foreach (var line in lines)
+        foreach (var rawLine in lines)
         {
+            var line = rawLine.Trim();
             if (string.IsNullOrWhiteSpace(line))
             {
-                sb.AppendLine(line);
+                sb.AppendLine(rawLine);
                 continue;
             }
 
@@ -409,31 +596,36 @@ public static partial class NicoRestreamService
             {
                 if (line.Contains("URI=\"", StringComparison.OrdinalIgnoreCase))
                 {
-                    var replaced = UriAttributeRegex().Replace(line, match =>
+                    var replaced = GenericUriAttrRegex().Replace(line, match =>
                     {
                         var uriValue = match.Groups[1].Value;
                         if (Uri.TryCreate(baseUri, uriValue, out var resolvedUri))
                         {
-                            var proxied = $"/nico/{videoId}/proxy?url={Uri.EscapeDataString(resolvedUri.AbsoluteUri)}";
+                            var ext = uriValue.Contains(".key", StringComparison.OrdinalIgnoreCase) ? ".key" : defaultExt;
+                            var token = session.GetOrAddUrlToken(resolvedUri.AbsoluteUri, ext);
+                            var proxied = $"{baseUrl}/nico/{session.VideoId}/proxy/{token}";
                             return $"URI=\"{proxied}\"";
                         }
-
                         return match.Value;
                     });
                     sb.AppendLine(replaced);
                 }
                 else
+                {
                     sb.AppendLine(line);
+                }
             }
             else
             {
-                if (Uri.TryCreate(baseUri, line.Trim(), out var resolvedUri))
+                if (Uri.TryCreate(baseUri, line, out var resolvedUri))
                 {
-                    var proxied = $"/nico/{videoId}/proxy?url={Uri.EscapeDataString(resolvedUri.AbsoluteUri)}";
-                    sb.AppendLine(proxied);
+                    var token = session.GetOrAddUrlToken(resolvedUri.AbsoluteUri, defaultExt);
+                    sb.AppendLine($"{baseUrl}/nico/{session.VideoId}/proxy/{token}");
                 }
                 else
+                {
                     sb.AppendLine(line);
+                }
             }
         }
 

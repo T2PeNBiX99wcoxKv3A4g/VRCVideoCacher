@@ -142,9 +142,22 @@ internal sealed class NicoRestreamModule(string baseRoute) : WebModuleBase(baseR
                 return;
             }
 
-            if (action.Equals("proxy", StringComparison.OrdinalIgnoreCase))
+            if (action.Equals("audio.m3u8", StringComparison.OrdinalIgnoreCase))
             {
-                await NicoRestreamService.HandleProxyAsync(context, videoId);
+                await NicoRestreamService.HandleAudioPlaylistAsync(context, videoId);
+                return;
+            }
+
+            if (action.Equals("video.m3u8", StringComparison.OrdinalIgnoreCase))
+            {
+                await NicoRestreamService.HandleVideoPlaylistAsync(context, videoId);
+                return;
+            }
+
+            if (action.Equals("proxy", StringComparison.OrdinalIgnoreCase) && parts.Length >= 3)
+            {
+                var segmentName = parts[2];
+                await NicoRestreamService.HandleProxyAsync(context, videoId, segmentName);
                 return;
             }
         }
