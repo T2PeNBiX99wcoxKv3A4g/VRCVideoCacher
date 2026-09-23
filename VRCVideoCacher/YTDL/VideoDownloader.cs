@@ -30,10 +30,12 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     // Current download tracking
     private VideoInfo? _currentDownload;
+    private bool _isExit;
 
     public VideoDownloader()
     {
         Task.Run(DownloadThread);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => OnExit();
     }
 
     // Events for UI
@@ -43,8 +45,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     private async Task DownloadThread()
     {
-        while (true)
+        while (!Volatile.Read(ref _isExit))
         {
+            if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(100);
             if (_downloadQueue.IsEmpty)
             {
@@ -81,7 +84,6 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             OnQueueChanged?.Invoke();
             _currentDownload = null;
         }
-        // ReSharper disable once FunctionNeverReturns
     }
 
     [PublicAPI]
@@ -418,5 +420,10 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         CacheManager.AddToCache(fileName);
         Log.Information("Generic Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
+    }
+
+    private void OnExit()
+    {
+        Interlocked.Exchange(ref _isExit, true);
     }
 }
