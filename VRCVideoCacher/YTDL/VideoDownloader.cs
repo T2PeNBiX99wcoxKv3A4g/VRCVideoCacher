@@ -268,21 +268,6 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
         var tempDownloadWebmPath = Path.Join(tempDir.FullName, TempDownloadWebmName);
 
-        string? tempCookiesPath = null;
-        if (Program.IsCookiesEnabledAndValid() && File.Exists(YtdlManager.CookiesPath))
-        {
-            tempCookiesPath = Path.Join(tempDir.FullName, "cookies.txt");
-            try
-            {
-                File.Copy(YtdlManager.CookiesPath, tempCookiesPath, true);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to copy cookies file to temp directory for download: {Ex}", ex.Message);
-                tempCookiesPath = null;
-            }
-        }
-
         var args = new List<string>
         {
             "-q"
@@ -323,17 +308,20 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             // $@"-f best/bestvideo[height<=?720]+bestaudio {url} " %(id)s.%(ext)s
         }
 
-        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"", tempCookiesPath);
+        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
-        // Downloads use an isolated copy of cookies in TempDir so they don't hold the shared YtdlCookieJar lock,
-        // allowing incoming playback and URL resolution requests to run concurrently without waiting.
-        process.Start();
+        // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
+        // corrupts the session and gets us bot-checked. See YtdlCookieJar.
         string error;
-        using (ChildProcessTracker.Tracking(process))
+        using (await YtdlCookieJar.AcquireAsync())
         {
-            await process.WaitForExitAsync();
-            error = (await process.StandardError.ReadToEndAsync()).Trim();
+            process.Start();
+            using (ChildProcessTracker.Tracking(process))
+            {
+                await process.WaitForExitAsync();
+                error = (await process.StandardError.ReadToEndAsync()).Trim();
+            }
         }
 
         if (process.ExitCode != 0)

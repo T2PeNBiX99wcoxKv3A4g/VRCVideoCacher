@@ -1,7 +1,7 @@
 namespace VRCVideoCacher.YTDL;
 
 /// <summary>
-/// Serialises yt-dlp metadata extractions and link resolutions that pass <c>--cookies</c>.
+/// Serialises every yt-dlp invocation that passes <c>--cookies</c>.
 ///
 /// yt-dlp does not merely READ the cookie jar — on exit it writes the whole file back, because YouTube
 /// rotates session tokens (<c>__Secure-1PSIDTS</c>, <c>SIDCC</c>, …) on every request and yt-dlp
@@ -10,16 +10,19 @@ namespace VRCVideoCacher.YTDL;
 /// rotation is silently lost. The persisted session is then inconsistent, and YouTube answers the next
 /// request with <i>"Sign in to confirm you're not a bot"</i>.
 ///
-/// Short queries (e.g. <c>yt-dlp -J</c> in VideoId / SabrExtractor) share and update the central cookie
-/// jar, serialised via this gate to preserve updated tokens. Long-running cache downloads in VideoDownloader
-/// run with an isolated per-job temporary copy of the cookie jar, avoiding holding this gate and allowing
-/// playback and URL resolution requests to proceed immediately without waiting for downloads to finish.
+/// That is the exact error this app exists to prevent, and we were causing it ourselves — resolving a
+/// URL for playback while the download queue was running hits the jar from two processes at once.
+/// Confirmed empirically: a single <c>yt-dlp -J</c> run changes the file's contents.
+///
+/// yt-dlp is not the throughput bottleneck here, so serialising it is cheap. Do NOT replace this with
+/// a per-process copy of the jar: that would throw away the rotated tokens and let the saved session
+/// go stale.
 /// </summary>
 public static class YtdlCookieJar
 {
     private static readonly SemaphoreSlim Gate = new(1, 1);
 
-    /// <summary>Hold this for the whole lifetime of a yt-dlp metadata/resolution process, from Start until it has exited.</summary>
+    /// <summary>Hold this for the whole lifetime of a yt-dlp process, from Start until it has exited.</summary>
     public static async Task<IDisposable> AcquireAsync(CancellationToken ct = default)
     {
         await Gate.WaitAsync(ct);
