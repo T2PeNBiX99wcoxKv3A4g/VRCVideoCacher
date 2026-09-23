@@ -189,7 +189,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(timeout, cts.Token));
             if (completedTask == tcs.Task)
             {
-                cts.Cancel();
+                await cts.CancelAsync();
                 return await tcs.Task;
             }
 
