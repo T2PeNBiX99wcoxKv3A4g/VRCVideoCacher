@@ -184,16 +184,6 @@ public class ApiController : WebApiController
 
         if (videoInfo.UrlType == UrlType.NicoVideo)
         {
-            (isCached, filePath, fileName) = GetCachedFile(videoInfo.VideoId, avPro);
-            if (isCached)
-            {
-                File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
-                var cachedUrl = $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}";
-                Log.Information("Responding with Cached NicoVideo URL: {Url}", cachedUrl);
-                await HttpContext.SendStringAsync(cachedUrl, "text/plain", Encoding.UTF8);
-                return;
-            }
-
             if (avPro)
             {
                 var streamUrl = await NicoRestreamService.GetRestreamUrlAsync(videoInfo);
@@ -208,12 +198,14 @@ public class ApiController : WebApiController
                     return;
                 }
 
-                Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.", videoInfo.VideoId);
+                Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.",
+                    videoInfo.VideoId);
             }
 
             if (ConfigManager.Config.CacheNicoVideo)
             {
-                Log.Information("NicoVideo requested, downloading and waiting for cache for {VideoId}...", videoInfo.VideoId);
+                Log.Information("NicoVideo requested, downloading and waiting for cache for {VideoId}...",
+                    videoInfo.VideoId);
                 var downloaded = await VideoDownloader.DownloadAndWaitAsync(videoInfo, TimeSpan.FromMinutes(2));
                 (isCached, filePath, fileName) = GetCachedFile(videoInfo.VideoId, avPro);
                 if (downloaded && isCached)
@@ -227,7 +219,8 @@ public class ApiController : WebApiController
             }
             else
             {
-                Log.Information("NicoVideo requested with cache disabled, downloading to temporary file for {VideoId}...", videoInfo.VideoId);
+                Log.Information("NicoVideo requested with cache disabled, downloading to temporary file for {VideoId}...",
+                    videoInfo.VideoId);
                 var tempUrl = await NicoRestreamService.DownloadTempVideoAsync(videoInfo, TimeSpan.FromMinutes(2));
                 if (!string.IsNullOrEmpty(tempUrl))
                 {
