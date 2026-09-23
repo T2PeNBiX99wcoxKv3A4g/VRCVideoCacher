@@ -30,9 +30,9 @@ public partial class WebServerLogger : ILogger
                 WebServer.Instance.Logger.Warning("{WebServerLogEvent:l}", message);
                 break;
             case LogLevel.Info:
-                // SABR HLS segment fetches (206 Partial Content) fire constantly during playback — one per
-                // segment, per viewer — and drown out everything else at Info. Keep them, but at Debug.
-                if (IsHlsPartialContent(rawMessage))
+                // SABR and NicoVideo HLS segment fetches (206 Partial Content / 200 OK) fire constantly during
+                // playback — one per segment, per viewer — and drown out everything else at Info. Keep them, but at Debug.
+                if (IsHlsStreamFetch(rawMessage))
                     WebServer.Instance.Logger.Debug("{WebServerLogEvent:l}", message);
                 else
                     WebServer.Instance.Logger.Information("{WebServerLogEvent:l}", message);
@@ -43,6 +43,9 @@ public partial class WebServerLogger : ILogger
     [GeneratedRegex(@"^\[.*?\]\s*", RegexOptions.Compiled)]
     private static partial Regex RequestIdPrefix();
 
-    private static bool IsHlsPartialContent(string message) => message.Contains("/hls/", StringComparison.Ordinal) &&
-                                                               message.Contains("206", StringComparison.Ordinal);
+    private static bool IsHlsStreamFetch(string message) =>
+        (message.Contains("/hls/", StringComparison.Ordinal) || message.Contains("/nico/", StringComparison.Ordinal)) &&
+        (message.Contains("206", StringComparison.Ordinal) ||
+         message.Contains("200 OK", StringComparison.Ordinal) ||
+         message.Contains("304", StringComparison.Ordinal));
 }

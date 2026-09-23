@@ -126,69 +126,6 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
     }
 
     /// <summary>
-    /// Muxes a video fragment and audio fragment that already match the same time span (e.g. from HLS),
-    /// without separate audio trimming pass.
-    /// </summary>
-    public async Task MuxDirectSegmentAsync(byte[] videoInit, byte[] videoFragment, byte[] audioInit,
-        IReadOnlyList<byte[]> audioFragments, long startMs, int sequenceNumber,
-        string segmentPath, string initPath, CancellationToken ct = default)
-    {
-        var temp = Path.Combine(Path.GetDirectoryName(segmentPath)!, Guid.NewGuid().ToString("N"));
-        var videoInput = temp + ".v";
-        var audioInput = temp + ".a";
-        var output = temp + ".out";
-
-        await Try.Run(async () =>
-        {
-            await WriteConcatenatedAsync(videoInput, videoInit, [videoFragment], ct);
-            var hasAudio = audioFragments.Count > 0 && audioInit.Length > 0;
-            if (hasAudio)
-                await WriteConcatenatedAsync(audioInput, audioInit, audioFragments, ct);
-
-            var movFlags = hasAudio && IsWebmInit(audioInit)
-                ? "+empty_moov+default_base_moof"
-                : "+delay_moov+default_base_moof";
-
-            if (hasAudio)
-            {
-                await RunFfmpegAsync(
-                    $"-y -loglevel error -copyts -i \"{videoInput}\" -i \"{audioInput}\" " +
-                    $"-map 0:v:0 -map 1:a:0 -c copy -avoid_negative_ts disabled -f mp4 " +
-                    $"-frag_duration 600000000 " +
-                    $"-movflags {movFlags} \"{output}\"", ct);
-            }
-            else
-            {
-                await RunFfmpegAsync(
-                    $"-y -loglevel error -copyts -i \"{videoInput}\" " +
-                    $"-map 0:v:0 -c copy -avoid_negative_ts disabled -f mp4 " +
-                    $"-frag_duration 600000000 " +
-                    $"-movflags +delay_moov+default_base_moof \"{output}\"", ct);
-            }
-
-            var muxed = await File.ReadAllBytesAsync(output, ct);
-            var mediaStart = FindMoof(muxed);
-            if (mediaStart <= 0)
-                throw new SabrException("ffmpeg produced no fragment for the segment");
-
-            var init = muxed[..mediaStart];
-            var media = muxed[mediaStart..];
-
-            StampFragmentIdentity(media, init, startMs, sequenceNumber);
-
-            if (!File.Exists(initPath))
-                await WriteAtomicAsync(initPath, init, ct);
-
-            await WriteAtomicAsync(segmentPath, media, ct);
-        }).OnFinally(() =>
-        {
-            foreach (var path in new[] { videoInput, audioInput, output })
-                Try.Run(() => File.Delete(path));
-            return Unit.TaskValue;
-        }).GetOrThrow();
-    }
-
-    /// <summary>
     /// Muxes complete, already-fetched tracks into a single playable file — the cached copy, produced
     /// from the very fragments we streamed, so a SABR video is fetched once rather than twice.
     ///
