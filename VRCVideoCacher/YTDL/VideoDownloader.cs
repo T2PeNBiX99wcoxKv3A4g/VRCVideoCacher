@@ -252,25 +252,30 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        var videoId = await Try.Run<string?>(async () => await VideoId.TryGetYouTubeVideoId(url)).GetOrElse(ex =>
+        var (videoId, rawJson) = await Try.Run<(string, string)>(async () => await VideoId.TryGetYouTubeVideoInfo(url)).GetOrElse(ex =>
         {
             Log.Error(ex, "Not downloading YouTube video: {Url} {Ex}", url, ex.ToString());
-            return Task.FromResult<string?>(null);
+            return Task.FromResult((string.Empty, string.Empty));
         });
 
-        if (string.IsNullOrEmpty(videoId))
+        if (string.IsNullOrEmpty(videoId) || string.IsNullOrEmpty(rawJson))
         {
-            Log.Warning("Invalid YouTube URL: {Url}", url);
+            Log.Warning("Invalid YouTube URL or metadata extraction failed: {Url}", url);
             return false;
         }
 
         using var tempDir = new TempDir();
+        var tempInfoJsonPath = Path.Join(tempDir.FullName, "video.info.json");
+        await File.WriteAllTextAsync(tempInfoJsonPath, rawJson, Encoding.UTF8);
+
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
         var tempDownloadWebmPath = Path.Join(tempDir.FullName, TempDownloadWebmName);
 
         var args = new List<string>
         {
-            "-q"
+            "-q",
+            "--load-info-json",
+            $"\"{tempInfoJsonPath}\""
         };
 
         using var process = new Process();
@@ -308,20 +313,18 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             // $@"-f best/bestvideo[height<=?720]+bestaudio {url} " %(id)s.%(ext)s
         }
 
-        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
+        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, string.Empty, includeCookies: false);
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
-        // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
-        // corrupts the session and gets us bot-checked. See YtdlCookieJar.
+        // Metadata extraction was already serialized via YtdlCookieJar in VideoId.TryGetYouTubeVideoInfo.
+        // Media download uses --load-info-json without --cookies, so it does not touch the cookie jar
+        // and does not need to hold YtdlCookieJar lock, allowing concurrent playback and URL resolutions.
+        process.Start();
         string error;
-        using (await YtdlCookieJar.AcquireAsync())
+        using (ChildProcessTracker.Tracking(process))
         {
-            process.Start();
-            using (ChildProcessTracker.Tracking(process))
-            {
-                await process.WaitForExitAsync();
-                error = (await process.StandardError.ReadToEndAsync()).Trim();
-            }
+            await process.WaitForExitAsync();
+            error = (await process.StandardError.ReadToEndAsync()).Trim();
         }
 
         if (process.ExitCode != 0)
