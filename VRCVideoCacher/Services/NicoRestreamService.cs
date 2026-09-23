@@ -47,6 +47,7 @@ public static partial class NicoRestreamService
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
     private static readonly ConcurrentDictionary<string, NicoSession> Sessions = new();
+    private static readonly ConcurrentDictionary<string, Task<string?>> TempDownloadsInFlight = new();
 
     private static readonly HttpClient HttpClient = new(new HttpClientHandler
     {
@@ -125,45 +126,60 @@ public static partial class NicoRestreamService
         if (!string.IsNullOrEmpty(session.TempFilePath) && File.Exists(session.TempFilePath))
         {
             var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
-            return $"{baseUrl}/nico/temp/{videoId}.mp4";
+            var fileExt = Path.GetExtension(session.TempFilePath).TrimStart('.');
+            return $"{baseUrl}/nico/temp/{videoId}.{fileExt}";
         }
 
-        var tempDir = new TempDir();
-        var tempDownloadPath = Path.Join(tempDir.FullName, $"{videoId}.mp4");
-
-        using var process = new Process();
-        process.StartInfo = new()
+        return await TempDownloadsInFlight.GetOrAdd(videoId, key => Task.Run<string?>(async () =>
         {
-            FileName = YtdlManager.YtdlPath,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8,
-            Arguments = $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{videoInfo.VideoUrl}\""
-        };
+            try
+            {
+                var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;
+                var ext = isWebm ? "webm" : "mp4";
+                var tempDir = new TempDir();
+                var tempDownloadPath = Path.Join(tempDir.FullName, $"{key}.{ext}");
 
-        process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async () =>
-        {
-            await process.WaitForExitAsync();
-            return (await process.StandardError.ReadToEndAsync()).Trim();
-        });
+                using var process = new Process();
+                process.StartInfo = new()
+                {
+                    FileName = YtdlManager.YtdlPath,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8,
+                    Arguments = isWebm
+                        ? $"-q -o \"{tempDownloadPath}\" --recode-video webm \"{videoInfo.VideoUrl}\""
+                        : $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{videoInfo.VideoUrl}\""
+                };
 
-        if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
-        {
-            tempDir.Dispose();
-            Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, videoId, error);
-            return null;
-        }
+                process.Start();
+                var error = await ChildProcessTracker.Tracking(process, async () =>
+                {
+                    await process.WaitForExitAsync();
+                    return (await process.StandardError.ReadToEndAsync()).Trim();
+                });
 
-        session.TempDir?.Dispose();
-        session.TempDir = tempDir;
-        session.TempFilePath = tempDownloadPath;
+                if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
+                {
+                    tempDir.Dispose();
+                    Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, key, error);
+                    return null;
+                }
 
-        var url = $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{videoId}.mp4";
-        return url;
+                session.TempDir?.Dispose();
+                session.TempDir = tempDir;
+                session.TempFilePath = tempDownloadPath;
+
+                var url = $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{key}.{ext}";
+                return url;
+            }
+            finally
+            {
+                TempDownloadsInFlight.TryRemove(key, out _);
+            }
+        }));
     }
 
     private static async Task<NicoSession?> EnsureSessionAsync(string videoId)
@@ -408,8 +424,9 @@ public static partial class NicoRestreamService
         context.SetHandled();
     }
 
-    public static async Task HandleTempVideoAsync(IHttpContext context, string videoId)
+    public static async Task HandleTempVideoAsync(IHttpContext context, string fileName)
     {
+        var videoId = Path.GetFileNameWithoutExtension(fileName);
         if (!Sessions.TryGetValue(videoId, out var session) ||
             string.IsNullOrEmpty(session.TempFilePath) ||
             !File.Exists(session.TempFilePath))
@@ -420,7 +437,9 @@ public static partial class NicoRestreamService
         }
 
         session.LastAccess = DateTime.UtcNow;
-        await ServeFileWithRangeAsync(context, session.TempFilePath, "video/mp4");
+        var ext = Path.GetExtension(session.TempFilePath).TrimStart('.').ToLowerInvariant();
+        var mime = ext == "webm" ? "video/webm" : "video/mp4";
+        await ServeFileWithRangeAsync(context, session.TempFilePath, mime);
     }
 
     private static async Task ServeFileWithRangeAsync(IHttpContext context, string filePath, string contentType)

@@ -125,8 +125,7 @@ internal sealed class NicoRestreamModule(string baseRoute) : WebModuleBase(baseR
         if (path.StartsWith("temp/", StringComparison.OrdinalIgnoreCase))
         {
             var fileName = path[5..];
-            var videoId = Path.GetFileNameWithoutExtension(fileName);
-            await NicoRestreamService.HandleTempVideoAsync(context, videoId);
+            await NicoRestreamService.HandleTempVideoAsync(context, fileName);
             return;
         }
 

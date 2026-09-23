@@ -184,24 +184,6 @@ public class ApiController : WebApiController
 
         if (videoInfo.UrlType == UrlType.NicoVideo)
         {
-            if (avPro)
-            {
-                var streamUrl = await NicoRestreamService.GetRestreamUrlAsync(videoInfo);
-                if (!string.IsNullOrEmpty(streamUrl))
-                {
-                    Log.Information("Responding with NicoVideo HLS restream URL: {Url}", streamUrl);
-                    await HttpContext.SendStringAsync(streamUrl, "text/plain", Encoding.UTF8);
-
-                    if (ConfigManager.Config.CacheNicoVideo)
-                        VideoDownloader.QueueDownload(videoInfo);
-
-                    return;
-                }
-
-                Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.",
-                    videoInfo.VideoId);
-            }
-
             if (ConfigManager.Config.CacheNicoVideo)
             {
                 Log.Information("NicoVideo requested, downloading and waiting for cache for {VideoId}...",
