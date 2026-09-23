@@ -49,10 +49,7 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
 
         var (m, group) = new[]
         {
-            (NicoID1().Match(url), 4),
-            (NicoID2().Match(url), 2),
-            (NicoID3().Match(url), 2),
-            (NicoID4().Match(url), 1)
+            (NicoID1().Match(url), 4), (NicoID2().Match(url), 2), (NicoID3().Match(url), 2), (NicoID4().Match(url), 1)
         }.FirstOrDefault(x => x.Item1.Success);
 
         if (m?.Success != true)

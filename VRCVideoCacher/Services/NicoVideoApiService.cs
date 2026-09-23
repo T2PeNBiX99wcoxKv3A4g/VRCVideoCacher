@@ -40,7 +40,8 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     {
         var handler = new HttpClientHandler
         {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+            AutomaticDecompression =
+                DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
             UseCookies = false
         };
         _httpClient = new(handler)
@@ -67,7 +68,8 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
             using var getRequest = new HttpRequestMessage(HttpMethod.Get, watchUrl);
             getRequest.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
-            getRequest.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            getRequest.Headers.TryAddWithoutValidation("Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
             getRequest.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
 
             using var getResponse = await _httpClient.SendAsync(getRequest);
@@ -135,7 +137,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     result.Description = videoNode["description"]?.GetValue<string>();
                     result.Duration = videoNode["duration"]?.GetValue<long>();
                     result.Thumbnail = videoNode["thumbnail"]?["player"]?.GetValue<string>()
-                                      ?? videoNode["thumbnail"]?["url"]?.GetValue<string>();
+                                       ?? videoNode["thumbnail"]?["url"]?.GetValue<string>();
 
                     if (videoNode["count"] is JsonObject countObj)
                     {
@@ -147,13 +149,11 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 }
 
                 if (responseObj["tag"]?["items"] is JsonArray tagsArray)
-                {
                     result.Tags = tagsArray
                         .Select(t => t?["name"]?.GetValue<string>())
                         .Where(name => !string.IsNullOrEmpty(name))
                         .Select(name => name!)
                         .ToArray();
-                }
 
                 // Domand media access rights (NVAPI)
                 var domandNode = responseObj["media"]?["domand"];
@@ -166,28 +166,19 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     cookieMap["nicosid"] = nicosid;
 
                 if (!string.IsNullOrEmpty(accessRightKey) && !string.IsNullOrEmpty(trackId) && domandNode != null)
-                {
                     try
                     {
                         var audioList = new List<string>();
                         if (domandNode["audios"] is JsonArray audiosArr)
-                        {
                             foreach (var item in audiosArr)
-                            {
                                 if (item?["isAvailable"]?.GetValue<bool>() == true && item["id"] != null)
                                     audioList.Add(item["id"]!.GetValue<string>());
-                            }
-                        }
 
                         var videoList = new List<string>();
                         if (domandNode["videos"] is JsonArray videosArr)
-                        {
                             foreach (var item in videosArr)
-                            {
                                 if (item?["isAvailable"]?.GetValue<bool>() == true && item["id"] != null)
                                     videoList.Add(item["id"]!.GetValue<string>());
-                            }
-                        }
 
                         var outputs = new List<string[]>();
                         var firstAudio = audioList.FirstOrDefault();
@@ -203,10 +194,15 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
                         if (outputs.Count > 0)
                         {
-                            var postPayload = JsonSerializer.Serialize(new { outputs });
-                            var nvApiUrl = $"https://nvapi.nicovideo.jp/v1/watch/{cleanId}/access-rights/hls?actionTrackId={trackId}";
+                            var postPayload = JsonSerializer.Serialize(new
+                            {
+                                outputs
+                            });
+                            var nvApiUrl =
+                                $"https://nvapi.nicovideo.jp/v1/watch/{cleanId}/access-rights/hls?actionTrackId={trackId}";
                             using var postRequest = new HttpRequestMessage(HttpMethod.Post, nvApiUrl);
-                            postRequest.Headers.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                            postRequest.Headers.TryAddWithoutValidation("Accept",
+                                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                             postRequest.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
                             postRequest.Headers.TryAddWithoutValidation("X-Access-Right-Key", accessRightKey);
                             postRequest.Headers.TryAddWithoutValidation("X-Frontend-Id", "6");
@@ -225,7 +221,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                             if (postResponse.IsSuccessStatusCode)
                             {
                                 if (postResponse.Headers.TryGetValues("Set-Cookie", out var nvCookies))
-                                {
                                     foreach (var sc in nvCookies)
                                     {
                                         var first = sc.Split(';')[0];
@@ -233,7 +228,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                                         if (parts.Length == 2)
                                             cookieMap[parts[0].Trim()] = parts[1].Trim();
                                     }
-                                }
 
                                 var postJsonStr = await postResponse.Content.ReadAsStringAsync();
                                 var postNode = JsonNode.Parse(postJsonStr);
@@ -247,7 +241,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     {
                         Log.Warning(ex, "Failed to resolve NVAPI HLS access right for {Id}", cleanId);
                     }
-                }
             }
             else if (rootNode["program"] != null)
             {
@@ -297,7 +290,8 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         });
     }
 
-    public static string ExtractNicoId(string input)
+    [PublicAPI]
+    public string ExtractNicoId2(string input)
     {
         var url = input.Trim().Split('?')[0].Split('#')[0];
         var m1 = NicoUrlRegex1().Match(url);
