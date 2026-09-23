@@ -71,7 +71,6 @@ public class UiLogSink : ILogEventSink
         {
             Dispatcher.UIThread.Post(() =>
             {
-                App.MainWindow?.Show();
                 _currentPopup?.Close();
                 _currentPopup = null;
                 var source = logEvent.Properties.TryGetValue("SourceContext", out var sourceContext)
