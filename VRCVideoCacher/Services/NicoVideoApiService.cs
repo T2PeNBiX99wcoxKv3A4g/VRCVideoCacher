@@ -8,7 +8,6 @@ using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
-using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;

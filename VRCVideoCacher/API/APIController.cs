@@ -192,7 +192,7 @@ public class ApiController : WebApiController
             }
 
             Log.Information("NicoVideo requested, downloading and waiting for cache for {VideoId}...", videoInfo.VideoId);
-            var downloaded = await VideoDownloader.DownloadAndWaitAsync(videoInfo, TimeSpan.FromMinutes(2), true);
+            var downloaded = await VideoDownloader.DownloadAndWaitAsync(videoInfo, TimeSpan.FromMinutes(2));
             (isCached, filePath, fileName) = GetCachedFile(videoInfo.VideoId, avPro);
             if (downloaded && isCached)
             {
