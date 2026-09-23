@@ -43,6 +43,8 @@ public static partial class NicoRestreamService
         Timeout = TimeSpan.FromSeconds(20)
     };
 
+    private static bool _isExit;
+
     [GeneratedRegex(@"URI=""([^""]+)""", RegexOptions.Compiled)]
     private static partial Regex UriAttributeRegex();
 
@@ -54,29 +56,23 @@ public static partial class NicoRestreamService
 
     private static void CleanupAll()
     {
+        if (Interlocked.Exchange(ref _isExit, true)) return;
         foreach (var session in Sessions.Values)
-        {
             Try.Run(() => session.TempDir?.Dispose());
-        }
         Sessions.Clear();
     }
 
     private static async Task ReaperLoop()
     {
-        while (true)
+        while (!Volatile.Read(ref _isExit))
         {
+            if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(TimeSpan.FromMinutes(2));
             var now = DateTime.UtcNow;
             foreach (var (id, session) in Sessions)
-            {
                 if (now - session.LastAccess > TimeSpan.FromMinutes(15))
-                {
                     if (Sessions.TryRemove(id, out var removed))
-                    {
                         Try.Run(() => removed.TempDir?.Dispose());
-                    }
-                }
-            }
         }
     }
 
@@ -96,7 +92,10 @@ public static partial class NicoRestreamService
     public static async Task<string?> DownloadTempVideoAsync(VideoInfo videoInfo, TimeSpan timeout)
     {
         var videoId = videoInfo.VideoId;
-        var session = Sessions.GetOrAdd(videoId, id => new NicoSession { VideoId = id });
+        var session = Sessions.GetOrAdd(videoId, id => new()
+        {
+            VideoId = id
+        });
         session.LastAccess = DateTime.UtcNow;
 
         if (!string.IsNullOrEmpty(session.TempFilePath) && File.Exists(session.TempFilePath))
@@ -131,7 +130,8 @@ public static partial class NicoRestreamService
         if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
         {
             tempDir.Dispose();
-            Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, videoId, error);
+            Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode, videoId,
+                error);
             return null;
         }
 
@@ -157,7 +157,10 @@ public static partial class NicoRestreamService
         if (res == null || string.IsNullOrEmpty(res.StreamUrl))
             return null;
 
-        var session = Sessions.GetOrAdd(videoId, id => new NicoSession { VideoId = id });
+        var session = Sessions.GetOrAdd(videoId, id => new()
+        {
+            VideoId = id
+        });
         session.MasterUrl = res.StreamUrl;
         session.Cookies = res.Cookies;
         session.ExpiresAt = DateTime.UtcNow.AddMinutes(5);
@@ -260,7 +263,8 @@ public static partial class NicoRestreamService
         }
 
         var isPlaylist = targetUrl.Contains(".m3u8", StringComparison.OrdinalIgnoreCase) ||
-                         response.Content.Headers.ContentType?.MediaType?.Contains("mpegurl", StringComparison.OrdinalIgnoreCase) == true;
+                         response.Content.Headers.ContentType?.MediaType?.Contains("mpegurl",
+                             StringComparison.OrdinalIgnoreCase) == true;
 
         if (isPlaylist)
         {
@@ -291,11 +295,9 @@ public static partial class NicoRestreamService
         if (response.Headers.TryGetValues("Accept-Ranges", out var ar))
             context.Response.Headers["Accept-Ranges"] = string.Join(", ", ar);
 
-        using (var resStream = context.OpenResponseStream())
-        using (var srcStream = await response.Content.ReadAsStreamAsync())
-        {
+        await using (var resStream = context.OpenResponseStream())
+        await using (var srcStream = await response.Content.ReadAsStreamAsync())
             await srcStream.CopyToAsync(resStream);
-        }
 
         context.SetHandled();
     }
@@ -337,8 +339,8 @@ public static partial class NicoRestreamService
         {
             context.Response.StatusCode = 200;
             context.Response.ContentLength64 = totalLength;
-            using var fs = File.OpenRead(filePath);
-            using var os = context.OpenResponseStream();
+            await using var fs = File.OpenRead(filePath);
+            await using var os = context.OpenResponseStream();
             await fs.CopyToAsync(os);
             context.SetHandled();
             return;
@@ -347,7 +349,7 @@ public static partial class NicoRestreamService
         var rangeValue = rangeHeader["bytes=".Length..].Trim();
         var parts = rangeValue.Split('-');
         long start = 0;
-        long end = totalLength - 1;
+        var end = totalLength - 1;
 
         if (!string.IsNullOrEmpty(parts[0]))
             long.TryParse(parts[0], out start);
@@ -369,8 +371,8 @@ public static partial class NicoRestreamService
         context.Response.Headers["Content-Range"] = $"bytes {start}-{end}/{totalLength}";
         context.Response.ContentLength64 = length;
 
-        using (var fs = File.OpenRead(filePath))
-        using (var os = context.OpenResponseStream())
+        await using (var fs = File.OpenRead(filePath))
+        await using (var os = context.OpenResponseStream())
         {
             fs.Seek(start, SeekOrigin.Begin);
             var buffer = new byte[64 * 1024];
@@ -384,9 +386,11 @@ public static partial class NicoRestreamService
                 remaining -= read;
             }
         }
+
         context.SetHandled();
     }
 
+    [PublicAPI]
     public static string RewritePlaylist(string playlistText, string baseUrl, string videoId)
     {
         var lines = playlistText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
@@ -413,14 +417,13 @@ public static partial class NicoRestreamService
                             var proxied = $"/nico/{videoId}/proxy?url={Uri.EscapeDataString(resolvedUri.AbsoluteUri)}";
                             return $"URI=\"{proxied}\"";
                         }
+
                         return match.Value;
                     });
                     sb.AppendLine(replaced);
                 }
                 else
-                {
                     sb.AppendLine(line);
-                }
             }
             else
             {
@@ -430,9 +433,7 @@ public static partial class NicoRestreamService
                     sb.AppendLine(proxied);
                 }
                 else
-                {
                     sb.AppendLine(line);
-                }
             }
         }
 
