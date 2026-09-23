@@ -156,7 +156,7 @@ internal static class BgUtilPotProvider
             if (!_backendReady)
                 return;
 
-            if (_init is { IsFaulted: true } or { IsCanceled: true })
+            if (_init is { IsFaulted: true } or { IsCanceled: true } || _initFailed)
             {
                 _init = null;
                 _initFailed = false;
@@ -266,6 +266,8 @@ internal static class BgUtilPotProvider
     {
         while (!Volatile.Read(ref _isExit))
         {
+            if (Volatile.Read(ref _isExit)) break;
+
             await Try.Run(async () =>
             {
                 if (IsAutoManaged && (_server is null || HasProcessExited(_server)))
@@ -284,7 +286,6 @@ internal static class BgUtilPotProvider
                 return Unit.TaskValue;
             });
 
-            if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(TimeSpan.FromSeconds(_isReady ? 15 : 3));
         }
     }
