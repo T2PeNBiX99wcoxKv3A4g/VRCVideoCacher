@@ -19,7 +19,7 @@ namespace VRCVideoCacher.Services.Sabr;
 internal static class BgUtilPotProvider
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(BgUtilPotProvider));
-    private static volatile bool _isExit;
+    private static bool _isExit;
 
     private static readonly HttpClient HttpClient = new()
     {
@@ -39,11 +39,13 @@ internal static class BgUtilPotProvider
     /// <summary>
     /// yt-dlp searches each child of <c>--plugin-dirs</c> for a <c>yt_dlp_plugins</c> namespace.
     /// </summary>
+    [PublicAPI]
     public static string PluginSearchDir =>
         IsAutoManaged ? Path.Join(ServerPath, "yt-dlp-plugins") : Program.UtilsPath;
 
     // Port conflicts change only the runtime URL, not the configured preference.
 
+    [PublicAPI]
     public static string BaseUrl { get; private set; } = ConfigManager.Config.SabrPotBaseUrl.TrimEnd('/');
 
     /// <summary>
@@ -112,33 +114,23 @@ internal static class BgUtilPotProvider
         var fullUtilsPath = Try.Run(() => Path.GetFullPath(Program.UtilsPath)).GetOrNull();
 
         foreach (var process in processNames.SelectMany(Process.GetProcessesByName))
-        {
-            try
+            Try.Run(() =>
             {
                 var pid = process.Id;
-                if (pid == Environment.ProcessId) continue;
+                if (pid == Environment.ProcessId) return;
                 var exePath = Try.Run(() => process.MainModule?.FileName).GetOrNull();
-                if (string.IsNullOrEmpty(exePath)) continue;
+                if (string.IsNullOrEmpty(exePath)) return;
                 var fullExePath = Path.GetFullPath(exePath);
                 var matches = !string.IsNullOrEmpty(fullDenoPath) &&
                               string.Equals(fullExePath, fullDenoPath, PathComparison) ||
                               !string.IsNullOrEmpty(fullUtilsPath) &&
                               fullExePath.StartsWith(fullUtilsPath, PathComparison);
 
-                if (!matches) continue;
+                if (!matches) return;
                 Log.Information("Killing leftover Deno process {Pid} from a previous run", pid);
                 process.Kill(true);
                 process.WaitForExit(3000);
-            }
-            catch (Exception ex)
-            {
-                Log.Debug(ex, "Could not kill Deno process");
-            }
-            finally
-            {
-                process.Dispose();
-            }
-        }
+            }).OnFailure(ex => Log.Debug(ex, "Could not kill Deno process")).OnFinally(() => process.Dispose());
     }
 
     /// <summary>
@@ -268,24 +260,14 @@ internal static class BgUtilPotProvider
             preferred, who, free);
     }
 
-    private static bool HasProcessExited(Process? proc)
-    {
-        if (proc is null) return true;
-        try
-        {
-            return proc.HasExited;
-        }
-        catch
-        {
-            return true;
-        }
-    }
+    private static bool HasProcessExited(Process? proc) =>
+        proc is null || Try.Run(() => proc.HasExited).GetOrElse(_ => true);
 
     private static async Task SuperviseAsync()
     {
         while (!_isExit)
         {
-            try
+            await Try.Run(async () =>
             {
                 if (IsAutoManaged && (_server is null || HasProcessExited(_server)))
                 {
@@ -296,12 +278,12 @@ internal static class BgUtilPotProvider
                 }
 
                 _isReady = await PingAsync();
-            }
-            catch (Exception ex)
+            }).OnFailure(ex =>
             {
                 _isReady = false;
                 Log.Debug(ex, "bgutil supervisor iteration failed");
-            }
+                return Unit.TaskValue;
+            });
 
             if (_isExit) break;
             await Task.Delay(TimeSpan.FromSeconds(_isReady ? 15 : 3));
@@ -336,16 +318,15 @@ internal static class BgUtilPotProvider
         Log.Information("Installing bgutil PO token provider {Tag}...", Program.BgUtilsVersion);
 
         await using var resource = typeof(BgUtilPotProvider).Assembly.GetManifestResourceStream(resourceName)
-                                   ?? throw new SabrException($"Embedded bgutil server resource not found: {resourceName}");
+                                   ?? throw new SabrException(
+                                       $"Embedded bgutil server resource not found: {resourceName}");
 
         var stagingPath = Path.Join(RootPath, $"install-{Guid.NewGuid():N}");
         Directory.CreateDirectory(stagingPath);
-        try
+        using (UsingUntil.Run(() => SafeDelete(stagingPath)))
         {
             if (OperatingSystem.IsWindows())
-            {
                 await ZipFile.ExtractToDirectoryAsync(resource, stagingPath);
-            }
             else
             {
                 await using var gzip = new GZipStream(resource, CompressionMode.Decompress, true);
@@ -358,10 +339,6 @@ internal static class BgUtilPotProvider
                 throw new SabrException($"Embedded bgutil server package is incomplete: {resourceName}");
 
             Directory.Move(extractedPath, ServerPath);
-        }
-        finally
-        {
-            SafeDelete(stagingPath);
         }
 
         Versions.CurrentVersion.BgUtil = Program.BgUtilsVersion;
@@ -415,52 +392,53 @@ internal static class BgUtilPotProvider
     [PublicAPI]
     public static async Task StopServerAsync(bool programExit = false)
     {
+        if (Volatile.Read(ref _isExit)) return;
         if (programExit)
-            _isExit = true;
+            if (Interlocked.Exchange(ref _isExit, true))
+                return;
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
         ChildProcessTracker.Untrack(process);
-        try
+        await Try.Run(async () =>
         {
             if (HasProcessExited(process)) return;
             process.Kill(true);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
             await process.WaitForExitAsync(cts.Token);
-        }
-        catch (Exception ex) when (ex is not InvalidOperationException)
+        }).OnFailure(ex =>
         {
+            if (ex is InvalidOperationException) return Unit.TaskValue;
             Log.Debug(ex, "Failed to stop bgutil server");
-        }
-        finally
+            return Unit.TaskValue;
+        }).OnFinally(() =>
         {
             process.TryDispose();
-        }
+            return Unit.TaskValue;
+        });
     }
 
     [PublicAPI]
     public static void StopServer(bool programExit = false)
     {
+        if (Volatile.Read(ref _isExit)) return;
         if (programExit)
-            _isExit = true;
+            if (Interlocked.Exchange(ref _isExit, true))
+                return;
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
         ChildProcessTracker.Untrack(process);
-        try
+        Try.Run(() =>
         {
             if (HasProcessExited(process)) return;
             process.Kill(true);
             process.WaitForExit(3000);
-        }
-        catch (Exception ex) when (ex is not InvalidOperationException)
+        }).OnFailure(ex =>
         {
+            if (ex is InvalidOperationException) return;
             Log.Debug(ex, "Failed to stop bgutil server");
-        }
-        finally
-        {
-            process.TryDispose();
-        }
+        }).OnFinally(() => process.TryDispose());
     }
 
     /// <summary>
@@ -470,28 +448,20 @@ internal static class BgUtilPotProvider
 
     private static async Task<bool> PingAsync()
     {
-        try
+        return await Try.Run(async () =>
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             using var response = await HttpClient.GetAsync(PingUrl, cts.Token);
             return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
+        }).GetOrElse(_ => Task.FromResult(false));
     }
 
     private static void SafeDelete(string dir)
     {
-        try
+        Try.Run(() =>
         {
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
-        }
-        catch (Exception ex)
-        {
-            Log.Debug(ex, "Could not delete {Dir} before reinstall", dir);
-        }
+        }).OnFailure(ex => Log.Debug(ex, "Could not delete {Dir} before reinstall", dir));
     }
 }
