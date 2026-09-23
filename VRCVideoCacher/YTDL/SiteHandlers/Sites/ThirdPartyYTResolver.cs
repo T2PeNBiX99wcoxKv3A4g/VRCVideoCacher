@@ -32,7 +32,7 @@ public class ThirdPartyYTResolver : Handler<ThirdPartyYTResolver>
 
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
-    public async Task<string> RewriteUrl(string url, Uri uri)
+    public override async Task<string> RewriteUrl(string url, Uri uri)
     {
         if (SiteHandlerRegistry.HasSpecificHandler(uri))
             return url;

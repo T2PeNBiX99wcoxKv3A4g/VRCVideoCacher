@@ -45,7 +45,7 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>
         });
     }
 
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro)
+    public override List<string> GetYtdlpArguments(Uri uri, bool avPro)
     {
         var args = new List<string>();
 

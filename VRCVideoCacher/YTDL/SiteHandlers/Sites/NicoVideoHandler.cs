@@ -9,7 +9,7 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
 
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
-    public Task<string> RewriteUrl(string url, Uri uri)
+    public override Task<string> RewriteUrl(string url, Uri uri)
     {
         if (!uri.Host.EndsWith("nicovideo.jp") && !uri.Host.EndsWith("nico.ms"))
             return Task.FromResult(url);

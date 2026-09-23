@@ -9,7 +9,7 @@ public class KaraokeInSyncHandler : Handler<KaraokeInSyncHandler>
 
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro) => Task.FromResult<VideoInfo?>(null);
 
-    public Task<string> RewriteUrl(string url, Uri uri)
+    public override Task<string> RewriteUrl(string url, Uri uri)
     {
         if (!url.StartsWith("https://ksync.arcanescripts.com/custom/redir-url"))
             return Task.FromResult(url);

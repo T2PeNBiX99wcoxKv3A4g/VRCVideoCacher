@@ -35,6 +35,6 @@ public class TwitterHandler : Handler<TwitterHandler>
         });
     }
 
-    public List<string> GetYtdlpArguments(Uri uri, bool avPro) =>
+    public override List<string> GetYtdlpArguments(Uri uri, bool avPro) =>
         [$"-f \"{MuxedHttpFormat}\""];
 }
