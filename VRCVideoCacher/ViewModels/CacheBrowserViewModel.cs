@@ -77,7 +77,7 @@ public partial class CacheItemViewModel : ViewModelBase
         {
             UrlType.YouTube => $"https://www.youtube.com/watch?v={VideoId}",
             UrlType.NicoVideo => $"https://www.nicovideo.jp/watch/{VideoId}",
-            _ => $"http://{ConfigManager.Config.YtdlpWebServerUrl}/watch?v={VideoId}"
+            _ => $"{ConfigManager.Config.YtdlpWebServerUrl}/{VideoId}.mp4"
         };
     }
 
