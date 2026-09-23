@@ -54,6 +54,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
     // the body, so the stall timeout is what stops a dead socket from hanging the download forever.
     private const int DownloadRetries = 3;
     private static readonly TimeSpan DownloadStallTimeout = TimeSpan.FromSeconds(60);
+    private bool _isExit;
 
     /// <summary>
     /// Runs a download attempt up to <see cref="DownloadRetries"/> times with a short linear backoff,
@@ -92,6 +93,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
         }
 
         Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath2);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => OnExit();
     }
 
     [PublicAPI]
@@ -135,13 +137,13 @@ public partial class YtdlManager : Singleton<YtdlManager>
     private async Task YtdlUpdaterTask()
     {
         const int interval = 60 * 60 * 1000; // 1 hour
-        while (true)
+        while (!Volatile.Read(ref _isExit))
         {
+            if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(interval);
             await VvcConfigService.GetConfig();
             await TryDownloadYtdlp2();
         }
-        // ReSharper disable once FunctionNeverReturns
     }
 
     private static async Task<HttpResponseMessage> SendGitHubApiRequestAsync(string url)
@@ -628,5 +630,10 @@ public partial class YtdlManager : Singleton<YtdlManager>
             Log.Error(ex, "Exception while starting {ProcessName}: {Message}", processName, ex.Message);
             return Task.FromResult(false);
         });
+    }
+
+    private void OnExit()
+    {
+        Interlocked.Exchange(ref _isExit, true);
     }
 }
