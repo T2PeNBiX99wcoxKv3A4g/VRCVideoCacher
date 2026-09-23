@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
 using Jeek.Avalonia.Localization;
+using JetBrains.Annotations;
 using Serilog;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
@@ -18,6 +19,7 @@ namespace VRCVideoCacher.Services.Sabr;
 internal static class BgUtilPotProvider
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(BgUtilPotProvider));
+    private static bool _isExit;
 
     private static readonly HttpClient HttpClient = new()
     {
@@ -77,7 +79,7 @@ internal static class BgUtilPotProvider
 
     static BgUtilPotProvider()
     {
-        AppDomain.CurrentDomain.ProcessExit += (_, _) => StopServer();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => StopServer(true);
     }
 
     /// <summary>
@@ -148,6 +150,7 @@ internal static class BgUtilPotProvider
     /// <summary>
     /// Starts initialization in the background once the backend is ready. Safe to call repeatedly.
     /// </summary>
+    [PublicAPI]
     public static void Ensure()
     {
         if (!ConfigManager.Config.SabrRestreamEnabled)
@@ -270,6 +273,7 @@ internal static class BgUtilPotProvider
     {
         while (true)
         {
+            if (_isExit) break;
             await Try.Run(async () =>
             {
                 if (IsAutoManaged && (_server is null || HasProcessExited(_server)))
@@ -290,7 +294,6 @@ internal static class BgUtilPotProvider
 
             await Task.Delay(TimeSpan.FromSeconds(_isReady ? 15 : 3));
         }
-        // ReSharper disable once FunctionNeverReturns
     }
 
     private static void EnsureInstalled()
@@ -393,8 +396,11 @@ internal static class BgUtilPotProvider
         Log.Information("Started bgutil PO token server on port {Port} (pid {Pid})", Port, process.Id);
     }
 
-    public static void StopServer()
+    [PublicAPI]
+    public static void StopServer(bool programExit = false)
     {
+        if (programExit)
+            _isExit = true;
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;

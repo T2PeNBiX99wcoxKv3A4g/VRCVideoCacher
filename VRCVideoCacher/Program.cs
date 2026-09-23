@@ -332,11 +332,7 @@ internal sealed class Program
 
     private static void OnAppQuit()
     {
-        Try.Run(() =>
-        {
-            BgUtilPotProvider.StopServer();
-            ChildProcessTracker.TerminateAll();
-        });
+        Try.Run(ChildProcessTracker.TerminateAll);
 
         FileTools.RestoreAllYtdl();
         Logger.Information("Exiting...");
