@@ -269,7 +269,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     {
         await Try.Run(async () =>
         {
-            var res = await FetchVideoResult(cleanId);
+            var res = await FetchVideoResult2(cleanId);
             if (res == null) return;
 
             if (!string.IsNullOrEmpty(res.Thumbnail))
