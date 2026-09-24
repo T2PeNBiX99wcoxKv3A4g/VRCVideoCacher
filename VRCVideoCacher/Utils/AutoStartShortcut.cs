@@ -78,6 +78,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
         }
     }
 
+    [SupportedOSPlatform("windows")]
     private bool StartupEnabled() => !string.IsNullOrEmpty(GetOurShortcut());
 
     [SupportedOSPlatform("windows")]
@@ -156,6 +157,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
             CreateShortcut2();
     }
 
+    [SupportedOSPlatform("windows")]
     private string? GetOurShortcut()
     {
         var shortcutPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX",
