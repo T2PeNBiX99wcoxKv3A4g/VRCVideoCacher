@@ -202,7 +202,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
                 var dateEnd = version.IndexOf('T');
                 if (dateEnd > 0)
                 {
-                    var datePart = version.Substring(0, dateEnd);
+                    var datePart = version[..dateEnd];
                     var parts = datePart.Split('-');
                     if (parts.Length == 3 &&
                         int.TryParse(parts[0], out year) &&
