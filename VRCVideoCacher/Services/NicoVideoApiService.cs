@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using VRCVideoCacher.Database;
@@ -11,6 +12,28 @@ using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
+
+public class NicoNvApiAccessRightsRequest
+{
+    [JsonPropertyName("outputs")] public List<string[]> Outputs { get; set; } = [];
+}
+
+public class NicoNvApiAccessRightsResponse
+{
+    [JsonPropertyName("data")] public NicoNvApiAccessRightsData? Data { get; set; }
+}
+
+public class NicoNvApiAccessRightsData
+{
+    [JsonPropertyName("contentUrl")] public string? ContentUrl { get; set; }
+}
+
+[JsonSerializable(typeof(NicoNvApiAccessRightsRequest))]
+[JsonSerializable(typeof(NicoNvApiAccessRightsResponse))]
+[JsonSerializable(typeof(NicoNvApiAccessRightsData))]
+internal partial class NicoJsonContext : JsonSerializerContext
+{
+}
 
 public class NicoVideoResult
 {
@@ -198,16 +221,10 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
                         if (outputs.Count > 0)
                         {
-                            var outputsArray = new JsonArray();
-                            foreach (var pair in outputs)
+                            var postPayload = JsonSerializer.Serialize(new()
                             {
-                                outputsArray.Add(new JsonArray(pair.Select(s => (JsonNode?)JsonValue.Create(s)).ToArray()));
-                            }
-                            var postObj = new JsonObject
-                            {
-                                ["outputs"] = outputsArray
-                            };
-                            var postPayload = postObj.ToJsonString();
+                                Outputs = outputs
+                            }, NicoJsonContext.Default.NicoNvApiAccessRightsRequest);
                             var nvApiUrl =
                                 $"https://nvapi.nicovideo.jp/v1/watch/{cleanId}/access-rights/hls?actionTrackId={trackId}";
                             using var postRequest = new HttpRequestMessage(HttpMethod.Post, nvApiUrl);
