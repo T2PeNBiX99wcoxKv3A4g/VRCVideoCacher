@@ -140,7 +140,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private List<string> FindShortcutFiles(string folderPath)
+    private static List<string> FindShortcutFiles(string folderPath)
     {
         var directoryInfo = new DirectoryInfo(folderPath);
         var files = directoryInfo.GetFiles();
