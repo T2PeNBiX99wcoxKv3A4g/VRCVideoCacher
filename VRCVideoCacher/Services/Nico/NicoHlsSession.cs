@@ -308,7 +308,7 @@ internal sealed partial class NicoHlsSession : IDisposable
             {
                 audioBytes
             }
-            : (IReadOnlyList<byte[]>)Array.Empty<byte[]>();
+            : (IReadOnlyList<byte[]>)[];
 
         await _muxer.MuxDirectSegmentAsync(videoInit, videoBytes, audioInit, audioList, startMs, segment + 1, segmentPath,
             initPath);

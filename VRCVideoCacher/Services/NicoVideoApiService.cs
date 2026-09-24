@@ -176,11 +176,13 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 }
 
                 if (responseObj["tag"]?["items"] is JsonArray tagsArray)
-                    result.Tags = tagsArray
-                        .Select(t => t?["name"]?.GetValue<string>())
-                        .Where(name => !string.IsNullOrEmpty(name))
-                        .Select(name => name!)
-                        .ToArray();
+                    result.Tags =
+                    [
+                        .. tagsArray
+                            .Select(t => t?["name"]?.GetValue<string>())
+                            .Where(name => !string.IsNullOrEmpty(name))
+                            .Select(name => name!)
+                    ];
 
                 // Domand media access rights (NVAPI)
                 var domandNode = responseObj["media"]?["domand"];
