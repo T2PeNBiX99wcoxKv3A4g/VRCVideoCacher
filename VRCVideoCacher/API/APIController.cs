@@ -133,6 +133,13 @@ public class ApiController : WebApiController
             return;
         }
 
+        if (requestUrl.StartsWith(ConfigManager.Config.YtdlpWebServerUrl))
+        {
+            Log.Information("URL Is Local Cache: Return.");
+            await HttpContext.SendStringAsync(requestUrl, "text/plain", Encoding.UTF8);
+            return;
+        }
+
         var videoInfo = await VideoId.GetVideoId(requestUrl, avPro);
         if (videoInfo == null)
         {
