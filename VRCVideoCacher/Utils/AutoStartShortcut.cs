@@ -186,6 +186,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
         return _doesVrcxSupportSteamShortcut.Value;
     }
 
+    [UsedImplicitly]
     private bool TryParseVrcxVersion(string? version, out int year, out int month, out int day)
     {
         year = 0;
@@ -230,6 +231,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     }
 
     [SupportedOSPlatform("windows")]
+    [UsedImplicitly]
     private bool TryGetVrcxVersion(out string? version)
     {
         version = null;
@@ -303,6 +305,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
         return false;
     }
 
+    [UsedImplicitly]
     private bool TryGetVrcxVersionFromFile(string? directory, out string? version)
     {
         version = null;
