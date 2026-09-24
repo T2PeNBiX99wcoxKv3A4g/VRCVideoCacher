@@ -2,38 +2,15 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Services.Nico;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
-
-public class NicoNvApiAccessRightsRequest
-{
-    [JsonPropertyName("outputs")] public List<string[]> Outputs { get; set; } = [];
-}
-
-public class NicoNvApiAccessRightsResponse
-{
-    [JsonPropertyName("data")] public NicoNvApiAccessRightsData? Data { get; set; }
-}
-
-public class NicoNvApiAccessRightsData
-{
-    [JsonPropertyName("contentUrl")] public string? ContentUrl { get; set; }
-}
-
-[JsonSerializable(typeof(NicoNvApiAccessRightsRequest))]
-[JsonSerializable(typeof(NicoNvApiAccessRightsResponse))]
-[JsonSerializable(typeof(NicoNvApiAccessRightsData))]
-internal partial class NicoJsonContext : JsonSerializerContext
-{
-}
 
 public class NicoVideoResult
 {
@@ -122,12 +99,12 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             }
 
             // Extract JSON embedded in HTML
-            JsonNode? rootNode = null;
+            NicoWatchPageData? pageData = null;
             var metaMatch = ServerResponseMetaRegex().Match(html);
             if (metaMatch.Success)
             {
                 var jsonStr = "{" + WebUtility.HtmlDecode(metaMatch.Groups[1].Value) + "}";
-                rootNode = JsonNode.Parse(jsonStr);
+                pageData = JsonSerializer.Deserialize(jsonStr, NicoJsonContext.Default.NicoWatchPageData);
             }
             else
             {
@@ -135,11 +112,11 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 if (scriptMatch.Success)
                 {
                     var jsonStr = WebUtility.HtmlDecode(scriptMatch.Groups[1].Value);
-                    rootNode = JsonNode.Parse(jsonStr);
+                    pageData = JsonSerializer.Deserialize(jsonStr, NicoJsonContext.Default.NicoWatchPageData);
                 }
             }
 
-            if (rootNode == null)
+            if (pageData == null)
             {
                 Log.Warning("Could not parse embedded NicoVideo JSON metadata for {Url}", watchUrl);
                 return null;
@@ -151,45 +128,43 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 Url = watchUrl
             };
 
-            var dataObj = rootNode["data"];
-            var responseObj = dataObj?["response"];
+            var responseObj = pageData.Data?.Response;
 
             if (responseObj != null)
             {
                 // Normal video
-                var videoNode = responseObj["video"];
+                var videoNode = responseObj.Video;
                 if (videoNode != null)
                 {
-                    result.Title = videoNode["title"]?.GetValue<string>();
-                    result.Description = videoNode["description"]?.GetValue<string>();
-                    result.Duration = videoNode["duration"]?.GetValue<long>();
-                    result.Thumbnail = videoNode["thumbnail"]?["player"]?.GetValue<string>()
-                                       ?? videoNode["thumbnail"]?["url"]?.GetValue<string>();
+                    result.Title = videoNode.Title;
+                    result.Description = videoNode.Description;
+                    result.Duration = videoNode.Duration;
+                    result.Thumbnail = videoNode.Thumbnail?.Player ?? videoNode.Thumbnail?.Url;
 
-                    if (videoNode["count"] is JsonObject countObj)
+                    if (videoNode.Count != null)
                     {
-                        result.ViewCount = countObj["view"]?.GetValue<long>();
-                        result.CommentCount = countObj["comment"]?.GetValue<long>();
-                        result.MyListCount = countObj["mylist"]?.GetValue<long>();
-                        result.LikeCount = countObj["like"]?.GetValue<long>();
+                        result.ViewCount = videoNode.Count.View;
+                        result.CommentCount = videoNode.Count.Comment;
+                        result.MyListCount = videoNode.Count.MyList;
+                        result.LikeCount = videoNode.Count.Like;
                     }
                 }
 
-                if (responseObj["tag"]?["items"] is JsonArray tagsArray)
+                if (responseObj.Tag?.Items != null)
                     result.Tags =
                     [
-                        .. tagsArray
-                            .Select(t => t?["name"]?.GetValue<string>())
+                        .. responseObj.Tag.Items
+                            .Select(t => t.Name)
                             .Where(name => !string.IsNullOrEmpty(name))
                             .Select(name => name!)
                     ];
 
                 // Domand media access rights (NVAPI)
-                var domandNode = responseObj["media"]?["domand"];
-                var clientNode = responseObj["client"];
-                var accessRightKey = domandNode?["accessRightKey"]?.GetValue<string>();
-                var trackId = clientNode?["watchTrackId"]?.GetValue<string>();
-                var nicosid = clientNode?["nicosid"]?.GetValue<string>();
+                var domandNode = responseObj.Media?.Domand;
+                var clientNode = responseObj.Client;
+                var accessRightKey = domandNode?.AccessRightKey;
+                var trackId = clientNode?.WatchTrackId;
+                var nicosid = clientNode?.NicosId;
 
                 if (!string.IsNullOrEmpty(nicosid))
                     cookieMap["nicosid"] = nicosid;
@@ -198,16 +173,16 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     try
                     {
                         var audioList = new List<string>();
-                        if (domandNode["audios"] is JsonArray audiosArr)
-                            foreach (var item in audiosArr)
-                                if (item?["isAvailable"]?.GetValue<bool>() == true && item["id"] != null)
-                                    audioList.Add(item["id"]!.GetValue<string>());
+                        if (domandNode.Audios != null)
+                            foreach (var item in domandNode.Audios)
+                                if (item.IsAvailable == true && !string.IsNullOrEmpty(item.Id))
+                                    audioList.Add(item.Id);
 
                         var videoList = new List<string>();
-                        if (domandNode["videos"] is JsonArray videosArr)
-                            foreach (var item in videosArr)
-                                if (item?["isAvailable"]?.GetValue<bool>() == true && item["id"] != null)
-                                    videoList.Add(item["id"]!.GetValue<string>());
+                        if (domandNode.Videos != null)
+                            foreach (var item in domandNode.Videos)
+                                if (item.IsAvailable == true && !string.IsNullOrEmpty(item.Id))
+                                    videoList.Add(item.Id);
 
                         var outputs = new List<string[]>();
                         var firstAudio = audioList.FirstOrDefault();
@@ -223,7 +198,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
                         if (outputs.Count > 0)
                         {
-                            var postPayload = JsonSerializer.Serialize(new()
+                            var postPayload = JsonSerializer.Serialize(new NicoNvApiAccessRightsRequest
                             {
                                 Outputs = outputs
                             }, NicoJsonContext.Default.NicoNvApiAccessRightsRequest);
@@ -259,8 +234,9 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                                     }
 
                                 var postJsonStr = await postResponse.Content.ReadAsStringAsync();
-                                var postNode = JsonNode.Parse(postJsonStr);
-                                var contentUrl = postNode?["data"]?["contentUrl"]?.GetValue<string>();
+                                var nvApiResponse = JsonSerializer.Deserialize(postJsonStr,
+                                    NicoJsonContext.Default.NicoNvApiAccessRightsResponse);
+                                var contentUrl = nvApiResponse?.Data?.ContentUrl;
                                 if (!string.IsNullOrEmpty(contentUrl))
                                     result.StreamUrl = contentUrl;
                             }
@@ -271,16 +247,16 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                         Log.Warning(ex, "Failed to resolve NVAPI HLS access right for {Id}", cleanId);
                     }
             }
-            else if (rootNode["program"] != null)
+            else if (pageData.Program != null)
             {
                 // Nico Live program
-                var prog = rootNode["program"];
-                result.Title = prog?["title"]?.GetValue<string>();
-                result.Description = prog?["description"]?.GetValue<string>();
-                if (prog?["statistics"] is JsonObject stats)
+                var prog = pageData.Program;
+                result.Title = prog.Title;
+                result.Description = prog.Description;
+                if (prog.Statistics != null)
                 {
-                    result.ViewCount = stats["watchCount"]?.GetValue<long>();
-                    result.CommentCount = stats["commentCount"]?.GetValue<long>();
+                    result.ViewCount = prog.Statistics.WatchCount;
+                    result.CommentCount = prog.Statistics.CommentCount;
                 }
             }
 
