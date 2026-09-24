@@ -198,10 +198,16 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
                         if (outputs.Count > 0)
                         {
-                            var postPayload = JsonSerializer.Serialize(new
+                            var outputsArray = new JsonArray();
+                            foreach (var pair in outputs)
                             {
-                                outputs
-                            });
+                                outputsArray.Add(new JsonArray(pair.Select(s => (JsonNode?)JsonValue.Create(s)).ToArray()));
+                            }
+                            var postObj = new JsonObject
+                            {
+                                ["outputs"] = outputsArray
+                            };
+                            var postPayload = postObj.ToJsonString();
                             var nvApiUrl =
                                 $"https://nvapi.nicovideo.jp/v1/watch/{cleanId}/access-rights/hls?actionTrackId={trackId}";
                             using var postRequest = new HttpRequestMessage(HttpMethod.Post, nvApiUrl);
