@@ -29,7 +29,7 @@ public partial class Versions : Singleton<Versions>
     [PublicAPI]
     public void Save2()
     {
-        File.WriteAllText(VersionPath, JsonConvert.SerializeObject(CurrentVersion, Formatting.Indented));
+        File.WriteAllText(VersionPath, JsonConvert.SerializeObject(CurrentVersion2, Formatting.Indented));
     }
 }
 
