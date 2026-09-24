@@ -90,13 +90,9 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 : [];
 
             var cookieMap = new Dictionary<string, string>();
-            foreach (var sc in cookieList)
-            {
-                var first = sc.Split(';')[0];
-                var parts = first.Split('=', 2);
-                if (parts.Length == 2)
-                    cookieMap[parts[0].Trim()] = parts[1].Trim();
-            }
+            foreach (var parts in cookieList.Select(sc => sc.Split(';')[0]).Select(first => first.Split('=', 2))
+                         .Where(parts => parts.Length == 2))
+                cookieMap[parts[0].Trim()] = parts[1].Trim();
 
             // Extract JSON embedded in HTML
             NicoWatchPageData? pageData = null;
@@ -174,15 +170,15 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     {
                         var audioList = new List<string>();
                         if (domandNode.Audios != null)
-                            foreach (var item in domandNode.Audios)
-                                if (item.IsAvailable == true && !string.IsNullOrEmpty(item.Id))
-                                    audioList.Add(item.Id);
+                            audioList.AddRange(from item in domandNode.Audios
+                                where item.IsAvailable == true && !string.IsNullOrEmpty(item.Id)
+                                select item.Id);
 
                         var videoList = new List<string>();
                         if (domandNode.Videos != null)
-                            foreach (var item in domandNode.Videos)
-                                if (item.IsAvailable == true && !string.IsNullOrEmpty(item.Id))
-                                    videoList.Add(item.Id);
+                            videoList.AddRange(from item in domandNode.Videos
+                                where item.IsAvailable == true && !string.IsNullOrEmpty(item.Id)
+                                select item.Id);
 
                         var outputs = new List<string[]>();
                         var firstAudio = audioList.FirstOrDefault();
@@ -198,7 +194,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
                         if (outputs.Count > 0)
                         {
-                            var postPayload = JsonSerializer.Serialize(new NicoNvApiAccessRightsRequest
+                            var postPayload = JsonSerializer.Serialize(new()
                             {
                                 Outputs = outputs
                             }, NicoJsonContext.Default.NicoNvApiAccessRightsRequest);
