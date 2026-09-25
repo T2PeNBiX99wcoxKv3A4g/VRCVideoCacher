@@ -205,8 +205,16 @@ public class ApiController : WebApiController
                     return;
                 }
 
-                Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.",
-                    videoInfo.VideoId);
+                if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId))
+                    Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.", videoInfo.VideoId);
+            }
+            
+            if (NicoVideoApiService.IsValidLiveId(videoInfo.VideoId))
+            {
+                Log.Warning("Failed to serve NicoVideo Live: {VideoId}", videoInfo.VideoId);
+                HttpContext.Response.StatusCode = 500;
+                await HttpContext.SendStringAsync("Failed to load NicoVideo Live.", "text/plain", Encoding.UTF8);
+                return;
             }
 
             if (ConfigManager.Config.CacheNicoVideo)
@@ -231,7 +239,7 @@ public class ApiController : WebApiController
                 var tempUrl = await NicoRestreamService.DownloadTempVideoAsync(videoInfo, TimeSpan.FromMinutes(2));
                 if (!string.IsNullOrEmpty(tempUrl))
                 {
-                    Log.Information("Responding with Temp NicoVideo URL: {Url}", tempUrl);
+                    Log.Information("Responding with NicoVideo restream URL: {Url}", tempUrl);
                     await HttpContext.SendStringAsync(tempUrl, "text/plain", Encoding.UTF8);
                     return;
                 }

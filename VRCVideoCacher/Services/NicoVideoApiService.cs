@@ -42,9 +42,12 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [
         "sm",
         "nm",
-        "so",
-        "lv",
-        "ch"
+        "so"
+    ];
+
+    private static readonly ImmutableHashSet<string> NicoLivePrefixes =
+    [
+        "lv"
     ];
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
@@ -339,5 +342,10 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
     [PublicAPI]
     public bool IsValidVideoId2(string videoId) =>
-        NicoVideoPrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase));
+        NicoVideoPrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase)) ||
+        NicoLivePrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase));
+
+    [PublicAPI]
+    public bool IsValidLiveId2(string videoId) =>
+        NicoLivePrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 }
