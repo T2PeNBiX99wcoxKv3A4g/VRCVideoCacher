@@ -14,6 +14,7 @@ using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.Views;
+using Swan;
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -29,14 +30,7 @@ public partial class HistoryItemViewModel : ViewModelBase
 
     private string? _title;
 
-    public string DisplayTitle
-    {
-        get
-        {
-            if (!string.IsNullOrEmpty(_title)) return _title;
-            return Url.Length > 60 ? Url[..57] + "..." : Url;
-        }
-    }
+    public string DisplayTitle => !string.IsNullOrEmpty(_title) ? _title : Url.Truncate(60, "...")!;
 
     public string TypeBadge => Type switch
     {
@@ -89,7 +83,12 @@ public partial class HistoryItemViewModel : ViewModelBase
         if (Id != null)
         {
             // Load from DB
-            var videoInfo = await YouTubeMetadataService.GetVideoMetadataAsync(Id);
+            var videoInfo = Type switch
+            {
+                UrlType.YouTube => await YouTubeMetadataService.GetVideoMetadataAsync(Id),
+                UrlType.NicoVideo => await NicoVideoApiService.GetVideoMetadataAsync(Id),
+                _ => null
+            };
 
             if (!string.IsNullOrEmpty(videoInfo?.Title))
             {
@@ -99,8 +98,13 @@ public partial class HistoryItemViewModel : ViewModelBase
 
             // Load thumbnail
             var thumbnailPath = ThumbnailManager.GetThumbnail(Id);
-            if (Id.Length == 11 && string.IsNullOrEmpty(thumbnailPath))
-                thumbnailPath = await YouTubeMetadataService.GetThumbnail(Id);
+            if (string.IsNullOrEmpty(thumbnailPath))
+                thumbnailPath = Type switch
+                {
+                    UrlType.YouTube => await YouTubeMetadataService.GetThumbnail(Id),
+                    UrlType.NicoVideo => await NicoVideoApiService.GetThumbnail(Id),
+                    _ => null
+                };
 
             if (!string.IsNullOrEmpty(thumbnailPath))
             {
