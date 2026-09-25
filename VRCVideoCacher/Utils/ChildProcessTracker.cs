@@ -18,6 +18,9 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     private IntPtr _jobHandle = IntPtr.Zero;
     private bool _terminating;
 
+    [PublicAPI]
+    public bool Terminating2 => Volatile.Read(ref _terminating);
+
     public ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
