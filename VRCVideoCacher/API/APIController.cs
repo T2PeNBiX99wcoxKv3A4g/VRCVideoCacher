@@ -199,7 +199,7 @@ public class ApiController : WebApiController
                     Log.Information("Responding with NicoVideo HLS restream URL: {Url}", streamUrl);
                     await HttpContext.SendStringAsync(streamUrl, "text/plain", Encoding.UTF8);
 
-                    if (ConfigManager.Config.CacheNicoVideo)
+                    if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId) && ConfigManager.Config.CacheNicoVideo)
                         VideoDownloader.QueueDownload(videoInfo);
 
                     return;
