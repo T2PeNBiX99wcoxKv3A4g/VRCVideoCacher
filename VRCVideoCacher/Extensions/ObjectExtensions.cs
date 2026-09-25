@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Extensions;
 

@@ -94,13 +94,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
             var key = GetDownloadKey(queueItem);
             if (_waiters.TryRemove(key, out var tcsList))
-            {
                 lock (tcsList)
-                {
                     foreach (var tcs in tcsList)
                         tcs.TrySetResult(success);
-                }
-            }
 
             OnDownloadCompleted?.Invoke(queueItem, success);
             OnQueueChanged?.Invoke();
@@ -130,8 +126,10 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                         _downloadQueue.AddFirst(videoInfo);
                         OnQueueChanged?.Invoke();
                     }
+
                     return;
                 }
+
                 existingNode = existingNode.Next;
             }
 
@@ -165,21 +163,16 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         var list = _waiters.GetOrAdd(key, _ => []);
         lock (list)
-        {
             list.Add(tcs);
-        }
 
         QueueDownload2(videoInfo, highPriority);
 
         if (File.Exists(filePath))
         {
             if (_waiters.TryGetValue(key, out var existingList))
-            {
                 lock (existingList)
-                {
                     existingList.Remove(tcs);
-                }
-            }
+
             return true;
         }
 
@@ -199,12 +192,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         finally
         {
             if (_waiters.TryGetValue(key, out var existingList))
-            {
                 lock (existingList)
-                {
                     existingList.Remove(tcs);
-                }
-            }
         }
     }
 
@@ -223,18 +212,14 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     public IReadOnlyList<VideoInfo> GetQueueSnapshot2()
     {
         lock (_queueLock)
-        {
             return [.. _downloadQueue];
-        }
     }
 
     [PublicAPI]
     public int GetQueueCount2()
     {
         lock (_queueLock)
-        {
             return _downloadQueue.Count;
-        }
     }
 
     [PublicAPI]

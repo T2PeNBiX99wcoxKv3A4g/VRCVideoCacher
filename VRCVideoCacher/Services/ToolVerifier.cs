@@ -77,7 +77,8 @@ public static class ToolVerifier
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             using var processTracker = ChildProcessTracker.Tracking(process);
-            if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return new(false, true, string.Empty);
+            if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating)
+                return new(false, true, string.Empty);
             var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);
             var stderr = process.StandardError.ReadToEndAsync(cts.Token);
             await process.WaitForExitAsync(cts.Token);

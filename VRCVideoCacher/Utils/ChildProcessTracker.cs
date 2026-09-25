@@ -18,8 +18,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     private IntPtr _jobHandle = IntPtr.Zero;
     private bool _terminating;
 
-    [PublicAPI]
-    public bool Terminating2 => Volatile.Read(ref _terminating);
+    [PublicAPI] public bool Terminating2 => Volatile.Read(ref _terminating);
 
     public ChildProcessTracker()
     {
@@ -115,10 +114,13 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     [PublicAPI]
     public bool Untrack2(Process process) => _trackedProcesses.TryRemove(process, out _);
 
-    public sealed class TrackingScope(ChildProcessTracker tracker, Process process, TrackResult trackResult, bool forceKill = true) : IDisposable
+    public sealed class TrackingScope(
+        ChildProcessTracker tracker,
+        Process process,
+        TrackResult trackResult,
+        bool forceKill = true) : IDisposable
     {
-        [PublicAPI]
-        public TrackResult TrackResult { get; } = trackResult;
+        [PublicAPI] public TrackResult TrackResult { get; } = trackResult;
 
         public void Dispose()
         {
@@ -169,7 +171,8 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public async Task<T> Tracking2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<TrackResult, Task<T>> callback,
+    public async Task<T> Tracking2<T>(Process process,
+        [InstantHandle(RequireAwait = true)] Func<TrackResult, Task<T>> callback,
         bool forceKill = true)
     {
         var result = Track2(process);

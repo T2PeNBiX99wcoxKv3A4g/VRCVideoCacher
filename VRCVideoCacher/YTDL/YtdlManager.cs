@@ -473,7 +473,6 @@ public partial class YtdlManager : Singleton<YtdlManager>
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
             var success = false;
             await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
-            {
                 while (await reader.MoveToNextEntryAsync())
                 {
                     if (reader.Entry.Key == null || reader.Entry.IsDirectory)
@@ -492,7 +491,6 @@ public partial class YtdlManager : Singleton<YtdlManager>
                     FileTools.MarkFileExecutable(path);
                     success = true;
                 }
-            }
 
             if (!success)
                 throw new("Failed to extract ffmpeg files.");
@@ -604,7 +602,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using var processTracker= ChildProcessTracker.Tracking(process);
+            using var processTracker = ChildProcessTracker.Tracking(process);
             if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
             await process.WaitForExitAsync(cts.Token);
             if (process.ExitCode == 0) return true;
