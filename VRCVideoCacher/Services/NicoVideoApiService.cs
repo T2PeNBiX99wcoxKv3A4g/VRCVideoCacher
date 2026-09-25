@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Caching.Memory;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
@@ -36,7 +36,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
     private readonly HttpClient _httpClient;
-    private readonly ConcurrentDictionary<string, (DateTime ExpireAt, NicoVideoResult Result)> _cache = new();
+    private readonly MemoryCache _cache = new(new MemoryCacheOptions());
 
     public NicoVideoApiService()
     {
@@ -62,11 +62,10 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoIdOrUrl)
     {
         var cleanId = ExtractNicoId(videoIdOrUrl);
-        if (_cache.TryGetValue(cleanId, out var cached) &&
-            DateTime.UtcNow < cached.ExpireAt &&
-            cached.Result != null &&
-            !string.IsNullOrEmpty(cached.Result.Title))
-            return cached.Result;
+        if (_cache.TryGetValue(cleanId, out NicoVideoResult? cached) &&
+            cached != null &&
+            !string.IsNullOrEmpty(cached.Title))
+            return cached;
 
         return await Try.Run<NicoVideoResult?>(async () =>
         {
@@ -266,7 +265,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             }
 
             result.Cookies = cookieMap;
-            _cache[cleanId] = (DateTime.UtcNow.AddMinutes(5), result);
+            _cache.Set(cleanId, result, TimeSpan.FromMinutes(5));
             return result;
         }).GetOrElse(ex =>
         {
