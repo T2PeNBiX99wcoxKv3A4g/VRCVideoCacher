@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
+using JetBrains.Annotations;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Models;
@@ -18,17 +19,17 @@ using Swan;
 
 namespace VRCVideoCacher.ViewModels;
 
-public partial class HistoryItemViewModel : ViewModelBase
+public partial class HistoryItemViewModel(History history, VideoInfoCache? meta) : ViewModelBase
 {
-    public int Key { get; init; }
-    public DateTime Timestamp { get; init; }
-    public string Url { get; init; }
-    public string? Id { get; init; }
-    public UrlType Type { get; init; }
-    public string? Author { get; init; }
+    public int Key { get; init; } = history.Key;
+    public DateTime Timestamp { get; init; } = history.Timestamp.ToLocalTime();
+    public string Url { get; init; } = history.Url;
+    public string? Id { get; init; } = history.Id;
+    [PublicAPI] public UrlType Type { get; init; } = history.Type;
+    public string? Author { get; private set; } = meta?.Author;
     public bool HasAuthor => !string.IsNullOrEmpty(Author);
 
-    private string? _title;
+    private string? _title = meta?.Title;
 
     public string DisplayTitle => !string.IsNullOrEmpty(_title) ? _title : Url.Truncate(60, "...")!;
 
@@ -51,17 +52,6 @@ public partial class HistoryItemViewModel : ViewModelBase
     };
 
     public string? ThumbnailUrl { get; private set; }
-
-    public HistoryItemViewModel(History history, VideoInfoCache? meta)
-    {
-        Key = history.Key;
-        Timestamp = history.Timestamp.ToLocalTime();
-        Url = history.Url;
-        Id = history.Id;
-        Type = history.Type;
-        _title = meta?.Title;
-        Author = meta?.Author;
-    }
 
     public void SetMetadata(string? title, string? thumbnailUrl)
     {
@@ -94,6 +84,12 @@ public partial class HistoryItemViewModel : ViewModelBase
             {
                 _title = videoInfo.Title;
                 OnPropertyChanged(nameof(DisplayTitle));
+            }
+
+            if (!string.IsNullOrEmpty(videoInfo?.Author))
+            {
+                Author = videoInfo.Author;
+                OnPropertyChanged(nameof(Author));
             }
 
             // Load thumbnail
