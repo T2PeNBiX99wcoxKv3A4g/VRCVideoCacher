@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using VRCVideoCacher.Utils;
@@ -6,11 +5,11 @@ using VRCVideoCacher.Utils;
 namespace VRCVideoCacher.Extensions;
 
 [PublicAPI]
-public static class ProcessExtensions
+public static class DisposableExtensions
 {
-    extension(Process process)
+    extension(IDisposable disposable)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDispose() => Try.Run(process.Dispose).IsSuccess;
+        public bool TryDispose() => Try.Run(disposable.Dispose).IsSuccess;
     }
 }
