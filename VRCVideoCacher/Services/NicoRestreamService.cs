@@ -77,6 +77,7 @@ public static partial class NicoRestreamService
         }
     }
 
+    // TODO: Try support live
     [PublicAPI]
     public static async Task<string?> GetRestreamUrlAsync(VideoInfo videoInfo)
     {

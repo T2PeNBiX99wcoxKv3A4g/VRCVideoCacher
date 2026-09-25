@@ -84,7 +84,7 @@ public partial class CacheItemViewModel : ViewModelBase
         return Type switch
         {
             UrlType.YouTube => $"https://www.youtube.com/watch?v={VideoId}",
-            UrlType.NicoVideo => $"https://www.nicovideo.jp/watch/{VideoId}",
+            UrlType.NicoVideo => NicoVideoApiService.IsValidLiveId(VideoId) ? $"https://live.nicovideo.jp/watch/{VideoId}" : $"https://www.nicovideo.jp/watch/{VideoId}",
             _ => $"{ConfigManager.Config.YtdlpWebServerUrl}/{VideoId}.mp4"
         };
     }
