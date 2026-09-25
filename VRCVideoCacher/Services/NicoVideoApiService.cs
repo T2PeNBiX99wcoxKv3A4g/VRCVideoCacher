@@ -321,7 +321,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         return !string.IsNullOrEmpty(thumbnailPath) ? thumbnailPath : res.Thumbnail;
     }
 
-
     [PublicAPI]
     public async Task<VideoInfoCache?> GetVideoMetadataAsync2(string videoId)
     {
