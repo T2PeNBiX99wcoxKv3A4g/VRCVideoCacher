@@ -11,6 +11,11 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
         "nico.ms"
     ];
 
+    private const string AVProFormat = "(mp4/best)[height<=?1080][height>=?64][width>=?64]";
+
+    private const string UnityPlayerFormat =
+        "(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?1080][height>=?64][width>=?64][protocol^=http]";
+
     public override bool CanHandle(Uri uri) => Hosts.Any(h => uri.Host.EndsWith(h, StringComparison.OrdinalIgnoreCase));
 
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
@@ -37,6 +42,16 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
             UrlType = UrlType.NicoVideo,
             DownloadFormat = DownloadFormat.MP4
         });
+    }
+
+    public override List<string> GetYtdlpArguments(Uri uri, bool avPro)
+    {
+        var args = new List<string>
+        {
+            avPro ? $"-f \"{AVProFormat}\"" : $"-f \"{UnityPlayerFormat}\""
+        };
+
+        return args;
     }
 
     // Matches full nicovideo/niconico URLs
