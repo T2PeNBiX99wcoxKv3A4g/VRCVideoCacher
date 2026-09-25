@@ -17,6 +17,7 @@ public class NicoVideoResult
     public string? VideoId { get; set; }
     public string? Url { get; set; }
     public string? Title { get; set; }
+    public string? Author { get; set; }
     public string? Description { get; set; }
     public string[]? Tags { get; set; }
     public long? ViewCount { get; set; }
@@ -61,7 +62,10 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoIdOrUrl)
     {
         var cleanId = ExtractNicoId(videoIdOrUrl);
-        if (_cache.TryGetValue(cleanId, out var cached) && DateTime.UtcNow < cached.ExpireAt)
+        if (_cache.TryGetValue(cleanId, out var cached) &&
+            DateTime.UtcNow < cached.ExpireAt &&
+            cached.Result != null &&
+            !string.IsNullOrEmpty(cached.Result.Title))
             return cached.Result;
 
         return await Try.Run<NicoVideoResult?>(async () =>
@@ -144,6 +148,11 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                         result.MyListCount = videoNode.Count.MyList;
                         result.LikeCount = videoNode.Count.Like;
                     }
+                }
+
+                if (responseObj.Owner != null)
+                {
+                    result.Author = responseObj.Owner.Nickname;
                 }
 
                 if (responseObj.Tag?.Items != null)
@@ -281,7 +290,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             {
                 Id = videoId,
                 Title = res.Title,
-                Author = null,
+                Author = res.Author,
                 Duration = res.Duration != null ? (int?)res.Duration.Value : null,
                 Type = UrlType.NicoVideo
             });

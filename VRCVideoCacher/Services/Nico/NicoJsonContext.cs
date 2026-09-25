@@ -19,6 +19,14 @@ public class NicoWatchResponse
     [JsonPropertyName("tag")] public NicoWatchTagContainer? Tag { get; set; }
     [JsonPropertyName("media")] public NicoWatchMedia? Media { get; set; }
     [JsonPropertyName("client")] public NicoWatchClient? Client { get; set; }
+    [JsonPropertyName("owner")] public NicoWatchOwner? Owner { get; set; }
+}
+
+public class NicoWatchOwner
+{
+    [JsonPropertyName("id")] public long? Id { get; set; }
+    [JsonPropertyName("nickname")] public string? Nickname { get; set; }
+    [JsonPropertyName("iconUrl")] public string? IconUrl { get; set; }
 }
 
 public class NicoWatchVideo
