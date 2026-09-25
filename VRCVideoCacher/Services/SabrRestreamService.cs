@@ -74,8 +74,6 @@ public static class SabrRestreamService
     /// <summary>Directory HLS sessions are written to; served by EmbedIO at <c>/hls</c>.</summary>
     public static string HlsRootPath { get; } = Path.Join(Program.DataPath, "hls");
 
-    private static bool _isExit;
-
     /// <summary>
     /// Whether the streamed media can double as the cached copy, so the video is fetched once instead of
     /// twice. Only when the two resolutions agree: <c>SabrMaxResolution</c> governs STREAMING and
@@ -346,9 +344,9 @@ public static class SabrRestreamService
 
     private static async Task ReaperLoop()
     {
-        while (!Volatile.Read(ref _isExit))
+        while (!ChildProcessTracker.Terminating)
         {
-            if (Volatile.Read(ref _isExit)) break;
+            if (ChildProcessTracker.Terminating) break;
             // Polled often, because the live timeout is short and every extra second of an unwatched
             // live session is bandwidth spent on nothing.
             await Task.Delay(TimeSpan.FromSeconds(5));
@@ -403,22 +401,21 @@ public static class SabrRestreamService
             var activity = StatusService.Begin(StatusCategory.Streaming,
                 string.Format(Localizer.Get("StatusStreaming"), videoId));
             if (!StreamActivities.TryAdd(videoId, activity))
-                activity.Dispose();
+                activity.TryDispose();
         }
         else if (StreamActivities.TryRemove(videoId, out var activity))
-            activity.Dispose();
+            activity.TryDispose();
     }
 
     private static void ShutdownAll()
     {
-        Interlocked.Exchange(ref _isExit, true);
         foreach (var (id, session) in Sessions)
         {
             Sessions.TryRemove(id, out _);
             SessionVideos.TryRemove(id, out _);
             if (StreamActivities.TryRemove(id, out var activity))
-                activity.Dispose();
-            session.Dispose(); // app is exiting; no point queueing a download
+                activity.TryDispose();
+            session.TryDispose(); // app is exiting; no point queueing a download
         }
     }
 }

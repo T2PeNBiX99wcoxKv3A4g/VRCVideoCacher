@@ -37,8 +37,6 @@ public static class NicoRestreamService
         Timeout = TimeSpan.FromSeconds(20)
     };
 
-    private static bool _isExit;
-
     static NicoRestreamService()
     {
         Directory.CreateDirectory(HlsRootPath);
@@ -58,7 +56,6 @@ public static class NicoRestreamService
 
     private static void CleanupAll()
     {
-        if (Interlocked.Exchange(ref _isExit, true)) return;
         foreach (var session in Sessions.Values)
             Try.Run(session.Dispose);
         Sessions.Clear();
@@ -70,9 +67,9 @@ public static class NicoRestreamService
 
     private static async Task ReaperLoop()
     {
-        while (!Volatile.Read(ref _isExit))
+        while (!ChildProcessTracker.Terminating)
         {
-            if (Volatile.Read(ref _isExit)) break;
+            if (ChildProcessTracker.Terminating) break;
             await Task.Delay(TimeSpan.FromMinutes(2));
             var now = DateTime.UtcNow;
             foreach (var (id, session) in Sessions)
