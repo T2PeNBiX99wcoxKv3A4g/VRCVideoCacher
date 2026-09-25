@@ -291,7 +291,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
                 report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            try
+            await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
             {
                 while (await reader.MoveToNextEntryAsync())
                 {
@@ -312,10 +312,6 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 }
 
                 throw new("Deno archive contained no files.");
-            }
-            finally
-            {
-                await reader.TryDisposeAsync();
             }
         }
 
@@ -351,7 +347,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 await downloadResponse.Content.ReadAsStreamAsync(), downloadResponse.Content.Headers.ContentLength,
                 activity.Report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            try
+            await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
             {
                 while (await reader.MoveToNextEntryAsync())
                 {
@@ -372,10 +368,6 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 }
 
                 throw new("Deno fallback archive contained no files.");
-            }
-            finally
-            {
-                await reader.TryDisposeAsync();
             }
         }
 
@@ -480,7 +472,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
             var success = false;
-            try
+            await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
             {
                 while (await reader.MoveToNextEntryAsync())
                 {
@@ -500,10 +492,6 @@ public partial class YtdlManager : Singleton<YtdlManager>
                     FileTools.MarkFileExecutable(path);
                     success = true;
                 }
-            }
-            finally
-            {
-                await reader.TryDisposeAsync();
             }
 
             if (!success)
