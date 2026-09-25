@@ -162,7 +162,7 @@ public static partial class PortAudit
             return null;
 
         var buffer = Marshal.AllocHGlobal((nint)size);
-        using (buffer.UsingUntil(Marshal.FreeHGlobal))
+        using (UsingUntil.Run(() => Marshal.FreeHGlobal(buffer)))
         {
             if (GetExtendedTcpTable(buffer, ref size, false, family, TcpTableOwnerPidListener, 0) != 0)
                 return null;
