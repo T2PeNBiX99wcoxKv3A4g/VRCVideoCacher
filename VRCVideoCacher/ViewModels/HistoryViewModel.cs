@@ -31,7 +31,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
 
     private string? _title = meta?.Title;
 
-    public string DisplayTitle => !string.IsNullOrEmpty(_title) ? _title : Url.Truncate(100, "...")!;
+    public string DisplayTitle => !string.IsNullOrEmpty(_title) ? _title : Url.Truncate(60, "...")!;
 
     public string TypeBadge => Type switch
     {
