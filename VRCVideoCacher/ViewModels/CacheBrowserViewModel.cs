@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia;
@@ -35,13 +36,16 @@ public partial class CacheItemViewModel : ViewModelBase
     // Event to notify parent when item is deleted
     public event Action<CacheItemViewModel>? OnDeleted;
 
+    private static readonly ImmutableHashSet<string> NicoVideoPrefixes =
+    [
+        "sm",
+        "nm",
+        "so"
+    ];
+
     public async Task LoadMetadataAsync()
     {
-        if (VideoId.StartsWith("sm", StringComparison.OrdinalIgnoreCase) ||
-            VideoId.StartsWith("so", StringComparison.OrdinalIgnoreCase) ||
-            VideoId.StartsWith("nm", StringComparison.OrdinalIgnoreCase) ||
-            VideoId.StartsWith("lv", StringComparison.OrdinalIgnoreCase) ||
-            VideoId.StartsWith("ch", StringComparison.OrdinalIgnoreCase))
+        if (NicoVideoPrefixes.Any(x => VideoId.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
             Type = UrlType.NicoVideo;
         else if (VideoId.Length == 11)
             Type = UrlType.YouTube;
