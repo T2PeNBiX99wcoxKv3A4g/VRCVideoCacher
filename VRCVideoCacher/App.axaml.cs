@@ -94,7 +94,7 @@ public class App : Application
             MainWindow.Opened += OnMainWindowOpened;
 
             // Allow the app to exit cleanly on OS shutdown/logoff
-            desktop.ShutdownRequested += (_, _) => { _isExiting = true; };
+            desktop.ShutdownRequested += (_, _) => _isExiting = true;
         }
 
         base.OnFrameworkInitializationCompleted();
