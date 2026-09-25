@@ -41,7 +41,9 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [
         "sm",
         "nm",
-        "so"
+        "so",
+        "lv",
+        "ch"
     ];
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
