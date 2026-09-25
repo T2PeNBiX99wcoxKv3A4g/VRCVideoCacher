@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Serilog;
 
 namespace VRCVideoCacher.Services.Sabr;
@@ -132,7 +133,6 @@ internal sealed class SabrClient(
 
     // Live broadcast state, from LiveMetadata (part 31). Null until the first one arrives.
     private readonly bool _isLive = source.IsLive;
-    private long _liveHeadSequence;
     private long? _minSeekableMs;
     private long? _maxSeekableMs;
 
@@ -142,10 +142,12 @@ internal sealed class SabrClient(
         - LiveDurationToleranceMs;
 
     /// <summary>Total duration, known after the first response. 0 until then. Meaningless when live.</summary>
+    [PublicAPI]
     public long DurationMs { get; private set; }
 
     /// <summary>The broadcast head's sequence number, or 0 if not live / not yet known.</summary>
-    public long LiveHeadSequence => _liveHeadSequence;
+    [PublicAPI]
+    public long LiveHeadSequence { get; private set; }
 
     /// <summary>Raised when the broadcast ends: the fetch went quiet while sitting at the head.</summary>
     public bool BroadcastEnded { get; private set; }
@@ -210,10 +212,11 @@ internal sealed class SabrClient(
 
             throw;
         }
-
-        static void Observe(Task task) => _ = task.ContinueWith(
-            t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
     }
+
+    private static void Observe(Task task) =>
+        _ = task.ContinueWith(
+            t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
     private async Task DownloadCoreAsync(Stream audioOut, Stream videoOut, long startTimeMs,
         Action<SabrSegment>? onSegment, CancellationToken ct)
@@ -626,7 +629,7 @@ internal sealed class SabrClient(
     {
         if (metadata.HeadSequenceNumber > 0)
         {
-            _liveHeadSequence = metadata.HeadSequenceNumber;
+            LiveHeadSequence = metadata.HeadSequenceNumber;
             // Live never sends total_segments; the head is the closest thing to it.
             foreach (var track in Tracks)
                 track.TotalSegments = metadata.HeadSequenceNumber;
@@ -662,14 +665,14 @@ internal sealed class SabrClient(
     {
         // No LiveMetadata at all means we cannot know — treat as at-head so a dead stream can still end
         // rather than hanging forever.
-        if (_liveHeadSequence <= 0 && _maxSeekableMs is null)
+        if (LiveHeadSequence <= 0 && _maxSeekableMs is null)
             return true;
 
         if (_maxSeekableMs is { } max && _playerTimeMs + EstSegmentDurationMs >= max)
             return true;
 
-        return _liveHeadSequence > 0 &&
-               Tracks.All(t => t.LastSequence > 0 && _liveHeadSequence - t.LastSequence <= LiveHeadSegmentTolerance);
+        return LiveHeadSequence > 0 &&
+               Tracks.All(t => t.LastSequence > 0 && LiveHeadSequence - t.LastSequence <= LiveHeadSegmentTolerance);
     }
 
     // The last segment or two of a broadcast is often never served, so "at the head" has to be fuzzy.
