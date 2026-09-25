@@ -132,7 +132,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     public TrackingScope Tracking2(Process process, bool forceKill = true)
     {
         var result = Track2(process);
-        return new TrackingScope(this, process, result, forceKill);
+        return new(this, process, result, forceKill);
     }
 
     [PublicAPI]

@@ -27,7 +27,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     };
 
     private readonly LinkedList<VideoInfo> _downloadQueue = new();
-    private readonly object _queueLock = new();
+    private readonly Lock _queueLock = new();
     private readonly ConcurrentDictionary<string, List<TaskCompletionSource<bool>>> _waiters = new();
 
     // Current download tracking
@@ -317,8 +317,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            using (ChildProcessTracker.Tracking(process))
+            using (var processTracker = ChildProcessTracker.Tracking(process))
             {
+                if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
                 await process.WaitForExitAsync();
                 error = (await process.StandardError.ReadToEndAsync()).Trim();
             }
@@ -386,8 +387,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         };
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async () =>
+        var error = await ChildProcessTracker.Tracking(process, async (result) =>
         {
+            if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             await process.WaitForExitAsync();
             return (await process.StandardError.ReadToEndAsync()).Trim();
         });
@@ -502,8 +504,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async () =>
+        var error = await ChildProcessTracker.Tracking(process, async (result) =>
         {
+            if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             await process.WaitForExitAsync();
             return (await process.StandardError.ReadToEndAsync()).Trim();
         });
@@ -566,8 +569,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading NicoVideo Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async () =>
+        var error = await ChildProcessTracker.Tracking(process, async (result) =>
         {
+            if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             await process.WaitForExitAsync();
             return (await process.StandardError.ReadToEndAsync()).Trim();
         });

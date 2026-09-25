@@ -440,15 +440,14 @@ internal static class SabrExtractor
 
         log.Debug("[sabr-extract] {File} {Args}", Path.GetFileName(ytdlpPath), args);
         process.Start();
-        using (ChildProcessTracker.Tracking(process))
-        {
-            var stdout = process.StandardOutput.ReadToEndAsync(ct);
-            var stderr = process.StandardError.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
+        using var processTracker = ChildProcessTracker.Tracking(process);
+        if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return new();
+        var stdout = process.StandardOutput.ReadToEndAsync(ct);
+        var stderr = process.StandardError.ReadToEndAsync(ct);
+        await process.WaitForExitAsync(ct);
 
-            return process.ExitCode != 0
-                ? throw new SabrException($"yt-dlp extraction failed: {(await stderr).Trim()}")
-                : JObject.Parse(await stdout);
-        }
+        return process.ExitCode != 0
+            ? throw new SabrException($"yt-dlp extraction failed: {(await stderr).Trim()}")
+            : JObject.Parse(await stdout);
     }
 }

@@ -233,22 +233,21 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
         };
 
         process.Start();
-        using (ChildProcessTracker.Tracking(process))
+        using var processTracker = ChildProcessTracker.Tracking(process);
+        if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return;
+        var stderr = await process.StandardError.ReadToEndAsync(ct);
+        await process.WaitForExitAsync(ct);
+
+        if (process.ExitCode != 0)
         {
-            var stderr = await process.StandardError.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
-
-            if (process.ExitCode != 0)
-            {
-                log.Debug(
-                    "[nico-mux] {StartInfoFileName} {StartInfoArguments}",
-                    process.StartInfo.FileName,
-                    process.StartInfo.Arguments);
-                throw new InvalidOperationException($"ffmpeg failed muxing a NicoVideo segment: {stderr.Trim()}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(stderr))
-                log.Debug("[nico-mux] {Error}", stderr.Trim());
+            log.Debug(
+                "[nico-mux] {StartInfoFileName} {StartInfoArguments}",
+                process.StartInfo.FileName,
+                process.StartInfo.Arguments);
+            throw new InvalidOperationException($"ffmpeg failed muxing a NicoVideo segment: {stderr.Trim()}");
         }
+
+        if (!string.IsNullOrWhiteSpace(stderr))
+            log.Debug("[nico-mux] {Error}", stderr.Trim());
     }
 }

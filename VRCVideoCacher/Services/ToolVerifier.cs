@@ -76,20 +76,19 @@ public static class ToolVerifier
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using (ChildProcessTracker.Tracking(process))
-            {
-                var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);
-                var stderr = process.StandardError.ReadToEndAsync(cts.Token);
-                await process.WaitForExitAsync(cts.Token);
+            using var processTracker = ChildProcessTracker.Tracking(process);
+            if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return new(false, true, string.Empty);
+            var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);
+            var stderr = process.StandardError.ReadToEndAsync(cts.Token);
+            await process.WaitForExitAsync(cts.Token);
 
-                if (process.ExitCode != 0)
-                    return new ToolCheck(false, true, string.Empty);
+            if (process.ExitCode != 0)
+                return new ToolCheck(false, true, string.Empty);
 
-                var raw = await stdout;
-                if (string.IsNullOrWhiteSpace(raw))
-                    raw = await stderr;
-                return new(true, true, ExtractVersion(raw));
-            }
+            var raw = await stdout;
+            if (string.IsNullOrWhiteSpace(raw))
+                raw = await stderr;
+            return new(true, true, ExtractVersion(raw));
         }).GetOrElse(_ => Task.FromResult(new ToolCheck(false, true, string.Empty)));
     }
 

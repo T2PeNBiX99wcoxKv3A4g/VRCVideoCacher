@@ -331,21 +331,20 @@ internal sealed class SabrSegmentMuxer(string ffmpegPath, ILogger log)
         };
 
         process.Start();
-        using (ChildProcessTracker.Tracking(process))
+        using var processTracker = ChildProcessTracker.Tracking(process);
+        if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return;
+        var stderr = await process.StandardError.ReadToEndAsync(ct);
+        await process.WaitForExitAsync(ct);
+
+        if (process.ExitCode != 0)
         {
-            var stderr = await process.StandardError.ReadToEndAsync(ct);
-            await process.WaitForExitAsync(ct);
-
-            if (process.ExitCode != 0)
-            {
-                log.Debug(
-                    "[sabr-mux] {StartInfoFileName} {StartInfoArguments}", process.StartInfo.FileName, process.StartInfo
-                        .Arguments);
-                throw new SabrException($"ffmpeg failed muxing a segment: {stderr.Trim()}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(stderr))
-                log.Debug("[sabr-mux] {Error}", stderr.Trim());
+            log.Debug(
+                "[sabr-mux] {StartInfoFileName} {StartInfoArguments}", process.StartInfo.FileName, process.StartInfo
+                    .Arguments);
+            throw new SabrException($"ffmpeg failed muxing a segment: {stderr.Trim()}");
         }
+
+        if (!string.IsNullOrWhiteSpace(stderr))
+            log.Debug("[sabr-mux] {Error}", stderr.Trim());
     }
 }

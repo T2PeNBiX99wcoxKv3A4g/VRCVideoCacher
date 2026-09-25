@@ -616,15 +616,14 @@ public partial class YtdlManager : Singleton<YtdlManager>
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using (ChildProcessTracker.Tracking(process))
-            {
-                await process.WaitForExitAsync(cts.Token);
-                if (process.ExitCode == 0) return true;
-                var output = await process.StandardOutput.ReadToEndAsync(cts.Token);
-                var error = await process.StandardError.ReadToEndAsync(cts.Token);
-                Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
-                return false;
-            }
+            using var processTracker= ChildProcessTracker.Tracking(process);
+            if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
+            await process.WaitForExitAsync(cts.Token);
+            if (process.ExitCode == 0) return true;
+            var output = await process.StandardOutput.ReadToEndAsync(cts.Token);
+            var error = await process.StandardError.ReadToEndAsync(cts.Token);
+            Log.Error("Error starting {ProcessName}: {Output} {Error}", processName, output, error);
+            return false;
         }).GetOrElse(ex =>
         {
             Log.Error(ex, "Exception while starting {ProcessName}: {Message}", processName, ex.Message);

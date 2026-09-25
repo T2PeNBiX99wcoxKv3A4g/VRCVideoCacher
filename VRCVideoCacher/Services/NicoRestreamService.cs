@@ -186,8 +186,9 @@ public static class NicoRestreamService
                 };
 
                 process.Start();
-                var error = await ChildProcessTracker.Tracking(process, async () =>
+                var error = await ChildProcessTracker.Tracking(process, async (result) =>
                 {
+                    if (result == ChildProcessTracker.TrackResult.Terminating) return null;
                     await process.WaitForExitAsync();
                     return (await process.StandardError.ReadToEndAsync()).Trim();
                 });

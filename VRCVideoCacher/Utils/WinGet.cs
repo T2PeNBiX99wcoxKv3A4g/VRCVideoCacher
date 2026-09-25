@@ -70,11 +70,10 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            using (ChildProcessTracker.Tracking(process))
-            {
-                process.WaitForExit(10_000);
-                return process.ExitCode == 0;
-            }
+            using var processTracker = ChildProcessTracker.Tracking(process);
+            if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
+            process.WaitForExit(10_000);
+            return process.ExitCode == 0;
         }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed on IsPackageInstalled");
@@ -105,20 +104,19 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            using (ChildProcessTracker.Tracking(process))
-            {
-                while (await process.StandardOutput.ReadLineAsync() is { } line)
-                    if (!string.IsNullOrEmpty(line.Trim()))
-                        Log.Debug("{Winget}: {Line}", "winget", line);
-                var error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-                if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))
-                    throw new($"Installation failed with exit code {process.ExitCode}. Error: {error}");
+            using var processTracker = ChildProcessTracker.Tracking(process);
+            if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return;
+            while (await process.StandardOutput.ReadLineAsync() is { } line)
+                if (!string.IsNullOrEmpty(line.Trim()))
+                    Log.Debug("{Winget}: {Line}", "winget", line);
+            var error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))
+                throw new($"Installation failed with exit code {process.ExitCode}. Error: {error}");
 
-                var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
-                if (process.ExitCode == 0)
-                    Log.Information("Successfully installed package: {PackageName}", packageName);
-            }
+            var packageName = WingetPackages.FirstOrDefault(x => x.Value == packageId).Key;
+            if (process.ExitCode == 0)
+                Log.Information("Successfully installed package: {PackageName}", packageName);
         }).GetOrElse(ex =>
         {
             Log.Warning(ex, "Failed on InstallPackage");
