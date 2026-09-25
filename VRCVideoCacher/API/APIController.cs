@@ -206,9 +206,10 @@ public class ApiController : WebApiController
                 }
 
                 if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId))
-                    Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.", videoInfo.VideoId);
+                    Log.Warning("NicoVideo HLS restream URL resolution failed for {VideoId}, falling back to download.",
+                        videoInfo.VideoId);
             }
-            
+
             if (NicoVideoApiService.IsValidLiveId(videoInfo.VideoId))
             {
                 Log.Warning("Failed to serve NicoVideo Live: {VideoId}", videoInfo.VideoId);

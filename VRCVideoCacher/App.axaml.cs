@@ -23,8 +23,7 @@ public class App : Application
     private const uint WmQueryEndSession = 0x0011;
     private const uint WmEndSession = 0x0016;
     private const int ScClose = 0xF060;
-    [PublicAPI]
-    public static MainWindow? MainWindow;
+    [PublicAPI] public static MainWindow? MainWindow;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private NativeMenuItem? _exitItem;
 

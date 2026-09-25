@@ -10,6 +10,7 @@ public static class AsyncDisposableExtensions
     extension(IAsyncDisposable disposable)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<bool> TryDisposeAsync() => (await Try.Run(async () => await disposable.DisposeAsync())).IsSuccess;
+        public async ValueTask<bool> TryDisposeAsync() =>
+            (await Try.Run(async () => await disposable.DisposeAsync())).IsSuccess;
     }
 }
