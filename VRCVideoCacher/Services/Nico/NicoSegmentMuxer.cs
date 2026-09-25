@@ -8,13 +8,13 @@ using Process = System.Diagnostics.Process;
 namespace VRCVideoCacher.Services.Nico;
 
 /// <summary>
-/// Muxes decrypted NicoVideo video and audio fragments into a single playable fMP4 HLS segment.
+///     Muxes decrypted NicoVideo video and audio fragments into a single playable fMP4 HLS segment.
 /// </summary>
 internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
 {
     /// <summary>
-    /// Muxes a video fragment and audio fragment that already match the same time span,
-    /// into a single fMP4 segment, plus the shared init segment (ftyp+moov) the playlist's EXT-X-MAP points at.
+    ///     Muxes a video fragment and audio fragment that already match the same time span,
+    ///     into a single fMP4 segment, plus the shared init segment (ftyp+moov) the playlist's EXT-X-MAP points at.
     /// </summary>
     public async Task MuxDirectSegmentAsync(byte[] videoInit, byte[] videoFragment, byte[] audioInit,
         IReadOnlyList<byte[]> audioFragments, long startMs, int sequenceNumber, string segmentPath, string initPath,

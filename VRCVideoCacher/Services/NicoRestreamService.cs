@@ -23,8 +23,6 @@ public static partial class NicoRestreamService
     private static readonly ConcurrentDictionary<string, (TempDir TempDir, string FilePath)> TempFiles = new();
     private static readonly ConcurrentDictionary<string, Task<string?>> TempDownloadsInFlight = new();
 
-    public static string HlsRootPath { get; } = Path.Join(Program.DataPath, "nico_hls");
-
     private static readonly HttpClient HttpClient = new(new HttpClientHandler
     {
         AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
@@ -42,6 +40,8 @@ public static partial class NicoRestreamService
         AppDomain.CurrentDomain.ProcessExit += (_, _) => CleanupAll();
         Task.Run(ReaperLoop);
     }
+
+    public static string HlsRootPath { get; } = Path.Join(Program.DataPath, "nico_hls");
 
     private static void CleanOrphanedSessions()
     {

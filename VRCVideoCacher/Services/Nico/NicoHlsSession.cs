@@ -13,54 +13,36 @@ namespace VRCVideoCacher.Services.Nico;
 
 internal sealed partial class NicoHlsSession : IDisposable
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<NicoHlsSession>();
-    private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
-
     private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-    private readonly string _dir;
-    private readonly Dictionary<string, string> _cookies;
-    private readonly NicoSegmentMuxer _muxer;
-    private readonly HttpClient _httpClient;
-
-    private readonly string? _videoInitUrl;
-    private readonly string? _videoKeyUrl;
-    private readonly string? _videoKeyIv;
-    private readonly List<NicoSegmentItem> _videoSegments;
+    private static readonly ILogger Log = Program.Logger.ForContext<NicoHlsSession>();
+    private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
     private readonly string? _audioInitUrl;
-    private readonly string? _audioKeyUrl;
     private readonly string? _audioKeyIv;
+    private readonly string? _audioKeyUrl;
     private readonly List<NicoSegmentItem> _audioSegments;
 
+    private readonly ConcurrentDictionary<int, Lazy<Task>> _building = new();
+    private readonly Dictionary<string, string> _cookies;
+
+    private readonly string _dir;
+
     private readonly List<long> _durationsMs = [];
+    private readonly HttpClient _httpClient;
+    private readonly NicoSegmentMuxer _muxer;
     private readonly List<long> _startMs = [];
 
-    private byte[]? _cachedVideoInit;
+    private readonly string? _videoInitUrl;
+    private readonly string? _videoKeyIv;
+    private readonly string? _videoKeyUrl;
+    private readonly List<NicoSegmentItem> _videoSegments;
     private byte[]? _cachedAudioInit;
-    private byte[]? _cachedVideoKey;
     private byte[]? _cachedAudioKey;
 
-    private readonly ConcurrentDictionary<int, Lazy<Task>> _building = new();
-    public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
-
-    [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
-
-    [GeneratedRegex(@"#EXT-X-MEDIA:TYPE=AUDIO[^\n]*URI=""([^""]+)""", RegexOptions.Compiled)]
-    private static partial Regex AudioMediaRegex();
-
-    [GeneratedRegex(@"#EXT-X-STREAM-INF:([^\n]*BANDWIDTH=(\d+)[^\n]*)", RegexOptions.Compiled)]
-    private static partial Regex StreamInfRegex();
-
-    [GeneratedRegex(@"#EXT-X-MAP:URI=""([^""]+)""", RegexOptions.Compiled)]
-    private static partial Regex MapUriRegex();
-
-    [GeneratedRegex(@"#EXT-X-KEY:METHOD=AES-128,URI=""([^""]+)""(?:,IV=([0-9a-fA-FxX]+))?", RegexOptions.Compiled)]
-    private static partial Regex KeyRegex();
-
-    [GeneratedRegex(@"#EXTINF:([0-9.]+),", RegexOptions.Compiled)]
-    private static partial Regex ExtInfRegex();
+    private byte[]? _cachedVideoInit;
+    private byte[]? _cachedVideoKey;
 
     private NicoHlsSession(string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer, HttpClient httpClient,
         string? videoInitUrl, string? videoKeyUrl, string? videoKeyIv, List<NicoSegmentItem> videoSegments,
@@ -89,6 +71,34 @@ internal sealed partial class NicoHlsSession : IDisposable
             currentMs += ms;
         }
     }
+
+    public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
+
+    [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
+
+    public void Dispose()
+    {
+        Try.Run(() =>
+        {
+            if (Directory.Exists(_dir))
+                Directory.Delete(_dir, true);
+        });
+    }
+
+    [GeneratedRegex(@"#EXT-X-MEDIA:TYPE=AUDIO[^\n]*URI=""([^""]+)""", RegexOptions.Compiled)]
+    private static partial Regex AudioMediaRegex();
+
+    [GeneratedRegex(@"#EXT-X-STREAM-INF:([^\n]*BANDWIDTH=(\d+)[^\n]*)", RegexOptions.Compiled)]
+    private static partial Regex StreamInfRegex();
+
+    [GeneratedRegex(@"#EXT-X-MAP:URI=""([^""]+)""", RegexOptions.Compiled)]
+    private static partial Regex MapUriRegex();
+
+    [GeneratedRegex(@"#EXT-X-KEY:METHOD=AES-128,URI=""([^""]+)""(?:,IV=([0-9a-fA-FxX]+))?", RegexOptions.Compiled)]
+    private static partial Regex KeyRegex();
+
+    [GeneratedRegex(@"#EXTINF:([0-9.]+),", RegexOptions.Compiled)]
+    private static partial Regex ExtInfRegex();
 
     public void Touch() => LastAccess = DateTime.UtcNow;
 
@@ -473,14 +483,5 @@ internal sealed partial class NicoHlsSession : IDisposable
         if (Uri.TryCreate(new(baseUrl), relativeOrAbsolute, out var resolvedUri))
             return resolvedUri.ToString();
         return relativeOrAbsolute;
-    }
-
-    public void Dispose()
-    {
-        Try.Run(() =>
-        {
-            if (Directory.Exists(_dir))
-                Directory.Delete(_dir, true);
-        });
     }
 }
