@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Caching.Memory;
 using VRCVideoCacher.Database;
+using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Nico;
@@ -61,7 +62,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [PublicAPI]
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoIdOrUrl)
     {
-        var cleanId = ExtractNicoId(videoIdOrUrl);
+        var cleanId = ExtractNicoId2(videoIdOrUrl);
         if (_cache.TryGetValue(cleanId, out NicoVideoResult? cached) && cached != null &&
             !string.IsNullOrEmpty(cached.Title) && !string.IsNullOrEmpty(cached.Author)) return cached;
 
@@ -271,29 +272,73 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
-    public async Task DownloadMetadata2(string cleanId, string videoId)
+    public async Task<VideoInfoCache?> DownloadMetadata2(string cleanId, string videoId)
     {
-        await Try.Run(async () =>
+        return await Try.Run(async () =>
         {
             var res = await FetchVideoResult2(cleanId);
-            if (res == null) return;
+            if (res == null) return null;
 
             if (!string.IsNullOrEmpty(res.Thumbnail))
                 await ThumbnailManager.TrySaveThumbnail(videoId, res.Thumbnail);
 
-            await DatabaseManager.AddVideoInfoCacheAsync(new()
+            var videoInfo = new VideoInfoCache
             {
                 Id = videoId,
                 Title = res.Title,
                 Author = res.Author,
                 Duration = res.Duration != null ? (int?)res.Duration.Value : null,
                 Type = UrlType.NicoVideo
-            });
-        }).OnFailure(ex =>
+            };
+            await DatabaseManager.AddVideoInfoCacheAsync(videoInfo);
+            return videoInfo;
+        }).GetOrElse(ex =>
         {
             Log.Error(ex, "Failed to download NicoVideo metadata: {Ex}", ex.ToString());
-            return Unit.TaskValue;
+            return Task.FromResult<VideoInfoCache?>(null);
         });
+    }
+
+    [PublicAPI]
+    public Task<VideoInfoCache?> DownloadMetadata2(string videoId) =>
+        DownloadMetadata2(ExtractNicoId2(videoId), videoId);
+
+    [PublicAPI]
+    public Task<VideoInfoCache?> GetVideoTitleAsync2(string videoId) =>
+        DownloadMetadata2(videoId);
+
+    [PublicAPI]
+    public async Task<string?> GetThumbnail2(string videoId)
+    {
+        if (string.IsNullOrEmpty(videoId))
+            return null;
+
+        var localPath = ThumbnailManager.GetThumbnailPath(videoId);
+        if (File.Exists(localPath))
+            return localPath;
+
+        var cleanId = ExtractNicoId2(videoId);
+        var res = await FetchVideoResult2(cleanId);
+        if (res == null || string.IsNullOrEmpty(res.Thumbnail))
+            return null;
+
+        var thumbnailPath = await ThumbnailManager.TrySaveThumbnail(videoId, res.Thumbnail);
+        return !string.IsNullOrEmpty(thumbnailPath) ? thumbnailPath : res.Thumbnail;
+    }
+
+    [PublicAPI]
+    public async Task<VideoInfoCache?> GetVideoMetadataAsync2(string videoId)
+    {
+        if (string.IsNullOrEmpty(videoId))
+            return null;
+
+        var cachedInfo = await DatabaseManager.GetVideoInfoCacheAsync(videoId);
+
+        if (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) ||
+            string.IsNullOrEmpty(cachedInfo.Author))
+            cachedInfo = await GetVideoTitleAsync2(videoId);
+
+        return cachedInfo;
     }
 
     [PublicAPI]

@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
+using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -37,7 +38,7 @@ public partial class CacheItemViewModel : ViewModelBase
     public async Task LoadMetadataAsync()
     {
         // Load from DB
-        var videoInfo = await YouTubeMetadataService.GetVideoMetadataAsync(VideoId);
+        var videoInfo = await DatabaseManager.GetVideoInfoCacheAsync(VideoId);
 
         if (videoInfo != null)
         {
@@ -48,20 +49,50 @@ public partial class CacheItemViewModel : ViewModelBase
                 OnPropertyChanged(nameof(DisplayTitle));
             }
         }
-        else
+
+        if (Type == UrlType.Other)
         {
             if (VideoId.StartsWith("sm", StringComparison.OrdinalIgnoreCase) ||
                 VideoId.StartsWith("so", StringComparison.OrdinalIgnoreCase) ||
-                VideoId.StartsWith("nm", StringComparison.OrdinalIgnoreCase))
+                VideoId.StartsWith("nm", StringComparison.OrdinalIgnoreCase) ||
+                VideoId.StartsWith("lv", StringComparison.OrdinalIgnoreCase) ||
+                VideoId.StartsWith("ch", StringComparison.OrdinalIgnoreCase))
                 Type = UrlType.NicoVideo;
             else if (VideoId.Length == 11)
                 Type = UrlType.YouTube;
         }
 
+        if (videoInfo == null || string.IsNullOrEmpty(videoInfo.Title))
+        {
+            videoInfo = Type switch
+            {
+                UrlType.YouTube => await YouTubeMetadataService.GetVideoMetadataAsync(VideoId),
+                UrlType.NicoVideo => await NicoVideoApiService.GetVideoMetadataAsync(VideoId),
+                _ => null
+            };
+
+            if (videoInfo != null)
+            {
+                Type = videoInfo.Type;
+                if (!string.IsNullOrEmpty(videoInfo.Title))
+                {
+                    Title = videoInfo.Title;
+                    OnPropertyChanged(nameof(DisplayTitle));
+                }
+            }
+        }
+
         // Load thumbnail
         var thumbnailPath = ThumbnailManager.GetThumbnail(VideoId);
-        if (VideoId.Length == 11 && string.IsNullOrEmpty(thumbnailPath))
-            thumbnailPath = await YouTubeMetadataService.GetThumbnail(VideoId);
+        if (string.IsNullOrEmpty(thumbnailPath))
+        {
+            thumbnailPath = Type switch
+            {
+                UrlType.YouTube => await YouTubeMetadataService.GetThumbnail(VideoId),
+                UrlType.NicoVideo => await NicoVideoApiService.GetThumbnail(VideoId),
+                _ => null
+            };
+        }
 
         if (!string.IsNullOrEmpty(thumbnailPath))
             ThumbnailSource = thumbnailPath;
