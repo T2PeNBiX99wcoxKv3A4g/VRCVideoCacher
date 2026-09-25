@@ -71,7 +71,8 @@ public static class YouTubeMetadataService
     {
         var cachedInfo = await DatabaseManager.GetVideoInfoCacheAsync(videoId);
 
-        if (videoId.Length == 11 && (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) || string.IsNullOrEmpty(cachedInfo.Author)))
+        if (videoId.Length == 11 && (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) ||
+                                     string.IsNullOrEmpty(cachedInfo.Author)))
             cachedInfo = await GetVideoTitleAsync(videoId);
 
         return cachedInfo;
