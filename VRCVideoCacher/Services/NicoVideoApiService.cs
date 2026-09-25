@@ -62,10 +62,8 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoIdOrUrl)
     {
         var cleanId = ExtractNicoId(videoIdOrUrl);
-        if (_cache.TryGetValue(cleanId, out NicoVideoResult? cached) &&
-            cached != null &&
-            !string.IsNullOrEmpty(cached.Title))
-            return cached;
+        if (_cache.TryGetValue(cleanId, out NicoVideoResult? cached) && cached != null &&
+            !string.IsNullOrEmpty(cached.Title) && !string.IsNullOrEmpty(cached.Author)) return cached;
 
         return await Try.Run<NicoVideoResult?>(async () =>
         {
@@ -150,9 +148,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 }
 
                 if (responseObj.Owner != null)
-                {
                     result.Author = responseObj.Owner.Nickname;
-                }
 
                 if (responseObj.Tag?.Items != null)
                     result.Tags =
