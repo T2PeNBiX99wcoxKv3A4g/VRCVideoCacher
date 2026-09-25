@@ -79,41 +79,38 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// Registers a child process to be tracked and terminated when the application exits.
     /// </summary>
     [PublicAPI]
-    public void Track2(Process? process)
+    public TrackResult Track2(Process process)
     {
-        if (process == null) return;
         if (Volatile.Read(ref _terminating))
         {
             KillProcess(process);
-            return;
+            return TrackResult.Terminating;
         }
 
-        if (!_trackedProcesses.TryAdd(process, 0)) return;
+        if (!_trackedProcesses.TryAdd(process, 0)) return TrackResult.AlreadyTracked;
 
         if (Volatile.Read(ref _terminating))
         {
             if (_trackedProcesses.TryRemove(process, out _))
                 KillProcess(process);
-            return;
+            return TrackResult.Terminating;
         }
 
-        if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return;
+        if (!OperatingSystem.IsWindows() || _jobHandle == IntPtr.Zero) return TrackResult.Success;
         Try.Run(() =>
         {
             if (!process.HasExited)
                 AssignProcessToJobObject(_jobHandle, process.Handle);
         });
+
+        return TrackResult.Success;
     }
 
     /// <summary>
     /// Unregisters a tracked child process once it has exited normally.
     /// </summary>
     [PublicAPI]
-    public void Untrack2(Process? process)
-    {
-        if (process == null) return;
-        _trackedProcesses.TryRemove(process, out _);
-    }
+    public bool Untrack2(Process process) => _trackedProcesses.TryRemove(process, out _);
 
     private sealed class TrackingScope(ChildProcessTracker tracker, Process process, bool forceKill = true) : IDisposable
     {
@@ -265,4 +262,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     #endregion
+
+    public enum TrackResult
+    {
+        Success,
+        Terminating,
+        AlreadyTracked
+    }
 }
