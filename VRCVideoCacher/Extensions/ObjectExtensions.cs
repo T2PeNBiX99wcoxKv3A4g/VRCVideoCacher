@@ -30,8 +30,5 @@ public static class ObjectExtensions
             await block(value).ConfigureAwait(false);
             return value;
         }
-
-        public IDisposable UsingUntil([InstantHandle] Action<T> disposeAction) =>
-            new UsingUntil.UsingUntilScope<T>(value, disposeAction);
     }
 }
