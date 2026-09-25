@@ -372,7 +372,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         };
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async (result) =>
+        var error = await ChildProcessTracker.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             await process.WaitForExitAsync();
@@ -489,7 +489,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async (result) =>
+        var error = await ChildProcessTracker.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             await process.WaitForExitAsync();
@@ -554,7 +554,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading NicoVideo Video: {Args}", process.StartInfo.Arguments);
         process.Start();
-        var error = await ChildProcessTracker.Tracking(process, async (result) =>
+        var error = await ChildProcessTracker.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             await process.WaitForExitAsync();
