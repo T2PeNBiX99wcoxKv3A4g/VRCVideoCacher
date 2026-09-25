@@ -13,9 +13,6 @@ namespace VRCVideoCacher.Services.Nico;
 
 internal sealed partial class NicoHlsSession : IDisposable
 {
-    private const string UserAgent =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
     private static readonly ILogger Log = Program.Logger.ForContext<NicoHlsSession>();
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
@@ -339,7 +336,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
-        req.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+        req.Headers.TryAddWithoutValidation("User-Agent", NicoVideoApiService.UserAgent);
         req.Headers.TryAddWithoutValidation("Accept", "*/*");
         req.Headers.TryAddWithoutValidation("Referer", "https://www.nicovideo.jp/");
         req.Headers.TryAddWithoutValidation("Origin", "https://www.nicovideo.jp");
@@ -357,7 +354,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
-        req.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+        req.Headers.TryAddWithoutValidation("User-Agent", NicoVideoApiService.UserAgent);
         req.Headers.TryAddWithoutValidation("Accept", "*/*");
         req.Headers.TryAddWithoutValidation("Referer", "https://www.nicovideo.jp/");
         req.Headers.TryAddWithoutValidation("Origin", "https://www.nicovideo.jp");
