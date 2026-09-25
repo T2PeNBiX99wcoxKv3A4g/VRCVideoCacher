@@ -5,9 +5,9 @@ namespace VRCVideoCacher.Database.Models;
 
 public class History
 {
-    [Key] public int Key { get; set; }
-    public required DateTime Timestamp { get; set; }
-    public required string Url { get; set; }
-    public required string? Id { get; set; }
-    public required UrlType Type { get; set; }
+    [Key] public int Key { get; init; }
+    public required DateTime Timestamp { get; init; }
+    public required string Url { get; init; }
+    public required string? Id { get; init; }
+    public required UrlType Type { get; init; }
 }

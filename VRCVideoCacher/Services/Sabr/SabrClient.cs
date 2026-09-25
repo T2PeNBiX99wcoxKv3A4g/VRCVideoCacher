@@ -173,7 +173,7 @@ internal sealed class SabrClient(
     /// fragments directly instead of piping them through ffmpeg — the segment boundaries are then
     /// correct by construction rather than something we have to predict.
     /// </summary>
-    public Func<SabrSegment, byte[], Task>? OnFragment { get; set; }
+    public Func<SabrSegment, byte[], Task>? OnFragment { get; init; }
 
     /// <summary>
     /// Fetches the video from <paramref name="startTimeMs"/> to the end, writing each track's fMP4
