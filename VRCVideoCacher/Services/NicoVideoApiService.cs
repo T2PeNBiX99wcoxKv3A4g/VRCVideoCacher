@@ -83,7 +83,9 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
         return await Try.Run<NicoVideoResult?>(async () =>
         {
-            var watchUrl = IsValidLiveId2(videoId) ? $"https://live.nicovideo.jp/watch/{videoId}" : $"https://www.nicovideo.jp/watch/{videoId}";
+            var watchUrl = IsValidLiveId2(videoId)
+                ? $"https://live.nicovideo.jp/watch/{videoId}"
+                : $"https://www.nicovideo.jp/watch/{videoId}";
 
             using var getRequest = new HttpRequestMessage(HttpMethod.Get, watchUrl);
             getRequest.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
