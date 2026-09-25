@@ -19,14 +19,13 @@ public partial class ConfigManager : Singleton<ConfigManager>
             $"{(!string.IsNullOrWhiteSpace(LaunchArgs.ConfigName) ? LaunchArgs.ConfigName : "Config")}.json");
         Log.Debug("Using config file path: {ConfigFilePath}", _configFilePath);
 
-        var newConfig = Try
-            .Run(() => File.Exists(_configFilePath)
-                ? JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath))
-                : null).GetOrElse(ex =>
-            {
-                Log.Error(ex, "Failed to load config, creating new one...");
-                return null;
-            });
+        var newConfig = Try.Run(() => File.Exists(_configFilePath)
+            ? JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(_configFilePath))
+            : null).GetOrElse(ex =>
+        {
+            Log.Error(ex, "Failed to load config, creating new one...");
+            return null;
+        });
 
         if (newConfig != null)
             Config2 = newConfig;
