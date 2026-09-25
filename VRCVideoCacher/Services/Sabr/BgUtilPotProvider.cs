@@ -383,7 +383,7 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        ChildProcessTracker.Track(process);
+        if (ChildProcessTracker.Track(process) == ChildProcessTracker.TrackResult.Terminating) return;
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         _server = process;
