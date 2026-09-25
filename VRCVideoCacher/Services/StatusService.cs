@@ -192,7 +192,7 @@ public static partial class StatusService
     {
         // entry.Level is the short code emitted by LogService ("WRN", "ERR", "FTL").
         if (entry.Level is not ("WRN" or "ERR" or "FTL")) return;
-        Flash(NewLineRegex().Replace(entry.Message, "").Truncate(200, "...") ?? "", StatusLevel.Warning);
+        Flash(NewLineRegex().Replace(entry.Message, "").Truncate(200, "...")!, StatusLevel.Warning);
     }
 
     [GeneratedRegex(@"\r\n|\r|\n")]

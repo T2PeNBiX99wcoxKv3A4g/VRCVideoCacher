@@ -100,9 +100,9 @@ public static class NotificationService
                         "-AppId",
                         AppId,
                         "-Title",
-                        title.Truncate(128, "...") ?? "Unknown Title",
+                        title.Truncate(128, "...")!,
                         "-Message",
-                        message.Truncate(1024, "...") ?? "Unknown Message"
+                        message.Truncate(1024, "...")!
                     },
                     UseShellExecute = false,
                     CreateNoWindow = true,
