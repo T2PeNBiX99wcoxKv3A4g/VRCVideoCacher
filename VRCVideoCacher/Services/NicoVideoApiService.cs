@@ -74,6 +74,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [GeneratedRegex(@"<script id=""embedded-data"" data-props=""(.+?)""></script><script id=""", RegexOptions.Compiled)]
     private static partial Regex EmbeddedDataScriptRegex();
 
+    // TODO: Try support live
     [PublicAPI]
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoId)
     {
