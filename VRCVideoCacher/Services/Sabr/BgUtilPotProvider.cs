@@ -19,7 +19,6 @@ namespace VRCVideoCacher.Services.Sabr;
 internal static class BgUtilPotProvider
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(BgUtilPotProvider));
-    private static bool _isExit;
 
     private static readonly HttpClient HttpClient = new()
     {
@@ -80,7 +79,7 @@ internal static class BgUtilPotProvider
 
     static BgUtilPotProvider()
     {
-        AppDomain.CurrentDomain.ProcessExit += (_, _) => StopServer(true);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => StopServer();
     }
 
     /// <summary>
@@ -264,9 +263,9 @@ internal static class BgUtilPotProvider
 
     private static async Task SuperviseAsync()
     {
-        while (!Volatile.Read(ref _isExit))
+        while (!ChildProcessTracker.Terminating)
         {
-            if (Volatile.Read(ref _isExit)) break;
+            if (ChildProcessTracker.Terminating) break;
 
             await Try.Run(async () =>
             {
@@ -348,7 +347,7 @@ internal static class BgUtilPotProvider
 
     private static async Task StartServerAsync()
     {
-        if (Volatile.Read(ref _isExit)) return;
+        if (ChildProcessTracker.Terminating) return;
         await StopServerAsync();
 
         // Check if port is still in use before spawning
@@ -391,12 +390,9 @@ internal static class BgUtilPotProvider
     }
 
     [PublicAPI]
-    public static async Task StopServerAsync(bool programExit = false)
+    public static async Task StopServerAsync()
     {
-        if (Volatile.Read(ref _isExit)) return;
-        if (programExit)
-            if (Interlocked.Exchange(ref _isExit, true))
-                return;
+        if (ChildProcessTracker.Terminating) return;
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
@@ -420,26 +416,10 @@ internal static class BgUtilPotProvider
     }
 
     [PublicAPI]
-    public static void StopServer(bool programExit = false)
+    public static void StopServer()
     {
-        if (Volatile.Read(ref _isExit)) return;
-        if (programExit)
-            if (Interlocked.Exchange(ref _isExit, true))
-                return;
-        var process = Interlocked.Exchange(ref _server, null);
-        if (process is null)
-            return;
-        ChildProcessTracker.Untrack(process);
-        Try.Run(() =>
-        {
-            if (HasProcessExited(process)) return;
-            process.Kill(true);
-            process.WaitForExit(3000);
-        }).OnFailure(ex =>
-        {
-            if (ex is InvalidOperationException) return;
-            Log.Debug(ex, "Failed to stop bgutil server");
-        }).OnFinally(() => process.TryDispose());
+        if (ChildProcessTracker.Terminating) return;
+        StopServerAsync().GetAwaiter().GetResult();
     }
 
     /// <summary>
