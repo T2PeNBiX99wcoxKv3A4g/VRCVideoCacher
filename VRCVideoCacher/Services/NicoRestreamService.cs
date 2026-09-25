@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using EmbedIO;
 using JetBrains.Annotations;
 using Serilog;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Nico;
 using VRCVideoCacher.Utils;
@@ -57,11 +58,11 @@ public static class NicoRestreamService
     private static void CleanupAll()
     {
         foreach (var session in Sessions.Values)
-            Try.Run(session.Dispose);
+            session.TryDispose();
         Sessions.Clear();
 
         foreach (var (_, (tempDir, _)) in TempFiles)
-            Try.Run(tempDir.Dispose);
+            tempDir.TryDispose();
         TempFiles.Clear();
     }
 
@@ -75,7 +76,7 @@ public static class NicoRestreamService
             foreach (var (id, session) in Sessions)
                 if (now - session.LastAccess > TimeSpan.FromMinutes(15))
                     if (Sessions.TryRemove(id, out var removed))
-                        Try.Run(removed.Dispose);
+                        removed.TryDispose();
         }
     }
 
@@ -192,14 +193,14 @@ public static class NicoRestreamService
 
                 if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
                 {
-                    tempDir.Dispose();
+                    tempDir.TryDispose();
                     Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode,
                         key, error);
                     return null;
                 }
 
                 if (TempFiles.TryRemove(key, out var old))
-                    Try.Run(old.TempDir.Dispose);
+                    old.TempDir.TryDispose();
 
                 TempFiles[key] = (tempDir, tempDownloadPath);
 

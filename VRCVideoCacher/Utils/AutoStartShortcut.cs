@@ -4,6 +4,7 @@ using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using ShellLink;
+using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
@@ -299,7 +300,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
         {
             if (processes != null)
                 foreach (var proc in processes)
-                    proc.Dispose();
+                    proc.TryDispose();
         }
 
         return false;

@@ -454,7 +454,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None);
         await stream.CopyToAsync(fileStream);
         fileStream.Close();
-        response.Dispose();
+        response.TryDispose();
         await Task.Delay(10);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";

@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using Valve.VR;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
@@ -30,7 +31,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
         InitializeOverlays();
 
         _updateLoopCts?.Cancel();
-        _updateLoopCts?.Dispose();
+        _updateLoopCts?.TryDispose();
         _updateLoopCts = new();
 
         _ = Task.Run(() => UpdateLoop(_updateLoopCts.Token));
@@ -44,7 +45,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
         ConfigManager.OnConfigChanged -= OnConfigChanged;
 
         _updateLoopCts?.Cancel();
-        _updateLoopCts?.Dispose();
+        _updateLoopCts?.TryDispose();
         _updateLoopCts = null;
 
         DestroyOverlays();

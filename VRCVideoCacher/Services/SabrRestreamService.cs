@@ -148,7 +148,7 @@ public static class SabrRestreamService
                 var activity = StatusService.Begin(StatusCategory.Streaming,
                     string.Format(Localizer.Get("StatusStreaming"), videoId));
                 if (!StreamActivities.TryAdd(videoId, activity))
-                    activity.Dispose();
+                    activity.TryDispose();
             }
 
             return session.PlaybackUrl;
@@ -374,7 +374,7 @@ public static class SabrRestreamService
                     id, ended ? "broadcast ended" : "idle", session.IdleFor);
                 Sessions.TryRemove(id, out _);
                 if (StreamActivities.TryRemove(id, out var activity))
-                    activity.Dispose();
+                    activity.TryDispose();
 
                 // Do this BEFORE Dispose: it deletes the session directory, and with it any chance of
                 // telling whether we actually got the video cached.
@@ -383,7 +383,7 @@ public static class SabrRestreamService
                 if (SessionVideos.TryRemove(id, out var videoInfo) && session is not SabrLiveSession)
                     EnsureCached(videoInfo);
 
-                session.Dispose();
+                session.TryDispose();
             }
         }
     }

@@ -203,7 +203,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
             if (proc.HasExited) return;
             proc.Kill(true);
             proc.WaitForExit(1000);
-        }).OnFinally(() => Try.Run(proc.Dispose));
+        }).OnFinally(() => proc.TryDispose());
     }
 
     #region Win32 P/Invoke

@@ -208,7 +208,7 @@ internal sealed class SabrHlsSession : ISabrSession
                     return Unit.TaskValue;
                 }).OnFinally(() =>
                 {
-                    http.Dispose();
+                    http.TryDispose();
                     // Only the latest fill clears the flag; a fill cancelled by a newer one leaves it set.
                     if (fillGeneration == _fillGeneration)
                         _isFetching = false;

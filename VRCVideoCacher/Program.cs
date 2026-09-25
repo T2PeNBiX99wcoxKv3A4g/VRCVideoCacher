@@ -100,7 +100,7 @@ internal sealed class Program
         }
 
         foreach (var process in processes)
-            process.Dispose();
+            process.TryDispose();
 
         LoggerUtils.InitializeLogger();
         Logger = Log.ForContext("SourceContext", "Core");
@@ -324,7 +324,7 @@ internal sealed class Program
         var stream = GetYtDlpStub(useLinuxStub);
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        stream.Dispose();
+        stream.TryDispose();
         return ComputeBinaryContentHash(ms.ToArray());
     }
 

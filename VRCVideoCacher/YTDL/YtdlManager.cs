@@ -315,7 +315,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             }
             finally
             {
-                await reader.DisposeAsync();
+                await reader.TryDisposeAsync();
             }
         }
 
@@ -375,7 +375,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             }
             finally
             {
-                await reader.DisposeAsync();
+                await reader.TryDisposeAsync();
             }
         }
 
@@ -503,7 +503,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             }
             finally
             {
-                await reader.DisposeAsync();
+                await reader.TryDisposeAsync();
             }
 
             if (!success)

@@ -3,6 +3,7 @@ using EmbedIO.Files;
 using EmbedIO.WebApi;
 using JetBrains.Annotations;
 using Swan.Logging;
+using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Services.Nico;
 using VRCVideoCacher.Services.Sabr;
@@ -20,7 +21,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
     [PublicAPI]
     public void StartOrRestart2()
     {
-        _server?.Dispose();
+        _server?.TryDispose();
 
         var indexPath = Path.Join(CacheManager.CachePath, "index.html");
         if (!File.Exists(indexPath))

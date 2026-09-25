@@ -111,7 +111,7 @@ internal sealed class SabrLiveSession : ISabrSession
 
         if (session._video.Count < 2)
         {
-            session.Dispose();
+            session.TryDispose();
             throw new SabrException(
                 $"Live SABR session for {videoId} produced no media within {StartTimeout.TotalSeconds:0}s");
         }
@@ -381,8 +381,8 @@ internal sealed class SabrLiveSession : ISabrSession
     public void Dispose()
     {
         Try.Run(() => _cts.Cancel());
-        _cts.Dispose();
-        _buildGate.Dispose();
+        _cts.TryDispose();
+        _buildGate.TryDispose();
         TryDelete(_dir);
     }
 }

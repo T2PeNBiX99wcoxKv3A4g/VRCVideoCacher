@@ -124,7 +124,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void SetStatusMessage(string message, string color, double autoHideSeconds = 3.5)
     {
         _statusMessageCts?.Cancel();
-        _statusMessageCts?.Dispose();
+        _statusMessageCts?.TryDispose();
         _statusMessageCts = null;
 
         StatusMessage = message;
