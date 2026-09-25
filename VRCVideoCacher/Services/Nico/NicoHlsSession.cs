@@ -13,16 +13,15 @@ namespace VRCVideoCacher.Services.Nico;
 
 internal sealed partial class NicoHlsSession : IDisposable
 {
+    private static readonly ILogger Log = Program.Logger.ForContext<NicoHlsSession>();
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
     private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-    private readonly string _videoId;
     private readonly string _dir;
     private readonly Dictionary<string, string> _cookies;
     private readonly NicoSegmentMuxer _muxer;
-    private readonly ILogger _log;
     private readonly HttpClient _httpClient;
 
     private readonly string? _videoInitUrl;
@@ -63,27 +62,13 @@ internal sealed partial class NicoHlsSession : IDisposable
     [GeneratedRegex(@"#EXTINF:([0-9.]+),", RegexOptions.Compiled)]
     private static partial Regex ExtInfRegex();
 
-    private NicoHlsSession(
-        string videoId,
-        string dir,
-        Dictionary<string, string> cookies,
-        NicoSegmentMuxer muxer,
-        ILogger log,
-        HttpClient httpClient,
-        string? videoInitUrl,
-        string? videoKeyUrl,
-        string? videoKeyIv,
-        List<NicoSegmentItem> videoSegments,
-        string? audioInitUrl,
-        string? audioKeyUrl,
-        string? audioKeyIv,
-        List<NicoSegmentItem> audioSegments)
+    private NicoHlsSession(string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer, HttpClient httpClient,
+        string? videoInitUrl, string? videoKeyUrl, string? videoKeyIv, List<NicoSegmentItem> videoSegments,
+        string? audioInitUrl, string? audioKeyUrl, string? audioKeyIv, List<NicoSegmentItem> audioSegments)
     {
-        _videoId = videoId;
         _dir = dir;
         _cookies = cookies;
         _muxer = muxer;
-        _log = log;
         _httpClient = httpClient;
         _videoInitUrl = videoInitUrl;
         _videoKeyUrl = videoKeyUrl;
@@ -107,14 +92,8 @@ internal sealed partial class NicoHlsSession : IDisposable
 
     public void Touch() => LastAccess = DateTime.UtcNow;
 
-    public static async Task<NicoHlsSession> StartAsync(
-        string videoId,
-        string masterUrl,
-        Dictionary<string, string> cookies,
-        string rootDir,
-        HttpClient httpClient,
-        NicoSegmentMuxer muxer,
-        ILogger log)
+    public static async Task<NicoHlsSession> StartAsync(string videoId, string masterUrl,
+        Dictionary<string, string> cookies, string rootDir, HttpClient httpClient, NicoSegmentMuxer muxer)
     {
         var dir = Path.Combine(rootDir, videoId);
         if (Directory.Exists(dir))
@@ -148,26 +127,13 @@ internal sealed partial class NicoHlsSession : IDisposable
                 audioSegments);
         }
 
-        var session = new NicoHlsSession(
-            videoId,
-            dir,
-            cookies,
-            muxer,
-            log,
-            httpClient,
-            videoInitUrl,
-            videoKeyUrl,
-            videoKeyIv,
-            videoSegments,
-            audioInitUrl,
-            audioKeyUrl,
-            audioKeyIv,
-            audioSegments);
+        var session = new NicoHlsSession(dir, cookies, muxer, httpClient, videoInitUrl, videoKeyUrl, videoKeyIv,
+            videoSegments, audioInitUrl, audioKeyUrl, audioKeyIv, audioSegments);
 
         var playlistContent = session.BuildPlaylist();
         await File.WriteAllTextAsync(Path.Combine(dir, "index.m3u8"), playlistContent, cts.Token);
-        log.Information("NicoVideo HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s",
-            videoId, videoSegments.Count, session.TotalDurationSeconds);
+        Log.Information("NicoVideo HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s", videoId,
+            videoSegments.Count, session.TotalDurationSeconds);
 
         _ = Task.Run(() => session.BuildSegmentAsync(0), cts.Token);
 
@@ -407,40 +373,33 @@ internal sealed partial class NicoHlsSession : IDisposable
         for (var i = 0; i < lines.Length; i++)
         {
             var line = lines[i].Trim();
-            if (line.StartsWith("#EXT-X-STREAM-INF:", StringComparison.OrdinalIgnoreCase))
+            if (!line.StartsWith("#EXT-X-STREAM-INF:", StringComparison.OrdinalIgnoreCase)) continue;
+            var match = StreamInfRegex().Match(line);
+            var bandwidth = 0L;
+            if (match.Success && long.TryParse(match.Groups[2].Value, out var bw))
+                bandwidth = bw;
+
+            for (var j = i + 1; j < lines.Length; j++)
             {
-                var match = StreamInfRegex().Match(line);
-                var bandwidth = 0L;
-                if (match.Success && long.TryParse(match.Groups[2].Value, out var bw))
-                    bandwidth = bw;
+                var nextLine = lines[j].Trim();
+                if (string.IsNullOrEmpty(nextLine) || nextLine.StartsWith('#')) continue;
 
-                for (var j = i + 1; j < lines.Length; j++)
+                var candidateUrl = ResolveUrl(masterBaseUrl, nextLine);
+                if (bandwidth > maxBandwidth)
                 {
-                    var nextLine = lines[j].Trim();
-                    if (string.IsNullOrEmpty(nextLine) || nextLine.StartsWith('#')) continue;
-
-                    var candidateUrl = ResolveUrl(masterBaseUrl, nextLine);
-                    if (bandwidth > maxBandwidth)
-                    {
-                        maxBandwidth = bandwidth;
-                        bestVideoUrl = candidateUrl;
-                    }
-
-                    break;
+                    maxBandwidth = bandwidth;
+                    bestVideoUrl = candidateUrl;
                 }
+
+                break;
             }
         }
 
         return (bestVideoUrl, audioUrl);
     }
 
-    private static void ParseVariantPlaylist(
-        string playlistText,
-        string playlistBaseUrl,
-        out string? initUrl,
-        out string? defaultKeyUrl,
-        out string? defaultKeyIv,
-        List<NicoSegmentItem> segments)
+    private static void ParseVariantPlaylist(string playlistText, string playlistBaseUrl, out string? initUrl,
+        out string? defaultKeyUrl, out string? defaultKeyIv, List<NicoSegmentItem> segments)
     {
         initUrl = null;
         defaultKeyUrl = null;

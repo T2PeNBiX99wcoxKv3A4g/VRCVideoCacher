@@ -16,15 +16,8 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
     /// Muxes a video fragment and audio fragment that already match the same time span,
     /// into a single fMP4 segment, plus the shared init segment (ftyp+moov) the playlist's EXT-X-MAP points at.
     /// </summary>
-    public async Task MuxDirectSegmentAsync(
-        byte[] videoInit,
-        byte[] videoFragment,
-        byte[] audioInit,
-        IReadOnlyList<byte[]> audioFragments,
-        long startMs,
-        int sequenceNumber,
-        string segmentPath,
-        string initPath,
+    public async Task MuxDirectSegmentAsync(byte[] videoInit, byte[] videoFragment, byte[] audioInit,
+        IReadOnlyList<byte[]> audioFragments, long startMs, int sequenceNumber, string segmentPath, string initPath,
         CancellationToken ct = default)
     {
         var temp = Path.Combine(Path.GetDirectoryName(segmentPath)!, Guid.NewGuid().ToString("N"));

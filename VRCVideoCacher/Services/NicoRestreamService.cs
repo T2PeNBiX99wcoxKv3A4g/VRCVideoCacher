@@ -14,12 +14,9 @@ using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.Services;
 
-public static class NicoRestreamService
+public static partial class NicoRestreamService
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(NicoRestreamService));
-
-    public const string UserAgent =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
     private static readonly ConcurrentDictionary<string, NicoHlsSession> Sessions = new();
     private static readonly ConcurrentDictionary<string, Lazy<Task<NicoHlsSession?>>> Starting = new();
@@ -122,14 +119,8 @@ public static class NicoRestreamService
                     return null;
 
                 var muxer = new NicoSegmentMuxer(YtdlManager.FfmpegPath, Log);
-                var session = await NicoHlsSession.StartAsync(
-                    id,
-                    res.StreamUrl,
-                    res.Cookies,
-                    HlsRootPath,
-                    HttpClient,
-                    muxer,
-                    Log);
+                var session =
+                    await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer);
 
                 Sessions[id] = session;
                 return session;
@@ -152,6 +143,7 @@ public static class NicoRestreamService
     public static async Task<string?> DownloadTempVideoAsync(VideoInfo videoInfo, TimeSpan timeout)
     {
         var videoId = videoInfo.VideoId;
+        // ReSharper disable once InvertIf
         if (TempFiles.TryGetValue(videoId, out var existing) && File.Exists(existing.FilePath))
         {
             var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
@@ -245,7 +237,7 @@ public static class NicoRestreamService
             return;
         }
 
-        var match = Regex.Match(rangeHeader, @"bytes=(\d+)-(\d*)");
+        var match = RangeHeaderRegex().Match(rangeHeader);
         if (!match.Success)
         {
             context.Response.StatusCode = 416;
@@ -303,4 +295,7 @@ public static class NicoRestreamService
         await os.WriteAsync(bytes);
         context.SetHandled();
     }
+
+    [GeneratedRegex(@"bytes=(\d+)-(\d*)")]
+    private static partial Regex RangeHeaderRegex();
 }

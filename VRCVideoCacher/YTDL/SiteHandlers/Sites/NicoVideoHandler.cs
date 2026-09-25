@@ -1,6 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using VRCVideoCacher.Models;
-using VRCVideoCacher.Services;
 
 namespace VRCVideoCacher.YTDL.SiteHandlers.Sites;
 
@@ -9,26 +8,27 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
     private static readonly string[] Hosts =
     [
         "nicovideo.jp",
-        "www.nicovideo.jp",
-        "live.nicovideo.jp",
-        "cas.nicovideo.jp",
         "nico.ms"
     ];
 
-    public override bool CanHandle(Uri uri) =>
-        Hosts.Any(h => uri.Host.Equals(h, StringComparison.OrdinalIgnoreCase) ||
-                       uri.Host.EndsWith("." + h, StringComparison.OrdinalIgnoreCase));
+    public override bool CanHandle(Uri uri) => Hosts.Any(h => uri.Host.EndsWith(h, StringComparison.OrdinalIgnoreCase));
 
     public override Task<VideoInfo?> GetVideoInfo(string url, Uri uri, bool avPro)
     {
-        var cleanId = NicoVideoApiService.ExtractNicoId(url);
-        var videoId = string.IsNullOrEmpty(cleanId) || cleanId.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-            ? VideoId.HashUrl(url)
-            : cleanId;
+        var cleanUrl = url.Trim().Split('?')[0].Split('#')[0];
+        var (m, group) = new[]
+        {
+            (NicoID1().Match(cleanUrl), 4), (NicoID2().Match(cleanUrl), 2), (NicoID3().Match(cleanUrl), 2),
+            (NicoID4().Match(cleanUrl), 1)
+        }.FirstOrDefault(x => x.Item1.Success);
 
-        Log.Information("Handling NicoVideo URL: {Url} (ID: {VideoId})", url, videoId);
+        if (m?.Success != true)
+        {
+            Log.Warning("Failed to parse video ID from Nico Video URL: {Url}", url);
+            return Task.FromResult<VideoInfo?>(null);
+        }
 
-        _ = Task.Run(async () => await NicoVideoApiService.DownloadMetadata(cleanId, videoId));
+        var videoId = m.Groups[group].Value;
 
         return Task.FromResult<VideoInfo?>(new()
         {
@@ -37,29 +37,6 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
             UrlType = UrlType.NicoVideo,
             DownloadFormat = DownloadFormat.MP4
         });
-    }
-
-    public override Task<string> RewriteUrl(string url, Uri uri)
-    {
-        var isNicoHost = uri.Host.EndsWith("nicovideo.jp", StringComparison.OrdinalIgnoreCase) ||
-                         uri.Host.EndsWith("nico.ms", StringComparison.OrdinalIgnoreCase);
-
-        if (!isNicoHost)
-            return Task.FromResult(url);
-
-        var (m, group) = new[]
-        {
-            (NicoID1().Match(url), 4), (NicoID2().Match(url), 2), (NicoID3().Match(url), 2), (NicoID4().Match(url), 1)
-        }.FirstOrDefault(x => x.Item1.Success);
-
-        if (m?.Success != true)
-            return Task.FromResult(url);
-
-        var rawId = m.Groups[group].Value;
-        var cleanId = rawId.Split('?')[0].Split('#')[0];
-        var canonicalUrl = $"https://www.nicovideo.jp/watch/{cleanId}";
-        Log.Information("Normalized NicoVideo URL: {NormalizedUrl}", canonicalUrl);
-        return Task.FromResult(canonicalUrl);
     }
 
     // Matches full nicovideo/niconico URLs

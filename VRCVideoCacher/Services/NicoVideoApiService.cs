@@ -60,17 +60,14 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     private static partial Regex EmbeddedDataScriptRegex();
 
     [PublicAPI]
-    public async Task<NicoVideoResult?> FetchVideoResult2(string videoIdOrUrl)
+    public async Task<NicoVideoResult?> FetchVideoResult2(string videoId)
     {
-        var cleanId = ExtractNicoId2(videoIdOrUrl);
-        if (_cache.TryGetValue(cleanId, out NicoVideoResult? cached) && cached != null &&
+        if (_cache.TryGetValue(videoId, out NicoVideoResult? cached) && cached != null &&
             !string.IsNullOrEmpty(cached.Title) && !string.IsNullOrEmpty(cached.Author)) return cached;
 
         return await Try.Run<NicoVideoResult?>(async () =>
         {
-            var watchUrl = cleanId.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? cleanId
-                : $"https://www.nicovideo.jp/watch/{cleanId}";
+            var watchUrl = $"https://www.nicovideo.jp/watch/{videoId}";
 
             using var getRequest = new HttpRequestMessage(HttpMethod.Get, watchUrl);
             getRequest.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
@@ -122,7 +119,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
             var result = new NicoVideoResult
             {
-                VideoId = cleanId,
+                VideoId = videoId,
                 Url = watchUrl
             };
 
@@ -204,7 +201,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                                 Outputs = outputs
                             }, NicoJsonContext.Default.NicoNvApiAccessRightsRequest);
                             var nvApiUrl =
-                                $"https://nvapi.nicovideo.jp/v1/watch/{cleanId}/access-rights/hls?actionTrackId={trackId}";
+                                $"https://nvapi.nicovideo.jp/v1/watch/{videoId}/access-rights/hls?actionTrackId={trackId}";
                             using var postRequest = new HttpRequestMessage(HttpMethod.Post, nvApiUrl);
                             postRequest.Headers.TryAddWithoutValidation("Accept",
                                 "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -245,7 +242,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning(ex, "Failed to resolve NVAPI HLS access right for {Id}", cleanId);
+                        Log.Warning(ex, "Failed to resolve NVAPI HLS access right for {Id}", videoId);
                     }
             }
             else if (pageData.Program != null)
@@ -262,25 +259,22 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             }
 
             result.Cookies = cookieMap;
-            _cache.Set(cleanId, result, TimeSpan.FromMinutes(5));
+            _cache.Set(videoId, result, TimeSpan.FromMinutes(5));
             return result;
         }).GetOrElse(ex =>
         {
-            Log.Error(ex, "Exception fetching NicoVideo result for {Target}", videoIdOrUrl);
+            Log.Error(ex, "Exception fetching NicoVideo result for {Target}", videoId);
             return Task.FromResult<NicoVideoResult?>(null);
         });
     }
 
     [PublicAPI]
-    public async Task<VideoInfoCache?> DownloadMetadata2(string cleanId, string videoId)
+    public async Task<VideoInfoCache?> DownloadMetadata2(string videoId)
     {
         return await Try.Run(async () =>
         {
-            var res = await FetchVideoResult2(cleanId);
+            var res = await FetchVideoResult2(videoId);
             if (res == null) return null;
-
-            if (!string.IsNullOrEmpty(res.Thumbnail))
-                await ThumbnailManager.TrySaveThumbnail(videoId, res.Thumbnail);
 
             var videoInfo = new VideoInfoCache
             {
@@ -300,14 +294,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
-    public Task<VideoInfoCache?> DownloadMetadata2(string videoId) =>
-        DownloadMetadata2(ExtractNicoId2(videoId), videoId);
-
-    [PublicAPI]
-    public Task<VideoInfoCache?> GetVideoTitleAsync2(string videoId) =>
-        DownloadMetadata2(videoId);
-
-    [PublicAPI]
     public async Task<string?> GetThumbnail2(string videoId)
     {
         if (string.IsNullOrEmpty(videoId))
@@ -317,8 +303,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         if (File.Exists(localPath))
             return localPath;
 
-        var cleanId = ExtractNicoId2(videoId);
-        var res = await FetchVideoResult2(cleanId);
+        var res = await FetchVideoResult2(videoId);
         if (res == null || string.IsNullOrEmpty(res.Thumbnail))
             return null;
 
@@ -336,41 +321,8 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
         if (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) ||
             string.IsNullOrEmpty(cachedInfo.Author))
-            cachedInfo = await GetVideoTitleAsync2(videoId);
+            cachedInfo = await DownloadMetadata2(videoId);
 
         return cachedInfo;
     }
-
-    [PublicAPI]
-    public string ExtractNicoId2(string input)
-    {
-        var url = input.Trim().Split('?')[0].Split('#')[0];
-        var m1 = NicoUrlRegex1().Match(url);
-        if (m1.Success) return m1.Groups[4].Value;
-
-        var m2 = NicoUrlRegex2().Match(url);
-        if (m2.Success) return m2.Groups[2].Value;
-
-        var m3 = NicoShortUrlRegex().Match(url);
-        if (m3.Success) return m3.Groups[2].Value;
-
-        var m4 = NicoBareIdRegex().Match(url);
-        if (m4.Success) return m4.Groups[1].Value;
-
-        return input;
-    }
-
-    [GeneratedRegex(@"^(https?)://(live|www)\.nicovideo\.jp/(watch|shorts)/(.+)$", RegexOptions.Compiled)]
-    private static partial Regex NicoUrlRegex1();
-
-    [GeneratedRegex(@"^(https?)://nico\.ms/(.+)$", RegexOptions.Compiled)]
-    private static partial Regex NicoUrlRegex2();
-
-    [GeneratedRegex(@"^(https?)://(www\.)?nicovideo\.jp/shorts/(.+)$", RegexOptions.Compiled)]
-    private static partial Regex NicoShortUrlRegex();
-
-    [GeneratedRegex(
-        @"^(sm\d+|nm\d+|am\d+|fz\d+|ut\d+|dm\d+|so\d+|ax\d+|ca\d+|cd\d+|cw\d+|fx\d+|ig\d+|na\d+|om\d+|sd\d+|sk\d+|yk\d+|yo\d+|za\d+|zb\d+|zc\d+|zd\d+|ze\d+|nl\d+|ch\d+|\d+|lv\d+|ss\d+)$",
-        RegexOptions.Compiled)]
-    private static partial Regex NicoBareIdRegex();
 }
