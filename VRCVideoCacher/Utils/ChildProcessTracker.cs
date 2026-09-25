@@ -112,8 +112,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     [PublicAPI]
     public bool Untrack2(Process process) => _trackedProcesses.TryRemove(process, out _);
 
-    private sealed class TrackingScope(ChildProcessTracker tracker, Process process, bool forceKill = true) : IDisposable
+    public sealed class TrackingScope(ChildProcessTracker tracker, Process process, TrackResult trackResult, bool forceKill = true) : IDisposable
     {
+        [PublicAPI]
+        public TrackResult TrackResult { get; } = trackResult;
+
         public void Dispose()
         {
             Try.Run(() =>
@@ -126,17 +129,17 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public IDisposable Tracking2(Process process, bool forceKill = true)
+    public TrackingScope Tracking2(Process process, bool forceKill = true)
     {
-        Track2(process);
-        return new TrackingScope(this, process, forceKill);
+        var result = Track2(process);
+        return new TrackingScope(this, process, result, forceKill);
     }
 
     [PublicAPI]
-    public void Tracking2(Process process, [InstantHandle] Action callback, bool forceKill = true)
+    public void Tracking2(Process process, [InstantHandle] Action<TrackResult> callback, bool forceKill = true)
     {
-        Track2(process);
-        Try.Run(callback).OnFinally(() =>
+        var result = Track2(process);
+        Try.Run(() => callback(result)).OnFinally(() =>
         {
             Try.Run(() =>
             {
@@ -148,10 +151,10 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public T Tracking2<T>(Process process, [InstantHandle] Func<T> callback, bool forceKill = true)
+    public T Tracking2<T>(Process process, [InstantHandle] Func<TrackResult, T> callback, bool forceKill = true)
     {
-        Track2(process);
-        return Try.Run(callback).OnFinally(() =>
+        var result = Track2(process);
+        return Try.Run(() => callback(result)).OnFinally(() =>
         {
             Try.Run(() =>
             {
@@ -163,11 +166,11 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     }
 
     [PublicAPI]
-    public async Task<T> Tracking2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<Task<T>> callback,
+    public async Task<T> Tracking2<T>(Process process, [InstantHandle(RequireAwait = true)] Func<TrackResult, Task<T>> callback,
         bool forceKill = true)
     {
-        Track2(process);
-        return await Try.Run(callback).OnFinally(() =>
+        var result = Track2(process);
+        return await Try.Run(() => callback(result)).OnFinally(() =>
         {
             Try.Run(() =>
             {
