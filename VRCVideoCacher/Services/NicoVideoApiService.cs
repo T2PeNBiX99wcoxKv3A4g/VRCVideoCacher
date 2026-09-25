@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -36,8 +37,16 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     private const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-    private readonly HttpClient _httpClient;
+    private static readonly ImmutableHashSet<string> NicoVideoPrefixes =
+    [
+        "sm",
+        "nm",
+        "so"
+    ];
+
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
+
+    private readonly HttpClient _httpClient;
 
     public NicoVideoApiService()
     {
@@ -311,18 +320,21 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         return !string.IsNullOrEmpty(thumbnailPath) ? thumbnailPath : res.Thumbnail;
     }
 
+
     [PublicAPI]
     public async Task<VideoInfoCache?> GetVideoMetadataAsync2(string videoId)
     {
-        if (string.IsNullOrEmpty(videoId))
-            return null;
+        if (string.IsNullOrEmpty(videoId) || !IsValidVideoId2(videoId)) return null;
 
         var cachedInfo = await DatabaseManager.GetVideoInfoCacheAsync(videoId);
-
         if (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) ||
             string.IsNullOrEmpty(cachedInfo.Author))
             cachedInfo = await DownloadMetadata2(videoId);
 
         return cachedInfo;
     }
+
+    [PublicAPI]
+    public bool IsValidVideoId2(string videoId) =>
+        NicoVideoPrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 }
