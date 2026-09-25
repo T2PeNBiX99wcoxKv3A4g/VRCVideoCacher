@@ -36,23 +36,22 @@ public sealed class StatusActivity : IDisposable
     public string? Key { get; init; }
 
     private volatile string _text;
-    private double? _progress;
     private int _disposed;
 
     public string Text => _text;
-    public double? Progress => _progress;
+    public double? Progress { get; private set; }
 
     internal StatusActivity(StatusCategory category, string text, double? progress)
     {
         Category = category;
         _text = text;
-        _progress = progress;
+        Progress = progress;
     }
 
     /// <summary>Update the completion fraction (0..1). Throttled by the UI so calling it per chunk is fine.</summary>
     public void Report(double fraction)
     {
-        _progress = Math.Clamp(fraction, 0, 1);
+        Progress = Math.Clamp(fraction, 0, 1);
         StatusService.NotifyChanged();
     }
 
