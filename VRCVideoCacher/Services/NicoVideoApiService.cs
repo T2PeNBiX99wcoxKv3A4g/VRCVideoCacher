@@ -14,6 +14,7 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
+[PublicAPI]
 public class NicoVideoResult
 {
     public string? VideoId { get; set; }
