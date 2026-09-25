@@ -163,7 +163,7 @@ public static class NicoRestreamService
 
         return await TempDownloadsInFlight.GetOrAdd(videoId, key => Task.Run<string?>(async () =>
         {
-            try
+            using (UsingUntil.Run(() => TempDownloadsInFlight.TryRemove(key, out _)))
             {
                 var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;
                 var ext = isWebm ? "webm" : "mp4";
@@ -208,10 +208,6 @@ public static class NicoRestreamService
 
                 var url = $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{key}.{ext}";
                 return url;
-            }
-            finally
-            {
-                TempDownloadsInFlight.TryRemove(key, out _);
             }
         }));
     }

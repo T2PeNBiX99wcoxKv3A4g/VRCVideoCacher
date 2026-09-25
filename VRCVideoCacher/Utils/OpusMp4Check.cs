@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Serilog;
 
 namespace VRCVideoCacher.Utils;
@@ -33,10 +34,6 @@ internal static class OpusMp4Check
 
     private const string ProbeResourceName = "VRCVideoCacher.opus_probe.mp4";
 
-    // null until Run() has decided (and stays null if it could not be verified — non-Windows, or the
-    // probe failed to run). true/false is a positive decode result.
-    private static bool? _opusSupported;
-
     /// <summary>
     /// Whether the SABR path should mux <b>AAC</b> audio instead of Opus, because this PC cannot decode
     /// Opus-in-MP4. Only true when we have <i>positively</i> determined Opus does not work — an
@@ -44,16 +41,18 @@ internal static class OpusMp4Check
     /// a guess. AVPro now plays AAC-in-MP4 fine, so this is a soft fallback, not a failure.
     /// Callers must gate access on <see cref="OperatingSystem.IsWindows"/> (Run only executes on Windows).
     /// </summary>
-    public static bool PreferAacAudio => _opusSupported == false;
+    public static bool PreferAacAudio => Supported == false;
 
+    // null until Run() has decided (and stays null if it could not be verified — non-Windows, or the
+    // probe failed to run). true/false is a positive decode result.
     /// <summary>
     /// Cached result of the startup Opus-in-MP4 decode probe, for status display: true = decodes here,
     /// false = broken (SABR uses the AAC fallback), null = not checked / not applicable (non-Windows).
     /// </summary>
-    public static bool? Supported => _opusSupported;
+    public static bool? Supported { get; private set; }
 
     private static Task? _probeTask;
-    private static readonly object ProbeGate = new();
+    private static readonly Lock ProbeGate = new();
 
     /// <summary>
     /// Runs the decode probe at most once (later callers await the same run) and completes when
@@ -66,18 +65,19 @@ internal static class OpusMp4Check
             return _probeTask ??= Task.Run(Run);
     }
 
+    [PublicAPI]
     public static void Run()
     {
         try
         {
             if (Probe())
             {
-                _opusSupported = true;
+                Supported = true;
                 Log.Debug("Opus-in-MP4 decode check passed");
                 return;
             }
 
-            _opusSupported = false;
+            Supported = false;
         }
         catch (Exception ex)
         {
@@ -132,7 +132,7 @@ internal static class OpusMp4Check
     private static bool Probe()
     {
         var path = Path.Combine(Path.GetTempPath(), $"vvc_opus_probe_{Environment.ProcessId}.mp4");
-        try
+        using (UsingUntil.Run(() => Try.Run(() => File.Delete(path))))
         {
             using (var resource = Program.GetEmbeddedResource(ProbeResourceName))
             using (var file = File.Create(path))
@@ -140,26 +140,15 @@ internal static class OpusMp4Check
 
             return ProbeFile(path);
         }
-        finally
-        {
-            try
-            {
-                File.Delete(path);
-            }
-            catch
-            {
-                /* best effort */
-            }
-        }
     }
 
     private static bool ProbeFile(string path)
     {
         Check(MFStartup(MfVersion, MfstartupFull), nameof(MFStartup));
-        try
+        using (UsingUntil.Run(() => MFShutdown()))
         {
             Check(MFCreateSourceReaderFromURL(path, IntPtr.Zero, out var reader), nameof(MFCreateSourceReaderFromURL));
-            try
+            using (UsingUntil.Run(() => Marshal.ReleaseComObject(reader)))
             {
                 // Deselect everything, then take only the audio stream: decoding the video too would
                 // make this slower and could fail for reasons that have nothing to do with Opus.
@@ -168,7 +157,7 @@ internal static class OpusMp4Check
                     return false; // no audio stream at all — the MP4 source did not surface the Opus track
 
                 Check(MFCreateMediaType(out var mediaType), nameof(MFCreateMediaType));
-                try
+                using (UsingUntil.Run(() => Marshal.ReleaseComObject(mediaType)))
                 {
                     // Locals because interop needs these by ref, and static readonly fields cannot be.
                     var majorKey = MfMtMajorType;
@@ -183,21 +172,9 @@ internal static class OpusMp4Check
                     if (reader.SetCurrentMediaType(MfSourceReaderFirstAudioStream, IntPtr.Zero, mediaType) < 0)
                         return false;
                 }
-                finally
-                {
-                    Marshal.ReleaseComObject(mediaType);
-                }
 
                 return ReadsAudio(reader);
             }
-            finally
-            {
-                Marshal.ReleaseComObject(reader);
-            }
-        }
-        finally
-        {
-            MFShutdown();
         }
     }
 
@@ -219,22 +196,12 @@ internal static class OpusMp4Check
                 continue; // a gap or a format change; keep reading
             }
 
-            try
+            using (UsingUntil.Run(() => Marshal.Release(sample)))
             {
                 var mediaSample = (IMFSample)Marshal.GetObjectForIUnknown(sample);
-                try
-                {
+                using (UsingUntil.Run(() => Marshal.ReleaseComObject(mediaSample)))
                     if (mediaSample.GetTotalLength(out var length) >= 0 && length > 0)
                         return true;
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject(mediaSample);
-                }
-            }
-            finally
-            {
-                Marshal.Release(sample);
             }
         }
 
