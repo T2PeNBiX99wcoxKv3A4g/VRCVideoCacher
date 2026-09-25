@@ -119,7 +119,7 @@ public static class NicoRestreamService
         {
             try
             {
-                var res = await NicoVideoApiService.Instance.FetchVideoResult2(id);
+                var res = await NicoVideoApiService.FetchVideoResult(id);
                 if (res == null || string.IsNullOrEmpty(res.StreamUrl))
                     return null;
 
