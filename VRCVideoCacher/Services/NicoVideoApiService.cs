@@ -71,6 +71,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [PublicAPI]
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoId)
     {
+        if (!IsValidVideoId2(videoId)) return null;
         if (_cache.TryGetValue(videoId, out NicoVideoResult? cached) && cached != null &&
             !string.IsNullOrEmpty(cached.Title) && !string.IsNullOrEmpty(cached.Author)) return cached;
 
@@ -324,7 +325,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [PublicAPI]
     public async Task<VideoInfoCache?> GetVideoMetadataAsync2(string videoId)
     {
-        if (string.IsNullOrEmpty(videoId) || !IsValidVideoId2(videoId)) return null;
+        if (string.IsNullOrEmpty(videoId)) return null;
 
         var cachedInfo = await DatabaseManager.GetVideoInfoCacheAsync(videoId);
         if (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) ||
