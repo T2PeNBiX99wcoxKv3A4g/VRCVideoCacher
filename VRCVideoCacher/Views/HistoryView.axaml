@@ -167,7 +167,7 @@
                                     <Button Command="{Binding OpenUrlCommand}" Classes="icon-button"
                                             ToolTip.Tip="{l:Localize OpenUrl}">
                                         <mi:MaterialIcon Kind="OpenInNew" Width="16" Height="16"
-                                                         Foreground="{StaticResource TextSecondaryBrush}" />
+                                                         Foreground="{StaticResource PrimaryLightBrush}" />
                                     </Button>
                                     <Button Command="{Binding CopyUrlCommand}" Classes="icon-button"
                                             ToolTip.Tip="{l:Localize CopyUrl}">
