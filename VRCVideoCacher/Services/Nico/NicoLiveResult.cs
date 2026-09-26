@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace VRCVideoCacher.Services;
+namespace VRCVideoCacher.Services.Nico;
 
 [PublicAPI]
 public class NicoLiveResult
