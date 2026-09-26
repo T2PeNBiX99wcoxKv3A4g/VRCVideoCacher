@@ -18,8 +18,8 @@ public static partial class NicoRestreamService
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(NicoRestreamService));
 
-    private static readonly ConcurrentDictionary<string, NicoHlsSession> Sessions = new();
-    private static readonly ConcurrentDictionary<string, Lazy<Task<NicoHlsSession?>>> Starting = new();
+    private static readonly ConcurrentDictionary<string, INicoSession> Sessions = new();
+    private static readonly ConcurrentDictionary<string, Lazy<Task<INicoSession?>>> Starting = new();
     private static readonly ConcurrentDictionary<string, (TempDir TempDir, string FilePath)> TempFiles = new();
     private static readonly ConcurrentDictionary<string, Task<string?>> TempDownloadsInFlight = new();
 
@@ -68,12 +68,15 @@ public static partial class NicoRestreamService
         while (!ChildProcessTracker.Terminating)
         {
             if (ChildProcessTracker.Terminating) break;
-            await Task.Delay(TimeSpan.FromMinutes(2));
+            await Task.Delay(TimeSpan.FromSeconds(30));
             var now = DateTime.UtcNow;
             foreach (var (id, session) in Sessions)
-                if (now - session.LastAccess > TimeSpan.FromMinutes(15))
+            {
+                var maxIdle = session is NicoLiveSession ? TimeSpan.FromMinutes(1) : TimeSpan.FromMinutes(15);
+                if (now - session.LastAccess > maxIdle)
                     if (Sessions.TryRemove(id, out var removed))
                         removed.TryDispose();
+            }
         }
     }
 
@@ -85,8 +88,7 @@ public static partial class NicoRestreamService
         if (session == null)
             return null;
 
-        var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
-        return $"{baseUrl}/nico/{videoId}/index.m3u8";
+        return session.PlaybackUrl;
     }
 
     public static async Task EnsureAsync(string videoId, string fileName)
@@ -102,7 +104,7 @@ public static partial class NicoRestreamService
             await started.EnsureAsync(fileName);
     }
 
-    private static async Task<NicoHlsSession?> EnsureSessionAsync(string videoId)
+    private static async Task<INicoSession?> EnsureSessionAsync(string videoId)
     {
         if (Sessions.TryGetValue(videoId, out var existing))
         {
@@ -114,20 +116,35 @@ public static partial class NicoRestreamService
         {
             try
             {
-                var res = await NicoVideoApiService.FetchVideoResult(id);
-                if (res == null || string.IsNullOrEmpty(res.StreamUrl))
-                    return null;
-
                 var muxer = new NicoSegmentMuxer(YtdlManager.FfmpegPath, Log);
-                var session =
-                    await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer, Log);
+                if (NicoVideoApiService.IsValidLiveId(id))
+                {
+                    var liveRes = await NicoVideoApiService.FetchLiveResult(id);
+                    if (liveRes == null || string.IsNullOrEmpty(liveRes.WebSocketUrl))
+                        return null;
 
-                Sessions[id] = session;
-                return session;
+                    var liveSession =
+                        await NicoLiveSession.StartAsync(id, liveRes, HlsRootPath, HttpClient, muxer, Log);
+                    if (liveSession != null)
+                        Sessions[id] = liveSession;
+                    return (INicoSession?)liveSession;
+                }
+                else
+                {
+                    var res = await NicoVideoApiService.FetchVideoResult(id);
+                    if (res == null || string.IsNullOrEmpty(res.StreamUrl))
+                        return null;
+
+                    var session =
+                        await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer, Log);
+
+                    Sessions[id] = session;
+                    return (INicoSession?)session;
+                }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to start NicoVideo HLS session for {VideoId}", id);
+                Log.Error(ex, "Failed to start NicoVideo session for {VideoId}", id);
                 return null;
             }
             finally

@@ -11,10 +11,11 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services.Nico;
 
-internal sealed partial class NicoHlsSession : IDisposable
+internal sealed partial class NicoHlsSession : INicoSession
 {
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
+    private readonly string _videoId;
     private readonly string? _audioInitUrl;
     private readonly string? _audioKeyIv;
     private readonly string? _audioKeyUrl;
@@ -41,10 +42,11 @@ internal sealed partial class NicoHlsSession : IDisposable
     private byte[]? _cachedVideoInit;
     private byte[]? _cachedVideoKey;
 
-    private NicoHlsSession(string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer, HttpClient httpClient,
+    private NicoHlsSession(string videoId, string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer, HttpClient httpClient,
         string? videoInitUrl, string? videoKeyUrl, string? videoKeyIv, List<NicoSegmentItem> videoSegments,
         string? audioInitUrl, string? audioKeyUrl, string? audioKeyIv, List<NicoSegmentItem> audioSegments, ILogger log)
     {
+        _videoId = videoId;
         _dir = dir;
         _cookies = cookies;
         _muxer = muxer;
@@ -70,6 +72,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         }
     }
 
+    public string PlaybackUrl => $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/{_videoId}/index.m3u8";
     public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
 
     [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
@@ -135,7 +138,7 @@ internal sealed partial class NicoHlsSession : IDisposable
                 audioSegments);
         }
 
-        var session = new NicoHlsSession(dir, cookies, muxer, httpClient, videoInitUrl, videoKeyUrl, videoKeyIv,
+        var session = new NicoHlsSession(videoId, dir, cookies, muxer, httpClient, videoInitUrl, videoKeyUrl, videoKeyIv,
             videoSegments, audioInitUrl, audioKeyUrl, audioKeyIv, audioSegments, log);
 
         var playlistContent = session.BuildPlaylist();
@@ -288,7 +291,7 @@ internal sealed partial class NicoHlsSession : IDisposable
             initPath);
     }
 
-    private static byte[] ParseIv(string? ivHex, int sequenceNumber)
+    internal static byte[] ParseIv(string? ivHex, int sequenceNumber)
     {
         if (!string.IsNullOrEmpty(ivHex))
         {
@@ -309,7 +312,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         return iv;
     }
 
-    private static byte[] DecryptAes128(byte[] cipherText, byte[] key, byte[] iv)
+    internal static byte[] DecryptAes128(byte[] cipherText, byte[] key, byte[] iv)
     {
         try
         {
@@ -333,7 +336,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         }
     }
 
-    private static async Task<string> FetchTextAsync(HttpClient client, string url, Dictionary<string, string> cookies,
+    internal static async Task<string> FetchTextAsync(HttpClient client, string url, Dictionary<string, string> cookies,
         CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
@@ -351,7 +354,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         return await res.Content.ReadAsStringAsync(ct);
     }
 
-    private static async Task<byte[]> FetchBytesAsync(HttpClient client, string url, Dictionary<string, string> cookies,
+    internal static async Task<byte[]> FetchBytesAsync(HttpClient client, string url, Dictionary<string, string> cookies,
         CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
@@ -369,7 +372,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         return await res.Content.ReadAsByteArrayAsync(ct);
     }
 
-    private static (string? VideoUrl, string? AudioUrl) ParseMasterPlaylist(string masterText, string masterBaseUrl)
+    internal static (string? VideoUrl, string? AudioUrl) ParseMasterPlaylist(string masterText, string masterBaseUrl)
     {
         string? bestVideoUrl = null;
         var maxBandwidth = -1L;
@@ -406,7 +409,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         return (bestVideoUrl, audioUrl);
     }
 
-    private static void ParseVariantPlaylist(string playlistText, string playlistBaseUrl, out string? initUrl,
+    internal static void ParseVariantPlaylist(string playlistText, string playlistBaseUrl, out string? initUrl,
         out string? defaultKeyUrl, out string? defaultKeyIv, List<NicoSegmentItem> segments)
     {
         initUrl = null;
@@ -474,7 +477,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         }
     }
 
-    private static string ResolveUrl(string baseUrl, string relativeOrAbsolute)
+    internal static string ResolveUrl(string baseUrl, string relativeOrAbsolute)
     {
         if (Uri.TryCreate(relativeOrAbsolute, UriKind.Absolute, out var absUri))
             return absUri.ToString();

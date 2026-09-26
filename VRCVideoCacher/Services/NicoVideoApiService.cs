@@ -51,6 +51,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     ];
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
+    private readonly MemoryCache _liveCache = new(new MemoryCacheOptions());
 
     private readonly HttpClient _httpClient;
 
@@ -71,22 +72,19 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     [GeneratedRegex(@"<meta name=""server-response"" content=""\{(.+)\}"" />", RegexOptions.Compiled)]
     private static partial Regex ServerResponseMetaRegex();
 
-    [GeneratedRegex(@"<script id=""embedded-data"" data-props=""(.+?)""></script><script id=""", RegexOptions.Compiled)]
+    [GeneratedRegex(@"<script id=""embedded-data"" data-props=""(.+?)""></script>", RegexOptions.Compiled)]
     private static partial Regex EmbeddedDataScriptRegex();
 
-    // TODO: Try support live
     [PublicAPI]
     public async Task<NicoVideoResult?> FetchVideoResult2(string videoId)
     {
-        if (!IsValidVideoId2(videoId)) return null;
+        if (!IsValidVideoId2(videoId) || IsValidLiveId2(videoId)) return null;
         if (_cache.TryGetValue(videoId, out NicoVideoResult? cached) && cached != null &&
             !string.IsNullOrEmpty(cached.Title) && !string.IsNullOrEmpty(cached.Author)) return cached;
 
         return await Try.Run<NicoVideoResult?>(async () =>
         {
-            var watchUrl = IsValidLiveId2(videoId)
-                ? $"https://live.nicovideo.jp/watch/{videoId}"
-                : $"https://www.nicovideo.jp/watch/{videoId}";
+            var watchUrl = $"https://www.nicovideo.jp/watch/{videoId}";
 
             using var getRequest = new HttpRequestMessage(HttpMethod.Get, watchUrl);
             getRequest.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
@@ -264,18 +262,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                         Log.Warning(ex, "Failed to resolve NVAPI HLS access right for {Id}", videoId);
                     }
             }
-            else if (pageData.Program != null)
-            {
-                // Nico Live program
-                var prog = pageData.Program;
-                result.Title = prog.Title;
-                result.Description = prog.Description;
-                if (prog.Statistics != null)
-                {
-                    result.ViewCount = prog.Statistics.WatchCount;
-                    result.CommentCount = prog.Statistics.CommentCount;
-                }
-            }
 
             result.Cookies = cookieMap;
             _cache.Set(videoId, result, TimeSpan.FromMinutes(5));
@@ -288,10 +274,135 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
+    public async Task<NicoLiveResult?> FetchLiveResult2(string liveId)
+    {
+        if (!IsValidLiveId2(liveId)) return null;
+        if (_liveCache.TryGetValue(liveId, out NicoLiveResult? cached) && cached != null &&
+            !string.IsNullOrEmpty(cached.Title)) return cached;
+
+        return await Try.Run<NicoLiveResult?>(async () =>
+        {
+            var watchUrl = $"https://live.nicovideo.jp/watch/{liveId}";
+
+            using var getRequest = new HttpRequestMessage(HttpMethod.Get, watchUrl);
+            getRequest.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+            getRequest.Headers.TryAddWithoutValidation("Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            getRequest.Headers.TryAddWithoutValidation("Accept-Language", "ja,en;q=0.7,en-US;q=0.3");
+
+            using var getResponse = await _httpClient.SendAsync(getRequest);
+            if (!getResponse.IsSuccessStatusCode)
+            {
+                Log.Warning("NicoLive web page request failed with status code {StatusCode} for {Url}",
+                    getResponse.StatusCode, watchUrl);
+                return null;
+            }
+
+            var html = await getResponse.Content.ReadAsStringAsync();
+            var cookieList = getResponse.Headers.TryGetValues("Set-Cookie", out var setCookies)
+                ? setCookies.ToList()
+                : [];
+
+            var cookieMap = new Dictionary<string, string>();
+            foreach (var parts in cookieList.Select(sc => sc.Split(';')[0]).Select(first => first.Split('=', 2))
+                         .Where(parts => parts.Length == 2))
+                cookieMap[parts[0].Trim()] = parts[1].Trim();
+
+            NicoLivePageData? pageData = null;
+            var metaMatch = ServerResponseMetaRegex().Match(html);
+            if (metaMatch.Success)
+            {
+                var jsonStr = "{" + WebUtility.HtmlDecode(metaMatch.Groups[1].Value) + "}";
+                pageData = JsonSerializer.Deserialize(jsonStr, NicoJsonContext.Default.NicoLivePageData);
+            }
+            else
+            {
+                var scriptMatch = EmbeddedDataScriptRegex().Match(html);
+                if (scriptMatch.Success)
+                {
+                    var jsonStr = WebUtility.HtmlDecode(scriptMatch.Groups[1].Value);
+                    pageData = JsonSerializer.Deserialize(jsonStr, NicoJsonContext.Default.NicoLivePageData);
+                }
+            }
+
+            if (pageData == null)
+            {
+                Log.Warning("Could not parse embedded NicoLive JSON metadata for {Url}", watchUrl);
+                return null;
+            }
+
+            var prog = pageData.Program;
+            var site = pageData.Site;
+
+            var result = new NicoLiveResult
+            {
+                LiveId = liveId,
+                Url = watchUrl,
+                Title = prog?.Title,
+                Description = prog?.Description,
+                Status = prog?.Status,
+                Author = prog?.Supplier?.Name,
+                WebSocketUrl = site?.Relive?.WebSocketUrl,
+                FrontendId = site?.FrontendId,
+                Cookies = cookieMap
+            };
+
+            if (prog?.Thumbnail != null)
+            {
+                result.Thumbnail = prog.Thumbnail.Huge?.S1280X720
+                                   ?? prog.Thumbnail.Huge?.S1920X1080
+                                   ?? prog.Thumbnail.Huge?.S640X360
+                                   ?? prog.Thumbnail.Small;
+            }
+
+            if (prog?.Tag?.List != null)
+            {
+                result.Tags =
+                [
+                    .. prog.Tag.List
+                        .Select(t => t.Text)
+                        .Where(t => !string.IsNullOrEmpty(t))
+                        .Select(t => t!)
+                ];
+            }
+
+            if (prog?.Statistics != null)
+            {
+                result.ViewCount = prog.Statistics.WatchCount;
+                result.CommentCount = prog.Statistics.CommentCount;
+            }
+
+            _liveCache.Set(liveId, result, TimeSpan.FromMinutes(2));
+            return result;
+        }).GetOrElse(ex =>
+        {
+            Log.Error(ex, "Exception fetching NicoLive result for {Target}", liveId);
+            return Task.FromResult<NicoLiveResult?>(null);
+        });
+    }
+
+    [PublicAPI]
     public async Task<VideoInfoCache?> DownloadMetadata2(string videoId)
     {
         return await Try.Run(async () =>
         {
+            if (IsValidLiveId2(videoId))
+            {
+                var liveRes = await FetchLiveResult2(videoId);
+                if (liveRes == null) return null;
+
+                var liveVideoInfo = new VideoInfoCache
+                {
+                    Id = videoId,
+                    Title = liveRes.Title,
+                    Author = liveRes.Author,
+                    Duration = null,
+                    Type = UrlType.NicoVideo
+                };
+                await DatabaseManager.AddVideoInfoCacheAsync(liveVideoInfo);
+                return liveVideoInfo;
+            }
+
             var res = await FetchVideoResult2(videoId);
             if (res == null) return null;
 
@@ -322,12 +433,23 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
         if (File.Exists(localPath))
             return localPath;
 
-        var res = await FetchVideoResult2(videoId);
-        if (res == null || string.IsNullOrEmpty(res.Thumbnail))
+        string? thumbUrl;
+        if (IsValidLiveId2(videoId))
+        {
+            var liveRes = await FetchLiveResult2(videoId);
+            thumbUrl = liveRes?.Thumbnail;
+        }
+        else
+        {
+            var res = await FetchVideoResult2(videoId);
+            thumbUrl = res?.Thumbnail;
+        }
+
+        if (string.IsNullOrEmpty(thumbUrl))
             return null;
 
-        var thumbnailPath = await ThumbnailManager.TrySaveThumbnail(videoId, res.Thumbnail);
-        return !string.IsNullOrEmpty(thumbnailPath) ? thumbnailPath : res.Thumbnail;
+        var thumbnailPath = await ThumbnailManager.TrySaveThumbnail(videoId, thumbUrl);
+        return !string.IsNullOrEmpty(thumbnailPath) ? thumbnailPath : thumbUrl;
     }
 
     [PublicAPI]
