@@ -44,9 +44,6 @@ internal sealed partial class NicoLiveSession : INicoSession
     private int _targetDuration = 2;
     private volatile bool _isEnded;
 
-    private Task? _wsTask;
-    private Task? _pollTask;
-
     private NicoLiveSession(string liveId, string dir, NicoLiveResult liveResult, HttpClient httpClient,
         NicoSegmentMuxer muxer, ILogger log)
     {
@@ -143,7 +140,7 @@ internal sealed partial class NicoLiveSession : INicoSession
 
             await SendWsMessageAsync(session._ws, startWatching, NicoJsonContext.Default.NicoWsStartWatchingMessage, ct);
 
-            session._wsTask = session.WsLoopAsync(session._cts.Token);
+            _ = session.WsLoopAsync(session._cts.Token);
 
             var streamUri = await session._streamUriTcs.Task.WaitAsync(ct);
             if (string.IsNullOrEmpty(streamUri))
@@ -163,7 +160,7 @@ internal sealed partial class NicoLiveSession : INicoSession
             session._videoVariantUrl = bestVideoUrl ?? streamUri;
             session._audioVariantUrl = audioUrl;
 
-            session._pollTask = session.PollLoopAsync(session._cts.Token);
+            _ = session.PollLoopAsync(session._cts.Token);
 
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(20);
             while (DateTime.UtcNow < deadline && !session._isEnded)
