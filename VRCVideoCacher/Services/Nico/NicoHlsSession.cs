@@ -13,7 +13,6 @@ namespace VRCVideoCacher.Services.Nico;
 
 internal sealed partial class NicoHlsSession : IDisposable
 {
-    private static readonly ILogger Log = Program.Logger.ForContext<NicoHlsSession>();
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
     private readonly string? _audioInitUrl;
@@ -35,6 +34,7 @@ internal sealed partial class NicoHlsSession : IDisposable
     private readonly string? _videoKeyIv;
     private readonly string? _videoKeyUrl;
     private readonly List<NicoSegmentItem> _videoSegments;
+    private readonly ILogger _log;
     private byte[]? _cachedAudioInit;
     private byte[]? _cachedAudioKey;
 
@@ -43,7 +43,7 @@ internal sealed partial class NicoHlsSession : IDisposable
 
     private NicoHlsSession(string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer, HttpClient httpClient,
         string? videoInitUrl, string? videoKeyUrl, string? videoKeyIv, List<NicoSegmentItem> videoSegments,
-        string? audioInitUrl, string? audioKeyUrl, string? audioKeyIv, List<NicoSegmentItem> audioSegments)
+        string? audioInitUrl, string? audioKeyUrl, string? audioKeyIv, List<NicoSegmentItem> audioSegments, ILogger log)
     {
         _dir = dir;
         _cookies = cookies;
@@ -57,6 +57,7 @@ internal sealed partial class NicoHlsSession : IDisposable
         _audioKeyUrl = audioKeyUrl;
         _audioKeyIv = audioKeyIv;
         _audioSegments = audioSegments;
+        _log = log;
 
         long currentMs = 0;
         foreach (var seg in _videoSegments)
@@ -100,7 +101,7 @@ internal sealed partial class NicoHlsSession : IDisposable
     public void Touch() => LastAccess = DateTime.UtcNow;
 
     public static async Task<NicoHlsSession> StartAsync(string videoId, string masterUrl,
-        Dictionary<string, string> cookies, string rootDir, HttpClient httpClient, NicoSegmentMuxer muxer)
+        Dictionary<string, string> cookies, string rootDir, HttpClient httpClient, NicoSegmentMuxer muxer, ILogger log)
     {
         var dir = Path.Combine(rootDir, videoId);
         if (Directory.Exists(dir))
@@ -135,11 +136,11 @@ internal sealed partial class NicoHlsSession : IDisposable
         }
 
         var session = new NicoHlsSession(dir, cookies, muxer, httpClient, videoInitUrl, videoKeyUrl, videoKeyIv,
-            videoSegments, audioInitUrl, audioKeyUrl, audioKeyIv, audioSegments);
+            videoSegments, audioInitUrl, audioKeyUrl, audioKeyIv, audioSegments, log);
 
         var playlistContent = session.BuildPlaylist();
         await File.WriteAllTextAsync(Path.Combine(dir, "index.m3u8"), playlistContent, cts.Token);
-        Log.Information("NicoVideo HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s", videoId,
+        log.Information("NicoVideo HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s", videoId,
             videoSegments.Count, session.TotalDurationSeconds);
 
         _ = Task.Run(() => session.BuildSegmentAsync(0), cts.Token);

@@ -120,7 +120,7 @@ public static partial class NicoRestreamService
 
                 var muxer = new NicoSegmentMuxer(YtdlManager.FfmpegPath, Log);
                 var session =
-                    await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer);
+                    await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer, Log);
 
                 Sessions[id] = session;
                 return session;
