@@ -278,6 +278,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
     partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
     partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
+    partial void OnCacheNicoVideoChanged(bool value) => SetHasChanges();
     partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
     partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
     partial void OnPatchVRCChanged(bool value) => SetHasChanges();
