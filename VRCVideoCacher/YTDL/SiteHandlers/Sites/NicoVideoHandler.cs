@@ -30,7 +30,7 @@ public partial class NicoVideoHandler : ISiteHandler
 
         if (m?.Success != true)
         {
-            Log.Warning("Failed to parse video ID from Nico Video URL: {Url}", url);
+            Log.Warning("Failed to parse video ID from NicoNico URL: {Url}", url);
             return Task.FromResult<VideoInfo?>(null);
         }
 

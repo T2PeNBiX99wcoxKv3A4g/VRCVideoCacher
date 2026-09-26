@@ -483,14 +483,14 @@ public class VideoDownloader
                 : $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{url}\""
         };
 
-        Log.Information("Downloading NicoVideo Video: {Args}", process.StartInfo.Arguments);
+        Log.Information("Downloading NicoNico Video: {Args}", process.StartInfo.Arguments);
         process.Start();
         await process.WaitForExitAsync();
         var error = (await process.StandardError.ReadToEndAsync()).Trim();
 
         if (process.ExitCode != 0)
         {
-            Log.Error("Failed to download NicoVideo Video: {ExitCode} {Url} {Error}", process.ExitCode, url, error);
+            Log.Error("Failed to download NicoNico Video: {ExitCode} {Url} {Error}", process.ExitCode, url, error);
             return false;
         }
 
@@ -517,12 +517,12 @@ public class VideoDownloader
             File.Move(tempDownloadPath, filePath);
         else
         {
-            Log.Error("Failed to download NicoVideo Video: {Url}", url);
+            Log.Error("Failed to download NicoNico Video: {Url}", url);
             return false;
         }
 
         CacheManager.AddToCache(fileName);
-        Log.Information("NicoVideo Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        Log.Information("NicoNico Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 

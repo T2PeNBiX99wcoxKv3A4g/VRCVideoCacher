@@ -39,7 +39,7 @@ public partial class HistoryItemViewModel : ViewModelBase
         UrlType.YouTube => "YouTube",
         UrlType.PyPyDance => "PyPyDance",
         UrlType.VRDancing => "VRDancing",
-        UrlType.NicoVideo => "NicoVideo",
+        UrlType.NicoVideo => "NicoNico",
         _ => "Other"
     };
 

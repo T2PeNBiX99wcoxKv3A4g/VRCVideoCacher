@@ -6,7 +6,7 @@ using Process = System.Diagnostics.Process;
 namespace VRCVideoCacher.Services.Nico;
 
 /// <summary>
-///     Muxes decrypted NicoVideo video and audio fragments into a single playable fMP4 HLS segment.
+///     Muxes decrypted NicoNico video and audio fragments into a single playable fMP4 HLS segment.
 /// </summary>
 internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
 {
@@ -50,7 +50,7 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
             var muxed = await File.ReadAllBytesAsync(output, ct);
             var mediaStart = FindMoof(muxed);
             if (mediaStart <= 0)
-                throw new InvalidOperationException("ffmpeg produced no fragment for the NicoVideo segment");
+                throw new InvalidOperationException("ffmpeg produced no fragment for the NicoNico segment");
 
             var init = muxed[..mediaStart];
             var media = muxed[mediaStart..];
@@ -249,7 +249,7 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
                 "[nico-mux] {StartInfoFileName} {StartInfoArguments}",
                 process.StartInfo.FileName,
                 process.StartInfo.Arguments);
-            throw new InvalidOperationException($"ffmpeg failed muxing a NicoVideo segment: {stderr.Trim()}");
+            throw new InvalidOperationException($"ffmpeg failed muxing a NicoNico segment: {stderr.Trim()}");
         }
 
         if (!string.IsNullOrWhiteSpace(stderr))

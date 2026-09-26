@@ -75,7 +75,7 @@ public static partial class NicoVideoApiService
             using var getResponse = await HttpClient.SendAsync(getRequest);
             if (!getResponse.IsSuccessStatusCode)
             {
-                Log.Warning("NicoVideo web page request failed with status code {StatusCode} for {Url}",
+                Log.Warning("NicoNico web page request failed with status code {StatusCode} for {Url}",
                     getResponse.StatusCode, watchUrl);
                 return null;
             }
@@ -110,7 +110,7 @@ public static partial class NicoVideoApiService
 
             if (pageData == null)
             {
-                Log.Warning("Could not parse embedded NicoVideo JSON metadata for {Url}", watchUrl);
+                Log.Warning("Could not parse embedded NicoNico JSON metadata for {Url}", watchUrl);
                 return null;
             }
 
@@ -249,7 +249,7 @@ public static partial class NicoVideoApiService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Exception fetching NicoVideo result for {Target}", videoId);
+            Log.Error(ex, "Exception fetching NicoNico result for {Target}", videoId);
             return null;
         }
     }
@@ -395,7 +395,7 @@ public static partial class NicoVideoApiService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to download NicoVideo metadata: {Ex}", ex.ToString());
+            Log.Error(ex, "Failed to download NicoNico metadata: {Ex}", ex.ToString());
             return null;
         }
     }

@@ -171,7 +171,7 @@ internal sealed partial class NicoHlsSession : INicoSession
 
         var playlistContent = session.BuildPlaylist();
         await File.WriteAllTextAsync(Path.Combine(dir, "index.m3u8"), playlistContent, cts.Token);
-        log.Information("NicoVideo HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s", videoId,
+        log.Information("NicoNico HLS ready for {VideoId}: {Count} segments, {Duration:0.0}s", videoId,
             videoSegments.Count, session.TotalDurationSeconds);
 
         _ = Task.Run(() => session.BuildSegmentAsync(0), cts.Token);
