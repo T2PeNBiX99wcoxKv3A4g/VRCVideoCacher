@@ -127,7 +127,7 @@ public static partial class NicoRestreamService
                         await NicoLiveSession.StartAsync(id, liveRes, HlsRootPath, HttpClient, muxer, Log);
                     if (liveSession != null)
                         Sessions[id] = liveSession;
-                    return (INicoSession?)liveSession;
+                    return liveSession;
                 }
                 else
                 {
@@ -139,7 +139,7 @@ public static partial class NicoRestreamService
                         await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer, Log);
 
                     Sessions[id] = session;
-                    return (INicoSession?)session;
+                    return session;
                 }
             }
             catch (Exception ex)
