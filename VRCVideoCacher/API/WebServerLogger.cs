@@ -30,7 +30,7 @@ public partial class WebServerLogger : ILogger
                 WebServer.Instance.Logger.Warning("{WebServerLogEvent:l}", message);
                 break;
             case LogLevel.Info:
-                // SABR and NicoVideo HLS segment fetches (206 Partial Content / 200 OK) fire constantly during
+                // SABR and NicoNico HLS segment fetches (206 Partial Content / 200 OK) fire constantly during
                 // playback — one per segment, per viewer — and drown out everything else at Info. Keep them, but at Debug.
                 if (IsHlsStreamFetch(rawMessage))
                     WebServer.Instance.Logger.Debug("{WebServerLogEvent:l}", message);

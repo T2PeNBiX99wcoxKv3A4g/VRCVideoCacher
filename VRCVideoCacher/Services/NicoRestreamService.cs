@@ -142,7 +142,7 @@ public static partial class NicoRestreamService
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to start NicoVideo session for {VideoId}", id);
+                Log.Error(ex, "Failed to start NicoNico session for {VideoId}", id);
                 return null;
             }
             finally
@@ -201,7 +201,7 @@ public static partial class NicoRestreamService
                 if (process.ExitCode != 0 || !File.Exists(tempDownloadPath))
                 {
                     tempDir.TryDispose();
-                    Log.Warning("Failed to download temporary NicoVideo: {ExitCode} {VideoId} {Error}", process.ExitCode,
+                    Log.Warning("Failed to download temporary NicoNico: {ExitCode} {VideoId} {Error}", process.ExitCode,
                         key, error);
                     return null;
                 }

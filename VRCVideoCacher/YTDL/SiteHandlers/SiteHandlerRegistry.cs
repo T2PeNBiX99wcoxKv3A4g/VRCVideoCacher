@@ -18,7 +18,6 @@ public static class SiteHandlerRegistry
     // Rewriters run first, in order, before handler resolution
     private static readonly List<ISiteHandler> Rewriters =
     [
-        new NicoVideoHandler(), // normalizes nico.ms / short links → standard nicovideo watch url
         new YTSHandler(), // rewrites /sr/ → /yt/
         new KaraokeInSyncHandler(), // skips the Karaoke in Sync youtube workaround
         new ThirdPartyYTResolver() // dmn.moe, u2b.cx etc → real YT url

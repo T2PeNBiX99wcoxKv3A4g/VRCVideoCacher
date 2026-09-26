@@ -76,7 +76,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             using var getResponse = await _httpClient.SendAsync(getRequest);
             if (!getResponse.IsSuccessStatusCode)
             {
-                Log.Warning("NicoVideo web page request failed with status code {StatusCode} for {Url}",
+                Log.Warning("NicoNico web page request failed with status code {StatusCode} for {Url}",
                     getResponse.StatusCode, watchUrl);
                 return null;
             }
@@ -111,7 +111,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
             if (pageData == null)
             {
-                Log.Warning("Could not parse embedded NicoVideo JSON metadata for {Url}", watchUrl);
+                Log.Warning("Could not parse embedded NicoNico JSON metadata for {Url}", watchUrl);
                 return null;
             }
 
@@ -249,7 +249,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             return result;
         }).GetOrElse(ex =>
         {
-            Log.Error(ex, "Exception fetching NicoVideo result for {Target}", videoId);
+            Log.Error(ex, "Exception fetching NicoNico result for {Target}", videoId);
             return Task.FromResult<NicoVideoResult?>(null);
         });
     }
@@ -374,7 +374,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     Title = liveRes.Title,
                     Author = liveRes.Author,
                     Duration = null,
-                    Type = UrlType.NicoVideo
+                    Type = UrlType.NicoNico
                 };
                 await DatabaseManager.AddVideoInfoCacheAsync(liveVideoInfo);
                 return liveVideoInfo;
@@ -389,13 +389,13 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 Title = res.Title,
                 Author = res.Author,
                 Duration = res.Duration != null ? (int?)res.Duration.Value : null,
-                Type = UrlType.NicoVideo
+                Type = UrlType.NicoNico
             };
             await DatabaseManager.AddVideoInfoCacheAsync(videoInfo);
             return videoInfo;
         }).GetOrElse(ex =>
         {
-            Log.Error(ex, "Failed to download NicoVideo metadata: {Ex}", ex.ToString());
+            Log.Error(ex, "Failed to download NicoNico metadata: {Ex}", ex.ToString());
             return Task.FromResult<VideoInfoCache?>(null);
         });
     }

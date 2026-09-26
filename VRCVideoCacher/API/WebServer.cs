@@ -55,7 +55,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
             // First, we will configure our web server by adding Modules.
             .WithWebApi("/api", m => m
                 .WithController<ApiController>())
-            // NicoVideo HLS sessions and temp video streaming.
+            // NicoNico HLS sessions and temp video streaming.
             .WithModule(new NicoHlsModule("/nico"))
             .WithStaticFolder("/nico", NicoRestreamService.HlsRootPath, false, m => m
                 .WithContentCaching(false))

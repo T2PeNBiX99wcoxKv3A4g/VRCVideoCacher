@@ -29,7 +29,7 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
 
         if (m?.Success != true)
         {
-            Log.Warning("Failed to parse video ID from Nico Video URL: {Url}", url);
+            Log.Warning("Failed to parse video ID from Nico Nico URL: {Url}", url);
             return Task.FromResult<VideoInfo?>(null);
         }
 
@@ -39,7 +39,7 @@ public partial class NicoVideoHandler : Handler<NicoVideoHandler>
         {
             VideoUrl = url,
             VideoId = videoId,
-            UrlType = UrlType.NicoVideo,
+            UrlType = UrlType.NicoNico,
             DownloadFormat = DownloadFormat.MP4
         });
     }

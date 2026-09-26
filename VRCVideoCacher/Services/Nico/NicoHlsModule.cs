@@ -3,7 +3,7 @@ using EmbedIO;
 namespace VRCVideoCacher.Services.Nico;
 
 /// <summary>
-///     Materialises the requested NicoVideo HLS file, then lets the static file module actually serve it
+///     Materialises the requested NicoNico HLS file, then lets the static file module actually serve it
 ///     (<see cref="IsFinalHandler" /> is false, so routing continues), and handles temp video streaming.
 /// </summary>
 internal sealed class NicoHlsModule(string baseRoute) : WebModuleBase(baseRoute)

@@ -82,7 +82,7 @@
   "MaxYouTubeResolution": "Resolução máxima do YouTube",
   "MaxVideoLength": "Duração máxima do vídeo (minutos)",
   "CachePyPyDanceVideos": "Salvar vídeos do PyPyDance em cachê",
-  "CacheNicoVideoVideos": "Salvar vídeos do NicoVideo em cachê",
+  "CacheNicoNicoVideos": "Salvar vídeos do NicoNico em cachê",
   "CacheVRDancingVideos": "Salvar vídeos do VRDancing em cachê",
   "CacheGenericVideos": "Salvar vídeos genéricos em cachê",
   "OnlyServeCachedVideos": "Reproduzir apenas vídeos armazenados em cachê",
