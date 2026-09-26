@@ -374,7 +374,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                     Title = liveRes.Title,
                     Author = liveRes.Author,
                     Duration = null,
-                    Type = UrlType.NicoNico
+                    Type = UrlType.NicoVideo
                 };
                 await DatabaseManager.AddVideoInfoCacheAsync(liveVideoInfo);
                 return liveVideoInfo;
@@ -389,7 +389,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 Title = res.Title,
                 Author = res.Author,
                 Duration = res.Duration != null ? (int?)res.Duration.Value : null,
-                Type = UrlType.NicoNico
+                Type = UrlType.NicoVideo
             };
             await DatabaseManager.AddVideoInfoCacheAsync(videoInfo);
             return videoInfo;

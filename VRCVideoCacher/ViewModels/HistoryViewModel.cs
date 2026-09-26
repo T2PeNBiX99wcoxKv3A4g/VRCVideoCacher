@@ -38,7 +38,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
         UrlType.YouTube => "YouTube",
         UrlType.PyPyDance => "PyPyDance",
         UrlType.VRDancing => "VRDancing",
-        UrlType.NicoNico => "NicoNico",
+        UrlType.NicoVideo => "NicoNico",
         _ => "Other"
     };
 
@@ -47,7 +47,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
         UrlType.YouTube => new SolidColorBrush(Color.Parse("#CC0000")),
         UrlType.PyPyDance => new SolidColorBrush(Color.Parse("#4A90D9")),
         UrlType.VRDancing => new SolidColorBrush(Color.Parse("#7B68EE")),
-        UrlType.NicoNico => new SolidColorBrush(Color.Parse("#252525")),
+        UrlType.NicoVideo => new SolidColorBrush(Color.Parse("#252525")),
         _ => new SolidColorBrush(Color.Parse("#555555"))
     };
 
@@ -76,7 +76,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
             var videoInfo = Type switch
             {
                 UrlType.YouTube => await YouTubeMetadataService.GetVideoMetadataAsync(Id),
-                UrlType.NicoNico => await NicoVideoApiService.GetVideoMetadataAsync(Id),
+                UrlType.NicoVideo => await NicoVideoApiService.GetVideoMetadataAsync(Id),
                 _ => null
             };
 
@@ -98,7 +98,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
                 thumbnailPath = Type switch
                 {
                     UrlType.YouTube => await YouTubeMetadataService.GetThumbnail(Id),
-                    UrlType.NicoNico => await NicoVideoApiService.GetThumbnail(Id),
+                    UrlType.NicoVideo => await NicoVideoApiService.GetThumbnail(Id),
                     _ => null
                 };
 

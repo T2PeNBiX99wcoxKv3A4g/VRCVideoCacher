@@ -38,7 +38,7 @@ public partial class CacheItemViewModel : ViewModelBase
     public async Task LoadMetadataAsync()
     {
         if (NicoVideoApiService.IsValidVideoId(VideoId))
-            Type = UrlType.NicoNico;
+            Type = UrlType.NicoVideo;
         else if (VideoId.Length == 11)
             Type = UrlType.YouTube;
 
@@ -46,7 +46,7 @@ public partial class CacheItemViewModel : ViewModelBase
         var videoInfo = Type switch
         {
             UrlType.YouTube => await YouTubeMetadataService.GetVideoMetadataAsync(VideoId),
-            UrlType.NicoNico => await NicoVideoApiService.GetVideoMetadataAsync(VideoId),
+            UrlType.NicoVideo => await NicoVideoApiService.GetVideoMetadataAsync(VideoId),
             _ => null
         };
 
@@ -66,7 +66,7 @@ public partial class CacheItemViewModel : ViewModelBase
             thumbnailPath = Type switch
             {
                 UrlType.YouTube => await YouTubeMetadataService.GetThumbnail(VideoId),
-                UrlType.NicoNico => await NicoVideoApiService.GetThumbnail(VideoId),
+                UrlType.NicoVideo => await NicoVideoApiService.GetThumbnail(VideoId),
                 _ => null
             };
 
@@ -83,7 +83,7 @@ public partial class CacheItemViewModel : ViewModelBase
         return Type switch
         {
             UrlType.YouTube => $"https://www.youtube.com/watch?v={VideoId}",
-            UrlType.NicoNico => NicoVideoApiService.IsValidLiveId(VideoId)
+            UrlType.NicoVideo => NicoVideoApiService.IsValidLiveId(VideoId)
                 ? $"https://live.nicovideo.jp/watch/{VideoId}"
                 : $"https://www.nicovideo.jp/watch/{VideoId}",
             _ => $"{ConfigManager.Config.YtdlpWebServerUrl}/{VideoId}.mp4"

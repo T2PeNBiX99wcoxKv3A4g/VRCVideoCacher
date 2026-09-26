@@ -189,7 +189,7 @@ public class ApiController : WebApiController
             return;
         }
 
-        if (videoInfo.UrlType == UrlType.NicoNico)
+        if (videoInfo.UrlType == UrlType.NicoVideo)
         {
             if (avPro)
             {
@@ -199,7 +199,7 @@ public class ApiController : WebApiController
                     Log.Information("Responding with NicoNico HLS restream URL: {Url}", streamUrl);
                     await HttpContext.SendStringAsync(streamUrl, "text/plain", Encoding.UTF8);
 
-                    if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId) && ConfigManager.Config.CacheNicoNico)
+                    if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId) && ConfigManager.Config.CacheNicoVideo)
                         VideoDownloader.QueueDownload(videoInfo);
 
                     return;
@@ -218,7 +218,7 @@ public class ApiController : WebApiController
                 return;
             }
 
-            if (ConfigManager.Config.CacheNicoNico)
+            if (ConfigManager.Config.CacheNicoVideo)
             {
                 Log.Information("NicoNico requested, downloading and waiting for cache for {VideoId}...",
                     videoInfo.VideoId);
@@ -356,7 +356,7 @@ public class ApiController : WebApiController
             videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
             videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
             videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing ||
-            videoInfo.UrlType == UrlType.NicoNico && ConfigManager.Config.CacheNicoNico ||
+            videoInfo.UrlType == UrlType.NicoVideo && ConfigManager.Config.CacheNicoVideo ||
             videoInfo.UrlType == UrlType.Other && ConfigManager.Config.CacheGeneric))
             VideoDownloader.QueueDownload(videoInfo);
     }

@@ -81,7 +81,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
                 UrlType.YouTube => await DownloadYouTubeVideo(queueItem),
                 UrlType.PyPyDance => await DownloadVideoWithId(queueItem),
                 UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem),
-                UrlType.NicoNico => await DownloadNicoNico(queueItem),
+                UrlType.NicoVideo => await DownloadNicoVideo(queueItem),
                 UrlType.Other => await DownloadGenericVideo(queueItem),
                 _ => throw new ArgumentOutOfRangeException()
             }).GetOrElse(ex =>
@@ -528,7 +528,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         return true;
     }
 
-    private async Task<bool> DownloadNicoNico(VideoInfo videoInfo)
+    private async Task<bool> DownloadNicoVideo(VideoInfo videoInfo)
     {
         using var tempDir = new TempDir();
         var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;

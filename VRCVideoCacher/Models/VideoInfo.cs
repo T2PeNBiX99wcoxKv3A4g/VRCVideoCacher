@@ -7,7 +7,7 @@ public enum UrlType
     YouTube,
     PyPyDance,
     VRDancing,
-    NicoNico,
+    NicoVideo,
     Other
 }
 
