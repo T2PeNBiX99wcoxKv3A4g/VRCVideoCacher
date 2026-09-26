@@ -136,7 +136,8 @@ public static partial class NicoRestreamService
                         return null;
 
                     var session =
-                        await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer, Log);
+                        await NicoHlsSession.StartAsync(id, res.StreamUrl, res.Cookies, HlsRootPath, HttpClient, muxer,
+                            Log);
 
                     Sessions[id] = session;
                     return session;

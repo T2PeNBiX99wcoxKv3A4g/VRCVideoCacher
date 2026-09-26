@@ -329,15 +329,12 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             };
 
             if (prog?.Thumbnail != null)
-            {
                 result.Thumbnail = prog.Thumbnail.Huge?.S1280X720
                                    ?? prog.Thumbnail.Huge?.S1920X1080
                                    ?? prog.Thumbnail.Huge?.S640X360
                                    ?? prog.Thumbnail.Small;
-            }
 
             if (prog?.Tag?.List != null)
-            {
                 result.Tags =
                 [
                     .. prog.Tag.List
@@ -345,7 +342,6 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                         .Where(t => !string.IsNullOrEmpty(t))
                         .Select(t => t!)
                 ];
-            }
 
             if (prog?.Statistics != null)
             {

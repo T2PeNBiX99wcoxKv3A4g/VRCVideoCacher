@@ -14,8 +14,6 @@ namespace VRCVideoCacher.Services.Nico;
 internal sealed partial class NicoHlsSession : INicoSession
 {
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
-
-    private readonly string _videoId;
     private readonly string? _audioInitUrl;
     private readonly string? _audioKeyIv;
     private readonly string? _audioKeyUrl;
@@ -28,21 +26,24 @@ internal sealed partial class NicoHlsSession : INicoSession
 
     private readonly List<long> _durationsMs = [];
     private readonly HttpClient _httpClient;
+    private readonly ILogger _log;
     private readonly NicoSegmentMuxer _muxer;
     private readonly List<long> _startMs = [];
+
+    private readonly string _videoId;
 
     private readonly string? _videoInitUrl;
     private readonly string? _videoKeyIv;
     private readonly string? _videoKeyUrl;
     private readonly List<NicoSegmentItem> _videoSegments;
-    private readonly ILogger _log;
     private byte[]? _cachedAudioInit;
     private byte[]? _cachedAudioKey;
 
     private byte[]? _cachedVideoInit;
     private byte[]? _cachedVideoKey;
 
-    private NicoHlsSession(string videoId, string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer, HttpClient httpClient,
+    private NicoHlsSession(string videoId, string dir, Dictionary<string, string> cookies, NicoSegmentMuxer muxer,
+        HttpClient httpClient,
         string? videoInitUrl, string? videoKeyUrl, string? videoKeyIv, List<NicoSegmentItem> videoSegments,
         string? audioInitUrl, string? audioKeyUrl, string? audioKeyIv, List<NicoSegmentItem> audioSegments, ILogger log)
     {
@@ -72,10 +73,10 @@ internal sealed partial class NicoHlsSession : INicoSession
         }
     }
 
+    [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
+
     public string PlaybackUrl => $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/{_videoId}/index.m3u8";
     public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
-
-    [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
 
     public void Dispose()
     {
@@ -84,6 +85,27 @@ internal sealed partial class NicoHlsSession : INicoSession
             if (Directory.Exists(_dir))
                 Directory.Delete(_dir, true);
         });
+    }
+
+    public void Touch() => LastAccess = DateTime.UtcNow;
+
+    public async Task EnsureAsync(string fileName)
+    {
+        Touch();
+        if (fileName.Equals("index.m3u8", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (fileName.Equals("init.mp4", StringComparison.OrdinalIgnoreCase))
+        {
+            await BuildSegmentAsync(0);
+            return;
+        }
+
+        if (TryParseSegmentIndex(fileName, out var index))
+        {
+            await BuildSegmentAsync(index);
+            StartPrebuild(index);
+        }
     }
 
     [GeneratedRegex(@"#EXT-X-MEDIA:TYPE=AUDIO[^\n]*URI=""([^""]+)""", RegexOptions.Compiled)]
@@ -100,8 +122,6 @@ internal sealed partial class NicoHlsSession : INicoSession
 
     [GeneratedRegex(@"#EXTINF:([0-9.]+),", RegexOptions.Compiled)]
     private static partial Regex ExtInfRegex();
-
-    public void Touch() => LastAccess = DateTime.UtcNow;
 
     public static async Task<NicoHlsSession> StartAsync(string videoId, string masterUrl,
         Dictionary<string, string> cookies, string rootDir, HttpClient httpClient, NicoSegmentMuxer muxer, ILogger log)
@@ -172,25 +192,6 @@ internal sealed partial class NicoHlsSession : INicoSession
 
         sb.Append("#EXT-X-ENDLIST\n");
         return sb.ToString();
-    }
-
-    public async Task EnsureAsync(string fileName)
-    {
-        Touch();
-        if (fileName.Equals("index.m3u8", StringComparison.OrdinalIgnoreCase))
-            return;
-
-        if (fileName.Equals("init.mp4", StringComparison.OrdinalIgnoreCase))
-        {
-            await BuildSegmentAsync(0);
-            return;
-        }
-
-        if (TryParseSegmentIndex(fileName, out var index))
-        {
-            await BuildSegmentAsync(index);
-            StartPrebuild(index);
-        }
     }
 
     private static bool TryParseSegmentIndex(string fileName, out int index)

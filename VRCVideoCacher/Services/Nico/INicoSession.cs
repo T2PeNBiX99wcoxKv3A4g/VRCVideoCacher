@@ -1,8 +1,8 @@
 namespace VRCVideoCacher.Services.Nico;
 
 /// <summary>
-/// What <see cref="NicoRestreamService"/> needs from a session, whether it is a
-/// finite VOD (<see cref="NicoHlsSession"/>) or a live broadcast (<see cref="NicoLiveSession"/>).
+///     What <see cref="NicoRestreamService" /> needs from a session, whether it is a
+///     finite VOD (<see cref="NicoHlsSession" />) or a live broadcast (<see cref="NicoLiveSession" />).
 /// </summary>
 internal interface INicoSession : IDisposable
 {

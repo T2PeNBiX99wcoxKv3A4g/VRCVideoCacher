@@ -103,7 +103,10 @@ public class NicoLiveSite
 public class NicoLiveRelive
 {
     [JsonPropertyName("apiBaseUrl")] public string? ApiBaseUrl { get; set; }
-    [JsonPropertyName("channelApiBaseUrl")] public string? ChannelApiBaseUrl { get; set; }
+
+    [JsonPropertyName("channelApiBaseUrl")]
+    public string? ChannelApiBaseUrl { get; set; }
+
     [JsonPropertyName("webSocketUrl")] public string? WebSocketUrl { get; set; }
     [JsonPropertyName("csrfToken")] public string? CsrfToken { get; set; }
     [JsonPropertyName("audienceToken")] public string? AudienceToken { get; set; }
@@ -111,7 +114,9 @@ public class NicoLiveRelive
 
 public class NicoLiveProgram
 {
-    [JsonPropertyName("nicoliveProgramId")] public string? NicoliveProgramId { get; set; }
+    [JsonPropertyName("nicoliveProgramId")]
+    public string? NicoliveProgramId { get; set; }
+
     [JsonPropertyName("title")] public string? Title { get; set; }
     [JsonPropertyName("description")] public string? Description { get; set; }
     [JsonPropertyName("status")] public string? Status { get; set; }
@@ -205,7 +210,9 @@ public class NicoWsRoom
 
 public class NicoWsStream
 {
-    [JsonPropertyName("accessRightMethod")] public string AccessRightMethod { get; set; } = "single_cookie";
+    [JsonPropertyName("accessRightMethod")]
+    public string AccessRightMethod { get; set; } = "single_cookie";
+
     [JsonPropertyName("chasePlay")] public bool ChasePlay { get; set; }
     [JsonPropertyName("latency")] public string Latency { get; set; } = "high";
     [JsonPropertyName("protocol")] public string Protocol { get; set; } = "hls";

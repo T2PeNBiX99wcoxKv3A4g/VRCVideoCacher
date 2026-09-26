@@ -17,32 +17,32 @@ internal sealed partial class NicoLiveSession : INicoSession
     private const int WindowSegments = 4;
     private const int RetainSegments = 12;
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
-
-    private readonly string _liveId;
-    private readonly string _dir;
-    private readonly NicoLiveResult _liveResult;
-    private readonly Dictionary<string, string> _cookies = new();
-    private readonly HttpClient _httpClient;
-    private readonly NicoSegmentMuxer _muxer;
-    private readonly ILogger _log;
-    private readonly ClientWebSocket _ws = new();
-    private readonly CancellationTokenSource _cts = new();
+    private readonly ConcurrentDictionary<long, NicoSegmentItem> _audioSegments = new();
     private readonly SemaphoreSlim _buildGate = new(1, 1);
 
     private readonly ConcurrentDictionary<long, Lazy<Task>> _building = new();
-    private readonly ConcurrentDictionary<long, NicoSegmentItem> _videoSegments = new();
-    private readonly ConcurrentDictionary<long, NicoSegmentItem> _audioSegments = new();
     private readonly ConcurrentDictionary<string, byte[]> _cachedKeys = new();
+    private readonly Dictionary<string, string> _cookies = new();
+    private readonly CancellationTokenSource _cts = new();
+    private readonly string _dir;
+    private readonly HttpClient _httpClient;
+
+    private readonly string _liveId;
+    private readonly NicoLiveResult _liveResult;
+    private readonly ILogger _log;
+    private readonly NicoSegmentMuxer _muxer;
     private readonly TaskCompletionSource<string> _streamUriTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly ConcurrentDictionary<long, NicoSegmentItem> _videoSegments = new();
+    private readonly ClientWebSocket _ws = new();
+    private string? _audioInitUrl;
+    private string? _audioVariantUrl;
+    private byte[]? _cachedAudioInit;
 
     private byte[]? _cachedVideoInit;
-    private byte[]? _cachedAudioInit;
-    private string? _videoVariantUrl;
-    private string? _audioVariantUrl;
-    private string? _videoInitUrl;
-    private string? _audioInitUrl;
-    private int _targetDuration = 2;
     private volatile bool _isEnded;
+    private int _targetDuration = 2;
+    private string? _videoInitUrl;
+    private string? _videoVariantUrl;
 
     private NicoLiveSession(string liveId, string dir, NicoLiveResult liveResult, HttpClient httpClient,
         NicoSegmentMuxer muxer, ILogger log)
@@ -62,6 +62,50 @@ internal sealed partial class NicoLiveSession : INicoSession
     public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
 
     public void Touch() => LastAccess = DateTime.UtcNow;
+
+    public async Task EnsureAsync(string fileName)
+    {
+        Touch();
+
+        if (fileName.Equals("index.m3u8", StringComparison.OrdinalIgnoreCase))
+        {
+            await WritePlaylistAsync();
+            return;
+        }
+
+        if (fileName.Equals("init.mp4", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!File.Exists(Path.Combine(_dir, "init.mp4")))
+            {
+                var oldest = _videoSegments.Keys.DefaultIfEmpty(0).Min();
+                await BuildSegmentAsync(oldest);
+            }
+
+            return;
+        }
+
+        if (TryParseSegmentSequence(fileName, out var sequence))
+        {
+            await BuildSegmentAsync(sequence);
+            StartPrebuild(sequence);
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+
+        Try.Run(() => _ws.Abort());
+        Try.Run(() => _ws.Dispose());
+        Try.Run(() => _buildGate.Dispose());
+        Try.Run(() => _cts.Dispose());
+
+        Try.Run(() =>
+        {
+            if (Directory.Exists(_dir))
+                Directory.Delete(_dir, true);
+        });
+    }
 
     [GeneratedRegex(@"#EXT-X-TARGETDURATION:(\d+)", RegexOptions.Compiled)]
     private static partial Regex TargetDurationRegex();
@@ -451,34 +495,6 @@ internal sealed partial class NicoLiveSession : INicoSession
         }
     }
 
-    public async Task EnsureAsync(string fileName)
-    {
-        Touch();
-
-        if (fileName.Equals("index.m3u8", StringComparison.OrdinalIgnoreCase))
-        {
-            await WritePlaylistAsync();
-            return;
-        }
-
-        if (fileName.Equals("init.mp4", StringComparison.OrdinalIgnoreCase))
-        {
-            if (!File.Exists(Path.Combine(_dir, "init.mp4")))
-            {
-                var oldest = _videoSegments.Keys.DefaultIfEmpty(0).Min();
-                await BuildSegmentAsync(oldest);
-            }
-
-            return;
-        }
-
-        if (TryParseSegmentSequence(fileName, out var sequence))
-        {
-            await BuildSegmentAsync(sequence);
-            StartPrebuild(sequence);
-        }
-    }
-
     private static bool TryParseSegmentSequence(string fileName, out long sequence)
     {
         sequence = -1;
@@ -650,21 +666,5 @@ internal sealed partial class NicoLiveSession : INicoSession
             if (File.Exists(segFile))
                 Try.Run(() => File.Delete(segFile));
         }
-    }
-
-    public void Dispose()
-    {
-        _cts.Cancel();
-
-        Try.Run(() => _ws.Abort());
-        Try.Run(() => _ws.Dispose());
-        Try.Run(() => _buildGate.Dispose());
-        Try.Run(() => _cts.Dispose());
-
-        Try.Run(() =>
-        {
-            if (Directory.Exists(_dir))
-                Directory.Delete(_dir, true);
-        });
     }
 }
