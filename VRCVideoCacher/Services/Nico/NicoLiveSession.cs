@@ -3,10 +3,11 @@ using System.Globalization;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
+using System.Web;
 using Serilog;
 using VRCVideoCacher.Extensions;
-using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services.Nico;
@@ -107,7 +108,7 @@ internal sealed partial class NicoLiveSession : INicoSession
             if (liveResult.FrontendId.HasValue)
             {
                 var uriBuilder = new UriBuilder(new Uri(wsUrl));
-                var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
                 query["frontend_id"] = liveResult.FrontendId.Value.ToString();
                 uriBuilder.Query = query.ToString()!;
                 wsUrl = uriBuilder.ToString();
@@ -142,7 +143,7 @@ internal sealed partial class NicoLiveSession : INicoSession
 
             await SendWsMessageAsync(session._ws, startWatching, NicoJsonContext.Default.NicoWsStartWatchingMessage, ct);
 
-            session._wsTask = Task.Run(() => session.WsLoopAsync(session._cts.Token));
+            session._wsTask = session.WsLoopAsync(session._cts.Token);
 
             var streamUri = await session._streamUriTcs.Task.WaitAsync(ct);
             if (string.IsNullOrEmpty(streamUri))
@@ -162,7 +163,7 @@ internal sealed partial class NicoLiveSession : INicoSession
             session._videoVariantUrl = bestVideoUrl ?? streamUri;
             session._audioVariantUrl = audioUrl;
 
-            session._pollTask = Task.Run(() => session.PollLoopAsync(session._cts.Token));
+            session._pollTask = session.PollLoopAsync(session._cts.Token);
 
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(20);
             while (DateTime.UtcNow < deadline && !session._isEnded)
@@ -197,7 +198,7 @@ internal sealed partial class NicoLiveSession : INicoSession
     }
 
     private static async Task SendWsMessageAsync<T>(ClientWebSocket ws, T value,
-        System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> jsonTypeInfo, CancellationToken ct)
+        JsonTypeInfo<T> jsonTypeInfo, CancellationToken ct)
     {
         var json = JsonSerializer.Serialize(value, jsonTypeInfo);
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -208,7 +209,6 @@ internal sealed partial class NicoLiveSession : INicoSession
     {
         var buffer = new byte[16 * 1024];
         while (_ws.State == WebSocketState.Open && !ct.IsCancellationRequested)
-        {
             try
             {
                 using var ms = new MemoryStream();
@@ -247,7 +247,6 @@ internal sealed partial class NicoLiveSession : INicoSession
 
                             if (data.TryGetProperty("cookies", out var cookiesProp) &&
                                 cookiesProp.ValueKind == JsonValueKind.Array)
-                            {
                                 foreach (var cookie in cookiesProp.EnumerateArray())
                                 {
                                     var name = cookie.TryGetProperty("name", out var n) ? n.GetString() : null;
@@ -256,7 +255,6 @@ internal sealed partial class NicoLiveSession : INicoSession
                                         lock (_cookies)
                                             _cookies[name] = val;
                                 }
-                            }
                         }
 
                         break;
@@ -264,16 +262,25 @@ internal sealed partial class NicoLiveSession : INicoSession
 
                     case "ping":
                     {
-                        await SendWsMessageAsync(_ws, new NicoWsSimpleMessage { Type = "pong" },
+                        await SendWsMessageAsync(_ws, new()
+                            {
+                                Type = "pong"
+                            },
                             NicoJsonContext.Default.NicoWsSimpleMessage, ct);
-                        await SendWsMessageAsync(_ws, new NicoWsSimpleMessage { Type = "keepSeat" },
+                        await SendWsMessageAsync(_ws, new()
+                            {
+                                Type = "keepSeat"
+                            },
                             NicoJsonContext.Default.NicoWsSimpleMessage, ct);
                         break;
                     }
 
                     case "serverKeep":
                     {
-                        await SendWsMessageAsync(_ws, new NicoWsSimpleMessage { Type = "pong" },
+                        await SendWsMessageAsync(_ws, new()
+                            {
+                                Type = "pong"
+                            },
                             NicoJsonContext.Default.NicoWsSimpleMessage, ct);
                         break;
                     }
@@ -297,7 +304,6 @@ internal sealed partial class NicoLiveSession : INicoSession
                     _log.Error(ex, "NicoLive {LiveId}: WebSocket error in receive loop", _liveId);
                 break;
             }
-        }
     }
 
     private async Task PollLoopAsync(CancellationToken ct)
@@ -560,7 +566,8 @@ internal sealed partial class NicoLiveSession : INicoSession
     private async Task BuildSegmentCoreAsync(long sequence, string segmentPath, string initPath)
     {
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
-        while (!_videoSegments.TryGetValue(sequence, out _) && DateTime.UtcNow < deadline && !_cts.IsCancellationRequested)
+        while (!_videoSegments.TryGetValue(sequence, out _) && DateTime.UtcNow < deadline &&
+               !_cts.IsCancellationRequested)
             await Task.Delay(100, _cts.Token);
 
         if (!_videoSegments.TryGetValue(sequence, out var videoSeg))
@@ -601,11 +608,9 @@ internal sealed partial class NicoLiveSession : INicoSession
             }
         }
 
-        var audioList = audioBytes != null
-            ? (IReadOnlyList<byte[]>)[audioBytes]
-            : (IReadOnlyList<byte[]>)[];
+        var audioList = audioBytes != null ? [audioBytes] : (IReadOnlyList<byte[]>)[];
 
-        var startMs = (long)(sequence * _targetDuration * 1000);
+        var startMs = sequence * _targetDuration * 1000;
 
         await _buildGate.WaitAsync(_cts.Token);
         try
