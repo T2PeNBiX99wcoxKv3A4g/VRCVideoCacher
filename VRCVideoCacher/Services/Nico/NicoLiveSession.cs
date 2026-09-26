@@ -626,17 +626,13 @@ internal sealed partial class NicoLiveSession : INicoSession
         var startMs = sequence * _targetDuration * 1000;
 
         await _buildGate.WaitAsync(_cts.Token);
-        try
+        using (UsingUntil.Run(() => _buildGate.Release()))
         {
             if (File.Exists(segmentPath) && File.Exists(initPath))
                 return;
 
             await _muxer.MuxDirectSegmentAsync(videoInit, videoBytes, audioInit, audioList, startMs, (int)sequence,
                 segmentPath, initPath, _cts.Token);
-        }
-        finally
-        {
-            _buildGate.Release();
         }
     }
 
