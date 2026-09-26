@@ -32,12 +32,10 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     // Current download tracking
     private VideoInfo? _currentDownload;
-    private bool _isExit;
 
     public VideoDownloader()
     {
         Task.Run(DownloadThread);
-        AppDomain.CurrentDomain.ProcessExit += (_, _) => OnExit();
     }
 
     // Events for UI
@@ -49,9 +47,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     private async Task DownloadThread()
     {
-        while (!Volatile.Read(ref _isExit))
+        while (!ChildProcessTracker.Terminating)
         {
-            if (Volatile.Read(ref _isExit)) break;
+            if (ChildProcessTracker.Terminating) break;
             await Task.Delay(100);
 
             VideoInfo? queueItem;
@@ -593,10 +591,5 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         CacheManager.AddToCache(fileName);
         Log.Information("NicoVideo Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
-    }
-
-    private void OnExit()
-    {
-        Interlocked.Exchange(ref _isExit, true);
     }
 }
