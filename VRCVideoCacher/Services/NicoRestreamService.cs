@@ -85,10 +85,7 @@ public static partial class NicoRestreamService
     {
         var videoId = videoInfo.VideoId;
         var session = await EnsureSessionAsync(videoId);
-        if (session == null)
-            return null;
-
-        return session.PlaybackUrl;
+        return session?.PlaybackUrl;
     }
 
     public static async Task EnsureAsync(string videoId, string fileName)
