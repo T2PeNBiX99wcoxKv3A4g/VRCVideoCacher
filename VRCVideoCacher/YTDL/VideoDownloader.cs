@@ -319,8 +319,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
-        var progress = new YtdlProgress(activity,
-            args.Any(a => a.Contains("+ba", StringComparison.Ordinal)) ? 2 : 1);
+        var progress = new YtdlProgress(activity);
 
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
         // corrupts the session and gets us bot-checked. See YtdlCookieJar.
