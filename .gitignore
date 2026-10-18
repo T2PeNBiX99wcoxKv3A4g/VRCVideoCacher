@@ -16,3 +16,5 @@ publish/
 nul
 
 .temp/
+.opencode
+AGENTS.md
