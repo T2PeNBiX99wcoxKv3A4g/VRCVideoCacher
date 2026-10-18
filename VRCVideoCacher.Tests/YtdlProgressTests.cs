@@ -14,7 +14,7 @@ public class YtdlProgressTests
         using var activity = NewActivity();
         var progress = new YtdlProgress(activity);
 
-        progress.Feed("[download]  42.0% of 10.00MiB at 1.00MiB/s ETA 00:05");
+        progress.Feed("[download] 42.0% of 10.00MiB at 1.00MiB/s ETA 00:05");
 
         Assert.Equal(0.42, activity.Progress!.Value, 3);
     }
