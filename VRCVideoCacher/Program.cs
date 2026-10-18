@@ -24,7 +24,7 @@ internal sealed class Program
     public const string CreatorHaxy = "Haxy";
     public const string CreatorHauskaz = "Hauskaz";
     public const string CreatorDubyaDude = "DubyaDude";
-    public const string BgUtilsVersion = "2.0.0";
+    public const string BgUtilsVersion = "2.0.2";
 
     // Versioning is YEAR.MONTH.RELEASE — set in the .csproj <Version> property
     public static readonly string Version =
