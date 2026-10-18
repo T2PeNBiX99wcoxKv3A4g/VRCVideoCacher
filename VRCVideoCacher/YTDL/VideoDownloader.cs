@@ -32,6 +32,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     // Current download tracking
     private VideoInfo? _currentDownload;
+    private volatile StatusActivity? _currentActivity;
 
     public VideoDownloader()
     {
@@ -71,24 +72,27 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
             OnDownloadStarted?.Invoke(queueItem);
 
-            // Indeterminate: the download runs through a yt-dlp subprocess (YouTube) or a redirected HTTP
-            // fetch, neither of which reports a clean byte total here. Shows a spinner + which video.
+            // Real progress is reported into this activity: yt-dlp's own "[download] x%" output for
+            // subprocess downloads, and a ProgressStream for the plain-HTTP ones.
             using var activity = StatusService.Begin(StatusCategory.Downloading,
                 string.Format(Localizer.Get("StatusDownloading"), queueItem.VideoId));
+            _currentActivity = activity;
 
             var success = await Try.Run(async () => queueItem.UrlType switch
             {
-                UrlType.YouTube => await DownloadYouTubeVideo(queueItem),
-                UrlType.PyPyDance => await DownloadVideoWithId(queueItem),
-                UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem),
-                UrlType.NicoVideo => await DownloadNicoVideo(queueItem),
-                UrlType.Other => await DownloadGenericVideo(queueItem),
+                UrlType.YouTube => await DownloadYouTubeVideo(queueItem, activity),
+                UrlType.PyPyDance => await DownloadVideoWithId(queueItem, activity),
+                UrlType.VRDancing => await DownloadVRDancingVideoWithId(queueItem, activity),
+                UrlType.NicoVideo => await DownloadNicoVideo(queueItem, activity),
+                UrlType.Other => await DownloadGenericVideo(queueItem, activity),
                 _ => throw new ArgumentOutOfRangeException()
             }).GetOrElse(ex =>
             {
                 Log.Error(ex, "Exception during download: {Ex}", ex.ToString());
                 return Task.FromResult(false);
             });
+
+            _currentActivity = null;
 
             var key = GetDownloadKey(queueItem);
             if (_waiters.TryRemove(key, out var tcsList))
@@ -223,7 +227,31 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     [PublicAPI]
     public VideoInfo? GetCurrentDownload2() => _currentDownload;
 
-    private async Task<bool> DownloadYouTubeVideo(VideoInfo videoInfo)
+    /// <summary>Completion fraction (0..1) of the download in progress, or null when unknown/idle.</summary>
+    [PublicAPI]
+    public double? GetCurrentDownloadProgress2() => _currentActivity?.Progress;
+
+    /// <summary>Streams a yt-dlp process' stdout+stderr, reporting download progress and returning the
+    /// captured error output (progress lines excluded). Must be awaited before reading <c>ExitCode</c>.</summary>
+    private static async Task<string> PumpYtdlpAsync(Process process, YtdlProgress progress)
+    {
+        var error = new StringBuilder();
+
+        async Task PumpAsync(StreamReader reader, bool capture)
+        {
+            while (await reader.ReadLineAsync() is { } line)
+            {
+                if (capture && !line.StartsWith("[download]", StringComparison.Ordinal))
+                    error.AppendLine(line);
+                progress.Feed(line);
+            }
+        }
+
+        await Task.WhenAll(PumpAsync(process.StandardOutput, false), PumpAsync(process.StandardError, true));
+        return error.ToString().Trim();
+    }
+
+    private async Task<bool> DownloadYouTubeVideo(VideoInfo videoInfo, StatusActivity activity)
     {
         var url = videoInfo.VideoUrl;
 
@@ -251,10 +279,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
         var tempDownloadWebmPath = Path.Join(tempDir.FullName, TempDownloadWebmName);
 
-        var args = new List<string>
-        {
-            "-q"
-        };
+        var args = new List<string>();
 
         using var process = new Process();
         process.StartInfo = new()
@@ -294,6 +319,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
+        var progress = new YtdlProgress(activity,
+            args.Any(a => a.Contains("+ba", StringComparison.Ordinal)) ? 2 : 1);
+
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
         // corrupts the session and gets us bot-checked. See YtdlCookieJar.
         string error;
@@ -303,8 +331,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             using (var processTracker = ChildProcessTracker.Tracking(process))
             {
                 if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
+                error = await PumpYtdlpAsync(process, progress);
                 await process.WaitForExitAsync();
-                error = (await process.StandardError.ReadToEndAsync()).Trim();
             }
         }
 
@@ -350,7 +378,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         return true;
     }
 
-    private async Task<bool> DownloadVRDancingVideoWithId(VideoInfo videoInfo)
+    private async Task<bool> DownloadVRDancingVideoWithId(VideoInfo videoInfo, StatusActivity activity)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
@@ -370,11 +398,13 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         };
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
+        var progress = new YtdlProgress(activity);
         var error = await ChildProcessTracker.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
+            var output = await PumpYtdlpAsync(process, progress);
             await process.WaitForExitAsync();
-            return (await process.StandardError.ReadToEndAsync()).Trim();
+            return output;
         });
 
         if (process.ExitCode != 0)
@@ -411,7 +441,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         return true;
     }
 
-    private async Task<bool> DownloadVideoWithId(VideoInfo videoInfo)
+    private async Task<bool> DownloadVideoWithId(VideoInfo videoInfo, StatusActivity activity)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
@@ -432,11 +462,14 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync();
-        await using var fileStream =
-            new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None);
-        await stream.CopyToAsync(fileStream);
-        fileStream.Close();
+        await using (var stream = new ProgressStream(
+                         await response.Content.ReadAsStreamAsync(),
+                         response.Content.Headers.ContentLength,
+                         activity.Report,
+                         TimeSpan.FromSeconds(60)))
+        await using (var fileStream =
+                     new FileStream(tempDownloadMp4Path, FileMode.Create, FileAccess.Write, FileShare.None))
+            await stream.CopyToAsync(fileStream);
         response.TryDispose();
         await Task.Delay(10);
 
@@ -466,7 +499,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         return true;
     }
 
-    private async Task<bool> DownloadGenericVideo(VideoInfo videoInfo)
+    private async Task<bool> DownloadGenericVideo(VideoInfo videoInfo, StatusActivity activity)
     {
         using var tempDir = new TempDir();
         var tempDownloadMp4Path = Path.Join(tempDir.FullName, TempDownloadMp4Name);
@@ -487,11 +520,13 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
+        var progress = new YtdlProgress(activity);
         var error = await ChildProcessTracker.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
+            var output = await PumpYtdlpAsync(process, progress);
             await process.WaitForExitAsync();
-            return (await process.StandardError.ReadToEndAsync()).Trim();
+            return output;
         });
 
         if (process.ExitCode != 0)
@@ -528,7 +563,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         return true;
     }
 
-    private async Task<bool> DownloadNicoVideo(VideoInfo videoInfo)
+    private async Task<bool> DownloadNicoVideo(VideoInfo videoInfo, StatusActivity activity)
     {
         using var tempDir = new TempDir();
         var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;
@@ -552,11 +587,13 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
         Log.Information("Downloading NicoNico Video: {Args}", process.StartInfo.Arguments);
         process.Start();
+        var progress = new YtdlProgress(activity);
         var error = await ChildProcessTracker.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
+            var output = await PumpYtdlpAsync(process, progress);
             await process.WaitForExitAsync();
-            return (await process.StandardError.ReadToEndAsync()).Trim();
+            return output;
         });
 
         if (process.ExitCode != 0)

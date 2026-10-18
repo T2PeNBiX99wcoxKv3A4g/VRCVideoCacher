@@ -106,7 +106,9 @@ public partial class YtdlManager : Singleton<YtdlManager>
             "--no-playlist",
             "--no-warnings",
             "--no-mtime",
-            "--no-progress"
+            // Emit machine-readable progress so downloads can drive a real percentage bar (see YtdlProgress).
+            "--progress",
+            "--newline"
         };
         args.AddRange(globalArgs);
 

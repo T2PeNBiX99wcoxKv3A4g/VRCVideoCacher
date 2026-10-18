@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using JetBrains.Annotations;
+using SkiaSharp;
 using Valve.VR;
 using VRCVideoCacher.Extensions;
+using VRCVideoCacher.Models;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
@@ -11,12 +14,28 @@ public partial class VROverlayService : Singleton<VROverlayService>
     private const string DashboardKey = "com.github.ellyvr.vrcvideocacher.dashboard";
     private const string FloatingKey = "com.github.ellyvr.vrcvideocacher.floating";
 
+    // In-VR notification placement: head-locked, centred and low so it reads like a subtitle. At the
+    // default 0.5 m width the 4:1 strip is only ~12 cm tall, leaving the game view almost untouched.
+    private const float NotificationVerticalOffset = -0.30f;
+    private const float NotificationPitch = 10f;
+
+    private const int UpdateIntervalMs = 100;
+    private const int DashboardRenderIntervalMs = 1000;
+
+    // Keep the strip up briefly after the last download finishes so it doesn't blink between queue items.
+    private static readonly TimeSpan HideGrace = TimeSpan.FromSeconds(2);
+
     private ulong _dashboardOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
     private ulong _dashboardThumbnailHandle = OpenVR.k_ulOverlayHandleInvalid;
     private ulong _floatingOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
 
     private CancellationTokenSource? _updateLoopCts;
-    private float _progressAnim;
+    private readonly Stopwatch _clock = Stopwatch.StartNew();
+    private bool _floatingShown;
+    private string? _floatingKey;
+    private DateTime _lastActivityUtc = DateTime.MinValue;
+    private long _lastDashboardRenderTicks;
+
     private static CVROverlay? Overlay => (CVROverlay?)OpenVR.Overlay;
 
     [PublicAPI]
@@ -69,7 +88,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
         if (!config.VrOverlayEnabled || Overlay == null)
             return;
 
-        // 1. Dashboard Overlay
+        // 1. Dashboard Overlay — keeps the full status panel.
         if (config.VrDashboardOverlayEnabled && _dashboardOverlayHandle == OpenVR.k_ulOverlayHandleInvalid)
         {
             var err = OpenVR.Overlay.CreateDashboardOverlay(
@@ -84,7 +103,6 @@ public partial class VROverlayService : Singleton<VROverlayService>
                 OpenVR.Overlay.SetOverlayWidthInMeters(_dashboardOverlayHandle, 2.2f);
                 OpenVR.Overlay.SetOverlayInputMethod(_dashboardOverlayHandle, VROverlayInputMethod.Mouse);
 
-                // Set thumbnail icon for Dashboard
                 if (_dashboardThumbnailHandle != OpenVR.k_ulOverlayHandleInvalid)
                 {
                     using var thumb = VROverlayRenderer.RenderThumbnail();
@@ -106,7 +124,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
             _dashboardThumbnailHandle = OpenVR.k_ulOverlayHandleInvalid;
         }
 
-        // 2. In-VR Floating Overlay (HUD)
+        // 2. In-VR notification strip — a separate, much smaller texture than the dashboard panel.
         if (config.VrFloatingOverlayEnabled)
         {
             if (_floatingOverlayHandle == OpenVR.k_ulOverlayHandleInvalid)
@@ -115,38 +133,30 @@ public partial class VROverlayService : Singleton<VROverlayService>
                 if (err == EVROverlayError.None)
                 {
                     Log.Information("VR Floating HUD Overlay created successfully");
-                    OpenVR.Overlay.SetOverlayWidthInMeters(_floatingOverlayHandle, config.VrFloatingOverlayScale);
                     OpenVR.Overlay.SetOverlayAlpha(_floatingOverlayHandle, 0.95f);
-
-                    // Position relative to HMD: lower and tilted up towards eyes
-                    var mat = CreateTransformMatrix(0.0f, -0.28f, -config.VrFloatingOverlayDistance, 12f);
-                    OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(
-                        _floatingOverlayHandle,
-                        OpenVR.k_unTrackedDeviceIndex_Hmd,
-                        ref mat);
-
-                    if (config.VrFloatingOverlayOnlyWhenDownloading)
-                        OpenVR.Overlay.HideOverlay(_floatingOverlayHandle);
-                    else
-                        OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
                 }
                 else
                     Log.Warning("Failed to create Floating Overlay: {Error}", err);
             }
-            else
+
+            if (_floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
             {
                 OpenVR.Overlay.SetOverlayWidthInMeters(_floatingOverlayHandle, config.VrFloatingOverlayScale);
-                var mat = CreateTransformMatrix(0.0f, -0.28f, -config.VrFloatingOverlayDistance, 12f);
+                var mat = CreateTransformMatrix(0f, NotificationVerticalOffset,
+                    -config.VrFloatingOverlayDistance, NotificationPitch);
                 OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(
-                    _floatingOverlayHandle,
-                    OpenVR.k_unTrackedDeviceIndex_Hmd,
-                    ref mat);
+                    _floatingOverlayHandle, OpenVR.k_unTrackedDeviceIndex_Hmd, ref mat);
+
+                SetFloatingShown(!config.VrFloatingOverlayOnlyWhenDownloading);
+                _floatingKey = null;
             }
         }
         else if (!config.VrFloatingOverlayEnabled && _floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
         {
             OpenVR.Overlay.DestroyOverlay(_floatingOverlayHandle);
             _floatingOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
+            _floatingShown = false;
+            _floatingKey = null;
         }
     }
 
@@ -166,7 +176,23 @@ public partial class VROverlayService : Singleton<VROverlayService>
         {
             OpenVR.Overlay.DestroyOverlay(_floatingOverlayHandle);
             _floatingOverlayHandle = OpenVR.k_ulOverlayHandleInvalid;
+            _floatingShown = false;
+            _floatingKey = null;
         }
+    }
+
+    private void SetFloatingShown(bool shown)
+    {
+        if (_floatingOverlayHandle == OpenVR.k_ulOverlayHandleInvalid || shown == _floatingShown)
+            return;
+
+        if (shown)
+            OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
+        else
+            OpenVR.Overlay.HideOverlay(_floatingOverlayHandle);
+
+        _floatingShown = shown;
+        _floatingKey = null; // force a fresh frame next time it appears
     }
 
     private async Task UpdateLoop(CancellationToken token)
@@ -174,7 +200,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
         while (!token.IsCancellationRequested)
             try
             {
-                await Task.Delay(300, token);
+                await Task.Delay(UpdateIntervalMs, token);
 
                 if (Overlay == null)
                     continue;
@@ -183,59 +209,29 @@ public partial class VROverlayService : Singleton<VROverlayService>
                 if (!config.VrOverlayEnabled)
                     continue;
 
-                var currentDownload = VideoDownloader.GetCurrentDownload();
-                var queueSnapshot = VideoDownloader.GetQueueSnapshot();
-                var hasActivity = currentDownload != null || queueSnapshot.Count > 0;
+                var current = VideoDownloader.GetCurrentDownload();
+                var progress = VideoDownloader.GetCurrentDownloadProgress();
+                var queueCount = VideoDownloader.GetQueueCount();
+                var hasActivity = current != null || queueCount > 0;
+                if (hasActivity)
+                    _lastActivityUtc = DateTime.UtcNow;
 
-                // Check floating overlay visibility condition
+                // Only ever toggle visibility on an actual transition — polling Show/Hide every tick is
+                // what made the old overlay flicker.
                 if (_floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid)
-                {
-                    if (config.VrFloatingOverlayOnlyWhenDownloading)
-                    {
-                        if (hasActivity && !OpenVR.Overlay.IsOverlayVisible(_floatingOverlayHandle))
-                            OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
-                        else if (!hasActivity && OpenVR.Overlay.IsOverlayVisible(_floatingOverlayHandle))
-                            OpenVR.Overlay.HideOverlay(_floatingOverlayHandle);
-                    }
-                    else if (!OpenVR.Overlay.IsOverlayVisible(_floatingOverlayHandle))
-                        OpenVR.Overlay.ShowOverlay(_floatingOverlayHandle);
-                }
+                    SetFloatingShown(!config.VrFloatingOverlayOnlyWhenDownloading ||
+                                     hasActivity ||
+                                     DateTime.UtcNow - _lastActivityUtc < HideGrace);
 
-                var isDashboardVisible = _dashboardOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
-                                         OpenVR.Overlay.IsOverlayVisible(_dashboardOverlayHandle);
-                var isFloatingVisible = _floatingOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
-                                        OpenVR.Overlay.IsOverlayVisible(_floatingOverlayHandle);
+                var seconds = (float)_clock.Elapsed.TotalSeconds;
+                // Only render while there is real activity; during the hide-grace window we keep the last
+                // frame instead of flashing an "Idle" card. In always-on mode the idle card is wanted.
+                if (_floatingShown && (hasActivity || !config.VrFloatingOverlayOnlyWhenDownloading))
+                    RenderFloating(current, queueCount, progress, seconds);
 
-                // Only render if at least one overlay is currently visible
-                if (!isDashboardVisible && !isFloatingVisible)
-                    continue;
-
-                _progressAnim += 0.25f;
-                if (_progressAnim > MathF.PI * 2)
-                    _progressAnim -= MathF.PI * 2;
-
-                var statusSnapshot = StatusService.Current;
-                var statusText = statusSnapshot.IsBusy ? statusSnapshot.Text : "Idle";
-                var cacheSize = CacheManager.GetTotalCacheSize();
-                var maxCacheGb = config.CacheMaxSizeInGb;
-
-                using var frame = VROverlayRenderer.RenderPanel(
-                    currentDownload,
-                    queueSnapshot,
-                    statusText,
-                    cacheSize,
-                    maxCacheGb,
-                    _progressAnim);
-
-                var pixels = frame.GetPixels();
-                var width = (uint)frame.Width;
-                var height = (uint)frame.Height;
-
-                if (isDashboardVisible)
-                    OpenVR.Overlay.SetOverlayRaw(_dashboardOverlayHandle, pixels, width, height, 4);
-
-                if (isFloatingVisible)
-                    OpenVR.Overlay.SetOverlayRaw(_floatingOverlayHandle, pixels, width, height, 4);
+                if (_dashboardOverlayHandle != OpenVR.k_ulOverlayHandleInvalid &&
+                    OpenVR.Overlay.IsOverlayVisible(_dashboardOverlayHandle))
+                    RenderDashboard(seconds);
             }
             catch (OperationCanceledException)
             {
@@ -245,6 +241,47 @@ public partial class VROverlayService : Singleton<VROverlayService>
             {
                 Log.Warning(ex, "Error during VR Overlay update: {Message}", ex.Message);
             }
+    }
+
+    private void RenderFloating(VideoInfo? current, int queueCount, double? progress, float seconds)
+    {
+        // Re-render only when something visible changed: a sliding pulse ticks at ~5 fps while the total
+        // size is unknown, otherwise the bar only moves when the real percentage does.
+        var animBucket = current != null && progress is null ? (int)(seconds * 5) : 0;
+        var key =
+            $"{current?.VideoId}|{current?.UrlType}|{current?.DownloadFormat}|{queueCount}|{progress:F3}|{animBucket}";
+        if (key == _floatingKey)
+            return;
+
+        _floatingKey = key;
+        using var frame = VROverlayRenderer.RenderNotification(current, queueCount, progress, seconds);
+        PushFrame(_floatingOverlayHandle, frame);
+    }
+
+    private void RenderDashboard(float seconds)
+    {
+        var now = Environment.TickCount64;
+        if (now - _lastDashboardRenderTicks < DashboardRenderIntervalMs)
+            return;
+        _lastDashboardRenderTicks = now;
+
+        var status = StatusService.Current;
+        var statusText = status.IsBusy ? status.Text : "Idle";
+        using var frame = VROverlayRenderer.RenderDashboard(
+            VideoDownloader.GetCurrentDownload(),
+            VideoDownloader.GetQueueSnapshot(),
+            statusText,
+            CacheManager.GetTotalCacheSize(),
+            ConfigManager.Config.CacheMaxSizeInGb,
+            seconds);
+        PushFrame(_dashboardOverlayHandle, frame);
+    }
+
+    private static void PushFrame(ulong handle, SKBitmap frame)
+    {
+        if (handle == OpenVR.k_ulOverlayHandleInvalid)
+            return;
+        OpenVR.Overlay.SetOverlayRaw(handle, frame.GetPixels(), (uint)frame.Width, (uint)frame.Height, 4);
     }
 
     private static HmdMatrix34_t CreateTransformMatrix(float x, float y, float z, float pitchDegrees = 0f)

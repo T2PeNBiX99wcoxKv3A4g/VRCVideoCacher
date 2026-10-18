@@ -9,13 +9,18 @@ public static class VROverlayRenderer
     public const int OverlayHeight = 576;
     public const int ThumbnailSize = 256;
 
+    // The in-VR notification strip is a separate, much smaller texture (4:1) so it can sit low in the
+    // view like a subtitle instead of covering the game.
+    public const int NotificationWidth = 640;
+    public const int NotificationHeight = 160;
+
     private static readonly SKTypeface DefaultTypeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal);
     private static readonly SKTypeface BoldTypeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold);
 
     /// <summary>
-    /// Render the full status panel to an SKBitmap (1024x576, Rgba8888).
+    /// Render the full SteamVR dashboard status panel to an SKBitmap (1024x576, Rgba8888).
     /// </summary>
-    public static SKBitmap RenderPanel(
+    public static SKBitmap RenderDashboard(
         VideoInfo? currentDownload,
         IReadOnlyList<VideoInfo> queuedDownloads,
         string statusText,
@@ -232,6 +237,126 @@ public static class VROverlayRenderer
     }
 
     /// <summary>
+    /// Render the compact in-VR notification strip (640x160, Rgba8888): a subtitle-like bar showing the
+    /// current video, a real progress bar (or a sliding pulse while the total is unknown) and queue count.
+    /// </summary>
+    public static SKBitmap RenderNotification(
+        VideoInfo? currentDownload,
+        int queuedCount,
+        double? progress,
+        float timeSeconds)
+    {
+        var bitmap = new SKBitmap(NotificationWidth, NotificationHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Transparent);
+
+        // Card + border
+        using var cardPaint = new SKPaint();
+        cardPaint.Color = new(16, 18, 27, 235);
+        cardPaint.Style = SKPaintStyle.Fill;
+        cardPaint.IsAntialias = true;
+        canvas.DrawRoundRect(8, 8, NotificationWidth - 16, NotificationHeight - 16, 18, 18, cardPaint);
+
+        using var borderPaint = new SKPaint();
+        borderPaint.Color = new(56, 189, 248, 110);
+        borderPaint.Style = SKPaintStyle.Stroke;
+        borderPaint.StrokeWidth = 2;
+        borderPaint.IsAntialias = true;
+        canvas.DrawRoundRect(8, 8, NotificationWidth - 16, NotificationHeight - 16, 18, 18, borderPaint);
+
+        // Header: accent dot + app title (+ queue badge on the right)
+        using var dotPaint = new SKPaint();
+        dotPaint.Color = new(56, 189, 248);
+        dotPaint.Style = SKPaintStyle.Fill;
+        dotPaint.IsAntialias = true;
+        canvas.DrawCircle(34, 42, 6, dotPaint);
+
+        using var titleFont = new SKFont(BoldTypeface, 16);
+        using var titlePaint = new SKPaint();
+        titlePaint.Color = new(148, 163, 184);
+        titlePaint.IsAntialias = true;
+        canvas.DrawText("VRC Video Cacher", 50, 48, titleFont, titlePaint);
+
+        if (queuedCount > 0)
+        {
+            using var queueFont = new SKFont(BoldTypeface, 15);
+            using var queuePaint = new SKPaint();
+            queuePaint.Color = new(167, 139, 250);
+            queuePaint.IsAntialias = true;
+            DrawRight(canvas, $"+{queuedCount} queued", NotificationWidth - 30, 48, queueFont, queuePaint);
+        }
+
+        var isDownloading = currentDownload != null;
+
+        // Body: video id (left) and source/format (right)
+        using var idFont = new SKFont(BoldTypeface, 24);
+        using var idPaint = new SKPaint();
+        idPaint.Color = SKColors.White;
+        idPaint.IsAntialias = true;
+
+        if (currentDownload != null)
+        {
+            canvas.DrawText(TruncateText(currentDownload.VideoId, 34), 30, 94, idFont, idPaint);
+
+            using var metaFont = new SKFont(DefaultTypeface, 15);
+            using var metaPaint = new SKPaint();
+            metaPaint.Color = new(148, 163, 184);
+            metaPaint.IsAntialias = true;
+            DrawRight(canvas, $"{currentDownload.UrlType} · {currentDownload.DownloadFormat}",
+                NotificationWidth - 30, 92, metaFont, metaPaint);
+        }
+        else
+        {
+            using var idlePaint = new SKPaint();
+            idlePaint.Color = new(148, 163, 184);
+            idlePaint.IsAntialias = true;
+            canvas.DrawText("Idle", 30, 94, idFont, idlePaint);
+        }
+
+        // Progress bar (leaves room on the right for the percentage)
+        const float barX = 30;
+        const float barY = 112;
+        const float barH = 14;
+        const float barW = NotificationWidth - 30 - 90;
+
+        using var barBgPaint = new SKPaint();
+        barBgPaint.Color = new(45, 55, 72);
+        barBgPaint.IsAntialias = true;
+        canvas.DrawRoundRect(barX, barY, barW, barH, 7, 7, barBgPaint);
+
+        using var barFillPaint = new SKPaint();
+        barFillPaint.Color = new(56, 189, 248);
+        barFillPaint.IsAntialias = true;
+
+        if (progress is { } fraction)
+        {
+            var fillW = barW * (float)Math.Clamp(fraction, 0, 1);
+            if (fillW > 1)
+                canvas.DrawRoundRect(barX, barY, Math.Max(fillW, barH), barH, 7, 7, barFillPaint);
+        }
+        else if (isDownloading)
+        {
+            // Unknown total: slide a fixed-width pulse back and forth.
+            const float pulse = 0.28f;
+            var pulseW = barW * pulse;
+            var pulseX = barX + (barW - pulseW) * ((MathF.Sin(timeSeconds * 3f) + 1f) / 2f);
+            canvas.DrawRoundRect(pulseX, barY, pulseW, barH, 7, 7, barFillPaint);
+        }
+
+        if (isDownloading)
+        {
+            using var pctFont = new SKFont(BoldTypeface, 16);
+            using var pctPaint = new SKPaint();
+            pctPaint.Color = progress is null ? new SKColor(148, 163, 184) : new SKColor(56, 189, 248);
+            pctPaint.IsAntialias = true;
+            DrawRight(canvas, progress is { } p ? $"{p * 100:0}%" : "...",
+                NotificationWidth - 30, 124, pctFont, pctPaint);
+        }
+
+        return bitmap;
+    }
+
+    /// <summary>
     /// Render the 256x256 thumbnail icon for SteamVR Dashboard.
     /// </summary>
     public static SKBitmap RenderThumbnail()
@@ -277,8 +402,7 @@ public static class VROverlayRenderer
         return bitmap;
     }
 
-    private static void DrawTag(SKCanvas canvas, string text, float x, float y, SKColor color)
-    {
+    private static void DrawTag(SKCanvas canvas, string text, float x, float y, SKColor color)    {
         using var font = new SKFont(BoldTypeface, 14);
         float width = Math.Max(60, text.Length * 11 + 20);
         const float height = 28;
@@ -301,4 +425,9 @@ public static class VROverlayRenderer
             return text;
         return text[..(maxChars - 3)] + "...";
     }
+
+    /// <summary>Draw <paramref name="text"/> so that it ends at <paramref name="right"/>.</summary>
+    private static void DrawRight(SKCanvas canvas, string text, float right, float baseline, SKFont font,
+        SKPaint paint) =>
+        canvas.DrawText(text, right - font.MeasureText(text, paint), baseline, font, paint);
 }

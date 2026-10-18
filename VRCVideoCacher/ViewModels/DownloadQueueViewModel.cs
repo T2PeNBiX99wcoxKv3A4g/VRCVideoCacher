@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
@@ -40,6 +41,11 @@ public partial class DownloadQueueViewModel : ViewModelBase
     [ObservableProperty] public partial string ManualUrl { get; set; } = string.Empty;
 
     [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial double CurrentProgress { get; set; }
+
+    [ObservableProperty] public partial bool CurrentProgressIndeterminate { get; set; } = true;
+
     public ObservableCollection<DownloadItemViewModel> QueuedDownloads { get; } = [];
 
     public DownloadQueueViewModel()
@@ -49,6 +55,17 @@ public partial class DownloadQueueViewModel : ViewModelBase
         VideoDownloader.OnDownloadStarted += OnDownloadStarted;
         VideoDownloader.OnDownloadCompleted += OnDownloadCompleted;
         VideoDownloader.OnQueueChanged += OnQueueChanged;
+        StatusService.Changed += OnProgressChanged;
+    }
+
+    private void OnProgressChanged()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            var progress = VideoDownloader.GetCurrentDownloadProgress();
+            CurrentProgress = progress ?? 0;
+            CurrentProgressIndeterminate = progress is null;
+        });
     }
 
     private void OnDownloadStarted(VideoInfo video)
