@@ -14,6 +14,10 @@
         <Company>yt-dlp-stub</Company>
         <Product>yt-dlp-stub</Product>
         <CETCompat>false</CETCompat>
+        <!-- Same trimming story as VRCVideoCacher (see VRCVideoCacher.csproj, Release group). -->
+        <TrimMode>partial</TrimMode>
+        <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+        <DebugType>portable</DebugType>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -24,4 +28,44 @@
         <PublishAot>false</PublishAot>
         <PublishSingleFile>true</PublishSingleFile>
     </PropertyGroup>
+
+    <!--
+        Share code with VRCVideoCacher by compiling the helper sources straight into this assembly.
+        Do NOT ProjectReference VRCVideoCacher: it is a WinExe that pulls in Avalonia, EF Core, Sentry, ...
+        which would bloat the stub and break the AOT/trimmed/single-file publish. Linking the sources keeps
+        a single source of truth without dragging those dependencies along.
+
+        Both folders are globbed, so a newly added reusable helper is picked up automatically. The only
+        maintenance is the Remove list below: files that cannot stand on their own because they reach for
+        app globals (Program, ConfigManager, WebServer, VRCVideoCacher.API) or for the Singleton<T> base
+        class that itself lives in Singleton.cs.
+    -->
+    <ItemGroup>
+        <Compile Include="..\VRCVideoCacher\Utils\*.cs" Link="Shared\Utils\%(Filename)%(Extension)"/>
+        <Compile Include="..\VRCVideoCacher\Extensions\*.cs" Link="Shared\Extensions\%(Filename)%(Extension)"/>
+
+        <!-- Tied to app globals: Program / ConfigManager / WebServer / VRCVideoCacher.API. -->
+        <Compile Remove="..\VRCVideoCacher\Utils\Singleton.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\ElevatorManager.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\LoggerUtils.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\OpusMp4Check.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\PortAudit.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\ProtectedStringConverter.cs"/>
+        <!-- Depend on the app-coupled files above (Singleton<T> / Program / ConfigManager). -->
+        <Compile Remove="..\VRCVideoCacher\Utils\AutoStartShortcut.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\BulkPreCache.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\ChildProcessTracker.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\HostsManager.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\OpenUrl.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\WinGet.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Compile-time only: the attributes are [Conditional("JETBRAINS_ANNOTATIONS")], so they never
+             reach the output assembly. Excluding the runtime asset keeps the published stub DLL-free. -->
+        <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" PrivateAssets="all"
+                          ExcludeAssets="runtime"/>
+        <!-- ILog / LogExtensions use Serilog; only the core package is needed (no sinks). -->
+        <PackageReference Include="Serilog" Version="4.4.0"/>
+    </ItemGroup>
 </Project>
