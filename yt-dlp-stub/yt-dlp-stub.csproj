@@ -65,7 +65,9 @@
              reach the output assembly. Excluding the runtime asset keeps the published stub DLL-free. -->
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" PrivateAssets="all"
                           ExcludeAssets="runtime"/>
-        <!-- ILog / LogExtensions use Serilog; only the core package is needed (no sinks). -->
+        <!-- ILog / LogExtensions + the stub's own rolling file logger (never a console sink: stdout
+             carries the URL that VRChat reads). -->
         <PackageReference Include="Serilog" Version="4.4.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
     </ItemGroup>
 </Project>

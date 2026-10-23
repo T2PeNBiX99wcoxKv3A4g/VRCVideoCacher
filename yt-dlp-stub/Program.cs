@@ -1,96 +1,113 @@
-﻿using System.Net.Sockets;
-using VRCVideoCacher.Utils;
+using System.Net.Sockets;
+using Serilog;
 
 namespace yt_dlp;
 
 internal static class Program
 {
     private const string BaseUrl = "http://127.0.0.1:9696";
-    private static string _logFilePath = string.Empty;
 
-    // Diagnostics go to the ytdl.log file in VRChat's Tools folder, never to stdout: VRChat parses
-    // stdout for the URL, so anything but the final URL there breaks it. Failures are swallowed.
-    private static void WriteLog(string message) =>
-        Try.Run(() => File.AppendAllText(_logFilePath,
-            $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}"));
+    private static readonly string LogsPath = Path.Join(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher", "Logs");
+
+    // File-only on purpose: VRChat reads the URL from stdout, so the logger must never write to the console.
+    private static void InitializeLogger()
+    {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(LogsPath, "ytdl.log"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 5)
+            .CreateLogger();
+    }
 
     public static async Task Main(string[] args)
     {
-        var appDataPath =
-            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
-                @"VRChat\VRChat\Tools");
-        _logFilePath = Path.Join(appDataPath, "ytdl.log");
-
-        var url = string.Empty;
-        var avPro = true;
-        var source = "vrchat";
-        foreach (var arg in args)
-        {
-            if (arg.Contains("[protocol^=http]"))
-            {
-                avPro = false;
-                continue;
-            }
-
-            // --flat-playlist -i -J -s --no-playlist
-            if (arg.Contains("--flat-playlist"))
-            {
-                source = "resonite";
-                continue;
-            }
-
-            if (!arg.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            url = arg;
-            break;
-        }
-
-        WriteLog($"Starting with args: {string.Join(" ", args)}, avPro: {avPro}, source: {source}");
-
-        if (string.IsNullOrEmpty(url))
-        {
-            WriteLog("[Error] No URL found in arguments");
-            await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] No URL found in arguments");
-            Environment.ExitCode = 1;
-            return;
-        }
+        InitializeLogger();
 
         try
         {
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new("VRCVideoCacher", "1.0"));
-            var inputUrl = Uri.EscapeDataString(url);
-            var response =
-                await httpClient.GetAsync($"{BaseUrl}/api/getvideo?url={inputUrl}&avpro={avPro}&source={source}");
-            var output = await response.Content.ReadAsStringAsync();
-            WriteLog($"[Response] {output}");
-            if (!response.IsSuccessStatusCode)
-                throw new(output);
-            Console.WriteLine(output);
-        }
-        catch (HttpRequestException ex) when (ex.InnerException is SocketException
-                                              {
-                                                  SocketErrorCode: SocketError.ConnectionRefused
-                                              })
-        {
-            WriteLog("[Error] Connection refused. Is the server running?");
-            await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
-            var ytdlPath = Path.Join(appDataPath, "yt-dlp.exe");
-            if (File.Exists(ytdlPath) && File.GetAttributes(ytdlPath).HasFlag(FileAttributes.ReadOnly))
+            var appDataPath =
+                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
+                    @"VRChat\VRChat\Tools");
+
+            var url = string.Empty;
+            var avPro = true;
+            var source = "vrchat";
+            foreach (var arg in args)
             {
-                var attr = File.GetAttributes(ytdlPath);
-                attr &= ~FileAttributes.ReadOnly;
-                File.SetAttributes(ytdlPath, attr);
+                if (arg.Contains("[protocol^=http]"))
+                {
+                    avPro = false;
+                    continue;
+                }
+
+                // --flat-playlist -i -J -s --no-playlist
+                if (arg.Contains("--flat-playlist"))
+                {
+                    source = "resonite";
+                    continue;
+                }
+
+                if (!arg.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                url = arg;
+                break;
             }
 
-            Environment.ExitCode = 1;
+            Log.Information("Starting with args: {Args}, avPro: {AvPro}, source: {Source}",
+                string.Join(" ", args), avPro, source);
+
+            if (string.IsNullOrEmpty(url))
+            {
+                Log.Error("No URL found in arguments");
+                await Console.Error.WriteLineAsync("ERROR: [VRCVideoCacher] No URL found in arguments");
+                Environment.ExitCode = 1;
+                return;
+            }
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.UserAgent.Add(new("VRCVideoCacher", "1.0"));
+                var inputUrl = Uri.EscapeDataString(url);
+                var response =
+                    await httpClient.GetAsync($"{BaseUrl}/api/getvideo?url={inputUrl}&avpro={avPro}&source={source}");
+                var output = await response.Content.ReadAsStringAsync();
+                Log.Information("[Response] {Output}", output);
+                if (!response.IsSuccessStatusCode)
+                    throw new(output);
+                Console.WriteLine(output);
+            }
+            catch (HttpRequestException ex) when (ex.InnerException is SocketException
+                                                  {
+                                                      SocketErrorCode: SocketError.ConnectionRefused
+                                                  })
+            {
+                Log.Error("Connection refused. Is the server running?");
+                await Console.Error.WriteLineAsync(
+                    "ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
+                var ytdlPath = Path.Join(appDataPath, "yt-dlp.exe");
+                if (File.Exists(ytdlPath) && File.GetAttributes(ytdlPath).HasFlag(FileAttributes.ReadOnly))
+                {
+                    var attr = File.GetAttributes(ytdlPath);
+                    attr &= ~FileAttributes.ReadOnly;
+                    File.SetAttributes(ytdlPath, attr);
+                }
+
+                Environment.ExitCode = 1;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Request failed");
+                await Console.Error.WriteLineAsync($"ERROR: [VRCVideoCacher] {ex.GetType().Name}: {ex.Message}");
+                Environment.ExitCode = 1;
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            WriteLog($"[Error] {ex}");
-            await Console.Error.WriteLineAsync($"ERROR: [VRCVideoCacher] {ex.GetType().Name}: {ex.Message}");
-            Environment.ExitCode = 1;
+            await Log.CloseAndFlushAsync();
         }
     }
 }
