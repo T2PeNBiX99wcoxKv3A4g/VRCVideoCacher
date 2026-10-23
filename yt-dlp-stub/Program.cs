@@ -7,16 +7,15 @@ internal static class Program
 {
     private const string BaseUrl = "http://127.0.0.1:9696";
 
-    private static readonly string ToolsPath = Path.Join(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
-        @"VRChat\VRChat\Tools");
+    // Next to the executable (it is installed as VRChat's / Resonite's yt-dlp), not a hardcoded path,
+    // and file-only: VRChat reads the URL from stdout, so the logger must never write there.
+    private static readonly string LogsPath = Path.Join(AppContext.BaseDirectory, "Logs");
 
-    // File-only on purpose: VRChat reads the URL from stdout, so the logger must never write to the console.
     private static void InitializeLogger()
     {
         Log.Logger = new LoggerConfiguration()
             .WriteTo.File(
-                Path.Combine(ToolsPath, "Logs", "ytdl.log"),
+                Path.Combine(LogsPath, "ytdl.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 5)
             .CreateLogger();
@@ -85,14 +84,7 @@ internal static class Program
                 Log.Error("Connection refused. Is the server running?");
                 await Console.Error.WriteLineAsync(
                     "ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
-                var ytdlPath = Path.Join(ToolsPath, "yt-dlp.exe");
-                if (File.Exists(ytdlPath) && File.GetAttributes(ytdlPath).HasFlag(FileAttributes.ReadOnly))
-                {
-                    var attr = File.GetAttributes(ytdlPath);
-                    attr &= ~FileAttributes.ReadOnly;
-                    File.SetAttributes(ytdlPath, attr);
-                }
-
+                ClearReadOnly();
                 Environment.ExitCode = 1;
             }
             catch (Exception ex)
@@ -106,5 +98,16 @@ internal static class Program
         {
             await Log.CloseAndFlushAsync();
         }
+    }
+
+    // VRCVideoCacher marks the patched yt-dlp read-only while it runs; clear that on the running exe
+    // once the server has gone (works on Windows, under Proton on Linux, and on native Linux).
+    private static void ClearReadOnly()
+    {
+        if (Environment.ProcessPath is not { } path || !File.Exists(path))
+            return;
+        var attr = File.GetAttributes(path);
+        if (attr.HasFlag(FileAttributes.ReadOnly))
+            File.SetAttributes(path, attr & ~FileAttributes.ReadOnly);
     }
 }
