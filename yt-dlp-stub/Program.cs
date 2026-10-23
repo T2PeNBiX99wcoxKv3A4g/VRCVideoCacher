@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using VRCVideoCacher.Utils;
 
 namespace yt_dlp;
 
@@ -9,15 +10,11 @@ internal static class Program
 
     private static void WriteLog(string message)
     {
-        try
+        Try.Run(() =>
         {
             using var sw = new StreamWriter(_logFilePath, true);
             sw.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}");
-        }
-        catch (Exception)
-        {
-            // ignore
-        }
+        });
     }
 
     public static async Task Main(string[] args)
