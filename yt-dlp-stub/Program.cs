@@ -8,14 +8,11 @@ internal static class Program
     private const string BaseUrl = "http://127.0.0.1:9696";
     private static string _logFilePath = string.Empty;
 
-    private static void WriteLog(string message)
-    {
-        Try.Run(() =>
-        {
-            using var sw = new StreamWriter(_logFilePath, true);
-            sw.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}");
-        });
-    }
+    // Diagnostics go to the ytdl.log file in VRChat's Tools folder, never to stdout: VRChat parses
+    // stdout for the URL, so anything but the final URL there breaks it. Failures are swallowed.
+    private static void WriteLog(string message) =>
+        Try.Run(() => File.AppendAllText(_logFilePath,
+            $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}"));
 
     public static async Task Main(string[] args)
     {
