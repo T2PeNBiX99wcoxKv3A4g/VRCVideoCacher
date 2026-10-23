@@ -7,15 +7,16 @@ internal static class Program
 {
     private const string BaseUrl = "http://127.0.0.1:9696";
 
-    private static readonly string LogsPath = Path.Join(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher", "Logs");
+    private static readonly string ToolsPath = Path.Join(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
+        @"VRChat\VRChat\Tools");
 
     // File-only on purpose: VRChat reads the URL from stdout, so the logger must never write to the console.
     private static void InitializeLogger()
     {
         Log.Logger = new LoggerConfiguration()
             .WriteTo.File(
-                Path.Combine(LogsPath, "ytdl.log"),
+                Path.Combine(ToolsPath, "Logs", "ytdl.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 5)
             .CreateLogger();
@@ -27,10 +28,6 @@ internal static class Program
 
         try
         {
-            var appDataPath =
-                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
-                    @"VRChat\VRChat\Tools");
-
             var url = string.Empty;
             var avPro = true;
             var source = "vrchat";
@@ -88,7 +85,7 @@ internal static class Program
                 Log.Error("Connection refused. Is the server running?");
                 await Console.Error.WriteLineAsync(
                     "ERROR: [VRCVideoCacher] Connection refused. Is VRCVideoCacher running?");
-                var ytdlPath = Path.Join(appDataPath, "yt-dlp.exe");
+                var ytdlPath = Path.Join(ToolsPath, "yt-dlp.exe");
                 if (File.Exists(ytdlPath) && File.GetAttributes(ytdlPath).HasFlag(FileAttributes.ReadOnly))
                 {
                     var attr = File.GetAttributes(ytdlPath);
