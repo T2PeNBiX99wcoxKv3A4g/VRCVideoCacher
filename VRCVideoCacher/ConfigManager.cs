@@ -145,6 +145,7 @@ public class ConfigModel
 
     [JsonProperty("SabrMaxResolution", NullValueHandling = NullValueHandling.Ignore)]
     private int? _legacySabrMaxResolution;
+
     [JsonProperty("CacheYouTubeMaxResolution", NullValueHandling = NullValueHandling.Ignore)]
     private int? _legacyCacheYouTubeMaxResolution;
 
@@ -162,13 +163,13 @@ public class ConfigModel
 
     // Allow AV1 videos
     public bool YtdlpAllowAV1 = true;
+
     // Allow VP9 videos: disabling this fixes the bug where videos appear corrupted on AMD on Windows
     // might also prevent Premium accounts from getting Enhanced Bitrate streams.
     // null = auto: blocked when an AMD GPU is detected.
     public bool? YtdlpAllowVP9 = null;
 
-    [JsonIgnore]
-    public bool AllowVP9 => YtdlpAllowVP9 ?? !GpuCheck.HasAmdGpu;
+    [JsonIgnore] public bool AllowVP9 => YtdlpAllowVP9 ?? !GpuCheck.HasAmdGpu;
 
     [JsonConverter(typeof(ProtectedStringConverter))]
     public string GitHubToken = string.Empty;
@@ -176,6 +177,7 @@ public class ConfigModel
     // SABR restreaming: when an uncached YouTube video can't be direct-played, fetch it over SABR and
     // serve it to AVPro as a seekable HLS VOD instead of returning an unplayable URL.
     public bool SabrRestreamEnabled = true;
+
     // YouTube delivery mode. When true (default), every uncached AVPro YouTube video goes through the
     // SABR restream path first (seekable HLS, 4K, ad-free on Premium); legacy direct-URL is only a
     // fallback. When false ("legacy-first"), the fast legacy direct URL is tried first and SABR is used
@@ -249,7 +251,9 @@ public class ConfigModel
     // Patching
     public bool PatchResonite;
     public string ResonitePath = "";
+
     public bool PatchVrChat = true;
+
     // VRChat data folder containing Tools\yt-dlp.exe, e.g. %LocalAppData%Low\VRChat\VRChat. Empty = auto-detect.
     public string VrChatPath = "";
 

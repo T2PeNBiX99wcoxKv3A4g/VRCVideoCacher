@@ -14,18 +14,15 @@ public class VRDancingHandler : Handler<VRDancingHandler>
         var code = url.TrimEnd('/').Split('/').Last();
         var videoId = VideoId.HashUrl(url);
         if (url.Contains("weekend"))
-        {
             // Strip weekend session custom urls from caching. 
-            return Task.FromResult<VideoInfo?>(new VideoInfo
+            return Task.FromResult<VideoInfo?>(new()
             {
                 VideoUrl = url,
                 VideoId = videoId,
                 UrlType = UrlType.Other,
                 DownloadFormat = DownloadFormat.MP4
             });
-            
-        }
-        
+
 
         // _ = Task.Run(async () =>
         // {

@@ -76,12 +76,13 @@ public partial class FileTools : Singleton<FileTools>
                 Log.Error("Unable to find VRChat compatdata path, VRChat patching will not work.");
                 return null;
             }
+
             return Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow", "VRChat", "VRChat");
         }
 
         throw new NotImplementedException("Unknown platform");
     }
-    
+
     [SupportedOSPlatform("windows")]
     private static string? GetSteamInstallPathWindows() => !OperatingSystem.IsWindows()
         ? null
@@ -139,10 +140,8 @@ public partial class FileTools : Singleton<FileTools>
             var stream = File.OpenRead(vdfPath);
             KVObject data = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
             foreach (var (_, folder) in data)
-            {
                 if (folder["apps"].ContainsKey(appid))
                     libraryPaths.Add(folder["path"].ToString(CultureInfo.InvariantCulture));
-            }
 
             return true;
         }).GetOrElse(ex =>

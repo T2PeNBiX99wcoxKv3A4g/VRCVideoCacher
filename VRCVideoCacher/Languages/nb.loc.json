@@ -10,7 +10,6 @@
   "DeleteHistoryEntry": "Slett oppføring",
   "Logs": "Logger",
   "About": "Om",
-
   "Refresh": "Oppdater",
   "Save": "Lagre",
   "Reset": "Tilbakestill",
@@ -23,7 +22,6 @@
   "Language": "Språk",
   "General": "Generelt",
   "ShowAdvancedSettings": "Vis avanserte innstillinger",
-
   "ToggleHostTooltip": "Slå på/av bruk av YouTube-domene for localhost-hurtigbuffer",
   "ServerStatus": "Serverstatus",
   "Cache": "Hurtigbuffer",
@@ -58,7 +56,6 @@
   "StatusProviderSetup": "Setter opp PO-token-tilbyder",
   "StatusProviderWaiting": "Venter på PO-token-tilbyder",
   "StatusMore": " (+{0} til)",
-
   "ServerSettings": "Serverinnstillinger",
   "WebServerUrl": "Nettserver-URL",
   "FormatPreferences": "YouTube-formatinnstillinger",
@@ -111,12 +108,10 @@
   "SettingsReset": "Innstillinger tilbakestilt til sist lagrede verdier.",
   "SettingsUnsavedChanges": "Du har ulagrede endringer.",
   "RedirectVRDancing": "Omdiriger EU VRDancing til NA",
-
   "OpenFolder": "Åpne mappe",
   "DeleteAllCache": "Slett all hurtigbuffer",
   "SearchVideosWatermark": "Søk etter videoer...",
   "VideosCountFormat": "{0} av {1} videoer",
-
   "DownloadQueue": "Nedlastingskø",
   "ClearQueue": "Tøm kø",
   "CurrentDownload": "Gjeldende nedlasting",
@@ -125,7 +120,6 @@
   "EnterVideoUrl": "Skriv inn video-URL...",
   "QueuedDownloads": "Nedlastinger i kø",
   "QueueIsEmpty": "Køen er tom",
-
   "LogViewer": "Loggvisning",
   "ExportLogs": "Eksporter logger",
   "ClearLogs": "Tøm logger",
@@ -135,9 +129,7 @@
   "Warning": "Advarsel",
   "Error": "Feil",
   "AutoScroll": "Auto-rulling",
-
   "EntriesCountFormat": "{0} oppføringer",
-
   "CookieSetupTitle": "Oppsett av YouTube-informasjonskapselutvidelse",
   "CookieSetupSubtitle": "Fiks feil med YouTube-bottesting",
   "CookieSetupStep1Header": "Trinn 1: Velg nettleser",
@@ -167,12 +159,10 @@
   "AddHostsEntry": "Legg til vertsinnføring",
   "OpenChromeWebStore": "Åpne Chrome Web Store",
   "OpenFirefoxAddons": "Åpne Firefox Utvidelser",
-
   "DontShowThisAgain": "Ikke vis dette igjen",
   "TrayShow": "Vis",
   "TrayOpenCacheFolder": "Åpne hurtigbuffermappe",
   "TrayExit": "Avslutt",
-
   "CreatedBy": "Laget av",
   "ReportAnIssue": "Rapporter et problem",
   "OpenIssueOnGitHub": "Åpne en feilmelding på GitHub",

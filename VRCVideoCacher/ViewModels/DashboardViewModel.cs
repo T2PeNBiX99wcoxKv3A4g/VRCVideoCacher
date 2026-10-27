@@ -324,7 +324,7 @@ public partial class DashboardViewModel : ViewModelBase
                     OpusUnsupportedReason.Windows10 => "OpusReasonWindows10",
                     OpusUnsupportedReason.UpdateMissing => "OpusReasonUpdateMissing",
                     OpusUnsupportedReason.RolloutPending => "OpusReasonRolloutPending",
-                    _ => "OpusReasonUnknown",
+                    _ => "OpusReasonUnknown"
                 });
                 break;
             default:

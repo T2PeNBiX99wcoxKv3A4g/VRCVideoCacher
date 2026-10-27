@@ -16,6 +16,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadMkvName = "_tempVideo.mkv";
     private const string TempDownloadWebmName = "_tempVideo.webm";
+
     private static readonly HttpClient HttpClient = new()
     {
         DefaultRequestHeaders =
@@ -317,7 +318,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             // For the SABR branch of yt-dlp, we don't need a trailing /b here, as we should
             // always be able to use SABR to download a preferable split format.
             formatString += $"bv*[height<={maxHeight}][vcodec~='^(h264|avc1)'][dynamic_range='SDR']{audioArg}";
-            
+
             args.Add($"-o \"{tempDownloadMkvPath}\"");
             args.Add($"-f \"{formatString}\"");
             args.Add($"--remux-video mkv");

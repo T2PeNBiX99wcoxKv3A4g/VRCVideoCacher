@@ -50,7 +50,7 @@ internal static class GpuCheck
         Marshal.ThrowExceptionForHR(CreateDXGIFactory1(ref iid, out var factory));
         try
         {
-            for (uint i = 0; ; i++)
+            for (uint i = 0;; i++)
             {
                 var hr = factory.EnumAdapters1(i, out var adapter);
                 if (hr == DxgiErrorNotFound)
@@ -84,6 +84,7 @@ internal static class GpuCheck
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string Description;
+
         public uint VendorId;
         public uint DeviceId;
         public uint SubSysId;
@@ -96,7 +97,9 @@ internal static class GpuCheck
         public uint Flags;
     }
 
-    [ComImport, Guid("770aae78-f26f-4dba-a829-253c83d1b387"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport]
+    [Guid("770aae78-f26f-4dba-a829-253c83d1b387")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IDxgiFactory1
     {
         void SetPrivateData();
@@ -113,7 +116,9 @@ internal static class GpuCheck
         int EnumAdapters1(uint index, out IDxgiAdapter1 adapter);
     }
 
-    [ComImport, Guid("29038f61-3839-4626-91fd-086879011a05"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport]
+    [Guid("29038f61-3839-4626-91fd-086879011a05")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IDxgiAdapter1
     {
         void SetPrivateData();

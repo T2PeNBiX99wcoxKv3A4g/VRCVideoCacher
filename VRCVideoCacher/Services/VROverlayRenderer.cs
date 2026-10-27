@@ -347,7 +347,7 @@ public static class VROverlayRenderer
         {
             using var pctFont = new SKFont(BoldTypeface, 16);
             using var pctPaint = new SKPaint();
-            pctPaint.Color = progress is null ? new SKColor(148, 163, 184) : new SKColor(56, 189, 248);
+            pctPaint.Color = progress is null ? new(148, 163, 184) : new SKColor(56, 189, 248);
             pctPaint.IsAntialias = true;
             DrawRight(canvas, progress is { } p ? $"{p * 100:0}%" : "...",
                 NotificationWidth - 30, 124, pctFont, pctPaint);
@@ -402,7 +402,8 @@ public static class VROverlayRenderer
         return bitmap;
     }
 
-    private static void DrawTag(SKCanvas canvas, string text, float x, float y, SKColor color)    {
+    private static void DrawTag(SKCanvas canvas, string text, float x, float y, SKColor color)
+    {
         using var font = new SKFont(BoldTypeface, 14);
         float width = Math.Max(60, text.Length * 11 + 20);
         const float height = 28;

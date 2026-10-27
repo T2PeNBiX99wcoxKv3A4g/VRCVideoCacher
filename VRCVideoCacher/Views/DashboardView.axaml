@@ -221,7 +221,8 @@
                                             <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
                                                            Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" />
-                                                <TextBlock Text="{Binding Detail}" ToolTip.Tip="{Binding DetailTooltip}"
+                                                <TextBlock Text="{Binding Detail}"
+                                                           ToolTip.Tip="{Binding DetailTooltip}"
                                                            Foreground="{StaticResource TextMutedBrush}" FontSize="11.5"
                                                            TextTrimming="CharacterEllipsis" />
                                                 <TextBlock Text="{Binding Hint}" IsVisible="{Binding HasHint}"

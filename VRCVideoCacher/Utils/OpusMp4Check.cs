@@ -28,7 +28,7 @@ public enum OpusUnsupportedReason
     Unknown,
     Windows10,
     UpdateMissing,
-    RolloutPending,
+    RolloutPending
 }
 
 [SupportedOSPlatform("windows")]
@@ -133,7 +133,7 @@ internal static class OpusMp4Check
         OpusUnsupportedReason.RolloutPending =>
             "Your Windows has the update, but Microsoft enables this feature gradually and it has " +
             "not reached this PC yet. Install any pending Windows updates and try again later.",
-        _ => "Please install the latest Windows updates and restart.",
+        _ => "Please install the latest Windows updates and restart."
     };
 
     private static string? Mp4SourceVersion()

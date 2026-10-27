@@ -12,7 +12,9 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>
     private static int MaxHeight => Math.Min(ConfigManager.Config.YouTubeMaxResolution, 1080);
     private static int PotatoMaxHeight => Math.Clamp(ConfigManager.Config.YouTubeMaxResolution, 360, 1080);
     private static string AVProFormat => $"(mp4/best)[height<=?{MaxHeight}][height>=?64][width>=?64]";
-    private static string UnityPlayerFormat => $"(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?{PotatoMaxHeight}][height>=?64][width>=?64][protocol^=http]";
+
+    private static string UnityPlayerFormat =>
+        $"(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?{PotatoMaxHeight}][height>=?64][width>=?64][protocol^=http]";
 
     public override bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
 
