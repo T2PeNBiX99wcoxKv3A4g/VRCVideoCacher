@@ -24,26 +24,41 @@ public partial class VideoTools : Singleton<VideoTools>
 
         // Prefetch the video URL
         // - Use GET for M3U8 to extract the direct stream URL
-        string? firstM3U8Url = null;
         using var prefetchRequest = new HttpRequestMessage(isM3U8 ? HttpMethod.Get : HttpMethod.Head, videoUrl);
         using var prefetchResponse = await _httpClient.SendAsync(prefetchRequest);
         Log.Information("Video prefetch request returned status code {Status}.", (int)prefetchResponse.StatusCode);
+
+        var targetUrl = videoUrl;
+        var targetName = "video";
+        var statusCode = (int)prefetchResponse.StatusCode;
 
         if (prefetchRequest.Method == HttpMethod.Get && prefetchResponse.Content.Headers.ContentType?.MediaType ==
             "application/vnd.apple.mpegurl")
         {
             var body = await prefetchResponse.Content.ReadAsStringAsync();
-            firstM3U8Url = body.Split('\n')
+            var firstM3U8Url = body.Split('\n')
                 .FirstOrDefault(line => Uri.IsWellFormedUriString(line, UriKind.RelativeOrAbsolute));
+            if (firstM3U8Url != null)
+            {
+                targetUrl = firstM3U8Url;
+                targetName = "M3U8 stream";
+                statusCode = await GetHeadStatusCode(targetUrl);
+            }
         }
 
-        if (firstM3U8Url == null)
+        if (statusCode < 400)
+        {
+            Log.Information("Prefetching {target} returned status code {status}, proceeding.", targetName, statusCode);
             return true;
+        }
 
-        // If we have an M3U8 URL, perform HEAD requests to validate accessibility
-        var statusCode = 0;
+        return await RetryUntilSuccess(targetUrl, targetName, statusCode, maxRetryCount);
+    }
+
+    private static async Task<bool> RetryUntilSuccess(string targetUrl, string targetName, int statusCode, int maxRetryCount)
+    {
         const int wait = 1500;
-        for (var i = 0; i < maxRetryCount; i++)
+        for (var attempt = 1; statusCode >= 400 && attempt < maxRetryCount; attempt++)
         {
             using var m3u8Request = new HttpRequestMessage(HttpMethod.Head, firstM3U8Url);
             using var m3u8Response = await _httpClient.SendAsync(m3u8Request);
@@ -61,15 +76,30 @@ public partial class VideoTools : Singleton<VideoTools>
                 Log.Information("Prefetching M3U8 stream returned status code {Status}, proceeding.", statusCode);
                 break;
             }
+            Log.Warning(
+                "Prefetching {target} returned status code {status}, retrying... ({attempt}/{limit})",
+                targetName, statusCode, attempt + 1, maxRetryCount);
+            await Task.Delay(wait);
+            statusCode = await GetHeadStatusCode(targetUrl);
         }
 
-        if (statusCode != 200)
+        if (statusCode >= 400)
         {
             Log.Error(
-                "Prefetching M3U8 stream failed after {Limit} attempts, status code {Status}. Video may not play.",
-                maxRetryCount, statusCode);
+                "Prefetching {target} failed after {Limit} attempts, status code {Status}. Video may not play.",
+                targetName, maxRetryCount, statusCode);
             return false;
         }
+
+        Log.Information("Prefetching {target} returned status code {status}, proceeding.", targetName, statusCode);
+        return true;
+    }
+
+    private static async Task<int> GetHeadStatusCode(string url)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Head, url);
+        using var response = await HttpClient.SendAsync(request);
+        return (int)response.StatusCode;
 
         return true;
     }

@@ -43,24 +43,11 @@ public partial class FileTools : Singleton<FileTools>
             _backupPathReso = $"{_ytdlPathReso}.bkp";
         }
 
-        string? localLowPath;
-        if (OperatingSystem.IsWindows())
-            localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
-        else if (OperatingSystem.IsLinux())
-        {
-            var compatPath = GetCompatPath(VrcAppId);
-            if (compatPath == null)
-            {
-                Log.Error("Unable to find VRChat compatdata path, VRChat patching will not work.");
-                return;
-            }
+        var vrcDataPath = GetVrcDataPath();
+        if (vrcDataPath == null)
+            return;
 
-            localLowPath = Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow");
-        }
-        else
-            throw new NotImplementedException("Unknown platform");
-
-        var vrcPath = Path.Join(localLowPath, "VRChat", "VRChat", "Tools", "yt-dlp.exe");
+        var vrcPath = Path.Join(vrcDataPath, "Tools", "yt-dlp.exe");
         if (!File.Exists(vrcPath))
             Log.Warning("YT-DLP not found at expected VRChat path: {Path}", vrcPath);
         else
@@ -70,6 +57,31 @@ public partial class FileTools : Singleton<FileTools>
         }
     }
 
+    private static string? GetVrcDataPath()
+    {
+        if (!string.IsNullOrEmpty(ConfigManager.Config.VrChatPath))
+            return ConfigManager.Config.VrChatPath;
+
+        if (OperatingSystem.IsWindows())
+        {
+            var localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
+            return Path.Join(localLowPath, "VRChat", "VRChat");
+        }
+
+        if (OperatingSystem.IsLinux())
+        {
+            var compatPath = GetCompatPath(VrcAppId);
+            if (compatPath == null)
+            {
+                Log.Error("Unable to find VRChat compatdata path, VRChat patching will not work.");
+                return null;
+            }
+            return Path.Join(compatPath, "pfx/drive_c/users/steamuser/AppData/LocalLow", "VRChat", "VRChat");
+        }
+
+        throw new NotImplementedException("Unknown platform");
+    }
+    
     [SupportedOSPlatform("windows")]
     private static string? GetSteamInstallPathWindows() => !OperatingSystem.IsWindows()
         ? null
@@ -128,8 +140,7 @@ public partial class FileTools : Singleton<FileTools>
             KVObject data = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
             foreach (var (_, folder) in data)
             {
-                var apps = folder["apps"];
-                if (apps.Any(app => app.Key == appid))
+                if (folder["apps"].ContainsKey(appid))
                     libraryPaths.Add(folder["path"].ToString(CultureInfo.InvariantCulture));
             }
 

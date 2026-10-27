@@ -35,6 +35,12 @@ public partial class WinGet : Singleton<WinGet>
     [PublicAPI]
     public async Task TryInstallPackages2()
     {
+        if (!File.Exists(WingetPath))
+        {
+            Log.Warning("winget not found, skipping codec install. Install \"App Installer\" from the Microsoft Store, or install the VP9, AV1, Dolby Digital Plus and Web Media Extensions manually.");
+            return;
+        }
+
         Log.Information("Checking for missing codec packages...");
         if (!IsOurPackagesInstalled())
         {

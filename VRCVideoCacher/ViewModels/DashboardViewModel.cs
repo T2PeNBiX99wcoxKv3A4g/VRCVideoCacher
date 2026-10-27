@@ -54,6 +54,7 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly ToolStatusItem _denoTool = new("Deno");
     private readonly ToolStatusItem _potTool = new("PO Token Provider");
     private readonly ToolStatusItem _opusTool = new("Opus-in-MP4 Codec");
+    private readonly ToolStatusItem _vp9Tool = new("VP9 Codec");
 
     public ObservableCollection<ToolStatusItem> Tools { get; }
 
@@ -69,7 +70,7 @@ public partial class DashboardViewModel : ViewModelBase
         MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
         HostState = ElevatorManager.HasHostsLine;
 
-        Tools = [_ytdlpTool, _ffmpegTool, _denoTool, _potTool, _opusTool];
+        Tools = [_ytdlpTool, _ffmpegTool, _denoTool, _potTool, _opusTool, _vp9Tool];
 
         // Initial data load
         RefreshData();
@@ -159,6 +160,7 @@ public partial class DashboardViewModel : ViewModelBase
             MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
         });
         _ = ValidateCookiesAsync();
+        Dispatcher.UIThread.Post(() => _ = VerifyVp9CodecAsync());
     }
 
     [RelayCommand]
@@ -193,6 +195,7 @@ public partial class DashboardViewModel : ViewModelBase
         await VerifyOrMark(ToolVerifier.PotProviderKey, active);
 
         await VerifyOpusCodecAsync();
+        await VerifyVp9CodecAsync();
     }
 
     /// <summary>Re-verifies a single tool row, or marks it "downloading" if its download is in flight.</summary>
@@ -298,6 +301,7 @@ public partial class DashboardViewModel : ViewModelBase
         // finished populating yet — that was the "N/A until reverify" glitch.
         await OpusMp4Check.EnsureAsync();
 
+        _opusTool.Hint = string.Empty;
         switch (OpusMp4Check.Supported)
         {
             case true:
@@ -308,12 +312,39 @@ public partial class DashboardViewModel : ViewModelBase
                 // Soft fallback: playback still works via AAC, so this is a warning, not a hard failure.
                 _opusTool.State = ToolState.Warning;
                 _opusTool.Detail = Localizer.Get("ToolAacFallback");
+                _opusTool.Hint = Localizer.Get(OpusMp4Check.Reason() switch
+                {
+                    OpusUnsupportedReason.Windows10 => "OpusReasonWindows10",
+                    OpusUnsupportedReason.UpdateMissing => "OpusReasonUpdateMissing",
+                    OpusUnsupportedReason.RolloutPending => "OpusReasonRolloutPending",
+                    _ => "OpusReasonUnknown",
+                });
                 break;
             default:
                 _opusTool.State = ToolState.NotApplicable;
                 _opusTool.Detail = Localizer.Get("ToolNotApplicable");
                 break;
         }
+    }
+
+    private async Task VerifyVp9CodecAsync()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            _vp9Tool.State = ToolState.NotApplicable;
+            _vp9Tool.Detail = Localizer.Get("ToolNotApplicable");
+            return;
+        }
+
+        if (!await Task.Run(() => GpuCheck.HasAmdGpu))
+        {
+            _vp9Tool.State = ToolState.Ok;
+            _vp9Tool.Detail = string.Empty;
+            return;
+        }
+
+        _vp9Tool.State = ToolState.Warning;
+        _vp9Tool.Detail = Localizer.Get(ConfigManager.Config.AllowVP9 ? "Vp9AllowedAmd" : "Vp9AutoBlockedAmd");
     }
 
     [RelayCommand]

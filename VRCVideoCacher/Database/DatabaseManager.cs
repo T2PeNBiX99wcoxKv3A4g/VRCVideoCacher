@@ -48,8 +48,6 @@ public static class DatabaseManager
             await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             await db.PlayHistory.AddAsync(history, cancellationToken).ConfigureAwait(false);
             await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await TrimPlayHistoryInternalAsync(ConfigManager.Config.HistoryMaxSize, db, cancellationToken)
-                .ConfigureAwait(false);
         }
 
         OnPlayHistoryAdded?.Invoke();
@@ -87,42 +85,6 @@ public static class DatabaseManager
         }
 
         OnPlayHistoryChanged?.Invoke();
-    }
-
-    /// <summary>
-    /// Enforces the retention cap: keeps the newest <paramref name="max"/> play records and deletes the
-    /// rest. Called after each insert (silently) and when the History max-size setting is lowered.
-    /// </summary>
-    public static async Task TrimPlayHistoryAsync(int max, CancellationToken cancellationToken = default)
-    {
-        if (max <= 0)
-            return;
-
-        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbWriteLock.Release()))
-        {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-            await TrimPlayHistoryInternalAsync(max, db, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private static async Task TrimPlayHistoryInternalAsync(int max, Database db,
-        CancellationToken cancellationToken = default)
-    {
-        if (max <= 0) return;
-
-        // Find the Timestamp of the Nth-newest row; anything strictly older is deleted. Delete by that
-        // boundary rather than materialising ids, so it stays one round-trip regardless of table size.
-        var cutoff = await db.PlayHistory
-            .OrderByDescending(h => h.Timestamp)
-            .Skip(max)
-            .Select(h => (DateTime?)h.Timestamp)
-            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
-        if (cutoff is null)
-            return; // fewer than max rows; nothing to trim
-
-        await db.PlayHistory.Where(h => h.Timestamp <= cutoff.Value).ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
     }
 
     public static async Task AddVideoInfoCacheAsync(VideoInfoCache videoInfoCache,

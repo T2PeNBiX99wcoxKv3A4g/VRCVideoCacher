@@ -184,7 +184,6 @@ public partial class HistoryViewModel : ViewModelBase
         // Apply the new cap immediately (trims the DB if it was lowered), then reload the list.
         _ = Task.Run(async () =>
         {
-            await DatabaseManager.TrimPlayHistoryAsync(value);
             await Dispatcher.UIThread.InvokeAsync(Refresh);
         });
     }

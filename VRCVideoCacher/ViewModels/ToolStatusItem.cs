@@ -24,7 +24,17 @@ public partial class ToolStatusItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(StatusBrush))]
     public partial ToolState State { get; set; }
 
-    [ObservableProperty] public partial string Detail { get; set; } = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DetailTooltip))]
+    public partial string Detail { get; set; } = string.Empty;
+
+    public string? DetailTooltip => string.IsNullOrEmpty(Detail) ? null : Detail;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasHint))]
+    private string _hint = string.Empty;
+
+    public bool HasHint => !string.IsNullOrEmpty(Hint);
 
     public ToolStatusItem(string name, ToolState state = ToolState.Checking)
     {
