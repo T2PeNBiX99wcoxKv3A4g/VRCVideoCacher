@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
 using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
@@ -32,8 +32,8 @@ public partial class VideoTools : Singleton<VideoTools>
         var targetName = "video";
         var statusCode = (int)prefetchResponse.StatusCode;
 
-        if (prefetchRequest.Method == HttpMethod.Get && prefetchResponse.Content.Headers.ContentType?.MediaType ==
-            "application/vnd.apple.mpegurl")
+        if (prefetchRequest.Method == HttpMethod.Get &&
+            prefetchResponse.Content.Headers.ContentType?.MediaType == "application/vnd.apple.mpegurl")
         {
             var body = await prefetchResponse.Content.ReadAsStringAsync();
             var firstM3U8Url = body.Split('\n')
@@ -42,65 +42,48 @@ public partial class VideoTools : Singleton<VideoTools>
             {
                 targetUrl = firstM3U8Url;
                 targetName = "M3U8 stream";
-                statusCode = await GetHeadStatusCode(targetUrl);
+                statusCode = await GetHeadStatusCodeAsync(targetUrl);
             }
         }
 
         if (statusCode < 400)
         {
-            Log.Information("Prefetching {target} returned status code {status}, proceeding.", targetName, statusCode);
+            Log.Information("Prefetching {Target} returned status code {Status}, proceeding.", targetName, statusCode);
             return true;
         }
 
-        return await RetryUntilSuccess(targetUrl, targetName, statusCode, maxRetryCount);
+        return await RetryUntilSuccessAsync(targetUrl, targetName, statusCode, maxRetryCount);
     }
 
-    private static async Task<bool> RetryUntilSuccess(string targetUrl, string targetName, int statusCode, int maxRetryCount)
+    private async Task<bool> RetryUntilSuccessAsync(string targetUrl, string targetName, int statusCode,
+        int maxRetryCount)
     {
         const int wait = 1500;
         for (var attempt = 1; statusCode >= 400 && attempt < maxRetryCount; attempt++)
         {
-            using var m3u8Request = new HttpRequestMessage(HttpMethod.Head, firstM3U8Url);
-            using var m3u8Response = await _httpClient.SendAsync(m3u8Request);
-            statusCode = (int)m3u8Response.StatusCode;
-
-            if (statusCode >= 400)
-            {
-                Log.Warning(
-                    "Prefetching M3U8 stream returned status code {Status}, retrying... ({Attempt}/{Limit})",
-                    statusCode, i + 1, maxRetryCount);
-                await Task.Delay(wait);
-            }
-            else
-            {
-                Log.Information("Prefetching M3U8 stream returned status code {Status}, proceeding.", statusCode);
-                break;
-            }
             Log.Warning(
-                "Prefetching {target} returned status code {status}, retrying... ({attempt}/{limit})",
+                "Prefetching {Target} returned status code {Status}, retrying... ({Attempt}/{Limit})",
                 targetName, statusCode, attempt + 1, maxRetryCount);
             await Task.Delay(wait);
-            statusCode = await GetHeadStatusCode(targetUrl);
+            statusCode = await GetHeadStatusCodeAsync(targetUrl);
         }
 
         if (statusCode >= 400)
         {
             Log.Error(
-                "Prefetching {target} failed after {Limit} attempts, status code {Status}. Video may not play.",
+                "Prefetching {Target} failed after {Limit} attempts, status code {Status}. Video may not play.",
                 targetName, maxRetryCount, statusCode);
             return false;
         }
 
-        Log.Information("Prefetching {target} returned status code {status}, proceeding.", targetName, statusCode);
+        Log.Information("Prefetching {Target} returned status code {Status}, proceeding.", targetName, statusCode);
         return true;
     }
 
-    private static async Task<int> GetHeadStatusCode(string url)
+    private async Task<int> GetHeadStatusCodeAsync(string url)
     {
         using var request = new HttpRequestMessage(HttpMethod.Head, url);
-        using var response = await HttpClient.SendAsync(request);
+        using var response = await _httpClient.SendAsync(request);
         return (int)response.StatusCode;
-
-        return true;
     }
 }

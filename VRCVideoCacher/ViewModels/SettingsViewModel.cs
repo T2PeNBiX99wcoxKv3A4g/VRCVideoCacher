@@ -55,19 +55,19 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial string GitHubToken { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    private bool _ytdlAllowAV1;
+    // Codec filters
+    [ObservableProperty] public partial bool YtdlAllowAV1 { get; set; }
 
     // ComboBox index: 0 = Auto, 1 = Allow, 2 = Block
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowVp9AmdHint))]
-    private int _ytdlVp9Mode;
+    public partial int YtdlVp9Mode { get; set; }
 
     public bool ShowVp9AmdHint => YtdlVp9Mode == 0 && GpuCheck.HasAmdGpu;
 
-    [ObservableProperty]
-    private int _youTubeMaxResolution;
+    [ObservableProperty] public partial int YouTubeMaxResolution { get; set; }
 
+    // Resolution options for the dropdown, shared by streaming and caching.
     public int[] ResolutionOptions { get; } = [144, 240, 360, 480, 720, 1080, 1440, 2160];
 
     // YouTube SABR Options
@@ -85,17 +85,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool CacheYouTube { get; set; }
 
-    // TODO: Fix this
-    [ObservableProperty] public partial int CacheYouTubeMaxResolution { get; set; }
-
-    // Resolution options for the dropdown
-    public int[] ResolutionOptions { get; } = [720, 1080, 1440, 2160];
-
     [ObservableProperty] public partial int CacheYouTubeMaxLength { get; set; }
 
     [ObservableProperty] public partial float CacheMaxSizeInGb { get; set; }
-    [ObservableProperty]
-    private int _cacheYouTubeMaxLength;
 
     [ObservableProperty] public partial bool CachePyPyDance { get; set; }
 

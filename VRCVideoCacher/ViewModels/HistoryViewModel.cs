@@ -181,11 +181,8 @@ public partial class HistoryViewModel : ViewModelBase
 
         ConfigManager.Config.HistoryMaxSize = value;
         ConfigManager.TrySaveConfigWithoutWait(false);
-        // Apply the new cap immediately (trims the DB if it was lowered), then reload the list.
-        _ = Task.Run(async () =>
-        {
-            await Dispatcher.UIThread.InvokeAsync(Refresh);
-        });
+        // The list is filtered by the new cap, so reload it.
+        _ = Dispatcher.UIThread.InvokeAsync(Refresh);
     }
 
     partial void OnSearchFilterChanged(string value)

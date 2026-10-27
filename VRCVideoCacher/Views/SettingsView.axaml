@@ -119,22 +119,6 @@
                                   Content="{l:Localize SabrPreferStreaming}"
                                   ToolTip.Tip="{l:Localize SabrPreferStreamingTooltip}" />
 
-                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
-                            <TextBlock Grid.Column="0" Text="{l:Localize SabrMaxResolution}" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
-                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                                      ItemsSource="{Binding ResolutionOptions}"
-                                      SelectedItem="{Binding SabrMaxResolution}"
-                                      ToolTip.Tip="{l:Localize SabrMaxResolutionTooltip}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock
-                                            Text="{Binding Converter={x:Static vm:ResolutionLabelConverter.Instance}}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </Grid>
-
                         <StackPanel Spacing="12" IsVisible="{Binding ShowAdvanced}">
                             <CheckBox IsChecked="{Binding SabrFilterDrcAudio}"
                                       Content="{l:Localize SabrFilterDrcAudio}"
@@ -156,7 +140,66 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Download Settings (yt-dlp) -->
+                <!-- YouTube Format Preferences -->
+                <Border Classes="card">
+                    <StackPanel Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Background="{StaticResource InfoSubtleBrush}" CornerRadius="6" Width="26"
+                                    Height="26">
+                                <mi:MaterialIcon Kind="TuneVariant" Width="16" Height="16"
+                                                 Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="{l:Localize FormatPreferences}" FontWeight="Bold" FontSize="15"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize MaxYouTubeResolution}"
+                                       VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                      ItemsSource="{Binding ResolutionOptions}"
+                                      SelectedItem="{Binding YouTubeMaxResolution}"
+                                      ToolTip.Tip="{l:Localize MaxYouTubeResolutionTooltip}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Text="{Binding Converter={x:Static vm:ResolutionLabelConverter.Instance}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize PreferredDubLanguage}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}"
+                                     PlaceholderText="{l:Localize DubLanguagePlaceholder}" />
+                        </Grid>
+
+                        <CheckBox IsChecked="{Binding YtdlAllowAV1}" Content="{l:Localize AllowAV1}"
+                                  ToolTip.Tip="{l:Localize AllowAV1Tooltip}" />
+
+                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="{l:Localize AllowVP9}" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <ComboBox SelectedIndex="{Binding YtdlVp9Mode}" HorizontalAlignment="Stretch"
+                                          ToolTip.Tip="{l:Localize AllowVP9Tooltip}">
+                                    <ComboBoxItem Content="{l:Localize CodecAuto}" />
+                                    <ComboBoxItem Content="{l:Localize CodecAllow}" />
+                                    <ComboBoxItem Content="{l:Localize CodecBlock}" />
+                                </ComboBox>
+                                <TextBlock Text="{l:Localize Vp9AutoBlockedAmd}" IsVisible="{Binding ShowVp9AmdHint}"
+                                           Foreground="{StaticResource TextMutedBrush}" FontSize="11.5"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- yt-dlp & Tools -->
                 <Border Classes="card">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -166,7 +209,7 @@
                                                  Foreground="{StaticResource InfoBrush}" HorizontalAlignment="Center"
                                                  VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Text="{l:Localize DownloadSettings}" FontWeight="Bold" FontSize="15"
+                            <TextBlock Text="{l:Localize ToolSettings}" FontWeight="Bold" FontSize="15"
                                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                         </StackPanel>
 
@@ -189,14 +232,6 @@
                                        ToolTip.Tip="{l:Localize GitHubTokenTooltip}" />
                             <TextBox Text="{Binding GitHubToken}" PasswordChar="•" PlaceholderText="ghp_..." />
                         </StackPanel>
-
-                        <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
-                            <TextBlock Grid.Column="0" Text="{l:Localize PreferredDubLanguage}"
-                                       VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBox Grid.Column="1" Text="{Binding YtdlDubLanguage}"
-                                     PlaceholderText="{l:Localize DubLanguagePlaceholder}" />
-                        </Grid>
                     </StackPanel>
                 </Border>
 
@@ -279,21 +314,6 @@
                         <CheckBox IsChecked="{Binding CacheYouTube}" Content="{l:Localize CacheYouTubeVideos}" />
 
                         <StackPanel Spacing="12" Margin="24,0,0,0" IsVisible="{Binding CacheYouTube}">
-                            <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="{l:Localize MaxYouTubeResolution}"
-                                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
-                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                                          ItemsSource="{Binding ResolutionOptions}"
-                                          SelectedItem="{Binding CacheYouTubeMaxResolution}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock
-                                                Text="{Binding Converter={x:Static vm:ResolutionLabelConverter.Instance}}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </Grid>
-
                             <Grid ColumnDefinitions="400, *" VerticalAlignment="Center">
                                 <TextBlock Grid.Column="0" Text="{l:Localize MaxVideoLength}"
                                            VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
@@ -480,21 +500,6 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-
-                <!-- yt-dlp & Tools -->
-                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="15">
-                        <TextBlock Text="{l:Localize ToolSettings}" FontWeight="SemiBold" FontSize="16"/>
-
-                        <CheckBox IsChecked="{Binding YtdlUseCookies}" Content="{l:Localize UseYouTubeCookies}"/>
-                        <CheckBox IsChecked="{Binding YtdlAutoUpdate}" Content="{l:Localize AutoUpdateUtils}"/>
-
-                        <StackPanel Spacing="5" IsVisible="{Binding ShowAdvanced}">
-                            <TextBlock Text="{l:Localize AdditionalYtdlpArgs}"/>
-                            <TextBox Text="{Binding YtdlAdditionalArgs}" PlaceholderText="Optional arguments"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

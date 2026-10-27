@@ -57,7 +57,7 @@ public partial class FileTools : Singleton<FileTools>
         }
     }
 
-    private static string? GetVrcDataPath()
+    private string? GetVrcDataPath()
     {
         if (!string.IsNullOrEmpty(ConfigManager.Config.VrChatPath))
             return ConfigManager.Config.VrChatPath;

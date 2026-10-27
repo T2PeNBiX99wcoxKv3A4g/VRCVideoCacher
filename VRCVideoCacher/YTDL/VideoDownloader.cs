@@ -15,6 +15,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 {
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadMkvName = "_tempVideo.mkv";
+    private const string TempDownloadWebmName = "_tempVideo.webm";
     private static readonly HttpClient HttpClient = new()
     {
         DefaultRequestHeaders =
@@ -152,8 +153,10 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         if (File.Exists(filePath))
             return true;
 
-        if (videoInfo.DownloadFormat == DownloadFormat.Webm)
+        if (videoInfo.DownloadFormat != DownloadFormat.MP4)
         {
+            // Any container can be served to AVPro: an MP4 cache copy (SABR convergence writes one)
+            // satisfies this download too.
             var mp4Path = Path.Join(CacheManager.CachePath, $"{videoInfo.VideoId}.mp4");
             if (File.Exists(mp4Path))
                 return true;

@@ -102,6 +102,13 @@ public partial class DashboardViewModel : ViewModelBase
         // Refresh directly-assigned localized strings
         if (VideoDownloader.GetCurrentDownload() == null)
             CurrentDownloadText = Localizer.Get("None");
+
+        // The codec rows carry localized detail/hint text, so re-derive them for the new language.
+        Dispatcher.UIThread.Post(() =>
+        {
+            _ = VerifyOpusCodecAsync();
+            _ = VerifyVp9CodecAsync();
+        });
     }
 
     private void OnCookiesUpdated()

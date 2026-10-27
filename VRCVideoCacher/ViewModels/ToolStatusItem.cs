@@ -30,9 +30,10 @@ public partial class ToolStatusItem : ObservableObject
 
     public string? DetailTooltip => string.IsNullOrEmpty(Detail) ? null : Detail;
 
+    // A longer explanation shown under the row, e.g. why Opus-in-MP4 is unavailable on this machine.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasHint))]
-    private string _hint = string.Empty;
+    public partial string Hint { get; set; } = string.Empty;
 
     public bool HasHint => !string.IsNullOrEmpty(Hint);
 

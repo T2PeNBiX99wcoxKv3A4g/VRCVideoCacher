@@ -47,6 +47,7 @@
         <!-- Tied to app globals: Program / ConfigManager / WebServer / VRCVideoCacher.API. -->
         <Compile Remove="..\VRCVideoCacher\Utils\Singleton.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\ElevatorManager.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\GpuCheck.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\LoggerUtils.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\OpusMp4Check.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\PortAudit.cs"/>

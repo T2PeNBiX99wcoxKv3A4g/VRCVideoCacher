@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services.Sabr;
 
@@ -9,17 +9,10 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>
     private static readonly string[] Hosts =
         ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
 
-    private const string AVProFormat = "(mp4/best)[height<=?1080][height>=?64][width>=?64]";
-    private static readonly ILogger Log = Program.Logger.ForContext<YouTubeHandler>();
-    private static readonly string[] Hosts = ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
-    private static readonly Regex IdRegex = new(@"(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|live\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})");
     private static int MaxHeight => Math.Min(ConfigManager.Config.YouTubeMaxResolution, 1080);
     private static int PotatoMaxHeight => Math.Clamp(ConfigManager.Config.YouTubeMaxResolution, 360, 1080);
     private static string AVProFormat => $"(mp4/best)[height<=?{MaxHeight}][height>=?64][width>=?64]";
     private static string UnityPlayerFormat => $"(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?{PotatoMaxHeight}][height>=?64][width>=?64][protocol^=http]";
-
-    private const string UnityPlayerFormat =
-        "(mp4/best)[vcodec!^=av01][vcodec!^=vp09][vcodec!^=vp9][height<=?1080][height>=?64][width>=?64][protocol^=http]";
 
     public override bool CanHandle(Uri uri) => Hosts.Contains(uri.Host);
 
@@ -58,18 +51,14 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>
 
         if (avPro)
         {
-            // Old method
-            // args.Add("--impersonate=\"safari\"");
-            // args.Add("--extractor-args=\"youtube:player_client=web\"");
-
             // Using the web_embedded client gets us the muxed m3u8's that aren't normally available otherwise.
             // These are the only streams that are compatible with AVPro currently due to WMF being unmaintained garbage.
-            args.Add("--impersonate=\"safari\"");
-            args.Add("--extractor-args=\"youtube:player_client=web;youtubetab:skip=authcheck\"");
             //
             // We leave the default yt-dlp clients in place for videos that aren't embeddable to at least get the 360p legacy format 18
             // "default" unfortunately cannot be replaced with the web client otherwise this will always fail if the video isn't embeddable.
             args.Add("--extractor-args=\"youtube:player_client=default,web_embedded\"");
+            // Skip the tab auth check as well, so channels that require sign-in still resolve on this path.
+            args.Add("--extractor-args=\"youtubetab:skip=authcheck\"");
 
             // Unsure as to whether YouTube has or will ever offer merged formats with anything other than H.264
             // but we should respect these options anyways.
