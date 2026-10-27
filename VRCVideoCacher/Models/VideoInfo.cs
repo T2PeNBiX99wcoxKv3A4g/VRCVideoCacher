@@ -16,10 +16,7 @@ public enum DownloadFormat
     MP4,
 
     /// <summary>Matroska container (YouTube AVPro cache).</summary>
-    MKV,
-
-    /// <summary>WebM container.</summary>
-    Webm
+    MKV
 }
 
 public class VideoInfo

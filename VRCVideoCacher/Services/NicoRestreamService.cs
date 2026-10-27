@@ -170,10 +170,8 @@ public static partial class NicoRestreamService
         {
             using (UsingUntil.Run(() => TempDownloadsInFlight.TryRemove(key, out _)))
             {
-                var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;
-                var ext = isWebm ? "webm" : "mp4";
                 var tempDir = new TempDir();
-                var tempDownloadPath = Path.Join(tempDir.FullName, $"{key}.{ext}");
+                var tempDownloadPath = Path.Join(tempDir.FullName, $"{key}.mp4");
 
                 using var process = new Process();
                 process.StartInfo = new()
@@ -185,9 +183,7 @@ public static partial class NicoRestreamService
                     CreateNoWindow = true,
                     StandardOutputEncoding = Encoding.UTF8,
                     StandardErrorEncoding = Encoding.UTF8,
-                    Arguments = isWebm
-                        ? $"-q -o \"{tempDownloadPath}\" --recode-video webm \"{videoInfo.VideoUrl}\""
-                        : $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{videoInfo.VideoUrl}\""
+                    Arguments = $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{videoInfo.VideoUrl}\""
                 };
 
                 process.Start();
@@ -211,7 +207,7 @@ public static partial class NicoRestreamService
 
                 TempFiles[key] = (tempDir, tempDownloadPath);
 
-                var url = $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{key}.{ext}";
+                var url = $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{key}.mp4";
                 return url;
             }
         }));
@@ -231,8 +227,8 @@ public static partial class NicoRestreamService
 
         var filePath = tempItem.FilePath;
         var fileLength = new FileInfo(filePath).Length;
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        var contentType = ext == ".webm" ? "video/webm" : "video/mp4";
+        // NicoVideo playback only supports MP4.
+        const string contentType = "video/mp4";
 
         context.Response.ContentType = contentType;
         context.Response.Headers["Access-Control-Allow-Origin"] = "*";

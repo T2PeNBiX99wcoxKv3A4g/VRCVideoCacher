@@ -15,7 +15,6 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 {
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadMkvName = "_tempVideo.mkv";
-    private const string TempDownloadWebmName = "_tempVideo.webm";
 
     private static readonly HttpClient HttpClient = new()
     {
@@ -586,8 +585,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     private async Task<bool> DownloadNicoVideo(VideoInfo videoInfo, StatusActivity activity)
     {
         using var tempDir = new TempDir();
-        var isWebm = videoInfo.DownloadFormat == DownloadFormat.Webm;
-        var tempDownloadPath = Path.Join(tempDir.FullName, isWebm ? TempDownloadWebmName : TempDownloadMp4Name);
+        var tempDownloadPath = Path.Join(tempDir.FullName, TempDownloadMp4Name);
 
         var url = videoInfo.VideoUrl;
         using var process = new Process();
@@ -600,9 +598,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             CreateNoWindow = true,
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
-            Arguments = isWebm
-                ? $"-q -o \"{tempDownloadPath}\" --recode-video webm \"{url}\""
-                : $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{url}\""
+            // NicoVideo playback only supports MP4.
+            Arguments = $"-q -o \"{tempDownloadPath}\" --remux-video mp4 \"{url}\""
         };
 
         Log.Information("Downloading NicoNico Video: {Args}", process.StartInfo.Arguments);
