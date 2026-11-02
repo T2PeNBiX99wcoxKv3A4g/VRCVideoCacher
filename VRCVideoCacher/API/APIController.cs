@@ -192,9 +192,11 @@ public class ApiController : WebApiController
 
         // Direct live streams (MPEG-TS / HLS / DASH) are player-native: probing them with yt-dlp only
         // adds latency and can turn a perfectly playable stream into a 401. Pass one through only after
-        // confirming it actually serves media; otherwise return empty rather than a dead URL. AVPro is
-        // required because the Unity player cannot play these containers.
-        if (avPro && videoInfo.UrlType == UrlType.Other &&
+        // confirming it actually serves media; otherwise return empty rather than a dead URL. This
+        // applies to both players: AVPro decodes these containers natively, and the Unity player could
+        // not have played a live stream through the old yt-dlp path either — the difference is that the
+        // short path skips a pointless probe. Verification still guarantees the URL is real media.
+        if (videoInfo.UrlType == UrlType.Other &&
             DirectStreamProbe.IsDirectStreamUrl(videoInfo.VideoUrl))
         {
             if (await DirectStreamProbe.IsPlayableAsync(videoInfo.VideoUrl))
