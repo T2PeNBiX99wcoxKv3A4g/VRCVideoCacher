@@ -350,8 +350,11 @@ public class ApiController : WebApiController
             return;
 
         // check if file is cached again to handle race condition
+        // Only queue when resolution succeeded: for a non-YouTube URL that just failed (a dead or
+        // private direct stream), the download would repeat the exact same failure as a background job
+        // and surface it again as an error.
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);
-        if (!isCached && (
+        if (success && !isCached && (
             videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
             videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
             videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing ||
