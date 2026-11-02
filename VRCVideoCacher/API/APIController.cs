@@ -7,6 +7,7 @@ using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.API;
@@ -189,6 +190,27 @@ public class ApiController : WebApiController
             return;
         }
 
+        // Direct live streams (MPEG-TS / HLS / DASH) are player-native: probing them with yt-dlp only
+        // adds latency and can turn a perfectly playable stream into a 401. Pass one through only after
+        // confirming it actually serves media; otherwise return empty rather than a dead URL. AVPro is
+        // required because the Unity player cannot play these containers.
+        if (avPro && videoInfo.UrlType == UrlType.Other &&
+            DirectStreamProbe.IsDirectStreamUrl(videoInfo.VideoUrl))
+        {
+            if (await DirectStreamProbe.IsPlayableAsync(videoInfo.VideoUrl))
+            {
+                Log.Information("Responding with verified direct stream URL: {Url}", videoInfo.VideoUrl);
+                await HttpContext.SendStringAsync(videoInfo.VideoUrl, "text/plain", Encoding.UTF8);
+            }
+            else
+            {
+                Log.Information("Direct stream is not playable, refusing: {Url}", videoInfo.VideoUrl);
+                await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
+            }
+
+            return;
+        }
+
         if (videoInfo.UrlType == UrlType.NicoVideo)
         {
             if (avPro)
@@ -352,9 +374,10 @@ public class ApiController : WebApiController
         // check if file is cached again to handle race condition
         // Only queue when resolution succeeded: for a non-YouTube URL that just failed (a dead or
         // private direct stream), the download would repeat the exact same failure as a background job
-        // and surface it again as an error.
+        // and surface it again as an error. Direct streams are excluded even on success: a live stream
+        // never ends, so it can never become a cache file.
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);
-        if (success && !isCached && (
+        if (success && !isCached && !DirectStreamProbe.IsDirectStreamUrl(videoInfo.VideoUrl) && (
             videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
             videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
             videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing ||
