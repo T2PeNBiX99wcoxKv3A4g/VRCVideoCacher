@@ -10,6 +10,7 @@ using Jeek.Avalonia.Localization;
 using VRCVideoCacher.API;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
+using VRCVideoCacher.Views;
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -400,6 +401,25 @@ public partial class SettingsViewModel : ViewModelBase
     {
         LoadFromConfig();
         SetStatusMessage(Localizer.Get("SettingsReset"), "#81C784");
+    }
+
+    [RelayCommand]
+    private async Task Uninstall()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is not
+            Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var confirmed = await ConfirmWindow.ShowAsync(
+            desktop.MainWindow!,
+            Localizer.Get("Uninstall"),
+            Localizer.Get("UninstallConfirm"),
+            Localizer.Get("Uninstall"));
+        if (!confirmed)
+            return;
+
+        Utils.Uninstall.StartDetached();
+        desktop.Shutdown();
     }
 
     [RelayCommand]

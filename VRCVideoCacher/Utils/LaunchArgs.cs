@@ -12,6 +12,7 @@ public static class LaunchArgs
     private const string NoOvrArg = "--no-ovr";
     private const string CloseWithSteamVrArg = "--close-with-steamvr";
     private const string ConfigNameArg = "--config-name";
+    private const string UninstallArg = "--uninstall";
 
     public static bool IsBypassArgumentPresent;
     public static bool HasGui = true;
@@ -23,6 +24,7 @@ public static class LaunchArgs
     public static bool OVR = true;
     public static bool CloseWithSteamVr;
     public static string? ConfigName;
+    public static bool Uninstall;
 
     public static void SetupArguments(params string[] args)
     {
@@ -66,6 +68,9 @@ public static class LaunchArgs
                 var name = arg[(ConfigNameArg.Length + 1)..];
                 ConfigName = name;
             }
+
+            if (arg.Equals(UninstallArg, StringComparison.OrdinalIgnoreCase))
+                Uninstall = true;
         }
     }
 

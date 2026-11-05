@@ -102,6 +102,25 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
     }
 
     [SupportedOSPlatform("windows")]
+    [PublicAPI]
+    public void RemoveShortcuts2()
+    {
+        var shortcutPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX",
+            "startup");
+        if (!Directory.Exists(shortcutPath))
+            return;
+
+        foreach (var shortCut in FindShortcutFiles(shortcutPath))
+        {
+            if (!Path.GetFileName(shortCut).Contains(ShortcutName))
+                continue;
+
+            Log.Information("Removing shortcut {ShortCut}", shortCut);
+            File.Delete(shortCut);
+        }
+    }
+
+    [SupportedOSPlatform("windows")]
     private void RemoveLegacyShortcut(bool createIfAnyFound)
     {
         var shortcutPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX",

@@ -500,12 +500,31 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
+
+                <!-- Uninstall -->
+                <Border Classes="card">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5" Margin="0,0,15,0">
+                            <TextBlock Text="{l:Localize Uninstall}" FontWeight="Bold" FontSize="15"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock Text="{l:Localize UninstallDescription}" Opacity="0.7" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding UninstallCommand}" Classes="danger"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <mi:MaterialIcon Kind="DeleteForever" Width="16" Height="16" />
+                                <TextBlock Text="{l:Localize Uninstall}" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>
 
     <UserControl.Styles>
-        <!-- Unsaved changes -> pulse the Save button so it's impossible to miss -->
+        <!-- Unsaved changes -> pulse the Save button so it's impossible to miss. Opacity animation per the
+             Avalonia docs' keyframe example (RenderTransform/BoxShadow are not reliable here). -->
         <Style Selector="Button.primary.pending">
             <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
             <Style.Animations>

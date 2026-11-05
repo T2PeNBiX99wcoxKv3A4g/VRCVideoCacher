@@ -116,7 +116,8 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
             AddHostFile();
     }
 
-    private void AddHostFile()
+    [PublicAPI]
+    public Process? StartElevated2(string flag)
     {
         Process? proc;
         if (OperatingSystem.IsWindows())
@@ -126,7 +127,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
                 StartInfo =
                 {
                     FileName = Environment.ProcessPath,
-                    Arguments = "--addhost",
+                    Arguments = flag,
                     UseShellExecute = true,
                     Verb = "runas"
                 }
@@ -138,25 +139,32 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
             catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
                 Log.Warning("User cancelled UAC prompt.");
-                return;
+                return null;
             }
         }
         else
         {
-            proc = MakeLinuxElevatedProcess("--addhost");
-            if (proc == null) return;
+            proc = MakeLinuxElevatedProcess(flag);
+            if (proc == null) return null;
             try
             {
                 proc.Start();
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to launch privilege elevator for adding host entry.");
-                return;
+                Log.Error(ex, "Failed to launch privilege elevator for {Flag}.", flag);
+                return null;
             }
         }
 
         proc.WaitForExit();
+        return proc;
+    }
+
+    private void AddHostFile()
+    {
+        var proc = StartElevated2("--addhost");
+        if (proc == null) return;
 
         if (HostsManager.IsHostAdded())
         {
@@ -174,45 +182,8 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
 
     private void RemoveHostFile()
     {
-        Process? proc;
-        if (OperatingSystem.IsWindows())
-        {
-            proc = new()
-            {
-                StartInfo =
-                {
-                    FileName = Environment.ProcessPath,
-                    Arguments = "--removehost",
-                    UseShellExecute = true,
-                    Verb = "runas"
-                }
-            };
-            try
-            {
-                proc.Start();
-            }
-            catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
-            {
-                Log.Warning("User cancelled UAC prompt.");
-                return;
-            }
-        }
-        else
-        {
-            proc = MakeLinuxElevatedProcess("--removehost");
-            if (proc == null) return;
-            try
-            {
-                proc.Start();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to launch privilege elevator for removing host entry.");
-                return;
-            }
-        }
-
-        proc.WaitForExit();
+        var proc = StartElevated2("--removehost");
+        if (proc == null) return;
 
         if (!HostsManager.IsHostAdded())
         {

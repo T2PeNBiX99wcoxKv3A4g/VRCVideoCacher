@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Sentry.Serilog;
 using Serilog;
 using Serilog.Core;
@@ -25,6 +26,15 @@ public static class LoggerUtils
     /// </summary>
     public static readonly LoggingLevelSwitch LevelSwitch = new();
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AttachConsole(int dwProcessId);
+
+    public static void AttachParentConsole()
+    {
+        if (OperatingSystem.IsWindows())
+            AttachConsole(-1);
+    }
+
     public static void InitializeLogger()
     {
         if (LaunchArgs.ErrorReporting)
@@ -46,7 +56,7 @@ public static class LoggerUtils
         if (LaunchArgs.ErrorReporting)
             loggerConfiguration = loggerConfiguration.WriteTo.Sentry(ConfigureSentryOptions);
 
-        if (LaunchArgs.HasGui)
+        if (LaunchArgs.HasGui && !LaunchArgs.Uninstall)
             loggerConfiguration = loggerConfiguration.WriteTo.Sink(new UiLogSink());
 
         Log.Logger = loggerConfiguration.CreateLogger();

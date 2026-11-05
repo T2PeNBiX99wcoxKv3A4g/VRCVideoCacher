@@ -38,6 +38,7 @@ internal sealed class Program
         Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher");
 
     public static readonly string UtilsPath = Path.Join(DataPath, "Utils");
+    public static readonly string DefaultCachePath = Path.Join(GetSystemCacheFolder(), "CachedAssets");
     public static event Action? OnCookiesUpdated;
 
     [STAThread]
@@ -46,6 +47,17 @@ internal sealed class Program
         LaunchArgs.SetupArguments(args);
         // Must run before Steam API init — this process may be a privileged subprocess invoked by ElevatorManager
         HostsManager.TryRun();
+
+        if (LaunchArgs.Uninstall)
+        {
+            LoggerUtils.AttachParentConsole();
+            LoggerUtils.InitializeLogger();
+            Logger = Log.ForContext("SourceContext", "Core");
+            Uninstall.Run();
+            Log.CloseAndFlush();
+            Environment.Exit(0);
+            return;
+        }
 
 #if STEAMRELEASE
         if (LaunchArgs.SteamSdk)
@@ -151,7 +163,7 @@ internal sealed class Program
     {
         Try.Run(() => Console.Title = $"VRCVideoCacher v{Version}");
 
-        OpenVRService.Start(CurrentProcessPath);
+        OpenVRService.Start();
 
         // Surface a fixed-port (9696) conflict up front — with the offending process — before WebServer
         // throws an opaque bind error. Reassignable ports (bgutil) handle themselves when they start.
@@ -329,6 +341,18 @@ internal sealed class Program
     }
 
     public static string ComputeBinaryContentHash(byte[] base64) => Convert.ToBase64String(SHA256.HashData(base64));
+
+    private static string GetSystemCacheFolder()
+    {
+        if (OperatingSystem.IsWindows())
+            return DataPath;
+
+        var cachePath = Environment.GetEnvironmentVariable("XDG_CACHE_HOME");
+        if (string.IsNullOrEmpty(cachePath))
+            cachePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache");
+
+        return Path.Join(cachePath, "VRCVideoCacher");
+    }
 
     private static void OnAppQuit()
     {

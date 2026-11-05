@@ -32,7 +32,7 @@ public partial class HostsManager : Singleton<HostsManager>
         if (Environment.CommandLine.Contains("--removehost"))
             Try.Run(() =>
             {
-                Remove();
+                Remove2();
                 Log.Information("Host entry removed successfully.");
                 Environment.Exit(0);
             }).OnFailure(ex =>
@@ -53,7 +53,8 @@ public partial class HostsManager : Singleton<HostsManager>
             $"{Header}127.0.0.1 localhost.youtube.com{Footer}");
     }
 
-    private void Remove()
+    [PublicAPI]
+    public void Remove2()
     {
         CreateHostsIfNotExists();
         var hostsFile = File.ReadAllText(HostsPath);

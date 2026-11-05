@@ -83,52 +83,40 @@ public partial class FileTools : Singleton<FileTools>
         throw new NotImplementedException("Unknown platform");
     }
 
+    [PublicAPI]
+    public static List<string> GetSteamInstallPaths()
+    {
+        if (OperatingSystem.IsWindows())
+            return GetWindowsSteamInstallPaths();
+
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return SteamPaths
+            .Select(steamPath => Path.Join(home, steamPath))
+            .Where(Directory.Exists)
+            .ToList();
+    }
+
     [SupportedOSPlatform("windows")]
-    private static string? GetSteamInstallPathWindows() => !OperatingSystem.IsWindows()
-        ? null
-        : SteamRegistryPaths.Select(registryPath => Registry.GetValue(registryPath, "InstallPath", null) as string)
-            .FirstOrDefault(installPath => !string.IsNullOrWhiteSpace(installPath) && Directory.Exists(installPath));
+    private static List<string> GetWindowsSteamInstallPaths() =>
+        SteamRegistryPaths
+            .Select(registryPath => Registry.GetValue(registryPath, "InstallPath", null) as string)
+            .Where(path => !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+            .Select(path => path!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
     private List<string>? GetAppLibraryPath(string appid, bool isEnabled)
     {
-        string vdfPath;
-        if (OperatingSystem.IsWindows())
+        var vdfPath = GetSteamInstallPaths()
+            .Select(path => Path.Join(path, "steamapps", "libraryfolders.vdf"))
+            .FirstOrDefault(File.Exists);
+        if (vdfPath == null)
         {
-            var steamInstallPath = GetSteamInstallPathWindows();
-            if (string.IsNullOrEmpty(steamInstallPath))
-            {
-                if (isEnabled)
-                    Log.Error("GetAppLibraryPath: Unable to find Steam installation directory");
-                else
-                    Log.Warning("GetAppLibraryPath: Unable to find Steam installation directory");
-                return null;
-            }
-
-            vdfPath = Path.Join(steamInstallPath, "steamapps", "libraryfolders.vdf");
-        }
-        else if (OperatingSystem.IsLinux())
-        {
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var vdfPaths = SteamPaths
-                .Select(path => Path.Join(home, path, "steamapps", "libraryfolders.vdf"))
-                .Where(Path.Exists).ToArray();
-
-            if (vdfPaths.Length == 0)
-            {
-                if (isEnabled)
-                    Log.Error("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
-                else
-                    Log.Warning("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
-                return null;
-            }
-
-            vdfPath = vdfPaths.First();
-        }
-        else
-        {
-            Log.Error("GetAppLibraryPath: Unsupported operating system {OperatingSystem}",
-                Environment.OSVersion.Platform);
+            if (isEnabled)
+                Log.Error("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
+            else
+                Log.Warning("GetAppLibraryPath: Couldn't find libraryfolders.vdf!");
             return null;
         }
 

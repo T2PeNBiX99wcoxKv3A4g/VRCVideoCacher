@@ -52,6 +52,7 @@
         <Compile Remove="..\VRCVideoCacher\Utils\OpusMp4Check.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\PortAudit.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\ProtectedStringConverter.cs"/>
+        <Compile Remove="..\VRCVideoCacher\Utils\Uninstall.cs"/>
         <!-- Depend on the app-coupled files above (Singleton<T> / Program / ConfigManager). -->
         <Compile Remove="..\VRCVideoCacher\Utils\AutoStartShortcut.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\BulkPreCache.cs"/>
