@@ -17,6 +17,24 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
+    <!-- Windows SDK projection for direct WinRT toast notifications. The app targets plain net10.0
+         so the same assembly still builds on Linux; the projection is referenced only for win-x64. -->
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(NETCoreSdkPortableRuntimeIdentifier)' == 'win-x64')">
+        <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(NETCoreSdkPortableRuntimeIdentifier)' == 'win-x64')">
+        <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.28000.87]" />
+        <Reference Include="Microsoft.Windows.SDK.NET">
+            <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\Microsoft.Windows.SDK.NET.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+        <Reference Include="WinRT.Runtime">
+            <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\WinRT.Runtime.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+    </ItemGroup>
+
     <!-- Release publish settings for smaller build size -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <PublishSingleFile>true</PublishSingleFile>
@@ -135,7 +153,6 @@
     <ItemGroup>
         <AvaloniaResource Include="Assets\icon.ico"/>
         <AvaloniaResource Include="Assets\SmallBanner.png"/>
-        <AvaloniaResource Include="Assets\ToastNotification.ps1"/>
     </ItemGroup>
 
     <ItemGroup>

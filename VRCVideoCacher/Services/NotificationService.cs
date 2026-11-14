@@ -1,27 +1,35 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using System.Security;
 using System.Security.Cryptography;
 using Avalonia.Platform;
 using JetBrains.Annotations;
+using Microsoft.Win32;
+using Serilog;
 using Swan;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 using OperatingSystem = System.OperatingSystem;
+#if WINDOWS_DESKTOP
+using Windows.Data.Xml.Dom;
+using Windows.UI.Notifications;
+#endif
 
 namespace VRCVideoCacher.Services;
 
 public static class NotificationService
 {
     private const string AppId = "VRCVideoCacher";
-    private static readonly string? ScriptPath;
+    private static readonly ILogger Log = Program.Logger.ForContext(typeof(NotificationService));
     private static readonly string? IconPath;
 
     static NotificationService()
     {
         if (!OperatingSystem.IsWindows()) return;
-        ScriptPath = EnsureAssetExtracted("ToastNotification.ps1",
-            "avares://VRCVideoCacher/Assets/ToastNotification.ps1");
         IconPath = EnsureAssetExtracted("icon.ico", "avares://VRCVideoCacher/Assets/icon.ico");
+#if WINDOWS_DESKTOP
+        EnsureAppIdRegistered();
+#endif
     }
 
     [SupportedOSPlatform("windows")]
@@ -62,63 +70,78 @@ public static class NotificationService
         }).GetOrNull();
     }
 
-    [PublicAPI]
-    public static void ShowErrorNotification(string title, string message)
+#if WINDOWS_DESKTOP
+    /// <summary>
+    /// Unpackaged desktop apps need an AppUserModelID entry before Windows will accept a toast from
+    /// them. This is the same registration the old PowerShell helper performed.
+    /// </summary>
+    [SupportedOSPlatform("windows")]
+    private static void EnsureAppIdRegistered()
     {
-        ShowNotification(title, message);
+        Try.Run(() =>
+        {
+            using var key = Registry.CurrentUser.CreateSubKey($@"SOFTWARE\Classes\AppUserModelId\{AppId}");
+            if (key == null) return;
+
+            key.SetValue("DisplayName", "VRCVideoCacher");
+
+            var icon = !string.IsNullOrEmpty(IconPath) && File.Exists(IconPath)
+                ? IconPath
+                : Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(icon))
+                key.SetValue("IconUri", icon);
+        }).OnFailure(ex => Log.Debug(ex, "Could not register the toast AppUserModelId"));
     }
+#endif
+
+    [PublicAPI]
+    public static void ShowErrorNotification(string title, string message) => ShowNotification(title, message);
 
     [PublicAPI]
     public static void ShowNotification(string title, string message, bool isError = true)
     {
-        if (OperatingSystem.IsWindows())
-            ShowWindowsToastNotification(title, message, isError);
-        else if (OperatingSystem.IsLinux())
+#if WINDOWS_DESKTOP
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
+        {
+            ShowWindowsToastNotification(title, message);
+            return;
+        }
+#endif
+        if (OperatingSystem.IsLinux())
             ShowLinuxNotification(title, message, isError);
     }
 
-    [SupportedOSPlatform("windows")]
-    private static void ShowWindowsToastNotification(string title, string message, bool isError)
+#if WINDOWS_DESKTOP
+    [SupportedOSPlatform("windows10.0.10240")]
+    private static void ShowWindowsToastNotification(string title, string message)
     {
         Task.Run(() =>
         {
             Try.Run(() =>
             {
-                if (string.IsNullOrEmpty(ScriptPath) || !File.Exists(ScriptPath)) return;
+                var escapedTitle = SecurityElement.Escape(title.Truncate(128, "...") ?? string.Empty) ?? string.Empty;
+                var escapedMessage = SecurityElement.Escape(message.Truncate(1024, "...") ?? string.Empty)
+                                     ?? string.Empty;
 
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    ArgumentList =
-                    {
-                        "-NoProfile",
-                        "-NonInteractive",
-                        "-ExecutionPolicy",
-                        "Bypass",
-                        "-File",
-                        ScriptPath,
-                        "-AppId",
-                        AppId,
-                        "-Title",
-                        title.Truncate(128, "...")!,
-                        "-Message",
-                        message.Truncate(1024, "...")!
-                    },
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
+                var xml = $"""
+                           <toast>
+                               <visual>
+                                   <binding template="ToastGeneric">
+                                       <text>{escapedTitle}</text>
+                                       <text>{escapedMessage}</text>
+                                   </binding>
+                               </visual>
+                           </toast>
+                           """;
 
-                if (!string.IsNullOrEmpty(IconPath) && File.Exists(IconPath))
-                {
-                    psi.ArgumentList.Add("-IconUri");
-                    psi.ArgumentList.Add(IconPath);
-                }
-
-                using var process = Process.Start(psi);
-            });
+                var document = new XmlDocument();
+                document.LoadXml(xml);
+                var toast = new ToastNotification(document);
+                ToastNotificationManager.CreateToastNotifier(AppId).Show(toast);
+            }).OnFailure(ex => Log.Debug(ex, "Failed to show Windows toast notification"));
         });
     }
+#endif
 
     [SupportedOSPlatform("linux")]
     private static void ShowLinuxNotification(string title, string message, bool isError)
