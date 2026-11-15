@@ -34,8 +34,12 @@ internal sealed class Program
     public static ILogger Logger = Log.ForContext("SourceContext", "Core");
     public static readonly string CurrentProcessPath = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
 
+    // VVC_DATA_PATH points config, database, thumbnails and the default cache at another folder. Tests
+    // use it to keep their throwaway state out of the user's real profile.
     public static readonly string DataPath =
-        Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher");
+        Environment.GetEnvironmentVariable("VVC_DATA_PATH") is { Length: > 0 } customDataPath
+            ? customDataPath
+            : Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCVideoCacher");
 
     public static readonly string UtilsPath = Path.Join(DataPath, "Utils");
     public static readonly string DefaultCachePath = Path.Join(GetSystemCacheFolder(), "CachedAssets");
