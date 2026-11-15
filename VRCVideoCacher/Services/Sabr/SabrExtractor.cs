@@ -212,9 +212,9 @@ internal static class SabrExtractor
 
         // Drop AI-modified variants if asked — but each filter keeps its variant when it's the only
         // option left, so the video still plays rather than falling back to a dub or nothing.
-        if (ConfigManager.Config.SabrFilterDrcAudio)
+        if (ConfigManager.Instance.Config.SabrFilterDrcAudio)
             audio = FilterKeepingSome(audio, IsDrc);
-        if (ConfigManager.Config.SabrFilterVoiceBoostedAudio)
+        if (ConfigManager.Instance.Config.SabrFilterVoiceBoostedAudio)
             audio = FilterKeepingSome(audio, IsVoiceBoosted);
 
         var aac = audio.Where(f => IsAac(f)).MaxBy(Bitrate);
@@ -225,7 +225,7 @@ internal static class SabrExtractor
         // it fine now. Keep Opus only if the video has no AAC track at all (better than nothing). See
         // OpusMp4Check. The IsWindows() guard is required: PreferAacAudio is a Windows-only signal.
         // SabrForceAacAudio is the test override — exercise this path on a machine that CAN play Opus.
-        var preferAac = ConfigManager.Config.SabrForceAacAudio
+        var preferAac = ConfigManager.Instance.Config.SabrForceAacAudio
                         || OperatingSystem.IsWindows() && OpusMp4Check.PreferAacAudio;
         if (preferAac && aac is not null)
             return aac;
@@ -255,7 +255,7 @@ internal static class SabrExtractor
         if (audio.Count == 0)
             return audio;
 
-        var dub = ConfigManager.Config.YtdlpDubLanguage;
+        var dub = ConfigManager.Instance.Config.YtdlpDubLanguage;
         if (!string.IsNullOrEmpty(dub))
         {
             var matches = audio.Where(f => LanguageMatches(f, dub)).ToList();
@@ -308,7 +308,7 @@ internal static class SabrExtractor
             .ToList();
 
         // Drop AI "super resolution" (upscaled) variants, keeping them only if nothing else is left.
-        if (ConfigManager.Config.SabrFilterSuperResolution)
+        if (ConfigManager.Instance.Config.SabrFilterSuperResolution)
             candidates = FilterKeepingSome(candidates, IsSuperResolution);
 
         return candidates
@@ -365,9 +365,9 @@ internal static class SabrExtractor
 
     private static bool IsAllowedCodec(JToken format) => format["vcodec"]?.Value<string>() switch
     {
-        { } v when v.StartsWith("av01", StringComparison.Ordinal) => ConfigManager.Config.YtdlpAllowAV1,
+        { } v when v.StartsWith("av01", StringComparison.Ordinal) => ConfigManager.Instance.Config.YtdlpAllowAV1,
         { } v when v.StartsWith("vp9", StringComparison.Ordinal) || v.StartsWith("vp09", StringComparison.Ordinal) =>
-            ConfigManager.Config.AllowVP9,
+            ConfigManager.Instance.Config.AllowVP9,
         _ => true
     };
 
@@ -411,8 +411,8 @@ internal static class SabrExtractor
         args.Append("-J --no-playlist --no-warnings --extractor-args \"youtube:formats=duplicate;player_client=web\" ");
         // The web client's streaming URL carries an 'n' challenge yt-dlp must descramble during extraction,
         // which needs a JS runtime. (android_vr didn't — REQUIRE_JS_PLAYER was false there.)
-        if (File.Exists(YtdlManager.DenoPath))
-            args.Append($"--js-runtimes deno:\"{YtdlManager.DenoPath}\" ");
+        if (File.Exists(YtdlManager.Instance.DenoPath))
+            args.Append($"--js-runtimes deno:\"{YtdlManager.Instance.DenoPath}\" ");
         // The bgutil PO token plugin: point yt-dlp at the plugin search dir (--plugin-dirs; yt-dlp finds
         // <dir>/yt-dlp-plugins/yt_dlp_plugins under it) and tell the plugin where the server is. We pass
         // base_url explicitly rather than relying on the plugin's auto-detect default (127.0.0.1) — the
@@ -426,8 +426,8 @@ internal static class SabrExtractor
             args.Append($"--cookies \"{cookiesPath}\" ");
         // Operator overrides for the SABR extraction specifically (separate from YtdlpAdditionalArgs,
         // which is for the non-SABR path). Appended last so they can override the defaults above.
-        if (!string.IsNullOrWhiteSpace(ConfigManager.Config.SabrAdditionalArgs))
-            args.Append($"{ConfigManager.Config.SabrAdditionalArgs.Trim()} ");
+        if (!string.IsNullOrWhiteSpace(ConfigManager.Instance.Config.SabrAdditionalArgs))
+            args.Append($"{ConfigManager.Instance.Config.SabrAdditionalArgs.Trim()} ");
         args.Append($"\"{videoUrl}\"");
 
         using var process = new Process();
@@ -449,7 +449,7 @@ internal static class SabrExtractor
 
         log.Debug("[sabr-extract] {File} {Args}", Path.GetFileName(ytdlpPath), args);
         process.Start();
-        using var processTracker = ChildProcessTracker.Tracking(process);
+        using var processTracker = ChildProcessTracker.Instance.Tracking(process);
         if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return new();
         var stdout = process.StandardOutput.ReadToEndAsync(ct);
         var stderr = process.StandardError.ReadToEndAsync(ct);

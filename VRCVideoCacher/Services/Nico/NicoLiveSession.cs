@@ -58,7 +58,7 @@ internal sealed partial class NicoLiveSession : INicoSession
             _cookies[kv.Key] = kv.Value;
     }
 
-    public string PlaybackUrl => $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/{_liveId}/index.m3u8";
+    public string PlaybackUrl => $"{ConfigManager.Instance.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/{_liveId}/index.m3u8";
     public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
 
     public void Touch() => LastAccess = DateTime.UtcNow;
@@ -626,13 +626,17 @@ internal sealed partial class NicoLiveSession : INicoSession
         var startMs = sequence * _targetDuration * 1000;
 
         await _buildGate.WaitAsync(_cts.Token);
-        using (UsingUntil.Run(() => _buildGate.Release()))
+        try
         {
             if (File.Exists(segmentPath) && File.Exists(initPath))
                 return;
 
             await _muxer.MuxDirectSegmentAsync(videoInit, videoBytes, audioInit, audioList, startMs, (int)sequence,
                 segmentPath, initPath, _cts.Token);
+        }
+        finally
+        {
+            _buildGate.Release();
         }
     }
 

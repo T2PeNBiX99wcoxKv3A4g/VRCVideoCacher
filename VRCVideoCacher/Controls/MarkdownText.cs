@@ -62,7 +62,7 @@ public static class MarkdownText
     /// cursor for free — hosted in an <see cref="InlineUIContainer"/> so it flows with the text.
     ///
     /// <c>NavigateUri</c> is deliberately NOT set: that would open the URL through Avalonia's launcher
-    /// and bypass <see cref="OpenUrl.Open"/>, which is what enforces the http/https allowlist.
+    /// and bypass <see cref="OpenUrl.Instance.Open"/>, which is what enforces the http/https allowlist.
     /// </summary>
     private static InlineUIContainer BuildLink(TextBlock textBlock, MarkdownSpan span)
     {
@@ -82,7 +82,7 @@ public static class MarkdownText
 
         // Show where the link actually goes — the text is author-controlled and need not match the URL.
         ToolTip.SetTip(button, url);
-        button.Click += (_, _) => OpenUrl.Open(url);
+        button.Click += (_, _) => OpenUrl.Instance.Open(url);
         return new(button);
     }
 }

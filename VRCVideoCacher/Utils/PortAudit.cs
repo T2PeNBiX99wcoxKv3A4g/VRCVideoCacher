@@ -162,7 +162,7 @@ public static partial class PortAudit
             return null;
 
         var buffer = Marshal.AllocHGlobal((nint)size);
-        using (UsingUntil.Run(() => Marshal.FreeHGlobal(buffer)))
+        try
         {
             if (GetExtendedTcpTable(buffer, ref size, false, family, TcpTableOwnerPidListener, 0) != 0)
                 return null;
@@ -192,6 +192,10 @@ public static partial class PortAudit
             }
 
             return null;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
         }
     }
 
@@ -280,7 +284,7 @@ public static partial class PortAudit
     /// </summary>
     public static void CheckWebServerPort()
     {
-        var port = Uri.TryCreate(ConfigManager.Config.YtdlpWebServerUrl, UriKind.Absolute, out var uri)
+        var port = Uri.TryCreate(ConfigManager.Instance.Config.YtdlpWebServerUrl, UriKind.Absolute, out var uri)
             ? uri.Port
             : 9696;
 

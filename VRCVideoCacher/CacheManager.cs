@@ -14,24 +14,24 @@ public enum CacheChangeType
     Removed,
     Cleared
 }
-
-public partial class CacheManager : Singleton<CacheManager>
+[Singleton]
+public partial class CacheManager
 {
     private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
-    [PublicAPI] public readonly string CachePath2;
+    [PublicAPI] public readonly string CachePath;
 
-    public CacheManager()
+    private CacheManager()
     {
-        if (string.IsNullOrEmpty(ConfigManager.Config.CachedAssetPath))
-            CachePath2 = Program.DefaultCachePath;
-        else if (Path.IsPathRooted(ConfigManager.Config.CachedAssetPath))
-            CachePath2 = ConfigManager.Config.CachedAssetPath;
+        if (string.IsNullOrEmpty(ConfigManager.Instance.Config.CachedAssetPath))
+            CachePath = Program.DefaultCachePath;
+        else if (Path.IsPathRooted(ConfigManager.Instance.Config.CachedAssetPath))
+            CachePath = ConfigManager.Instance.Config.CachedAssetPath;
         else
-            CachePath2 = Path.Join(Program.CurrentProcessPath, ConfigManager.Config.CachedAssetPath);
+            CachePath = Path.Join(Program.CurrentProcessPath, ConfigManager.Instance.Config.CachedAssetPath);
 
-        Log.Debug("Using cache path {CachePath}", CachePath2);
+        Log.Debug("Using cache path {CachePath}", CachePath);
         BuildCache();
-        _ = TryFlushCache2();
+        _ = TryFlushCache();
     }
 
     // Events for UI
@@ -40,22 +40,22 @@ public partial class CacheManager : Singleton<CacheManager>
     private void BuildCache()
     {
         _cachedAssets.Clear();
-        Directory.CreateDirectory(CachePath2);
-        var files = Directory.GetFiles(CachePath2);
+        Directory.CreateDirectory(CachePath);
+        var files = Directory.GetFiles(CachePath);
         foreach (var path in files)
         {
             var file = Path.GetFileName(path);
-            AddToCache2(file);
+            AddToCache(file);
         }
     }
 
     [PublicAPI]
-    public async Task TryFlushCache2()
+    public async Task TryFlushCache()
     {
-        if (ConfigManager.Config.CacheMaxSizeInGb <= 0f)
+        if (ConfigManager.Instance.Config.CacheMaxSizeInGb <= 0f)
             return;
 
-        var maxCacheSize = (long)(ConfigManager.Config.CacheMaxSizeInGb * 1024f * 1024f * 1024f);
+        var maxCacheSize = (long)(ConfigManager.Instance.Config.CacheMaxSizeInGb * 1024f * 1024f * 1024f);
         var cacheSize = GetCacheSize();
         if (cacheSize < maxCacheSize)
             return;
@@ -87,9 +87,9 @@ public partial class CacheManager : Singleton<CacheManager>
     }
 
     [PublicAPI]
-    public void AddToCache2(string fileName)
+    public void AddToCache(string fileName)
     {
-        var filePath = Path.Join(CachePath2, fileName);
+        var filePath = Path.Join(CachePath, fileName);
         if (!File.Exists(filePath))
             return;
 
@@ -106,7 +106,7 @@ public partial class CacheManager : Singleton<CacheManager>
         existingCache.LastModified = fileInfo.LastWriteTimeUtc;
 
         OnCacheChanged?.Invoke(fileName, CacheChangeType.Added);
-        _ = TryFlushCache2();
+        _ = TryFlushCache();
     }
 
     private long GetCacheSize()
@@ -116,17 +116,17 @@ public partial class CacheManager : Singleton<CacheManager>
 
     // Public accessors for UI
     [PublicAPI]
-    public IReadOnlyDictionary<string, VideoCache> GetCachedAssets2()
+    public IReadOnlyDictionary<string, VideoCache> GetCachedAssets()
         => _cachedAssets.ToDictionary(k => k.Key, v => v.Value);
 
     [PublicAPI]
-    public long GetTotalCacheSize2() => GetCacheSize();
+    public long GetTotalCacheSize() => GetCacheSize();
 
     [PublicAPI]
-    public int GetCachedVideoCount2() => _cachedAssets.Count;
+    public int GetCachedVideoCount() => _cachedAssets.Count;
 
     [PublicAPI]
-    public void DeleteCacheItem2(string fileName)
+    public void DeleteCacheItem(string fileName)
     {
         var filePath = Path.Join(CachePath, fileName);
         if (!File.Exists(filePath))
@@ -139,7 +139,7 @@ public partial class CacheManager : Singleton<CacheManager>
     }
 
     [PublicAPI]
-    public async Task ClearCache2()
+    public async Task ClearCache()
     {
         var recentPlayHistory = await DatabaseManager.GetPlayHistoryAsync();
         var files = _cachedAssets.Keys.ToList();

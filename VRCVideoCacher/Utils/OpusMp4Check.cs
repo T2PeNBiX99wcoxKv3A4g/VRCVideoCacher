@@ -159,7 +159,7 @@ internal static class OpusMp4Check
     private static bool Probe()
     {
         var path = Path.Combine(Path.GetTempPath(), $"vvc_opus_probe_{Environment.ProcessId}.mp4");
-        using (UsingUntil.Run(() => Try.Run(() => File.Delete(path))))
+        try
         {
             using (var resource = Program.GetEmbeddedResource(ProbeResourceName))
             using (var file = File.Create(path))
@@ -167,15 +167,19 @@ internal static class OpusMp4Check
 
             return ProbeFile(path);
         }
+        finally
+        {
+            Try.Run(() => File.Delete(path));
+        }
     }
 
     private static bool ProbeFile(string path)
     {
         Check(MFStartup(MfVersion, MfstartupFull), nameof(MFStartup));
-        using (UsingUntil.Run(() => MFShutdown()))
+        try
         {
             Check(MFCreateSourceReaderFromURL(path, IntPtr.Zero, out var reader), nameof(MFCreateSourceReaderFromURL));
-            using (UsingUntil.Run(() => Marshal.ReleaseComObject(reader)))
+            try
             {
                 // Deselect everything, then take only the audio stream: decoding the video too would
                 // make this slower and could fail for reasons that have nothing to do with Opus.
@@ -184,7 +188,7 @@ internal static class OpusMp4Check
                     return false; // no audio stream at all — the MP4 source did not surface the Opus track
 
                 Check(MFCreateMediaType(out var mediaType), nameof(MFCreateMediaType));
-                using (UsingUntil.Run(() => Marshal.ReleaseComObject(mediaType)))
+                try
                 {
                     // Locals because interop needs these by ref, and static readonly fields cannot be.
                     var majorKey = MfMtMajorType;
@@ -199,9 +203,21 @@ internal static class OpusMp4Check
                     if (reader.SetCurrentMediaType(MfSourceReaderFirstAudioStream, IntPtr.Zero, mediaType) < 0)
                         return false;
                 }
+                finally
+                {
+                    Marshal.ReleaseComObject(mediaType);
+                }
 
                 return ReadsAudio(reader);
             }
+            finally
+            {
+                Marshal.ReleaseComObject(reader);
+            }
+        }
+        finally
+        {
+            MFShutdown();
         }
     }
 
@@ -223,12 +239,22 @@ internal static class OpusMp4Check
                 continue; // a gap or a format change; keep reading
             }
 
-            using (UsingUntil.Run(() => Marshal.Release(sample)))
+            try
             {
                 var mediaSample = (IMFSample)Marshal.GetObjectForIUnknown(sample);
-                using (UsingUntil.Run(() => Marshal.ReleaseComObject(mediaSample)))
+                try
+                {
                     if (mediaSample.GetTotalLength(out var length) >= 0 && length > 0)
                         return true;
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject(mediaSample);
+                }
+            }
+            finally
+            {
+                Marshal.Release(sample);
             }
         }
 

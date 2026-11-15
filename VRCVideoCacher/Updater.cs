@@ -11,7 +11,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public partial class Updater : Singleton<Updater>
+[Singleton]
+public partial class Updater
 {
     private const string UpdateUrl = "https://api.github.com/repos/EllyVR/VRCVideoCacher/releases/latest";
 #if DEBUG
@@ -38,7 +39,7 @@ public partial class Updater : Singleton<Updater>
         OperatingSystem.IsWindows() ? "VRCVideoCacher.Temp.exe" : "VRCVideoCacher.Temp");
 
     [PublicAPI]
-    public async Task CheckForUpdates2()
+    public async Task CheckForUpdates()
     {
         Log.Information("Checking for updates...");
 
@@ -49,8 +50,8 @@ public partial class Updater : Singleton<Updater>
         }
 
         using var request = new HttpRequestMessage(HttpMethod.Get, UpdateUrl);
-        if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
-            request.Headers.Authorization = new("Bearer", ConfigManager.Config.GitHubToken.Trim());
+        if (!string.IsNullOrWhiteSpace(ConfigManager.Instance.Config.GitHubToken))
+            request.Headers.Authorization = new("Bearer", ConfigManager.Instance.Config.GitHubToken.Trim());
         using var response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
@@ -76,7 +77,7 @@ public partial class Updater : Singleton<Updater>
         }
 
         Log.Information("Update available: {Version}", latestVersion);
-        if (ConfigManager.Config.AutoUpdateVrcVideoCacher)
+        if (ConfigManager.Instance.Config.AutoUpdateVrcVideoCacher)
         {
             await UpdateAsync(latestRelease);
             return;
@@ -87,7 +88,7 @@ public partial class Updater : Singleton<Updater>
     }
 
     [PublicAPI]
-    public void Cleanup2()
+    public void Cleanup()
     {
         if (!File.Exists(BackupFilePath)) return;
         Log.Information("Leftover temp file found, deleting.");
@@ -126,7 +127,7 @@ public partial class Updater : Singleton<Updater>
                 Log.Information("Hash check passed, launching updater.");
 
                 if (!OperatingSystem.IsWindows())
-                    FileTools.MarkFileExecutable(TempFilePath);
+                    FileTools.Instance.MarkFileExecutable(TempFilePath);
 
                 var pid = Environment.ProcessId;
                 var args = LaunchArgs.BuildArgs();
@@ -182,7 +183,7 @@ public partial class Updater : Singleton<Updater>
     }
 
     [PublicAPI]
-    public bool RunUpdateHandler2()
+    public bool RunUpdateHandler()
     {
         if (LaunchArgs.OldPid == null)
         {

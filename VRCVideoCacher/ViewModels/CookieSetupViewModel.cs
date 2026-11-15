@@ -34,7 +34,7 @@ public partial class CookieSetupViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool DontShowAgainChecked { get; set; }
 
-    public bool IsDontShowAgainCheckboxVisible => !IsStep5 && !(ConfigManager.Config?.CookieSetupCompleted ?? false);
+    public bool IsDontShowAgainCheckboxVisible => !IsStep5 && !(ConfigManager.Instance.Config?.CookieSetupCompleted ?? false);
 
     public bool IsStep1 => CurrentStep == 1;
     public bool IsStep2 => CurrentStep == 2;
@@ -88,7 +88,7 @@ public partial class CookieSetupViewModel : ViewModelBase
     {
         Program.OnCookiesUpdated += OnCookiesUpdated;
         CookiesReceived = Program.IsCookiesEnabledAndValid();
-        HostState = ElevatorManager.HasHostsLine;
+        HostState = ElevatorManager.Instance.HasHostsLine;
 
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedComputedProperties);
         DontShowAgainChecked = false;
@@ -164,22 +164,22 @@ public partial class CookieSetupViewModel : ViewModelBase
     [RelayCommand]
     private void OpenExtensionStore()
     {
-        OpenUrl.Open(IsChrome ? ChromeExtensionUrl : FirefoxExtensionUrl);
+        OpenUrl.Instance.Open(IsChrome ? ChromeExtensionUrl : FirefoxExtensionUrl);
     }
 
     [RelayCommand]
     private static void OpenYouTube()
     {
-        OpenUrl.Open("https://www.youtube.com");
+        OpenUrl.Instance.Open("https://www.youtube.com");
     }
 
     [RelayCommand]
     private void ToggleHost()
     {
-        ElevatorManager.ToggleHostLine();
+        ElevatorManager.Instance.ToggleHostLine();
         Dispatcher.UIThread.Post(() =>
         {
-            HostState = ElevatorManager.HasHostsLine;
+            HostState = ElevatorManager.Instance.HasHostsLine;
             OnPropertyChanged(nameof(HostButtonText));
             OnPropertyChanged(nameof(HostStatusText));
             OnPropertyChanged(nameof(HostStatusIcon));
@@ -192,8 +192,8 @@ public partial class CookieSetupViewModel : ViewModelBase
     {
         if (CurrentStep == 5)
         {
-            ConfigManager.Config.CookieSetupCompleted = true;
-            ConfigManager.TrySaveConfig();
+            ConfigManager.Instance.Config.CookieSetupCompleted = true;
+            ConfigManager.Instance.TrySaveConfig();
             Program.OnCookiesUpdated -= OnCookiesUpdated;
             RequestClose?.Invoke();
             return;
@@ -214,8 +214,8 @@ public partial class CookieSetupViewModel : ViewModelBase
     {
         if (DontShowAgainChecked)
         {
-            ConfigManager.Config.CookieSetupCompleted = true;
-            ConfigManager.TrySaveConfig();
+            ConfigManager.Instance.Config.CookieSetupCompleted = true;
+            ConfigManager.Instance.TrySaveConfig();
         }
 
         Program.OnCookiesUpdated -= OnCookiesUpdated;

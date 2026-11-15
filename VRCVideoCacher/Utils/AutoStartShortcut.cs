@@ -8,7 +8,8 @@ using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
-public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
+[Singleton]
+public partial class AutoStartShortcut
 {
     private static readonly byte[] ShortcutSignatureBytes = [.. "L\0\0\0"u8]; // signature for ShellLinkHeader
     private const string ShortcutName = "VRCVideoCacher";
@@ -29,7 +30,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
 
     [SupportedOSPlatform("windows")]
     [PublicAPI]
-    public void TryUpdateShortcutPath2()
+    public void TryUpdateShortcutPath()
     {
         RemoveLegacyShortcut(true);
 
@@ -65,7 +66,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
 
     [SupportedOSPlatform("windows")]
     [PublicAPI]
-    public void CreateShortcut2()
+    public void CreateShortcut()
     {
         if (StartupEnabled())
             return;
@@ -103,7 +104,7 @@ public partial class AutoStartShortcut : Singleton<AutoStartShortcut>
 
     [SupportedOSPlatform("windows")]
     [PublicAPI]
-    public void RemoveShortcuts2()
+    public void RemoveShortcuts()
     {
         var shortcutPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCX",
             "startup");

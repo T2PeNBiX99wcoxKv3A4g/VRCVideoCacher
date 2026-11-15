@@ -18,12 +18,12 @@
     </PropertyGroup>
 
     <!-- Windows SDK projection for direct WinRT toast notifications. The app targets plain net10.0
-         so the same assembly still builds on Linux; the projection is referenced only for win-x64. -->
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(NETCoreSdkPortableRuntimeIdentifier)' == 'win-x64')">
+         so the same assembly still builds on Linux; the projection is referenced for any Windows RID. -->
+    <PropertyGroup Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win')) Or ('$(RuntimeIdentifier)' == '' And $([System.String]::Copy('$(NETCoreSdkPortableRuntimeIdentifier)').StartsWith('win')))">
         <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(NETCoreSdkPortableRuntimeIdentifier)' == 'win-x64')">
+    <ItemGroup Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win')) Or ('$(RuntimeIdentifier)' == '' And $([System.String]::Copy('$(NETCoreSdkPortableRuntimeIdentifier)').StartsWith('win')))">
         <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.28000.87]" />
         <Reference Include="Microsoft.Windows.SDK.NET">
             <HintPath>$(NuGetPackageRoot)microsoft.windows.sdk.net.ref\10.0.28000.87\lib\net9.0\Microsoft.Windows.SDK.NET.dll</HintPath>

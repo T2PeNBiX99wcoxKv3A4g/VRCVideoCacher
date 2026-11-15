@@ -6,9 +6,10 @@ using VRCVideoCacher.API;
 
 namespace VRCVideoCacher.Utils;
 
-public partial class ElevatorManager : Singleton<ElevatorManager>
+[Singleton]
+public partial class ElevatorManager
 {
-    [PublicAPI] public bool HasHostsLine2 = HostsManager.IsHostAdded();
+    [PublicAPI] public bool HasHostsLine = HostsManager.Instance.IsHostAdded();
 
     private readonly bool _inPressureVessel = Directory.Exists("/run/pressure-vessel");
 
@@ -108,7 +109,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
     }
 
     [PublicAPI]
-    public void ToggleHostLine2()
+    public void ToggleHostLine()
     {
         if (HasHostsLine)
             RemoveHostFile();
@@ -117,7 +118,7 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
     }
 
     [PublicAPI]
-    public Process? StartElevated2(string flag)
+    public Process? StartElevated(string flag)
     {
         Process? proc;
         if (OperatingSystem.IsWindows())
@@ -163,16 +164,16 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
 
     private void AddHostFile()
     {
-        var proc = StartElevated2("--addhost");
+        var proc = StartElevated("--addhost");
         if (proc == null) return;
 
-        if (HostsManager.IsHostAdded())
+        if (HostsManager.Instance.IsHostAdded())
         {
             Log.Information("Host entry added successfully.");
             HasHostsLine = true;
-            ConfigManager.Config.YtdlpWebServerUrl = "http://localhost.youtube.com:9696";
-            ConfigManager.TrySaveConfig();
-            WebServer.StartOrRestart();
+            ConfigManager.Instance.Config.YtdlpWebServerUrl = "http://localhost.youtube.com:9696";
+            ConfigManager.Instance.TrySaveConfig();
+            WebServer.Instance.StartOrRestart();
         }
         else
             Log.Warning(
@@ -182,16 +183,16 @@ public partial class ElevatorManager : Singleton<ElevatorManager>
 
     private void RemoveHostFile()
     {
-        var proc = StartElevated2("--removehost");
+        var proc = StartElevated("--removehost");
         if (proc == null) return;
 
-        if (!HostsManager.IsHostAdded())
+        if (!HostsManager.Instance.IsHostAdded())
         {
             Log.Information("Host entry removed successfully.");
             HasHostsLine = false;
-            ConfigManager.Config.YtdlpWebServerUrl = "http://localhost:9696";
-            ConfigManager.TrySaveConfig();
-            WebServer.StartOrRestart();
+            ConfigManager.Instance.Config.YtdlpWebServerUrl = "http://localhost:9696";
+            ConfigManager.Instance.TrySaveConfig();
+            WebServer.Instance.StartOrRestart();
         }
         else
             Log.Warning(

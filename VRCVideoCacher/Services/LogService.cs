@@ -94,11 +94,11 @@ public class UiLogSink : ILogEventSink
             if (logEvent.Exception != null)
                 message += Environment.NewLine + logEvent.Exception;
 
-            if (ConfigManager.Config is { ErrorPopups: true } &&
+            if (ConfigManager.Instance.Config is { ErrorPopups: true } &&
                 TryAcquire(PopupHistory, key, PopupRepeatWindow))
                 Dispatcher.UIThread.Post(() => ShowPopup(key, source, message));
 
-            if (ConfigManager.Config is { ErrorNotifications: true } &&
+            if (ConfigManager.Instance.Config is { ErrorNotifications: true } &&
                 TryAcquire(ToastHistory, key, ToastRepeatWindow))
                 NotificationService.ShowErrorNotification($"Error from {source}", message);
         }

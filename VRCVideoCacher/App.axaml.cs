@@ -43,7 +43,7 @@ public class App : Application
 
         MainWindow.Opened -= OnMainWindowOpened;
 
-        if (!ConfigManager.Config.StartMinimized)
+        if (!ConfigManager.Instance.Config.StartMinimized)
             return;
 
         // Let Avalonia finish the initial open/layout/render work first.
@@ -52,7 +52,7 @@ public class App : Application
         // Then minimize/hide on the next UI turn.
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            if (ConfigManager.Config.CloseToTray)
+            if (ConfigManager.Instance.Config.CloseToTray)
                 MainWindow.Hide();
             else
                 MainWindow.WindowState = WindowState.Minimized;
@@ -82,7 +82,7 @@ public class App : Application
             // Handle window closing - minimize to tray instead, but allow OS/programmatic closes
             MainWindow.Closing += (_, e) =>
             {
-                if (!ConfigManager.Config.CloseToTray || _isExiting || e.IsProgrammatic)
+                if (!ConfigManager.Instance.Config.CloseToTray || _isExiting || e.IsProgrammatic)
                     return;
 
                 e.Cancel = true;
@@ -104,7 +104,7 @@ public class App : Application
         var localizer = new EmbeddedJsonLocalizer();
         Localizer.SetLocalizer(localizer);
 
-        var configLang = ConfigManager.Config.Language;
+        var configLang = ConfigManager.Instance.Config.Language;
         var lang = string.IsNullOrEmpty(configLang) ? "en" : configLang;
         Localizer.Language = lang;
     }
@@ -119,7 +119,7 @@ public class App : Application
             case WmSysCommand when (wParam.ToInt32() & 0xFFF0) == ScClose:
             case WmClose:
             {
-                if (ConfigManager.Config.CloseToTray)
+                if (ConfigManager.Instance.Config.CloseToTray)
                 {
                     MainWindow?.Hide();
                     handled = true;
@@ -169,7 +169,7 @@ public class App : Application
             //Pressing X on window does not remove the tray nor stop the console process
             MainWindow!.Closing += (_, _) =>
             {
-                if (ConfigManager.Config.CloseToTray || _isExiting)
+                if (ConfigManager.Instance.Config.CloseToTray || _isExiting)
                     return;
 
                 _isExiting = true;
@@ -229,7 +229,7 @@ public class App : Application
 
     private static void OpenCacheFolder()
     {
-        var cachePath = CacheManager.CachePath;
+        var cachePath = CacheManager.Instance.CachePath;
         if (OperatingSystem.IsWindows())
             Process.Start("explorer.exe", cachePath);
         else if (OperatingSystem.IsLinux())

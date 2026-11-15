@@ -1,4 +1,4 @@
-﻿using System.Web;
+using System.Web;
 using VRCVideoCacher.Models;
 using VRCVideoCacher.Services;
 using VRCVideoCacher.Utils;
@@ -31,7 +31,7 @@ public class PyPyDanceHandler : Handler<PyPyDanceHandler>
 
             var query = HttpUtility.ParseQueryString(uri.Query);
             if (int.TryParse(query.Get("id"), out var idInt))
-                _ = Task.Run(async () => await PyPyDanceApiService.DownloadMetadata(idInt, videoId));
+                _ = Task.Run(async () => await PyPyDanceApiService.Instance.DownloadMetadata(idInt, videoId));
             else
                 Log.Warning("Failed to parse numeric ID from PypyDance URL query for metadata: {Url}", url);
 

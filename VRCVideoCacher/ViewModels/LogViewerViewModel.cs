@@ -45,7 +45,7 @@ public partial class LogViewerViewModel : ViewModelBase
 
     private void LoadFromConfig()
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
 #if !DEBUG
         ShowDebug = config.ShowDebug;
 #endif
@@ -61,8 +61,8 @@ public partial class LogViewerViewModel : ViewModelBase
         if (value <= 0)
             return;
 
-        ConfigManager.Config.MaxLogEntries = value;
-        ConfigManager.TrySaveConfigWithoutWait(false);
+        ConfigManager.Instance.Config.MaxLogEntries = value;
+        ConfigManager.Instance.TrySaveConfigWithoutWait(false);
         Dispatcher.UIThread.Post(Refresh);
     }
 
@@ -115,9 +115,9 @@ public partial class LogViewerViewModel : ViewModelBase
     partial void OnShowDebugChanged(bool value)
     {
 #if !DEBUG
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         config.ShowDebug = value;
-        ConfigManager.TrySaveConfigWithoutWait(false);
+        ConfigManager.Instance.TrySaveConfigWithoutWait(false);
 #endif
         // Capture Debug/trace only while the toggle is on, so it never spams the log file or buffer by
         // default. Information is the floor either way.
@@ -127,25 +127,25 @@ public partial class LogViewerViewModel : ViewModelBase
 
     partial void OnShowInfoChanged(bool value)
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         config.ShowInfo = value;
-        ConfigManager.TrySaveConfigWithoutWait(false);
+        ConfigManager.Instance.TrySaveConfigWithoutWait(false);
         ApplyFilter();
     }
 
     partial void OnShowWarningChanged(bool value)
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         config.ShowWarning = value;
-        ConfigManager.TrySaveConfigWithoutWait(false);
+        ConfigManager.Instance.TrySaveConfigWithoutWait(false);
         ApplyFilter();
     }
 
     partial void OnShowErrorChanged(bool value)
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         config.ShowError = value;
-        ConfigManager.TrySaveConfigWithoutWait(false);
+        ConfigManager.Instance.TrySaveConfigWithoutWait(false);
         ApplyFilter();
     }
 

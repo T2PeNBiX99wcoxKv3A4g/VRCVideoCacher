@@ -37,7 +37,7 @@ public partial class CacheItemViewModel : ViewModelBase
 
     public async Task LoadMetadataAsync()
     {
-        if (NicoVideoApiService.IsValidVideoId(VideoId))
+        if (NicoVideoApiService.Instance.IsValidVideoId(VideoId))
             Type = UrlType.NicoVideo;
         else if (VideoId.Length == 11)
             Type = UrlType.YouTube;
@@ -46,7 +46,7 @@ public partial class CacheItemViewModel : ViewModelBase
         var videoInfo = Type switch
         {
             UrlType.YouTube => await YouTubeMetadataService.GetVideoMetadataAsync(VideoId),
-            UrlType.NicoVideo => await NicoVideoApiService.GetVideoMetadataAsync(VideoId),
+            UrlType.NicoVideo => await NicoVideoApiService.Instance.GetVideoMetadataAsync(VideoId),
             _ => null
         };
 
@@ -66,7 +66,7 @@ public partial class CacheItemViewModel : ViewModelBase
             thumbnailPath = Type switch
             {
                 UrlType.YouTube => await YouTubeMetadataService.GetThumbnail(VideoId),
-                UrlType.NicoVideo => await NicoVideoApiService.GetThumbnail(VideoId),
+                UrlType.NicoVideo => await NicoVideoApiService.Instance.GetThumbnail(VideoId),
                 _ => null
             };
 
@@ -83,10 +83,10 @@ public partial class CacheItemViewModel : ViewModelBase
         return Type switch
         {
             UrlType.YouTube => $"https://www.youtube.com/watch?v={VideoId}",
-            UrlType.NicoVideo => NicoVideoApiService.IsValidLiveId(VideoId)
+            UrlType.NicoVideo => NicoVideoApiService.Instance.IsValidLiveId(VideoId)
                 ? $"https://live.nicovideo.jp/watch/{VideoId}"
                 : $"https://www.nicovideo.jp/watch/{VideoId}",
-            _ => $"{ConfigManager.Config.YtdlpWebServerUrl}/{VideoId}.mp4"
+            _ => $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{VideoId}.mp4"
         };
     }
 
@@ -110,7 +110,7 @@ public partial class CacheItemViewModel : ViewModelBase
     [RelayCommand]
     private async Task CopyUrl()
     {
-        var url = $"{ConfigManager.Config.YtdlpWebServerUrl}/{FileName}";
+        var url = $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{FileName}";
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var clipboard = desktop.MainWindow?.Clipboard;
@@ -122,7 +122,7 @@ public partial class CacheItemViewModel : ViewModelBase
     [RelayCommand]
     private void Delete()
     {
-        CacheManager.DeleteCacheItem(FileName);
+        CacheManager.Instance.DeleteCacheItem(FileName);
         OnDeleted?.Invoke(this);
     }
 
@@ -183,7 +183,7 @@ public partial class CacheBrowserViewModel : ViewModelBase
         CachedVideos.Clear();
         FilteredVideos.Clear();
 
-        var cachedAssets = CacheManager.GetCachedAssets();
+        var cachedAssets = CacheManager.Instance.GetCachedAssets();
         var itemsToLoad = new List<CacheItemViewModel>();
 
         foreach (var (fileName, cache) in cachedAssets.OrderByDescending(x => x.Value.LastModified))
@@ -252,13 +252,13 @@ public partial class CacheBrowserViewModel : ViewModelBase
             Localizer.Get("DeleteAllCache"),
             Localizer.Get("DeleteAllCacheConfirm"));
         if (confirmed)
-            await CacheManager.ClearCache();
+            await CacheManager.Instance.ClearCache();
     }
 
     [RelayCommand]
     private void OpenInExplorer()
     {
-        var cachePath = CacheManager.CachePath;
+        var cachePath = CacheManager.Instance.CachePath;
         if (OperatingSystem.IsWindows())
         {
             if (SelectedItem != null)

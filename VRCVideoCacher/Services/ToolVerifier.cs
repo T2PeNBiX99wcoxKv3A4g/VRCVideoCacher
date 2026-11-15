@@ -28,17 +28,17 @@ public static class ToolVerifier
         // Run --version to confirm it actually works, but display the tracked release NAME instead: we ship
         // the bashonly SABR build and its name carries the "sabr" marker ("sabr 2026.08.19.233452"), which
         // `yt-dlp --version` alone omits (it prints just the date).
-        var check = await RunVersionAsync(YtdlManager.YtdlPath, "--version");
-        if (check.Ok && !string.IsNullOrWhiteSpace(Versions.CurrentVersion.Ytdlp))
+        var check = await RunVersionAsync(YtdlManager.Instance.YtdlPath, "--version");
+        if (check.Ok && !string.IsNullOrWhiteSpace(Versions.Instance.CurrentVersion.Ytdlp))
             return check with
             {
-                Detail = Versions.CurrentVersion.Ytdlp
+                Detail = Versions.Instance.CurrentVersion.Ytdlp
             };
         return check;
     }
 
-    public static Task<ToolCheck> VerifyDenoAsync() => RunVersionAsync(YtdlManager.DenoPath, "--version");
-    public static Task<ToolCheck> VerifyFfmpegAsync() => RunVersionAsync(YtdlManager.FfmpegPath, "-version");
+    public static Task<ToolCheck> VerifyDenoAsync() => RunVersionAsync(YtdlManager.Instance.DenoPath, "--version");
+    public static Task<ToolCheck> VerifyFfmpegAsync() => RunVersionAsync(YtdlManager.Instance.FfmpegPath, "-version");
 
     public static async Task<ToolCheck> VerifyPotProviderAsync()
     {
@@ -48,7 +48,7 @@ public static class ToolVerifier
         // instant it answers, and bails immediately if provisioning genuinely failed, so this only actually
         // waits while it's still coming up. With SABR off we don't start it, so a single ping is right (that
         // path only reports on an externally-managed provider).
-        var ok = ConfigManager.Config.SabrRestreamEnabled
+        var ok = ConfigManager.Instance.Config.SabrRestreamEnabled
             ? await BgUtilPotProvider.WaitReadyAsync(TimeSpan.FromSeconds(20))
             : await BgUtilPotProvider.IsRespondingAsync();
         // A failed health check means "not working", not that the provider is missing.
@@ -76,7 +76,7 @@ public static class ToolVerifier
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using var processTracker = ChildProcessTracker.Tracking(process);
+            using var processTracker = ChildProcessTracker.Instance.Tracking(process);
             if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating)
                 return new(false, true, string.Empty);
             var stdout = process.StandardOutput.ReadToEndAsync(cts.Token);

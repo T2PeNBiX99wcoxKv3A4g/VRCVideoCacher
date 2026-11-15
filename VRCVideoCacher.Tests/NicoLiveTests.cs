@@ -240,8 +240,8 @@ public class NicoLiveTests
     [InlineData("youtube123", false, false)]
     public void Test_IdValidation(string id, bool isVideo, bool isLive)
     {
-        Assert.Equal(isVideo, NicoVideoApiService.IsValidVideoId(id));
-        Assert.Equal(isLive, NicoVideoApiService.IsValidLiveId(id));
+        Assert.Equal(isVideo, NicoVideoApiService.Instance.IsValidVideoId(id));
+        Assert.Equal(isLive, NicoVideoApiService.Instance.IsValidLiveId(id));
     }
 
     [Fact]

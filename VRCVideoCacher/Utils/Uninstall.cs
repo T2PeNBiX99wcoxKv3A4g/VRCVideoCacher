@@ -27,7 +27,7 @@ public class Uninstall
         WaitForOtherInstances();
 
         if (OperatingSystem.IsWindows())
-            TryRun("remove VRCX startup shortcut", AutoStartShortcut.RemoveShortcuts);
+            TryRun("remove VRCX startup shortcut", AutoStartShortcut.Instance.RemoveShortcuts);
 
         TryRun("remove hosts entry", RemoveHostsEntry);
         TryRun("delete cached assets", DeleteDefaultCachedAssets);
@@ -66,20 +66,20 @@ public class Uninstall
 
     private static void RemoveHostsEntry()
     {
-        if (!HostsManager.IsHostAdded())
+        if (!HostsManager.Instance.IsHostAdded())
             return;
 
         try
         {
-            HostsManager.Remove();
+            HostsManager.Instance.Remove();
         }
         catch (UnauthorizedAccessException)
         {
             Log.Information("Requesting elevation to remove hosts entry...");
-            ElevatorManager.StartElevated("--removehost");
+            ElevatorManager.Instance.StartElevated("--removehost");
         }
 
-        if (HostsManager.IsHostAdded())
+        if (HostsManager.Instance.IsHostAdded())
             Log.Warning("Hosts entry is still present");
         else
             Log.Information("Removed hosts entry");
@@ -91,7 +91,7 @@ public class Uninstall
         // that predates the merge does not leave a stale SteamVR registration behind.
         var legacyManifestPath = Path.Join(Program.CurrentProcessPath, "manifest.vrmanifest");
 
-        OpenVRService.TryRemoveManifest();
+        OpenVRService.Instance.TryRemoveManifest();
         RemoveManifestFromAppConfig(OpenVRService.ManifestPath, legacyManifestPath);
 
         foreach (var path in new[] { OpenVRService.ManifestPath, legacyManifestPath })

@@ -4,10 +4,11 @@ using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
-public partial class OpenUrl : Singleton<OpenUrl>
+[Singleton]
+public partial class OpenUrl
 {
     [PublicAPI]
-    public bool Open2(string url)
+    public bool Open(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
         {

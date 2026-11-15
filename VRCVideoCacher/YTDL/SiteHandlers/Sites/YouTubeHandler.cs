@@ -9,8 +9,8 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>
     private static readonly string[] Hosts =
         ["youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com", "music.youtube.com"];
 
-    private static int MaxHeight => Math.Min(ConfigManager.Config.YouTubeMaxResolution, 1080);
-    private static int PotatoMaxHeight => Math.Clamp(ConfigManager.Config.YouTubeMaxResolution, 360, 1080);
+    private static int MaxHeight => Math.Min(ConfigManager.Instance.Config.YouTubeMaxResolution, 1080);
+    private static int PotatoMaxHeight => Math.Clamp(ConfigManager.Instance.Config.YouTubeMaxResolution, 360, 1080);
     private static string AVProFormat => $"(mp4/best)[height<=?{MaxHeight}][height>=?64][width>=?64]";
 
     private static string UnityPlayerFormat =>
@@ -65,14 +65,14 @@ public partial class YouTubeHandler : Handler<YouTubeHandler>
             // Unsure as to whether YouTube has or will ever offer merged formats with anything other than H.264
             // but we should respect these options anyways.
             var formatFilters = "";
-            if (!ConfigManager.Config.YtdlpAllowAV1)
+            if (!ConfigManager.Instance.Config.YtdlpAllowAV1)
                 formatFilters += "[vcodec!^=av01]";
 
-            if (!ConfigManager.Config.AllowVP9)
+            if (!ConfigManager.Instance.Config.AllowVP9)
                 formatFilters += "[vcodec!~='(vp9|vp09)']";
 
             // AVPro
-            var lang = ConfigManager.Config.YtdlpDubLanguage;
+            var lang = ConfigManager.Instance.Config.YtdlpDubLanguage;
             // If dub language is set, attempt to fetch, else use defaults.
             var format = !string.IsNullOrEmpty(lang)
                 ? $"({AVProFormat}[language={lang}]/{AVProFormat})"

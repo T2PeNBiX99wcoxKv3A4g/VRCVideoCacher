@@ -12,21 +12,22 @@ namespace VRCVideoCacher.Utils;
 /// On Windows, binds the application process tree to a Win32 Job Object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
 /// so the OS kernel guarantees cleanup even on abnormal termination or crash.
 /// </summary>
-public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
+[Singleton]
+public partial class ChildProcessTracker
 {
     private readonly ConcurrentDictionary<Process, byte> _trackedProcesses = new();
     private IntPtr _jobHandle = IntPtr.Zero;
     private bool _terminating;
 
-    [PublicAPI] public bool Terminating2 => Volatile.Read(ref _terminating);
+    [PublicAPI] public bool Terminating => Volatile.Read(ref _terminating);
 
-    public ChildProcessTracker()
+    private ChildProcessTracker()
     {
         if (OperatingSystem.IsWindows())
             Try.Run(InitJobObject).OnFailure(ex =>
                 Log.Debug(ex, "Failed to initialize Windows Job Object for child process cleanup"));
 
-        AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll2();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => TerminateAll();
     }
 
     [SupportedOSPlatform("windows")]
@@ -81,7 +82,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// Registers a child process to be tracked and terminated when the application exits.
     /// </summary>
     [PublicAPI]
-    public TrackResult Track2(Process process)
+    public TrackResult Track(Process process)
     {
         if (Volatile.Read(ref _terminating))
         {
@@ -112,7 +113,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// Unregisters a tracked child process once it has exited normally.
     /// </summary>
     [PublicAPI]
-    public bool Untrack2(Process process) => _trackedProcesses.TryRemove(process, out _);
+    public bool Untrack(Process process) => _trackedProcesses.TryRemove(process, out _);
 
     public sealed class TrackingScope(
         ChildProcessTracker tracker,
@@ -129,21 +130,21 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
                 if (!forceKill) return;
                 if (!process.HasExited) process.Kill(true);
             });
-            tracker.Untrack2(process);
+            tracker.Untrack(process);
         }
     }
 
     [PublicAPI]
-    public TrackingScope Tracking2(Process process, bool forceKill = true)
+    public TrackingScope Tracking(Process process, bool forceKill = true)
     {
-        var result = Track2(process);
+        var result = Track(process);
         return new(this, process, result, forceKill);
     }
 
     [PublicAPI]
-    public void Tracking2(Process process, [InstantHandle] Action<TrackResult> callback, bool forceKill = true)
+    public void Tracking(Process process, [InstantHandle] Action<TrackResult> callback, bool forceKill = true)
     {
-        var result = Track2(process);
+        var result = Track(process);
         Try.Run(() => callback(result)).OnFinally(() =>
         {
             Try.Run(() =>
@@ -151,14 +152,14 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
                 if (!forceKill) return;
                 if (!process.HasExited) process.Kill(true);
             });
-            Untrack2(process);
+            Untrack(process);
         }).GetOrThrow();
     }
 
     [PublicAPI]
-    public T Tracking2<T>(Process process, [InstantHandle] Func<TrackResult, T> callback, bool forceKill = true)
+    public T Tracking<T>(Process process, [InstantHandle] Func<TrackResult, T> callback, bool forceKill = true)
     {
-        var result = Track2(process);
+        var result = Track(process);
         return Try.Run(() => callback(result)).OnFinally(() =>
         {
             Try.Run(() =>
@@ -166,23 +167,23 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
                 if (!forceKill) return;
                 if (!process.HasExited) process.Kill(true);
             });
-            Untrack2(process);
+            Untrack(process);
         }).GetOrThrow();
     }
 
     [PublicAPI]
-    public async Task<T> Tracking2<T>(Process process,
+    public async Task<T> Tracking<T>(Process process,
         [InstantHandle(RequireAwait = true)] Func<TrackResult, Task<T>> callback,
         bool forceKill = true)
     {
-        var result = Track2(process);
+        var result = Track(process);
         return await Try.Run(() => callback(result)).OnFinally(() =>
         {
             Try.Run(() =>
             {
                 if (!process.HasExited) process.Kill(true);
             });
-            Untrack2(process);
+            Untrack(process);
             return Unit.TaskValue;
         }).GetOrThrow();
     }
@@ -191,7 +192,7 @@ public partial class ChildProcessTracker : Singleton<ChildProcessTracker>
     /// Forces termination of all currently tracked child processes in parallel.
     /// </summary>
     [PublicAPI]
-    public void TerminateAll2()
+    public void TerminateAll()
     {
         if (Interlocked.Exchange(ref _terminating, true)) return;
         var toKill = _trackedProcesses.Keys.ToList();

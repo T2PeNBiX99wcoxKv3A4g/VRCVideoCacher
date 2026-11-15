@@ -66,16 +66,16 @@ public partial class DashboardViewModel : ViewModelBase
 
     public DashboardViewModel()
     {
-        ServerUrl = ConfigManager.Config.YtdlpWebServerUrl;
-        MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
-        HostState = ElevatorManager.HasHostsLine;
+        ServerUrl = ConfigManager.Instance.Config.YtdlpWebServerUrl;
+        MaxCacheSize = ConfigManager.Instance.Config.CacheMaxSizeInGb;
+        HostState = ElevatorManager.Instance.HasHostsLine;
 
         Tools = [_ytdlpTool, _ffmpegTool, _denoTool, _potTool, _opusTool, _vp9Tool];
 
         // Initial data load
         RefreshData();
 
-        Motd = VvcConfigService.CurrentConfig.Motd;
+        Motd = VvcConfigService.Instance.CurrentConfig.Motd;
 
         // Subscribe to language changes to refresh localized strings
         Localizer.LanguageChanged += (_, _) => Dispatcher.UIThread.InvokeAsync(RefreshLocalizedStrings);
@@ -100,7 +100,7 @@ public partial class DashboardViewModel : ViewModelBase
         OnPropertyChanged(nameof(ServerRunning));
 
         // Refresh directly-assigned localized strings
-        if (VideoDownloader.GetCurrentDownload() == null)
+        if (VideoDownloader.Instance.GetCurrentDownload() == null)
             CurrentDownloadText = Localizer.Get("None");
 
         // The codec rows carry localized detail/hint text, so re-derive them for the new language.
@@ -122,7 +122,7 @@ public partial class DashboardViewModel : ViewModelBase
         // (MarkdownText renders it as inlines), so this must happen on the UI thread.
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var newMotd = VvcConfigService.CurrentConfig.Motd;
+            var newMotd = VvcConfigService.Instance.CurrentConfig.Motd;
 #if DEBUG
             if (string.IsNullOrEmpty(newMotd))
                 newMotd = "Test Motd";
@@ -156,15 +156,15 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void OnQueueChanged()
     {
-        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.GetQueueCount(); });
+        Dispatcher.UIThread.InvokeAsync(() => { DownloadQueueCount = VideoDownloader.Instance.GetQueueCount(); });
     }
 
     private void OnConfigChanged()
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            ServerUrl = ConfigManager.Config.YtdlpWebServerUrl;
-            MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
+            ServerUrl = ConfigManager.Instance.Config.YtdlpWebServerUrl;
+            MaxCacheSize = ConfigManager.Instance.Config.CacheMaxSizeInGb;
         });
         _ = ValidateCookiesAsync();
         Dispatcher.UIThread.Post(() => _ = VerifyVp9CodecAsync());
@@ -174,9 +174,9 @@ public partial class DashboardViewModel : ViewModelBase
     private void RefreshData()
     {
         RefreshCacheStats();
-        DownloadQueueCount = VideoDownloader.GetQueueCount();
+        DownloadQueueCount = VideoDownloader.Instance.GetQueueCount();
 
-        var currentDownload = VideoDownloader.GetCurrentDownload();
+        var currentDownload = VideoDownloader.Instance.GetCurrentDownload();
         CurrentDownloadText = currentDownload != null
             ? $"{currentDownload.UrlType}: {currentDownload.VideoId}"
             : Localizer.Get("None");
@@ -351,22 +351,22 @@ public partial class DashboardViewModel : ViewModelBase
         }
 
         _vp9Tool.State = ToolState.Warning;
-        _vp9Tool.Detail = Localizer.Get(ConfigManager.Config.AllowVP9 ? "Vp9AllowedAmd" : "Vp9AutoBlockedAmd");
+        _vp9Tool.Detail = Localizer.Get(ConfigManager.Instance.Config.AllowVP9 ? "Vp9AllowedAmd" : "Vp9AutoBlockedAmd");
     }
 
     [RelayCommand]
     private void ToggleHost()
     {
-        ElevatorManager.ToggleHostLine();
-        Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.HasHostsLine; });
+        ElevatorManager.Instance.ToggleHostLine();
+        Dispatcher.UIThread.Post(() => { HostState = ElevatorManager.Instance.HasHostsLine; });
     }
 
     private void RefreshCacheStats()
     {
-        TotalCacheSize = CacheManager.GetTotalCacheSize();
+        TotalCacheSize = CacheManager.Instance.GetTotalCacheSize();
         // Subtract 1 for index.html if it exists in the cache
-        var count = CacheManager.GetCachedVideoCount();
-        var assets = CacheManager.GetCachedAssets();
+        var count = CacheManager.Instance.GetCachedVideoCount();
+        var assets = CacheManager.Instance.GetCachedAssets();
         if (assets.ContainsKey("index.html"))
             count--;
         CachedVideoCount = count;
@@ -375,7 +375,7 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private static void OpenCacheFolder()
     {
-        var cachePath = CacheManager.CachePath;
+        var cachePath = CacheManager.Instance.CachePath;
         if (OperatingSystem.IsWindows())
             Process.Start("explorer.exe", cachePath);
         else if (OperatingSystem.IsLinux())

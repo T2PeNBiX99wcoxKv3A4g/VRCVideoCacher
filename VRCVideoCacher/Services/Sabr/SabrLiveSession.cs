@@ -63,7 +63,7 @@ internal sealed class SabrLiveSession : ISabrSession
     internal int FragmentsReceived;
 
     /// <summary>How many segments the playlist advertises. Short: this is a live edge, not a DVR.</summary>
-    private static int WindowSegments => Math.Max(3, ConfigManager.Config.SabrLiveWindowSegments);
+    private static int WindowSegments => Math.Max(3, ConfigManager.Instance.Config.SabrLiveWindowSegments);
 
     /// <summary>Keep a little more on disk than we advertise, so a slightly-behind player still finds it.</summary>
     private int RetainSegments => WindowSegments * 3;

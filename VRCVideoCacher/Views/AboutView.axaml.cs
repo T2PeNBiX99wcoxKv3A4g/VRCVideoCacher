@@ -19,26 +19,26 @@ public partial class AboutView : UserControl
 
     private void OnDiscordClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl.Open(DiscordUrl);
+        OpenUrl.Instance.Open(DiscordUrl);
     }
 
     private void OnGitHubClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl.Open(GithubUrl);
+        OpenUrl.Instance.Open(GithubUrl);
     }
 
     private void OnSteamClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl.Open(SteamUrl);
+        OpenUrl.Instance.Open(SteamUrl);
     }
 
     private void OnGitHubIssueClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl.Open($"{GithubUrl}/issues");
+        OpenUrl.Instance.Open($"{GithubUrl}/issues");
     }
 
     private void OnDiscordIssueClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl.Open(DiscordUrl);
+        OpenUrl.Instance.Open(DiscordUrl);
     }
 }

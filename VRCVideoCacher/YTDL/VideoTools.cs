@@ -3,12 +3,13 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public partial class VideoTools : Singleton<VideoTools>
+[Singleton]
+public partial class VideoTools
 {
     private readonly HttpClient _httpClient = new();
 
     [PublicAPI]
-    public async Task<bool> Prefetch2(string videoUrl, int maxRetryCount = 7)
+    public async Task<bool> Prefetch(string videoUrl, int maxRetryCount = 7)
     {
         // If the URL is invalid, skip prefetching
         if (string.IsNullOrWhiteSpace(videoUrl) || !Uri.IsWellFormedUriString(videoUrl, UriKind.RelativeOrAbsolute))

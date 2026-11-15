@@ -65,9 +65,9 @@ public static partial class NicoRestreamService
 
     private static async Task ReaperLoop()
     {
-        while (!ChildProcessTracker.Terminating)
+        while (!ChildProcessTracker.Instance.Terminating)
         {
-            if (ChildProcessTracker.Terminating) break;
+            if (ChildProcessTracker.Instance.Terminating) break;
             await Task.Delay(TimeSpan.FromSeconds(30));
             var now = DateTime.UtcNow;
             foreach (var (id, session) in Sessions)
@@ -113,10 +113,10 @@ public static partial class NicoRestreamService
         {
             try
             {
-                var muxer = new NicoSegmentMuxer(YtdlManager.FfmpegPath, Log);
-                if (NicoVideoApiService.IsValidLiveId(id))
+                var muxer = new NicoSegmentMuxer(YtdlManager.Instance.FfmpegPath, Log);
+                if (NicoVideoApiService.Instance.IsValidLiveId(id))
                 {
-                    var liveRes = await NicoVideoApiService.FetchLiveResult(id);
+                    var liveRes = await NicoVideoApiService.Instance.FetchLiveResult(id);
                     if (liveRes == null || string.IsNullOrEmpty(liveRes.WebSocketUrl))
                         return null;
 
@@ -128,7 +128,7 @@ public static partial class NicoRestreamService
                 }
                 else
                 {
-                    var res = await NicoVideoApiService.FetchVideoResult(id);
+                    var res = await NicoVideoApiService.Instance.FetchVideoResult(id);
                     if (res == null || string.IsNullOrEmpty(res.StreamUrl))
                         return null;
 
@@ -161,14 +161,14 @@ public static partial class NicoRestreamService
         // ReSharper disable once InvertIf
         if (TempFiles.TryGetValue(videoId, out var existing) && File.Exists(existing.FilePath))
         {
-            var baseUrl = ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/');
+            var baseUrl = ConfigManager.Instance.Config.YtdlpWebServerUrl.TrimEnd('/');
             var fileExt = Path.GetExtension(existing.FilePath).TrimStart('.');
             return $"{baseUrl}/nico/temp/{videoId}.{fileExt}";
         }
 
         return await TempDownloadsInFlight.GetOrAdd(videoId, key => Task.Run<string?>(async () =>
         {
-            using (UsingUntil.Run(() => TempDownloadsInFlight.TryRemove(key, out _)))
+            try
             {
                 var tempDir = new TempDir();
                 var tempDownloadPath = Path.Join(tempDir.FullName, $"{key}.mp4");
@@ -176,7 +176,7 @@ public static partial class NicoRestreamService
                 using var process = new Process();
                 process.StartInfo = new()
                 {
-                    FileName = YtdlManager.YtdlPath,
+                    FileName = YtdlManager.Instance.YtdlPath,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -187,7 +187,7 @@ public static partial class NicoRestreamService
                 };
 
                 process.Start();
-                var error = await ChildProcessTracker.Tracking(process, async result =>
+                var error = await ChildProcessTracker.Instance.Tracking(process, async result =>
                 {
                     if (result == ChildProcessTracker.TrackResult.Terminating) return null;
                     await process.WaitForExitAsync();
@@ -207,8 +207,12 @@ public static partial class NicoRestreamService
 
                 TempFiles[key] = (tempDir, tempDownloadPath);
 
-                var url = $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{key}.mp4";
+                var url = $"{ConfigManager.Instance.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/temp/{key}.mp4";
                 return url;
+            }
+            finally
+            {
+                TempDownloadsInFlight.TryRemove(key, out _);
             }
         }));
     }

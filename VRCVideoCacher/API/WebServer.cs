@@ -12,25 +12,26 @@ using ILogger = Serilog.ILogger;
 
 namespace VRCVideoCacher.API;
 
-public partial class WebServer : Singleton<WebServer>, ILog
+[Singleton]
+public partial class WebServer : ILog
 {
     private EmbedIO.WebServer? _server;
 
     ILogger ILog.Log => Log;
 
     [PublicAPI]
-    public void StartOrRestart2()
+    public void StartOrRestart()
     {
         _server?.TryDispose();
 
-        var indexPath = Path.Join(CacheManager.CachePath, "index.html");
+        var indexPath = Path.Join(CacheManager.Instance.CachePath, "index.html");
         if (!File.Exists(indexPath))
             File.WriteAllText(indexPath, "VRCVideoCacher");
 
         Directory.CreateDirectory(SabrRestreamService.HlsRootPath);
         Directory.CreateDirectory(NicoRestreamService.HlsRootPath);
 
-        _server = CreateWebServer(ConfigManager.Config.YtdlpWebServerUrl);
+        _server = CreateWebServer(ConfigManager.Instance.Config.YtdlpWebServerUrl);
         _server.RunAsync();
     }
 
@@ -68,7 +69,7 @@ public partial class WebServer : Singleton<WebServer>, ILog
             .WithModule(new SabrHlsModule("/hls"))
             .WithStaticFolder("/hls", SabrRestreamService.HlsRootPath, false, m => m
                 .WithContentCaching(false))
-            .WithStaticFolder("/", CacheManager.CachePath, true, m => m
+            .WithStaticFolder("/", CacheManager.Instance.CachePath, true, m => m
                 .WithContentCaching(true));
 
         // Listen for state changes.

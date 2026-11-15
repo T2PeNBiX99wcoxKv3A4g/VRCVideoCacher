@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Extensions;
@@ -7,7 +7,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
+[Singleton]
+public partial class VRDancingAPIService
 {
     private const string VRDancingAPIBaseURL = "https://dbapi.vrdancing.club/";
 
@@ -31,7 +32,7 @@ public partial class VRDancingAPIService : Singleton<VRDancingAPIService>
     }
 
     [PublicAPI]
-    public async Task DownloadMetadata2(string code, string videoId)
+    public async Task DownloadMetadata(string code, string videoId)
     {
         await Try.Run(async () =>
         {

@@ -16,7 +16,7 @@ public class ApiController : WebApiController
 {
     private static readonly ILogger Log = Program.Logger.ForContext<ApiController>();
 
-    private static int YoutubePrefetchMaxRetries => VvcConfigService.CurrentConfig.RetryCount;
+    private static int YoutubePrefetchMaxRetries => VvcConfigService.Instance.CurrentConfig.RetryCount;
 
     [Route(HttpVerbs.Post, "/youtube-cookies")]
     [PublicAPI]
@@ -38,14 +38,14 @@ public class ApiController : WebApiController
         // it and lose one side's rotated session tokens — which is exactly what gets us bot-checked.
         // See YtdlCookieJar.
         using (await YtdlCookieJar.AcquireAsync())
-            await File.WriteAllTextAsync(YtdlManager.CookiesPath, cookies);
+            await File.WriteAllTextAsync(YtdlManager.Instance.CookiesPath, cookies);
 
         HttpContext.Response.StatusCode = 200;
         await HttpContext.SendStringAsync("Cookies received.", "text/plain", Encoding.UTF8);
 
         Log.Information("Received Youtube cookies from browser extension.");
         Program.NotifyCookiesUpdated();
-        if (!ConfigManager.Config.YtdlpUseCookies)
+        if (!ConfigManager.Instance.Config.YtdlpUseCookies)
             Log.Warning("Config is NOT set to use cookies from browser extension.");
     }
 
@@ -81,19 +81,19 @@ public class ApiController : WebApiController
 
         Log.Information("Request URL: {Url}", requestUrl);
 
-        if (requestUrl.StartsWith("https://eu2.vrdancing.club/weekend/") && ConfigManager.Config.RedirectVRDancing)
+        if (requestUrl.StartsWith("https://eu2.vrdancing.club/weekend/") && ConfigManager.Instance.Config.RedirectVRDancing)
         {
             await HttpContext.SendStringAsync(requestUrl.Replace("eu2", "na2"), "text/plain", Encoding.UTF8);
             return;
         }
 
-        if (ConfigManager.Config.BlockedUrls.Any(blockedUrl => requestUrl.StartsWith(blockedUrl)))
+        if (ConfigManager.Instance.Config.BlockedUrls.Any(blockedUrl => requestUrl.StartsWith(blockedUrl)))
         {
             Log.Warning("URL Is Blocked: {Url}", requestUrl);
-            requestUrl = ConfigManager.Config.BlockRedirect;
+            requestUrl = ConfigManager.Instance.Config.BlockRedirect;
         }
 
-        foreach (var (redirectUrl, redirectTo) in ConfigManager.Config.RedirectUrls)
+        foreach (var (redirectUrl, redirectTo) in ConfigManager.Instance.Config.RedirectUrls)
         {
             if (!requestUrl.StartsWith(redirectUrl)) continue;
             Log.Information("URL Is Redirected: {Url}", requestUrl);
@@ -134,14 +134,14 @@ public class ApiController : WebApiController
             return;
         }
 
-        if (requestUrl.StartsWith(ConfigManager.Config.YtdlpWebServerUrl))
+        if (requestUrl.StartsWith(ConfigManager.Instance.Config.YtdlpWebServerUrl))
         {
             Log.Information("URL Is Local Cache: Return.");
             await HttpContext.SendStringAsync(requestUrl, "text/plain", Encoding.UTF8);
             return;
         }
 
-        var videoInfo = await VideoId.GetVideoId(requestUrl, avPro);
+        var videoInfo = await VideoId.Instance.GetVideoId(requestUrl, avPro);
         if (videoInfo == null)
         {
             Log.Information("Failed to get Video Info for URL: {Url}", requestUrl);
@@ -153,7 +153,7 @@ public class ApiController : WebApiController
         if (source == "resonite")
         {
             Log.Information("Request sent from resonite sending json.");
-            await HttpContext.SendStringAsync(await VideoId.GetURLResonite(videoInfo), "text/plain", Encoding.UTF8);
+            await HttpContext.SendStringAsync(await VideoId.Instance.GetURLResonite(videoInfo), "text/plain", Encoding.UTF8);
             return;
         }
 
@@ -161,7 +161,7 @@ public class ApiController : WebApiController
         if (isCached)
         {
             File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
-            var url = $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}";
+            var url = $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}";
             Log.Information("Responding with Cached URL: {Url}", url);
             await HttpContext.SendStringAsync(url, "text/plain", Encoding.UTF8);
             return;
@@ -183,7 +183,7 @@ public class ApiController : WebApiController
             return;
         }
 
-        if (ConfigManager.Config.CacheOnly)
+        if (ConfigManager.Instance.Config.CacheOnly)
         {
             Log.Information("Cache Only Mode Enabled: Bypassing.");
             await HttpContext.SendStringAsync(string.Empty, "text/plain", Encoding.UTF8);
@@ -223,18 +223,18 @@ public class ApiController : WebApiController
                     Log.Information("Responding with NicoNico HLS restream URL: {Url}", streamUrl);
                     await HttpContext.SendStringAsync(streamUrl, "text/plain", Encoding.UTF8);
 
-                    if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId) && ConfigManager.Config.CacheNicoVideo)
-                        VideoDownloader.QueueDownload(videoInfo);
+                    if (!NicoVideoApiService.Instance.IsValidLiveId(videoInfo.VideoId) && ConfigManager.Instance.Config.CacheNicoVideo)
+                        VideoDownloader.Instance.QueueDownload(videoInfo);
 
                     return;
                 }
 
-                if (!NicoVideoApiService.IsValidLiveId(videoInfo.VideoId))
+                if (!NicoVideoApiService.Instance.IsValidLiveId(videoInfo.VideoId))
                     Log.Warning("NicoNico HLS restream URL resolution failed for {VideoId}, falling back to download.",
                         videoInfo.VideoId);
             }
 
-            if (NicoVideoApiService.IsValidLiveId(videoInfo.VideoId))
+            if (NicoVideoApiService.Instance.IsValidLiveId(videoInfo.VideoId))
             {
                 Log.Warning("Failed to serve NicoNico Live: {VideoId}", videoInfo.VideoId);
                 HttpContext.Response.StatusCode = 500;
@@ -242,16 +242,16 @@ public class ApiController : WebApiController
                 return;
             }
 
-            if (ConfigManager.Config.CacheNicoVideo)
+            if (ConfigManager.Instance.Config.CacheNicoVideo)
             {
                 Log.Information("NicoNico requested, downloading and waiting for cache for {VideoId}...",
                     videoInfo.VideoId);
-                var downloaded = await VideoDownloader.DownloadAndWaitAsync(videoInfo, TimeSpan.FromMinutes(2));
+                var downloaded = await VideoDownloader.Instance.DownloadAndWaitAsync(videoInfo, TimeSpan.FromMinutes(2));
                 (isCached, filePath, fileName) = GetCachedFile(videoInfo.VideoId, avPro);
                 if (downloaded && isCached)
                 {
                     File.SetLastWriteTimeUtc(filePath, DateTime.UtcNow);
-                    var url = $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}";
+                    var url = $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}";
                     Log.Information("Responding with Cached NicoNico URL: {Url}", url);
                     await HttpContext.SendStringAsync(url, "text/plain", Encoding.UTF8);
                     return;
@@ -281,7 +281,7 @@ public class ApiController : WebApiController
         // built-in player (avpro=false) can't, so it must take the legacy direct-URL path below instead.
         // When off ("legacy-first"), skip this and let the legacy path run first; SABR-only videos still
         // fall back to SABR via the rescue below.
-        if (ConfigManager.Config.SabrPreferStreaming && avPro && videoInfo.UrlType == UrlType.YouTube)
+        if (ConfigManager.Instance.Config.SabrPreferStreaming && avPro && videoInfo.UrlType == UrlType.YouTube)
         {
             var forcedUrl = await SabrRestreamService.TryGetRestreamUrlAsync(videoInfo);
             if (!string.IsNullOrEmpty(forcedUrl))
@@ -292,9 +292,9 @@ public class ApiController : WebApiController
                 // downloading it again would fetch the same video twice.
                 // Never queue a livestream: it has no end, and the download worker is a single serial
                 // thread, so one live job blocks every other cache download indefinitely.
-                if (ConfigManager.Config.CacheYouTube && !SabrRestreamService.CacheConverges
+                if (ConfigManager.Instance.Config.CacheYouTube && !SabrRestreamService.CacheConverges
                                                       && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
-                    VideoDownloader.QueueDownload(videoInfo);
+                    VideoDownloader.Instance.QueueDownload(videoInfo);
                 return;
             }
 
@@ -309,7 +309,7 @@ public class ApiController : WebApiController
             }
         }
 
-        var (response, success) = await VideoId.GetUrl(videoInfo, avPro);
+        var (response, success) = await VideoId.Instance.GetUrl(videoInfo, avPro);
         if (!success)
         {
             Log.Warning("Get URL: {Error}", response);
@@ -337,8 +337,8 @@ public class ApiController : WebApiController
                         await HttpContext.SendStringAsync(restreamUrl, "text/plain", Encoding.UTF8);
                         // Still cache in the background so the next play is a direct cache hit — unless it
                         // is a live broadcast, which can never be "fully" downloaded.
-                        if (ConfigManager.Config.CacheYouTube && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
-                            VideoDownloader.QueueDownload(videoInfo);
+                        if (ConfigManager.Instance.Config.CacheYouTube && !SabrRestreamService.IsLiveSession(videoInfo.VideoId))
+                            VideoDownloader.Instance.QueueDownload(videoInfo);
                         return;
                     }
                 }
@@ -355,14 +355,14 @@ public class ApiController : WebApiController
             videoInfo.VideoUrl.StartsWith("https://manifest.googlevideo.com") ||
             videoInfo.VideoUrl.Contains("googlevideo.com"))
         {
-            var isPrefetchSuccessful = await VideoTools.Prefetch(response, YoutubePrefetchMaxRetries);
+            var isPrefetchSuccessful = await VideoTools.Instance.Prefetch(response, YoutubePrefetchMaxRetries);
 
             if (!isPrefetchSuccessful && avPro)
             {
                 Log.Warning("Prefetch failed with AVPro, retrying without AVPro.");
                 avPro = false;
-                (response, _) = await VideoId.GetUrl(videoInfo, avPro);
-                await VideoTools.Prefetch(response, YoutubePrefetchMaxRetries);
+                (response, _) = await VideoId.Instance.GetUrl(videoInfo, avPro);
+                await VideoTools.Instance.Prefetch(response, YoutubePrefetchMaxRetries);
             }
         }
 
@@ -380,12 +380,12 @@ public class ApiController : WebApiController
         // never ends, so it can never become a cache file.
         (isCached, _, _) = GetCachedFile(videoInfo.VideoId, avPro);
         if (success && !isCached && !DirectStreamProbe.IsDirectStreamUrl(videoInfo.VideoUrl) && (
-            videoInfo.UrlType == UrlType.YouTube && ConfigManager.Config.CacheYouTube ||
-            videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Config.CachePyPyDance ||
-            videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Config.CacheVrDancing ||
-            videoInfo.UrlType == UrlType.NicoVideo && ConfigManager.Config.CacheNicoVideo ||
-            videoInfo.UrlType == UrlType.Other && ConfigManager.Config.CacheGeneric))
-            VideoDownloader.QueueDownload(videoInfo);
+            videoInfo.UrlType == UrlType.YouTube && ConfigManager.Instance.Config.CacheYouTube ||
+            videoInfo.UrlType == UrlType.PyPyDance && ConfigManager.Instance.Config.CachePyPyDance ||
+            videoInfo.UrlType == UrlType.VRDancing && ConfigManager.Instance.Config.CacheVrDancing ||
+            videoInfo.UrlType == UrlType.NicoVideo && ConfigManager.Instance.Config.CacheNicoVideo ||
+            videoInfo.UrlType == UrlType.Other && ConfigManager.Instance.Config.CacheGeneric))
+            VideoDownloader.Instance.QueueDownload(videoInfo);
     }
 
     /// <summary>
@@ -405,18 +405,18 @@ public class ApiController : WebApiController
         if (avPro)
         {
             var mkvName = $"{videoId}.mkv";
-            var mkvPath = Path.Join(CacheManager.CachePath, mkvName);
+            var mkvPath = Path.Join(CacheManager.Instance.CachePath, mkvName);
             if (File.Exists(mkvPath))
                 return (true, mkvPath, mkvName);
 
             var webmName = $"{videoId}.webm";
-            var webmPath = Path.Join(CacheManager.CachePath, webmName);
+            var webmPath = Path.Join(CacheManager.Instance.CachePath, webmName);
             if (File.Exists(webmPath))
                 return (true, webmPath, webmName);
         }
 
         var mp4Name = $"{videoId}.mp4";
-        var mp4Path = Path.Join(CacheManager.CachePath, mp4Name);
+        var mp4Path = Path.Join(CacheManager.Instance.CachePath, mp4Name);
         return (File.Exists(mp4Path), mp4Path, mp4Name);
     }
 }

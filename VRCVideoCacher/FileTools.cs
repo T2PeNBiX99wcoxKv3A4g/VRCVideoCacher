@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.Versioning;
@@ -10,7 +10,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher;
 
-public partial class FileTools : Singleton<FileTools>
+[Singleton]
+public partial class FileTools
 {
     private readonly string? _ytdlPathVrc;
     private readonly string? _backupPathVrc;
@@ -31,11 +32,11 @@ public partial class FileTools : Singleton<FileTools>
     private const string ResoniteAppId = "2519830";
     private const string VrcAppId = "438100";
 
-    public FileTools()
+    private FileTools()
     {
-        var resoPath = !string.IsNullOrEmpty(ConfigManager.Config.ResonitePath)
-            ? ConfigManager.Config.ResonitePath
-            : GetAppLibraryPath(ResoniteAppId, ConfigManager.Config.PatchResonite)
+        var resoPath = !string.IsNullOrEmpty(ConfigManager.Instance.Config.ResonitePath)
+            ? ConfigManager.Instance.Config.ResonitePath
+            : GetAppLibraryPath(ResoniteAppId, ConfigManager.Instance.Config.PatchResonite)
                 ?.Select(path => Path.Join(path, "steamapps", "common", "Resonite")).Where(Path.Exists).First();
         if (!string.IsNullOrEmpty(resoPath))
         {
@@ -59,8 +60,8 @@ public partial class FileTools : Singleton<FileTools>
 
     private string? GetVrcDataPath()
     {
-        if (!string.IsNullOrEmpty(ConfigManager.Config.VrChatPath))
-            return ConfigManager.Config.VrChatPath;
+        if (!string.IsNullOrEmpty(ConfigManager.Instance.Config.VrChatPath))
+            return ConfigManager.Instance.Config.VrChatPath;
 
         if (OperatingSystem.IsWindows())
         {
@@ -162,7 +163,7 @@ public partial class FileTools : Singleton<FileTools>
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
     private string? GetCompatPath(string appid)
     {
-        var libraryPaths = GetAppLibraryPath(appid, ConfigManager.Config.PatchVrChat);
+        var libraryPaths = GetAppLibraryPath(appid, ConfigManager.Instance.Config.PatchVrChat);
         var paths = libraryPaths?.Select(path => Path.Join(path, "steamapps", "compatdata", appid))
             .Where(Path.Exists)
             .ToImmutableList();
@@ -170,7 +171,7 @@ public partial class FileTools : Singleton<FileTools>
     }
 
     [PublicAPI]
-    public string? LocateFile2(string filename)
+    public string? LocateFile(string filename)
     {
         var systemPath = Environment.GetEnvironmentVariable("PATH");
         if (systemPath == null) return null;
@@ -185,7 +186,7 @@ public partial class FileTools : Singleton<FileTools>
     }
 
     [PublicAPI]
-    public void MarkFileExecutable2(string path)
+    public void MarkFileExecutable(string path)
     {
         if (!File.Exists(path))
             throw new FileNotFoundException($"File not found: {path}");
@@ -197,9 +198,9 @@ public partial class FileTools : Singleton<FileTools>
     }
 
     [PublicAPI]
-    public void BackupAllYtdl2()
+    public void BackupAllYtdl()
     {
-        if (ConfigManager.Config.PatchVrChat)
+        if (ConfigManager.Instance.Config.PatchVrChat)
         {
             Log.Information("Patching VRChat yt-dlp");
             if (!BackupAndReplaceYtdl(_ytdlPathVrc, _backupPathVrc, false))
@@ -207,7 +208,7 @@ public partial class FileTools : Singleton<FileTools>
         }
 
         // ReSharper disable once InvertIf
-        if (ConfigManager.Config.PatchResonite)
+        if (ConfigManager.Instance.Config.PatchResonite)
         {
             Log.Information("Patching Resonite yt-dlp");
             if (!BackupAndReplaceYtdl(_ytdlPathReso, _backupPathReso, OperatingSystem.IsLinux()))
@@ -216,7 +217,7 @@ public partial class FileTools : Singleton<FileTools>
     }
 
     [PublicAPI]
-    public void RestoreAllYtdl2()
+    public void RestoreAllYtdl()
     {
         RestoreYtdl(_ytdlPathVrc, _backupPathVrc);
         RestoreYtdl(_ytdlPathReso, _backupPathReso);

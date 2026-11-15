@@ -226,7 +226,7 @@ internal sealed class NicoSegmentMuxer(string ffmpegPath, ILogger log)
         };
 
         process.Start();
-        using var processTracker = ChildProcessTracker.Tracking(process);
+        using var processTracker = ChildProcessTracker.Instance.Tracking(process);
         if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return;
         var stderr = await process.StandardError.ReadToEndAsync(ct);
         await process.WaitForExitAsync(ct);

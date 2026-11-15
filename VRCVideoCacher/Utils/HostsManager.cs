@@ -1,9 +1,10 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
 using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
-public partial class HostsManager : Singleton<HostsManager>
+[Singleton]
+public partial class HostsManager
 {
     private static readonly string Header =
         $"{Environment.NewLine}# ----- BEGIN VRCVIDEOCACHER -----{Environment.NewLine}";
@@ -15,7 +16,7 @@ public partial class HostsManager : Singleton<HostsManager>
         : "/etc/hosts";
 
     [PublicAPI]
-    public void TryRun2()
+    public void TryRun()
     {
         if (Environment.CommandLine.Contains("--addhost"))
             Try.Run(() =>
@@ -32,7 +33,7 @@ public partial class HostsManager : Singleton<HostsManager>
         if (Environment.CommandLine.Contains("--removehost"))
             Try.Run(() =>
             {
-                Remove2();
+                Remove();
                 Log.Information("Host entry removed successfully.");
                 Environment.Exit(0);
             }).OnFailure(ex =>
@@ -54,7 +55,7 @@ public partial class HostsManager : Singleton<HostsManager>
     }
 
     [PublicAPI]
-    public void Remove2()
+    public void Remove()
     {
         CreateHostsIfNotExists();
         var hostsFile = File.ReadAllText(HostsPath);
@@ -68,7 +69,7 @@ public partial class HostsManager : Singleton<HostsManager>
     }
 
     [PublicAPI]
-    public bool IsHostAdded2()
+    public bool IsHostAdded()
     {
         if (!File.Exists(HostsPath))
             return false;

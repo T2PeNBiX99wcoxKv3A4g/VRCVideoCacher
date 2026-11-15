@@ -111,8 +111,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void UpdateCacheStatus()
     {
-        var size = CacheManager.GetTotalCacheSize();
-        var maxSize = ConfigManager.Config.CacheMaxSizeInGb;
+        var size = CacheManager.Instance.GetTotalCacheSize();
+        var maxSize = ConfigManager.Instance.Config.CacheMaxSizeInGb;
 
         if (maxSize > 0)
         {

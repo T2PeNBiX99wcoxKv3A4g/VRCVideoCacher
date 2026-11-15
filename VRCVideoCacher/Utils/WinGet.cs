@@ -6,7 +6,8 @@ using VRCVideoCacher.Extensions;
 
 namespace VRCVideoCacher.Utils;
 
-public partial class WinGet : Singleton<WinGet>
+[Singleton]
+public partial class WinGet
 {
     private static readonly string WingetPath =
         Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -33,7 +34,7 @@ public partial class WinGet : Singleton<WinGet>
 
     [SupportedOSPlatform("windows")]
     [PublicAPI]
-    public async Task TryInstallPackages2()
+    public async Task TryInstallPackages()
     {
         if (!File.Exists(WingetPath))
         {
@@ -77,7 +78,7 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            using var processTracker = ChildProcessTracker.Tracking(process);
+            using var processTracker = ChildProcessTracker.Instance.Tracking(process);
             if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
             process.WaitForExit(10_000);
             return process.ExitCode == 0;
@@ -111,7 +112,7 @@ public partial class WinGet : Singleton<WinGet>
                 StandardErrorEncoding = Encoding.UTF8
             };
             process.Start();
-            using var processTracker = ChildProcessTracker.Tracking(process);
+            using var processTracker = ChildProcessTracker.Instance.Tracking(process);
             if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return;
             while (await process.StandardOutput.ReadLineAsync() is { } line)
                 if (!string.IsNullOrEmpty(line.Trim()))

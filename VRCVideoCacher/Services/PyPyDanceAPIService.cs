@@ -28,8 +28,8 @@ public class PyPyDanceSong
 internal partial class PyPyDanceBundleContext : JsonSerializerContext
 {
 }
-
-public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
+[Singleton]
+public partial class PyPyDanceApiService
 {
     private const string PyPyDanceApiUrl = "https://api.pypy.dance/bundle";
     private DateTime _lastFetch = DateTime.MinValue;
@@ -69,7 +69,7 @@ public partial class PyPyDanceApiService : Singleton<PyPyDanceApiService>
     }
 
     [PublicAPI]
-    public async Task DownloadMetadata2(int idInt, string videoId)
+    public async Task DownloadMetadata(int idInt, string videoId)
     {
         await Try.Run(async () =>
         {

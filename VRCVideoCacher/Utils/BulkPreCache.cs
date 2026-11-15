@@ -3,7 +3,8 @@ using Newtonsoft.Json;
 
 namespace VRCVideoCacher.Utils;
 
-public partial class BulkPreCache : Singleton<BulkPreCache>
+[Singleton]
+public partial class BulkPreCache
 {
     private readonly HttpClient _httpClient = new()
     {
@@ -30,13 +31,13 @@ public partial class BulkPreCache : Singleton<BulkPreCache>
         public DateTime LastModifiedDate => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
             .AddSeconds(LastModified);
 
-        public string FilePath => Path.Join(CacheManager.CachePath, FileName);
+        public string FilePath => Path.Join(CacheManager.Instance.CachePath, FileName);
     }
 
     [PublicAPI]
-    public async Task DownloadFileList2()
+    public async Task DownloadFileList()
     {
-        foreach (var url in ConfigManager.Config.PreCacheUrls)
+        foreach (var url in ConfigManager.Instance.Config.PreCacheUrls)
         {
             using var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)

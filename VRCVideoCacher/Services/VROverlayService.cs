@@ -9,7 +9,8 @@ using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.Services;
 
-public partial class VROverlayService : Singleton<VROverlayService>
+[Singleton]
+public partial class VROverlayService
 {
     private const string DashboardKey = "com.github.ellyvr.vrcvideocacher.dashboard";
     private const string FloatingKey = "com.github.ellyvr.vrcvideocacher.floating";
@@ -39,7 +40,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
     private static CVROverlay? Overlay => (CVROverlay?)OpenVR.Overlay;
 
     [PublicAPI]
-    public void Start2()
+    public void Start()
     {
         if (Overlay == null)
         {
@@ -59,7 +60,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
     }
 
     [PublicAPI]
-    public void Stop2()
+    public void Stop()
     {
         ConfigManager.OnConfigChanged -= OnConfigChanged;
 
@@ -72,7 +73,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
     private void OnConfigChanged()
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         if (!config.VrOverlayEnabled)
         {
             DestroyOverlays();
@@ -84,7 +85,7 @@ public partial class VROverlayService : Singleton<VROverlayService>
 
     private void InitializeOverlays()
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         if (!config.VrOverlayEnabled || Overlay == null)
             return;
 
@@ -205,13 +206,13 @@ public partial class VROverlayService : Singleton<VROverlayService>
                 if (Overlay == null)
                     continue;
 
-                var config = ConfigManager.Config;
+                var config = ConfigManager.Instance.Config;
                 if (!config.VrOverlayEnabled)
                     continue;
 
-                var current = VideoDownloader.GetCurrentDownload();
-                var progress = VideoDownloader.GetCurrentDownloadProgress();
-                var queueCount = VideoDownloader.GetQueueCount();
+                var current = VideoDownloader.Instance.GetCurrentDownload();
+                var progress = VideoDownloader.Instance.GetCurrentDownloadProgress();
+                var queueCount = VideoDownloader.Instance.GetQueueCount();
                 var hasActivity = current != null || queueCount > 0;
                 if (hasActivity)
                     _lastActivityUtc = DateTime.UtcNow;
@@ -268,11 +269,11 @@ public partial class VROverlayService : Singleton<VROverlayService>
         var status = StatusService.Current;
         var statusText = status.IsBusy ? status.Text : "Idle";
         using var frame = VROverlayRenderer.RenderDashboard(
-            VideoDownloader.GetCurrentDownload(),
-            VideoDownloader.GetQueueSnapshot(),
+            VideoDownloader.Instance.GetCurrentDownload(),
+            VideoDownloader.Instance.GetQueueSnapshot(),
             statusText,
-            CacheManager.GetTotalCacheSize(),
-            ConfigManager.Config.CacheMaxSizeInGb,
+            CacheManager.Instance.GetTotalCacheSize(),
+            ConfigManager.Instance.Config.CacheMaxSizeInGb,
             seconds);
         PushFrame(_dashboardOverlayHandle, frame);
     }

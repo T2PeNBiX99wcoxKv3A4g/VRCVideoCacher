@@ -23,6 +23,12 @@ public static class NotificationService
     private const string AppId = "VRCVideoCacher";
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(NotificationService));
     private static readonly string? IconPath;
+#if WINDOWS_DESKTOP
+    // Windows raises dismissal/failure on its own schedule; keeping the COM object alive until then
+    // prevents a short-lived toast from being collected before it is shown.
+    private static readonly List<ToastNotification> LiveToasts = [];
+    private static readonly Lock ToastGate = new();
+#endif
 
     static NotificationService()
     {
@@ -147,9 +153,26 @@ public static class NotificationService
                     Tag = tag,
                     Group = "VRCVideoCacher"
                 };
+                toast.Dismissed += (_, _) => ForgetToast(toast);
+                toast.Failed += (_, _) => ForgetToast(toast);
+
+                lock (ToastGate)
+                {
+                    LiveToasts.Add(toast);
+                    if (LiveToasts.Count > 16)
+                        LiveToasts.RemoveAt(0);
+                }
+
                 ToastNotificationManager.CreateToastNotifier(AppId).Show(toast);
             }).OnFailure(ex => Log.Warning(ex, "Failed to show Windows toast notification"));
         });
+    }
+
+    [SupportedOSPlatform("windows10.0.10240")]
+    private static void ForgetToast(ToastNotification toast)
+    {
+        lock (ToastGate)
+            LiveToasts.Remove(toast);
     }
 #endif
 

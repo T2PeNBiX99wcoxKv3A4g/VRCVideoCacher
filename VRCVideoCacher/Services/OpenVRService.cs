@@ -9,14 +9,15 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public partial class OpenVRService : Singleton<OpenVRService>
+[Singleton]
+public partial class OpenVRService
 {
     public const string AppKey = "com.github.ellyvr.vrcvideocacher";
     private const string ManifestFileName = "VRCVideoCacher.manifest.vrmanifest";
     public static readonly string ManifestPath = Path.Combine(Program.CurrentProcessPath, ManifestFileName);
 
     [PublicAPI]
-    public void Start2()
+    public void Start()
     {
         if (!LaunchArgs.OVR)
             return;
@@ -50,15 +51,15 @@ public partial class OpenVRService : Singleton<OpenVRService>
                                     Log.Information("Startup manifest registered successfully");
 
                                     Log.Information("{AutoLaunchState} steamvr auto-launch",
-                                        ConfigManager.Config.StartWithSteamVr ? "Enabling" : "Disabling");
+                                        ConfigManager.Instance.Config.StartWithSteamVr ? "Enabling" : "Disabling");
                                     OpenVR.Applications.SetApplicationAutoLaunch(AppKey,
-                                        ConfigManager.Config.StartWithSteamVr);
+                                        ConfigManager.Instance.Config.StartWithSteamVr);
                                 }
                                 else
                                     Log.Warning("Failed to register startup manifest");
                             }
 
-                            VROverlayService.Start();
+                            VROverlayService.Instance.Start();
 
                             if (LaunchArgs.CloseWithSteamVr || true)
                                 await PollEventsUntilQuit();
@@ -82,7 +83,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
 
                 try
                 {
-                    VROverlayService.Stop();
+                    VROverlayService.Instance.Stop();
                     OpenVR.Shutdown();
                 }
                 catch (Exception ex)
@@ -95,7 +96,7 @@ public partial class OpenVRService : Singleton<OpenVRService>
     }
 
     [PublicAPI]
-    public bool TryRemoveManifest2()
+    public bool TryRemoveManifest()
     {
         var initError = EVRInitError.None;
         try

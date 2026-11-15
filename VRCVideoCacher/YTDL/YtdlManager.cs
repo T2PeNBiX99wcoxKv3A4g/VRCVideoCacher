@@ -12,7 +12,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public partial class YtdlManager : Singleton<YtdlManager>
+[Singleton]
+public partial class YtdlManager
 {
     private static readonly HttpClient HttpClient = new()
     {
@@ -24,15 +25,15 @@ public partial class YtdlManager : Singleton<YtdlManager>
         }
     };
 
-    [PublicAPI] public readonly string CookiesPath2 = Path.Join(Program.DataPath, "youtube_cookies.txt");
+    [PublicAPI] public readonly string CookiesPath = Path.Join(Program.DataPath, "youtube_cookies.txt");
 
-    [PublicAPI] public readonly string YtdlPath2 =
+    [PublicAPI] public readonly string YtdlPath =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
 
-    [PublicAPI] public readonly string DenoPath2 =
+    [PublicAPI] public readonly string DenoPath =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "deno.exe" : "deno");
 
-    [PublicAPI] public readonly string FfmpegPath2 =
+    [PublicAPI] public readonly string FfmpegPath =
         Path.Join(Program.UtilsPath, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
     // The SABR-capable yt-dlp build, used as the ONLY yt-dlp. It is a superset of mainline: everything
@@ -79,25 +80,25 @@ public partial class YtdlManager : Singleton<YtdlManager>
     }
 
 
-    public YtdlManager()
+    private YtdlManager()
     {
         // try to locate in PATH
         if (LaunchArgs.UseGlobalPath)
         {
-            YtdlPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ??
+            YtdlPath = FileTools.Instance.LocateFile(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp") ??
                         throw new FileNotFoundException("Unable to find yt-dlp");
-            DenoPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "deno.exe" : "deno") ??
+            DenoPath = FileTools.Instance.LocateFile(OperatingSystem.IsWindows() ? "deno.exe" : "deno") ??
                         throw new FileNotFoundException("Unable to find Deno runtime");
-            FfmpegPath2 = FileTools.LocateFile(OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg") ??
+            FfmpegPath = FileTools.Instance.LocateFile(OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg") ??
                           string.Empty;
         }
 
-        Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath2);
+        Log.Debug("Using ytdl path: {YtdlPath}", YtdlPath);
         AppDomain.CurrentDomain.ProcessExit += (_, _) => OnExit();
     }
 
     [PublicAPI]
-    public string GenerateYtdlArgs2(List<string> args, string urlArg)
+    public string GenerateYtdlArgs(List<string> args, string urlArg)
     {
         var globalArgs = new List<string>
         {
@@ -123,15 +124,15 @@ public partial class YtdlManager : Singleton<YtdlManager>
         if (Program.IsCookiesEnabledAndValid())
             args.Add($"--cookies \"{CookiesPath}\"");
 
-        if (!string.IsNullOrEmpty(ConfigManager.Config.YtdlpAdditionalArgs))
-            args.Add(ConfigManager.Config.YtdlpAdditionalArgs);
+        if (!string.IsNullOrEmpty(ConfigManager.Instance.Config.YtdlpAdditionalArgs))
+            args.Add(ConfigManager.Instance.Config.YtdlpAdditionalArgs);
 
         args.Add(urlArg);
         return string.Join(' ', args);
     }
 
     [PublicAPI]
-    public void StartYtdlUpdaterThread2()
+    public void StartYtdlUpdaterThread()
     {
         Task.Run(YtdlUpdaterTask);
     }
@@ -143,21 +144,21 @@ public partial class YtdlManager : Singleton<YtdlManager>
         {
             if (Volatile.Read(ref _isExit)) break;
             await Task.Delay(interval);
-            await VvcConfigService.GetConfig();
-            await TryDownloadYtdlp2();
+            await VvcConfigService.Instance.GetConfig();
+            await TryDownloadYtdlp();
         }
     }
 
     private static async Task<HttpResponseMessage> SendGitHubApiRequestAsync(string url)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        if (!string.IsNullOrWhiteSpace(ConfigManager.Config.GitHubToken))
-            request.Headers.Authorization = new("Bearer", ConfigManager.Config.GitHubToken.Trim());
+        if (!string.IsNullOrWhiteSpace(ConfigManager.Instance.Config.GitHubToken))
+            request.Headers.Authorization = new("Bearer", ConfigManager.Instance.Config.GitHubToken.Trim());
         return await HttpClient.SendAsync(request);
     }
 
     [PublicAPI]
-    public async Task TryDownloadYtdlp2()
+    public async Task TryDownloadYtdlp()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -178,7 +179,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        var currentYtdlVersion = Versions.CurrentVersion.Ytdlp;
+        var currentYtdlVersion = Versions.Instance.CurrentVersion.Ytdlp;
         if (!File.Exists(YtdlPath))
             currentYtdlVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(YtdlPath))
@@ -205,7 +206,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
     }
 
     [PublicAPI]
-    public async Task TryDownloadDeno2()
+    public async Task TryDownloadDeno()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -225,7 +226,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        var currentDenoVersion = Versions.CurrentVersion.Deno;
+        var currentDenoVersion = Versions.Instance.CurrentVersion.Deno;
         if (!File.Exists(DenoPath))
             currentDenoVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(DenoPath))
@@ -293,7 +294,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
                 report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
+            try
             {
                 while (await reader.MoveToNextEntryAsync())
                 {
@@ -306,14 +307,18 @@ public partial class YtdlManager : Singleton<YtdlManager>
                         new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
-                    FileTools.MarkFileExecutable(path);
-                    Versions.CurrentVersion.Deno = json.tag_name;
-                    Versions.Save();
+                    FileTools.Instance.MarkFileExecutable(path);
+                    Versions.Instance.CurrentVersion.Deno = json.tag_name;
+                    Versions.Instance.Save();
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
 
                 throw new("Deno archive contained no files.");
+            }
+            finally
+            {
+                await reader.TryDisposeAsync();
             }
         }
 
@@ -349,7 +354,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 await downloadResponse.Content.ReadAsStreamAsync(), downloadResponse.Content.Headers.ContentLength,
                 activity.Report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
+            try
             {
                 while (await reader.MoveToNextEntryAsync())
                 {
@@ -362,14 +367,18 @@ public partial class YtdlManager : Singleton<YtdlManager>
                         new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
-                    FileTools.MarkFileExecutable(path);
-                    Versions.CurrentVersion.Deno = latestVersion;
-                    Versions.Save();
+                    FileTools.Instance.MarkFileExecutable(path);
+                    Versions.Instance.CurrentVersion.Deno = latestVersion;
+                    Versions.Instance.Save();
                     Log.Information("Deno downloaded and extracted.");
                     return;
                 }
 
                 throw new("Deno fallback archive contained no files.");
+            }
+            finally
+            {
+                await reader.TryDisposeAsync();
             }
         }
 
@@ -384,7 +393,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
     }
 
     [PublicAPI]
-    public async Task TryDownloadFfmpeg2()
+    public async Task TryDownloadFfmpeg()
     {
         if (!Directory.Exists(Program.UtilsPath))
             throw new("Failed to get Utils path");
@@ -405,7 +414,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        var currentffmpegVersion = Versions.CurrentVersion.Ffmpeg;
+        var currentffmpegVersion = Versions.Instance.CurrentVersion.Ffmpeg;
         if (!File.Exists(FfmpegPath))
             currentffmpegVersion = "Not Installed";
         else if (!await CheckIfProcessStarts(FfmpegPath, "-version"))
@@ -474,7 +483,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
                 report, DownloadStallTimeout);
             var reader = await ReaderFactory.OpenAsyncReader(responseStream);
             var success = false;
-            await using (UsingUntil.RunAsync(async () => await reader.TryDisposeAsync()))
+            try
+            {
                 while (await reader.MoveToNextEntryAsync())
                 {
                     if (reader.Entry.Key == null || reader.Entry.IsDirectory)
@@ -490,9 +500,14 @@ public partial class YtdlManager : Singleton<YtdlManager>
                         new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
                     await using var entryStream = await reader.OpenEntryStreamAsync();
                     await entryStream.CopyToAsync(outputStream);
-                    FileTools.MarkFileExecutable(path);
+                    FileTools.Instance.MarkFileExecutable(path);
                     success = true;
                 }
+            }
+            finally
+            {
+                await reader.TryDisposeAsync();
+            }
 
             if (!success)
                 throw new("Failed to extract ffmpeg files.");
@@ -508,8 +523,8 @@ public partial class YtdlManager : Singleton<YtdlManager>
             return;
         }
 
-        Versions.CurrentVersion.Ffmpeg = latestVersion;
-        Versions.Save();
+        Versions.Instance.CurrentVersion.Ffmpeg = latestVersion;
+        Versions.Instance.Save();
         Log.Information("FFmpeg downloaded and extracted.");
     }
 
@@ -575,10 +590,10 @@ public partial class YtdlManager : Singleton<YtdlManager>
             }
 
             Log.Information("Downloaded YT-DLP.");
-            FileTools.MarkFileExecutable(YtdlPath);
+            FileTools.Instance.MarkFileExecutable(YtdlPath);
             // Must match what TryDownloadYtdlp compares against, or every check re-downloads.
-            Versions.CurrentVersion.Ytdlp = string.IsNullOrEmpty(json.name) ? json.tag_name : json.name;
-            Versions.Save();
+            Versions.Instance.CurrentVersion.Ytdlp = string.IsNullOrEmpty(json.name) ? json.tag_name : json.name;
+            Versions.Instance.Save();
             return;
         }
 
@@ -604,7 +619,7 @@ public partial class YtdlManager : Singleton<YtdlManager>
             };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using var processTracker = ChildProcessTracker.Tracking(process);
+            using var processTracker = ChildProcessTracker.Instance.Tracking(process);
             if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
             await process.WaitForExitAsync(cts.Token);
             if (process.ExitCode == 0) return true;

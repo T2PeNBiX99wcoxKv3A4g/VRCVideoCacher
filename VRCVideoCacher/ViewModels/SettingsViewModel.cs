@@ -194,8 +194,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (value is null) return;
         Localizer.Language = value.Code;
-        ConfigManager.Config.Language = value.Code;
-        ConfigManager.TrySaveConfig(false);
+        ConfigManager.Instance.Config.Language = value.Code;
+        ConfigManager.Instance.TrySaveConfig(false);
     }
 
     private static string GetLanguageDisplayName(string code)
@@ -213,7 +213,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void LoadFromConfig()
     {
         _isLoadingConfig = true;
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
 
         WebServerUrl = config.YtdlpWebServerUrl;
         YtdlUseCookies = config.YtdlpUseCookies;
@@ -340,12 +340,12 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private void SaveSettings()
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
 
         if (config.YtdlpWebServerUrl != WebServerUrl)
         {
             config.YtdlpWebServerUrl = WebServerUrl;
-            WebServer.StartOrRestart();
+            WebServer.Instance.StartOrRestart();
         }
 
         config.YtdlpUseCookies = YtdlUseCookies;
@@ -391,7 +391,7 @@ public partial class SettingsViewModel : ViewModelBase
         config.BlockRedirect = BlockRedirect;
         config.RedirectUrls = RedirectUrls.ToDictionary(x => x.Url, x => x.RedirectUrl);
         config.RedirectVRDancing = RedirectVRDancing;
-        ConfigManager.TrySaveConfig();
+        ConfigManager.Instance.TrySaveConfig();
         HasChanges = false;
         SetStatusMessage(Localizer.Get("SettingsSaved"), "#81C784");
     }

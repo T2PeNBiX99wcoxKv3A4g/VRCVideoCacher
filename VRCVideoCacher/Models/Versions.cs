@@ -4,17 +4,18 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Models;
 
-public partial class Versions : Singleton<Versions>
+[Singleton]
+public partial class Versions
 {
     private static readonly string VersionPath = Path.Join(Program.DataPath, "version.json");
-    [PublicAPI] public readonly VersionJson CurrentVersion2 = new();
+    [PublicAPI] public readonly VersionJson CurrentVersion = new();
 
-    public Versions()
+    private Versions()
     {
         if (File.Exists(VersionPath))
             try
             {
-                CurrentVersion2 = JsonConvert.DeserializeObject<VersionJson>(File.ReadAllText(VersionPath)) ??
+                CurrentVersion = JsonConvert.DeserializeObject<VersionJson>(File.ReadAllText(VersionPath)) ??
                                   new VersionJson();
                 return;
             }
@@ -23,13 +24,13 @@ public partial class Versions : Singleton<Versions>
                 Log.Error(ex, "Failed to parse version file, it may be corrupted. Recreating...");
             }
 
-        Save2();
+        Save();
     }
 
     [PublicAPI]
-    public void Save2()
+    public void Save()
     {
-        File.WriteAllText(VersionPath, JsonConvert.SerializeObject(CurrentVersion2, Formatting.Indented));
+        File.WriteAllText(VersionPath, JsonConvert.SerializeObject(CurrentVersion, Formatting.Indented));
     }
 }
 

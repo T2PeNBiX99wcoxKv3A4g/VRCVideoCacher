@@ -23,7 +23,7 @@ public readonly record struct MarkdownSpan(
 ///
 /// <b>URLs are validated here, not at render time.</b> The MOTD is remote content, so a candidate only
 /// becomes a link if it parses as an absolute http/https URI — a <c>javascript:</c> or <c>file:</c> URL
-/// never reaches a clickable control at all. <see cref="OpenUrl.Open"/> re-checks on click; both gates
+/// never reaches a clickable control at all. <see cref="OpenUrl.Instance.Open"/> re-checks on click; both gates
 /// are intentional.
 /// </summary>
 public static class MarkdownInlineParser

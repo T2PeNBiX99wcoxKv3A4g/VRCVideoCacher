@@ -6,7 +6,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public partial class VvcConfigService : Singleton<VvcConfigService>
+[Singleton]
+public partial class VvcConfigService
 {
     private readonly HttpClient _httpClient = new()
     {
@@ -18,11 +19,11 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
         }
     };
 
-    [PublicAPI] public VvcConfig CurrentConfig2 { get; private set; } = new();
+    [PublicAPI] public VvcConfig CurrentConfig { get; private set; } = new();
     public static event Action? OnApiConfigChanged;
 
     [PublicAPI]
-    public async Task GetConfig2()
+    public async Task GetConfig()
     {
         await Try.Run(async () =>
         {
@@ -32,7 +33,7 @@ public partial class VvcConfigService : Singleton<VvcConfigService>
                 var deserialized = JsonConvert.DeserializeObject<VvcConfig>(await req.Content.ReadAsStringAsync());
                 if (deserialized != null)
                 {
-                    CurrentConfig2 = deserialized;
+                    CurrentConfig = deserialized;
                     OnApiConfigChanged?.Invoke();
                 }
             }

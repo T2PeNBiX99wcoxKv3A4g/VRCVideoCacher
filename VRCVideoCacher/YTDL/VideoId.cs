@@ -11,7 +11,8 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VRCVideoCacher.YTDL;
 
-public partial class VideoId : Singleton<VideoId>
+[Singleton]
+public partial class VideoId
 {
     internal static Uri? ToUri(string url) => Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri : null;
 
@@ -29,7 +30,7 @@ public partial class VideoId : Singleton<VideoId>
         {
             StartInfo =
             {
-                FileName = YtdlManager.YtdlPath,
+                FileName = YtdlManager.Instance.YtdlPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -45,7 +46,7 @@ public partial class VideoId : Singleton<VideoId>
     private async Task<(string Output, string Error, int ExitCode)> RunYtdlpAsync(List<string> args, string url)
     {
         using var ytdlpProcess = GetYtdlpProcess();
-        ytdlpProcess.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"");
+        ytdlpProcess.StartInfo.Arguments = YtdlManager.Instance.GenerateYtdlArgs(args, $"\"{url}\"");
 
         // yt-dlp rewrites the cookie jar on exit; overlapping it with the download queue corrupts the
         // session and gets us bot-checked. See YtdlCookieJar.
@@ -53,7 +54,7 @@ public partial class VideoId : Singleton<VideoId>
 
         Log.Information("Starting yt-dlp with args: {Args:l}", ytdlpProcess.StartInfo.Arguments);
         ytdlpProcess.Start();
-        using var processTracker = ChildProcessTracker.Tracking(ytdlpProcess);
+        using var processTracker = ChildProcessTracker.Instance.Tracking(ytdlpProcess);
         if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return ("", "", 0);
         var outputTask = ytdlpProcess.StandardOutput.ReadToEndAsync();
         var errorTask = ytdlpProcess.StandardError.ReadToEndAsync();
@@ -65,7 +66,7 @@ public partial class VideoId : Singleton<VideoId>
     }
 
     [PublicAPI]
-    public async Task<VideoInfo?> GetVideoId2(string url, bool avPro)
+    public async Task<VideoInfo?> GetVideoId(string url, bool avPro)
     {
         url = url.Trim();
         url = await SiteHandlerRegistry.ApplyRewrites(url);
@@ -78,7 +79,7 @@ public partial class VideoId : Singleton<VideoId>
     }
 
     [PublicAPI]
-    public async Task<string> TryGetYouTubeVideoId2(string url)
+    public async Task<string> TryGetYouTubeVideoId(string url)
     {
         var args = new List<string>
         {
@@ -121,10 +122,10 @@ public partial class VideoId : Singleton<VideoId>
         }
 
         // ReSharper disable once InvertIf
-        if (data.Duration > ConfigManager.Config.CacheYouTubeMaxLength * 60)
+        if (data.Duration > ConfigManager.Instance.Config.CacheYouTubeMaxLength * 60)
         {
             Log.Warning("Failed to get video ID: Video is longer than configured max length ({Length}s > {Max}s)",
-                data.Duration, ConfigManager.Config.CacheYouTubeMaxLength * 60);
+                data.Duration, ConfigManager.Instance.Config.CacheYouTubeMaxLength * 60);
             return string.Empty;
         }
 
@@ -132,7 +133,7 @@ public partial class VideoId : Singleton<VideoId>
     }
 
     [PublicAPI]
-    public async Task<string> GetURLResonite2(VideoInfo videoInfo)
+    public async Task<string> GetURLResonite(VideoInfo videoInfo)
     {
         // Don't hit YouTube for a video we already know is gone — a looping player would otherwise get us
         // bot-checked. Resonite treats an empty response as "no video", which is what we want here.
@@ -141,8 +142,8 @@ public partial class VideoId : Singleton<VideoId>
 
         var url = videoInfo.VideoUrl;
         var args = new List<string>();
-        if (!string.IsNullOrEmpty(ConfigManager.Config.YtdlpDubLanguage))
-            args.Add($"-f \"[language={ConfigManager.Config.YtdlpDubLanguage}]\"");
+        if (!string.IsNullOrEmpty(ConfigManager.Instance.Config.YtdlpDubLanguage))
+            args.Add($"-f \"[language={ConfigManager.Instance.Config.YtdlpDubLanguage}]\"");
         args.Add("--flat-playlist");
         args.Add("-i");
         args.Add("-J"); // --dump-single-json
@@ -167,7 +168,7 @@ public partial class VideoId : Singleton<VideoId>
     }
 
     [PublicAPI]
-    public async Task<Tuple<string, bool>> GetUrl2(VideoInfo videoInfo, bool avPro)
+    public async Task<Tuple<string, bool>> GetUrl(VideoInfo videoInfo, bool avPro)
     {
         var url = videoInfo.VideoUrl;
 
@@ -197,7 +198,7 @@ public partial class VideoId : Singleton<VideoId>
         {
             Log.Warning("AVPro format request failed, retrying with the Unity Player format.");
             // ReSharper disable once TailRecursiveCall
-            return await GetUrl2(videoInfo, false);
+            return await GetUrl(videoInfo, false);
         }
 
         return new(error, false);

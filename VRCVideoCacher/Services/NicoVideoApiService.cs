@@ -14,7 +14,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.Services;
 
-public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
+[Singleton]
+public partial class NicoVideoApiService
 {
     public const string UserAgent =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -36,7 +37,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
 
     private readonly HttpClient _httpClient;
 
-    public NicoVideoApiService()
+    private NicoVideoApiService()
     {
         var handler = new HttpClientHandler
         {
@@ -57,9 +58,9 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     private static partial Regex EmbeddedDataScriptRegex();
 
     [PublicAPI]
-    public async Task<NicoVideoResult?> FetchVideoResult2(string videoId)
+    public async Task<NicoVideoResult?> FetchVideoResult(string videoId)
     {
-        if (!IsValidVideoId2(videoId) || IsValidLiveId2(videoId)) return null;
+        if (!IsValidVideoId(videoId) || IsValidLiveId(videoId)) return null;
         if (_cache.TryGetValue(videoId, out NicoVideoResult? cached) && cached != null &&
             !string.IsNullOrEmpty(cached.Title) && !string.IsNullOrEmpty(cached.Author)) return cached;
 
@@ -255,9 +256,9 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
-    public async Task<NicoLiveResult?> FetchLiveResult2(string liveId)
+    public async Task<NicoLiveResult?> FetchLiveResult(string liveId)
     {
-        if (!IsValidLiveId2(liveId)) return null;
+        if (!IsValidLiveId(liveId)) return null;
         if (_liveCache.TryGetValue(liveId, out NicoLiveResult? cached) && cached != null &&
             !string.IsNullOrEmpty(cached.Title)) return cached;
 
@@ -359,13 +360,13 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
-    public async Task<VideoInfoCache?> DownloadMetadata2(string videoId)
+    public async Task<VideoInfoCache?> DownloadMetadata(string videoId)
     {
         return await Try.Run(async () =>
         {
-            if (IsValidLiveId2(videoId))
+            if (IsValidLiveId(videoId))
             {
-                var liveRes = await FetchLiveResult2(videoId);
+                var liveRes = await FetchLiveResult(videoId);
                 if (liveRes == null) return null;
 
                 var liveVideoInfo = new VideoInfoCache
@@ -380,7 +381,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
                 return liveVideoInfo;
             }
 
-            var res = await FetchVideoResult2(videoId);
+            var res = await FetchVideoResult(videoId);
             if (res == null) return null;
 
             var videoInfo = new VideoInfoCache
@@ -401,7 +402,7 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
-    public async Task<string?> GetThumbnail2(string videoId)
+    public async Task<string?> GetThumbnail(string videoId)
     {
         if (string.IsNullOrEmpty(videoId))
             return null;
@@ -411,14 +412,14 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
             return localPath;
 
         string? thumbUrl;
-        if (IsValidLiveId2(videoId))
+        if (IsValidLiveId(videoId))
         {
-            var liveRes = await FetchLiveResult2(videoId);
+            var liveRes = await FetchLiveResult(videoId);
             thumbUrl = liveRes?.Thumbnail;
         }
         else
         {
-            var res = await FetchVideoResult2(videoId);
+            var res = await FetchVideoResult(videoId);
             thumbUrl = res?.Thumbnail;
         }
 
@@ -430,24 +431,24 @@ public partial class NicoVideoApiService : Singleton<NicoVideoApiService>
     }
 
     [PublicAPI]
-    public async Task<VideoInfoCache?> GetVideoMetadataAsync2(string videoId)
+    public async Task<VideoInfoCache?> GetVideoMetadataAsync(string videoId)
     {
         if (string.IsNullOrEmpty(videoId)) return null;
 
         var cachedInfo = await DatabaseManager.GetVideoInfoCacheAsync(videoId);
         if (cachedInfo == null || string.IsNullOrEmpty(cachedInfo.Title) ||
             string.IsNullOrEmpty(cachedInfo.Author))
-            cachedInfo = await DownloadMetadata2(videoId);
+            cachedInfo = await DownloadMetadata(videoId);
 
         return cachedInfo;
     }
 
     [PublicAPI]
-    public bool IsValidVideoId2(string videoId) =>
+    public bool IsValidVideoId(string videoId) =>
         NicoVideoPrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase)) ||
         NicoLivePrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 
     [PublicAPI]
-    public bool IsValidLiveId2(string videoId) =>
+    public bool IsValidLiveId(string videoId) =>
         NicoLivePrefixes.Any(x => videoId.StartsWith(x, StringComparison.OrdinalIgnoreCase));
 }

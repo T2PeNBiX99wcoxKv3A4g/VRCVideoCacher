@@ -11,7 +11,8 @@ using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.YTDL;
 
-public partial class VideoDownloader : Singleton<VideoDownloader>
+[Singleton]
+public partial class VideoDownloader
 {
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadMkvName = "_tempVideo.mkv";
@@ -34,7 +35,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     private VideoInfo? _currentDownload;
     private volatile StatusActivity? _currentActivity;
 
-    public VideoDownloader()
+    private VideoDownloader()
     {
         Task.Run(DownloadThread);
     }
@@ -48,9 +49,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     private async Task DownloadThread()
     {
-        while (!ChildProcessTracker.Terminating)
+        while (!ChildProcessTracker.Instance.Terminating)
         {
-            if (ChildProcessTracker.Terminating) break;
+            if (ChildProcessTracker.Instance.Terminating) break;
             await Task.Delay(100);
 
             VideoInfo? queueItem;
@@ -107,7 +108,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     }
 
     [PublicAPI]
-    public void QueueDownload2(VideoInfo videoInfo, bool highPriority = false)
+    public void QueueDownload(VideoInfo videoInfo, bool highPriority = false)
     {
         lock (_queueLock)
         {
@@ -145,11 +146,11 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     }
 
     [PublicAPI]
-    public async Task<bool> DownloadAndWaitAsync2(VideoInfo videoInfo, TimeSpan timeout, bool highPriority = true)
+    public async Task<bool> DownloadAndWaitAsync(VideoInfo videoInfo, TimeSpan timeout, bool highPriority = true)
     {
         var ext = videoInfo.DownloadFormat.ToString().ToLower();
         var fileName = $"{videoInfo.VideoId}.{ext}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
             return true;
 
@@ -157,7 +158,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         {
             // Any container can be served to AVPro: an MP4 cache copy (SABR convergence writes one)
             // satisfies this download too.
-            var mp4Path = Path.Join(CacheManager.CachePath, $"{videoInfo.VideoId}.mp4");
+            var mp4Path = Path.Join(CacheManager.Instance.CachePath, $"{videoInfo.VideoId}.mp4");
             if (File.Exists(mp4Path))
                 return true;
         }
@@ -169,7 +170,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         lock (list)
             list.Add(tcs);
 
-        QueueDownload2(videoInfo, highPriority);
+        QueueDownload(videoInfo, highPriority);
 
         if (File.Exists(filePath))
         {
@@ -202,7 +203,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
     }
 
     [PublicAPI]
-    public void ClearQueue2()
+    public void ClearQueue()
     {
         lock (_queueLock)
         {
@@ -213,25 +214,25 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
 
     // Public accessors for UI
     [PublicAPI]
-    public IReadOnlyList<VideoInfo> GetQueueSnapshot2()
+    public IReadOnlyList<VideoInfo> GetQueueSnapshot()
     {
         lock (_queueLock)
             return [.. _downloadQueue];
     }
 
     [PublicAPI]
-    public int GetQueueCount2()
+    public int GetQueueCount()
     {
         lock (_queueLock)
             return _downloadQueue.Count;
     }
 
     [PublicAPI]
-    public VideoInfo? GetCurrentDownload2() => _currentDownload;
+    public VideoInfo? GetCurrentDownload() => _currentDownload;
 
     /// <summary>Completion fraction (0..1) of the download in progress, or null when unknown/idle.</summary>
     [PublicAPI]
-    public double? GetCurrentDownloadProgress2() => _currentActivity?.Progress;
+    public double? GetCurrentDownloadProgress() => _currentActivity?.Progress;
 
     /// <summary>Streams a yt-dlp process' stdout+stderr, reporting download progress and returning the
     /// captured error output (progress lines excluded). Must be awaited before reading <c>ExitCode</c>.</summary>
@@ -265,7 +266,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        var videoId = await Try.Run<string?>(async () => await VideoId.TryGetYouTubeVideoId(url)).GetOrElse(ex =>
+        var videoId = await Try.Run<string?>(async () => await VideoId.Instance.TryGetYouTubeVideoId(url)).GetOrElse(ex =>
         {
             Log.Error(ex, "Not downloading YouTube video: {Url} {Ex}", url, ex.ToString());
             return Task.FromResult<string?>(null);
@@ -286,7 +287,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using var process = new Process();
         process.StartInfo = new()
         {
-            FileName = YtdlManager.YtdlPath,
+            FileName = YtdlManager.Instance.YtdlPath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -295,21 +296,21 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             StandardErrorEncoding = Encoding.UTF8
         };
 
-        var maxHeight = ConfigManager.Config.YouTubeMaxResolution;
+        var maxHeight = ConfigManager.Instance.Config.YouTubeMaxResolution;
 
         if (videoInfo.DownloadFormat == DownloadFormat.MKV)
         {
             // process.StartInfo.Arguments = $"-q -o \"{TempDownloadMp4Path}\" -f \"bv*[height<={maxHeight}][vcodec~='^(avc|h264)']+ba[ext=m4a]/bv*[height<={maxHeight}][vcodec!=av01][vcodec!=vp9.2][protocol^=http]\" --remux-video mp4 {additionalArgs} -- \"{videoId}\"";
-            var audioArg = string.IsNullOrEmpty(ConfigManager.Config.YtdlpDubLanguage)
+            var audioArg = string.IsNullOrEmpty(ConfigManager.Instance.Config.YtdlpDubLanguage)
                 ? "+ba[acodec~='^(mp4a|opus)']"
-                : $"+(ba[language={ConfigManager.Config.YtdlpDubLanguage}]/ba)[acodec~='^(mp4a|opus)']";
+                : $"+(ba[language={ConfigManager.Instance.Config.YtdlpDubLanguage}]/ba)[acodec~='^(mp4a|opus)']";
 
             var formatString = "";
 
-            if (ConfigManager.Config.YtdlpAllowAV1)
+            if (ConfigManager.Instance.Config.YtdlpAllowAV1)
                 formatString += $"bv*[height<={maxHeight}][vcodec~='^av01'][dynamic_range='SDR']{audioArg}/";
 
-            if (ConfigManager.Config.AllowVP9)
+            if (ConfigManager.Instance.Config.AllowVP9)
                 formatString += $"bv*[height<={maxHeight}][vcodec~='^(vp9|vp09)'][dynamic_range='SDR']{audioArg}/";
 
             // Always allow downloading H.264 as a backup. If vp9 is disabled we need this,
@@ -325,9 +326,9 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         else
         {
             // Potato mode.
-            var audioArgPotato = string.IsNullOrEmpty(ConfigManager.Config.YtdlpDubLanguage)
+            var audioArgPotato = string.IsNullOrEmpty(ConfigManager.Instance.Config.YtdlpDubLanguage)
                 ? "+ba[ext=m4a]"
-                : $"+(ba[ext=m4a][language={ConfigManager.Config.YtdlpDubLanguage}]/ba[ext=m4a])";
+                : $"+(ba[ext=m4a][language={ConfigManager.Instance.Config.YtdlpDubLanguage}]/ba[ext=m4a])";
             args.Add($"-o \"{tempDownloadMp4Path}\"");
             var potatoMaxHeight = Math.Clamp(maxHeight, 360, 1080);
             args.Add(
@@ -336,7 +337,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             // $@"-f best/bestvideo[height<=?720]+bestaudio {url} " %(id)s.%(ext)s
         }
 
-        process.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
+        process.StartInfo.Arguments = YtdlManager.Instance.GenerateYtdlArgs(args, $"-- \"{videoId}\"");
         Log.Information("Downloading YouTube Video: {Args}", process.StartInfo.Arguments);
 
         var progress = new YtdlProgress(activity);
@@ -347,7 +348,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using (await YtdlCookieJar.AcquireAsync())
         {
             process.Start();
-            using (var processTracker = ChildProcessTracker.Tracking(process))
+            using (var processTracker = ChildProcessTracker.Instance.Tracking(process))
             {
                 if (processTracker.TrackResult == ChildProcessTracker.TrackResult.Terminating) return false;
                 error = await PumpYtdlpAsync(process, progress);
@@ -368,7 +369,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         await Task.Delay(100);
 
         var fileName = $"{videoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -392,8 +393,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        CacheManager.AddToCache(fileName);
-        Log.Information("YouTube Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.Instance.AddToCache(fileName);
+        Log.Information("YouTube Video Downloaded: {Url}", $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -406,7 +407,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using var process = new Process();
         process.StartInfo = new()
         {
-            FileName = YtdlManager.YtdlPath,
+            FileName = YtdlManager.Instance.YtdlPath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -418,7 +419,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         Log.Information("Downloading VRDancing Video: {Args}", process.StartInfo.Arguments);
         process.Start();
         var progress = new YtdlProgress(activity);
-        var error = await ChildProcessTracker.Tracking(process, async result =>
+        var error = await ChildProcessTracker.Instance.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             var output = await PumpYtdlpAsync(process, progress);
@@ -435,7 +436,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         await Task.Delay(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -455,8 +456,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        CacheManager.AddToCache(fileName);
-        Log.Information("VRDancing Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.Instance.AddToCache(fileName);
+        Log.Information("VRDancing Video Downloaded: {Url}", $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -493,7 +494,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         await Task.Delay(10);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -513,8 +514,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        CacheManager.AddToCache(fileName);
-        Log.Information("Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.Instance.AddToCache(fileName);
+        Log.Information("Video Downloaded: {Url}", $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -527,7 +528,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using var process = new Process();
         process.StartInfo = new()
         {
-            FileName = YtdlManager.YtdlPath,
+            FileName = YtdlManager.Instance.YtdlPath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -540,7 +541,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         Log.Information("Downloading Generic Video: {Args}", process.StartInfo.Arguments);
         process.Start();
         var progress = new YtdlProgress(activity);
-        var error = await ChildProcessTracker.Tracking(process, async result =>
+        var error = await ChildProcessTracker.Instance.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             var output = await PumpYtdlpAsync(process, progress);
@@ -557,7 +558,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         await Task.Delay(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -577,8 +578,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        CacheManager.AddToCache(fileName);
-        Log.Information("Generic Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.Instance.AddToCache(fileName);
+        Log.Information("Generic Video Downloaded: {Url}", $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 
@@ -591,7 +592,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         using var process = new Process();
         process.StartInfo = new()
         {
-            FileName = YtdlManager.YtdlPath,
+            FileName = YtdlManager.Instance.YtdlPath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -605,7 +606,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         Log.Information("Downloading NicoNico Video: {Args}", process.StartInfo.Arguments);
         process.Start();
         var progress = new YtdlProgress(activity);
-        var error = await ChildProcessTracker.Tracking(process, async result =>
+        var error = await ChildProcessTracker.Instance.Tracking(process, async result =>
         {
             if (result == ChildProcessTracker.TrackResult.Terminating) return "";
             var output = await PumpYtdlpAsync(process, progress);
@@ -622,7 +623,7 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
         await Task.Delay(100);
 
         var fileName = $"{videoInfo.VideoId}.{videoInfo.DownloadFormat.ToString().ToLower()}";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
         {
             Log.Error("File already exists, canceling...");
@@ -642,8 +643,8 @@ public partial class VideoDownloader : Singleton<VideoDownloader>
             return false;
         }
 
-        CacheManager.AddToCache(fileName);
-        Log.Information("NicoNico Video Downloaded: {Url}", $"{ConfigManager.Config.YtdlpWebServerUrl}/{fileName}");
+        CacheManager.Instance.AddToCache(fileName);
+        Log.Information("NicoNico Video Downloaded: {Url}", $"{ConfigManager.Instance.Config.YtdlpWebServerUrl}/{fileName}");
         return true;
     }
 }

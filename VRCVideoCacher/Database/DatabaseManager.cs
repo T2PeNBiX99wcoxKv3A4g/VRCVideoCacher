@@ -42,13 +42,11 @@ public static class DatabaseManager
             Type = videoInfo.UrlType
         };
 
-        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbWriteLock.Release()))
+        await WriteAsync(async db =>
         {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             await db.PlayHistory.AddAsync(history, cancellationToken).ConfigureAwait(false);
             await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
+        }, cancellationToken);
 
         OnPlayHistoryAdded?.Invoke();
     }
@@ -61,15 +59,13 @@ public static class DatabaseManager
     public static async Task DeletePlayHistoryForVideoAsync(string? id, string url,
         CancellationToken cancellationToken = default)
     {
-        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbWriteLock.Release()))
+        await WriteAsync(async db =>
         {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(id))
                 await db.PlayHistory.Where(h => h.Id == id).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
             else
                 await db.PlayHistory.Where(h => h.Url == url).ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
-        }
+        }, cancellationToken);
 
         OnPlayHistoryChanged?.Invoke();
     }
@@ -77,12 +73,7 @@ public static class DatabaseManager
     /// <summary>Deletes every play record.</summary>
     public static async Task ClearPlayHistoryAsync(CancellationToken cancellationToken = default)
     {
-        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbWriteLock.Release()))
-        {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-            await db.PlayHistory.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
-        }
+        await WriteAsync(db => db.PlayHistory.ExecuteDeleteAsync(cancellationToken), cancellationToken);
 
         OnPlayHistoryChanged?.Invoke();
     }
@@ -92,10 +83,8 @@ public static class DatabaseManager
     {
         if (string.IsNullOrEmpty(videoInfoCache.Id)) return;
 
-        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using (UsingUntil.Run(() => DbWriteLock.Release()))
+        await WriteAsync(async db =>
         {
-            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
             var existingCache = await db.VideoInfoCache.FindAsync([videoInfoCache.Id], cancellationToken)
                 .ConfigureAwait(false);
             if (existingCache != null)
@@ -116,9 +105,24 @@ public static class DatabaseManager
                 await db.VideoInfoCache.AddAsync(videoInfoCache, cancellationToken).ConfigureAwait(false);
 
             await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
+        }, cancellationToken);
 
         OnVideoInfoCacheUpdated?.Invoke();
+    }
+
+    /// <summary>Runs one write against a fresh context while holding the single-writer lock.</summary>
+    private static async Task WriteAsync(Func<Database, Task> write, CancellationToken cancellationToken)
+    {
+        await DbWriteLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var db = await ContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+            await write(db).ConfigureAwait(false);
+        }
+        finally
+        {
+            DbWriteLock.Release();
+        }
     }
 
     public static async Task<List<History>> GetPlayHistoryAsync(int limit = 50,

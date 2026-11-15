@@ -78,7 +78,7 @@ public static class SabrRestreamService
     /// Whether the streamed media doubles as the cached copy, so the video is fetched once instead of twice.
     /// </summary>
     public static bool CacheConverges =>
-        ConfigManager.Config is
+        ConfigManager.Instance.Config is
         {
             SabrRestreamEnabled: true,
             CacheYouTube: true
@@ -114,7 +114,7 @@ public static class SabrRestreamService
     /// </summary>
     public static async Task<string?> TryGetRestreamUrlAsync(VideoInfo videoInfo)
     {
-        if (!ConfigManager.Config.SabrRestreamEnabled)
+        if (!ConfigManager.Instance.Config.SabrRestreamEnabled)
             return null;
         if (videoInfo.UrlType != UrlType.YouTube || string.IsNullOrEmpty(videoInfo.VideoId))
             return null;
@@ -180,26 +180,26 @@ public static class SabrRestreamService
         Sessions.TryGetValue(videoId, out var session) && session is SabrLiveSession;
 
     private static string PlaybackUrlFor(string videoId) =>
-        $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/hls/{videoId}/{HlsPlaylist.PlaylistName}";
+        $"{ConfigManager.Instance.Config.YtdlpWebServerUrl.TrimEnd('/')}/hls/{videoId}/{HlsPlaylist.PlaylistName}";
 
     private static async Task<ISabrSession?> StartSessionAsync(VideoInfo videoInfo)
     {
         var videoId = videoInfo.VideoId;
 
-        var maxHeight = ConfigManager.Config.YouTubeMaxResolution;
+        var maxHeight = ConfigManager.Instance.Config.YouTubeMaxResolution;
 
-        var cookies = Program.IsCookiesEnabledAndValid() ? YtdlManager.CookiesPath : null;
+        var cookies = Program.IsCookiesEnabledAndValid() ? YtdlManager.Instance.CookiesPath : null;
 
         // Extract once, here, because liveness is only knowable from the extraction — and a live
         // broadcast needs an entirely different session. The result is handed to whichever session we
         // build, so this costs no extra yt-dlp run.
         // The one yt-dlp we ship is the SABR-capable build, used here purely as a link extractor (-J).
-        var source = await SabrExtractor.ExtractAsync(videoInfo.VideoUrl, maxHeight, YtdlManager.YtdlPath,
+        var source = await SabrExtractor.ExtractAsync(videoInfo.VideoUrl, maxHeight, YtdlManager.Instance.YtdlPath,
             cookies, Log);
 
         if (source.IsLive)
         {
-            if (!ConfigManager.Config.SabrLiveEnabled)
+            if (!ConfigManager.Instance.Config.SabrLiveEnabled)
             {
                 Log.Information("{VideoId} is a livestream and SabrLiveEnabled is off; using the normal path",
                     videoId);
@@ -207,11 +207,11 @@ public static class SabrRestreamService
             }
 
             return await SabrLiveSession.StartAsync(videoId, source, HlsRootPath,
-                YtdlManager.FfmpegPath, Log);
+                YtdlManager.Instance.FfmpegPath, Log);
         }
 
         var session = await SabrHlsSession.StartAsync(videoId, videoInfo.VideoUrl, maxHeight, HlsRootPath,
-            YtdlManager.YtdlPath, YtdlManager.FfmpegPath, cookies, Log, source);
+            YtdlManager.Instance.YtdlPath, YtdlManager.Instance.FfmpegPath, cookies, Log, source);
 
         if (CacheConverges)
             session.OnFullyFetched = WriteCacheFileAsync;
@@ -227,7 +227,7 @@ public static class SabrRestreamService
     {
         var videoId = session.VideoId;
 
-        var maxLengthMinutes = ConfigManager.Config.CacheYouTubeMaxLength;
+        var maxLengthMinutes = ConfigManager.Instance.Config.CacheYouTubeMaxLength;
         if (maxLengthMinutes > 0 && session.DurationMs > maxLengthMinutes * 60_000L)
         {
             Log.Information("Not caching {VideoId}: {Duration:0} min exceeds the {Max} min cache limit",
@@ -238,7 +238,7 @@ public static class SabrRestreamService
         // H.264/VP9 + Opus in MP4 — the same combination AVPro already plays in our HLS segments, so no
         // separate AAC fetch is needed. GetCachedFile falls back to .mp4 for the avpro=true case too.
         var fileName = $"{videoId}.mp4";
-        var filePath = Path.Join(CacheManager.CachePath, fileName);
+        var filePath = Path.Join(CacheManager.Instance.CachePath, fileName);
         if (File.Exists(filePath))
             return;
 
@@ -248,7 +248,7 @@ public static class SabrRestreamService
             await session.WriteCompleteFileAsync(temp);
             File.Move(temp, filePath, true);
 
-            CacheManager.AddToCache(fileName);
+            CacheManager.Instance.AddToCache(fileName);
             Log.Information("Cached {VideoId} from the streamed fragments (no second download)", videoId);
         }
         catch (Exception ex)
@@ -327,19 +327,19 @@ public static class SabrRestreamService
             return; // APIController already queued the download
 
         var fileName = $"{videoInfo.VideoId}.mp4";
-        if (File.Exists(Path.Join(CacheManager.CachePath, fileName)))
+        if (File.Exists(Path.Join(CacheManager.Instance.CachePath, fileName)))
             return; // the session produced it from the streamed fragments
 
         Log.Information("SABR session for {VideoId} ended without a complete copy (seeking leaves gaps); " +
                         "queueing a normal download so it still gets cached", videoInfo.VideoId);
-        VideoDownloader.QueueDownload(videoInfo);
+        VideoDownloader.Instance.QueueDownload(videoInfo);
     }
 
     private static async Task ReaperLoop()
     {
-        while (!ChildProcessTracker.Terminating)
+        while (!ChildProcessTracker.Instance.Terminating)
         {
-            if (ChildProcessTracker.Terminating) break;
+            if (ChildProcessTracker.Instance.Terminating) break;
             // Polled often, because the live timeout is short and every extra second of an unwatched
             // live session is bandwidth spent on nothing.
             await Task.Delay(TimeSpan.FromSeconds(5));

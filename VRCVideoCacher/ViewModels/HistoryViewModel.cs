@@ -76,7 +76,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
             var videoInfo = Type switch
             {
                 UrlType.YouTube => await YouTubeMetadataService.GetVideoMetadataAsync(Id),
-                UrlType.NicoVideo => await NicoVideoApiService.GetVideoMetadataAsync(Id),
+                UrlType.NicoVideo => await NicoVideoApiService.Instance.GetVideoMetadataAsync(Id),
                 _ => null
             };
 
@@ -98,7 +98,7 @@ public partial class HistoryItemViewModel(History history, VideoInfoCache? meta)
                 thumbnailPath = Type switch
                 {
                     UrlType.YouTube => await YouTubeMetadataService.GetThumbnail(Id),
-                    UrlType.NicoVideo => await NicoVideoApiService.GetThumbnail(Id),
+                    UrlType.NicoVideo => await NicoVideoApiService.Instance.GetThumbnail(Id),
                     _ => null
                 };
 
@@ -170,7 +170,7 @@ public partial class HistoryViewModel : ViewModelBase
 
     private void LoadFromConfig()
     {
-        var config = ConfigManager.Config;
+        var config = ConfigManager.Instance.Config;
         MaxSize = config.HistoryMaxSize;
     }
 
@@ -179,8 +179,8 @@ public partial class HistoryViewModel : ViewModelBase
         if (value <= 0)
             return;
 
-        ConfigManager.Config.HistoryMaxSize = value;
-        ConfigManager.TrySaveConfigWithoutWait(false);
+        ConfigManager.Instance.Config.HistoryMaxSize = value;
+        ConfigManager.Instance.TrySaveConfigWithoutWait(false);
         // The list is filtered by the new cap, so reload it.
         _ = Dispatcher.UIThread.InvokeAsync(Refresh);
     }
@@ -219,7 +219,7 @@ public partial class HistoryViewModel : ViewModelBase
     private async Task Refresh()
     {
         var fresh = (await DatabaseManager
-                .GetVideoHistoryAsCacheAsync(ConfigManager.Config.HistoryMaxSize, true))
+                .GetVideoHistoryAsCacheAsync(ConfigManager.Instance.Config.HistoryMaxSize, true))
             .OrderByDescending(h => h.Timestamp)
             .ToList();
 

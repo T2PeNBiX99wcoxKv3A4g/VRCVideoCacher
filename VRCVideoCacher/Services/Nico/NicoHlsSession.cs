@@ -75,7 +75,7 @@ internal sealed partial class NicoHlsSession : INicoSession
 
     [PublicAPI] public double TotalDurationSeconds => _durationsMs.Sum() / 1000.0;
 
-    public string PlaybackUrl => $"{ConfigManager.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/{_videoId}/index.m3u8";
+    public string PlaybackUrl => $"{ConfigManager.Instance.Config.YtdlpWebServerUrl.TrimEnd('/')}/nico/{_videoId}/index.m3u8";
     public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
 
     public void Dispose()

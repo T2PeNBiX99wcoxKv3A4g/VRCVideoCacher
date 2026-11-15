@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,687 +9,188 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace VRCVideoCacher.Analyzers;
 
+/// <summary>
+///     Writes the singleton plumbing into a <c>[Singleton]</c> partial class: <c>Instance</c>,
+///     <c>IsInitialized</c>, the shared <c>Log</c> field, a private constructor and the registry entry.
+///     The class keeps its own base class and is free to inherit anything else.
+/// </summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class SingletonGenerator : IIncrementalGenerator
 {
-    private static readonly SymbolDisplayFormat TypeDisplayFormat =
-        SymbolDisplayFormat.FullyQualifiedFormat
-            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+    private const string Attribute = "VRCVideoCacher.Utils.SingletonAttribute";
+    private const string Marker = "VRCVideoCacher.Utils.ISingleton";
+    private const string Registry = "VRCVideoCacher.Utils.SingletonRegistry";
+    private const string Logger = "Serilog.ILogger";
+    private const string ProgramLogger = "VRCVideoCacher.Program.Logger";
 
-    private static readonly DiagnosticDescriptor MemberNameTooShortRule = new(
-        "VVC0001",
-        "Singleton member name is too short for static proxy generation",
-        "Member '{0}' in singleton '{1}' cannot generate a static proxy because its name has only {2} character(s) (must have at least 2 characters to trim the last character)",
+    private static readonly DiagnosticDescriptor NotPartial = new(
+        "VVC3001",
+        "Singleton class must be partial",
+        "'{0}' must be a partial class so the generator can add the singleton members",
         "SingletonGenerator",
         DiagnosticSeverity.Error,
         true);
 
+    private static readonly DiagnosticDescriptor UnsupportedType = new(
+        "VVC3002",
+        "Singleton class is not supported",
+        "'{0}' must be a top-level, non-generic, non-static, non-abstract class",
+        "SingletonGenerator",
+        DiagnosticSeverity.Error,
+        true);
+
+    private static readonly DiagnosticDescriptor NeedsParameterlessConstructor = new(
+        "VVC3003",
+        "Singleton needs a parameterless constructor",
+        "'{0}' has constructors but none takes zero parameters, so the generated Instance cannot create it",
+        "SingletonGenerator",
+        DiagnosticSeverity.Error,
+        true);
+
+    private static readonly DiagnosticDescriptor ExistingInstance = new(
+        "VVC3004",
+        "Singleton class already declares Instance",
+        "'{0}' already declares an Instance member; remove it and let the generator write the singleton",
+        "SingletonGenerator",
+        DiagnosticSeverity.Error,
+        true);
+
+    private static readonly DiagnosticDescriptor ConstructorMustBePrivate = new(
+        "VVC3005",
+        "Singleton constructor must be private",
+        "the constructor of '{0}' must be private so new cannot create a second instance; use {0}.Instance",
+        "SingletonGenerator",
+        DiagnosticSeverity.Error,
+        true);
+
+    private static readonly DiagnosticDescriptor RedundantSealed = new(
+        "VVC3006",
+        "Singleton class is sealed by the generator",
+        "'{0}' does not need the sealed modifier; the generated part seals it",
+        "SingletonGenerator",
+        DiagnosticSeverity.Warning,
+        true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // 1. Query target classes that inherit from Singleton<T>
-        var classDeclarations = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                static (s, cancellationToken) => IsSyntaxTargetForGeneration(s, cancellationToken),
-                static (ctx, ct) => GetSemanticTargetForGeneration(ctx, ct))
-            .Where(static m => m is not null)
-            .Select(static (item, _) => item!.Value);
+        var types = context.SyntaxProvider.ForAttributeWithMetadataName(
+                Attribute,
+                static (node, _) => node is TypeDeclarationSyntax,
+                static (ctx, _) => ctx.TargetSymbol as INamedTypeSymbol)
+            .Where(static type => type is not null)
+            .Select(static (type, _) => type!);
 
-        var distinctClasses = classDeclarations
-            .Collect()
-            .SelectMany(static (items, _) => items.Distinct());
-
-        // 2. Register source output
-        context.RegisterSourceOutput(distinctClasses,
-            static (spc, target) =>
-            {
-                foreach (var diagnostic in target.Diagnostics)
-                    spc.ReportDiagnostic(diagnostic);
-
-                if (!string.IsNullOrEmpty(target.SourceText))
-                    spc.AddSource(target.HintName, SourceText.From(target.SourceText, Encoding.UTF8));
-            });
+        context.RegisterSourceOutput(types.Combine(context.CompilationProvider),
+            static (output, item) => Emit(output, item.Left, item.Right));
     }
 
-    private static bool IsSyntaxTargetForGeneration(SyntaxNode node, CancellationToken cancellationToken) =>
-        node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 };
-
-    private static TargetClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context,
-        CancellationToken cancellationToken)
+    private static void Emit(SourceProductionContext context, INamedTypeSymbol type, Compilation compilation)
     {
-        var classDecl = (ClassDeclarationSyntax)context.Node;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(classDecl, cancellationToken);
-        if (symbol is not { TypeKind: TypeKind.Class })
-            return null;
+        var diagnostics = new List<Diagnostic>();
 
-        if (!InheritsFromSingleton(symbol))
-            return null;
-
-        return GenerateClassCode(symbol);
-    }
-
-    private static bool InheritsFromSingleton(INamedTypeSymbol? symbol)
-    {
-        var current = symbol?.BaseType;
-        while (current != null)
+        if (type.ContainingType is not null || type.TypeParameters.Length > 0 || type.IsStatic ||
+            type.IsAbstract || type.IsRecord || type.TypeKind != TypeKind.Class)
         {
-            if (current.Name == "Singleton" &&
-                current.ContainingNamespace?.ToDisplayString() == "VRCVideoCacher.Utils")
+            context.ReportDiagnostic(Diagnostic.Create(UnsupportedType,
+                type.Locations.FirstOrDefault(), type.Name));
+            return;
+        }
+
+        if (!IsPartial(type))
+            diagnostics.Add(Diagnostic.Create(NotPartial, type.Locations.FirstOrDefault(), type.Name));
+
+        var constructors = type.InstanceConstructors.Where(item => !item.IsImplicitlyDeclared).ToArray();
+        var parameterless = constructors.FirstOrDefault(item => item.Parameters.Length == 0);
+
+        if (constructors.Length > 0 && parameterless is null)
+            diagnostics.Add(Diagnostic.Create(NeedsParameterlessConstructor,
+                type.Locations.FirstOrDefault(), type.Name));
+
+        foreach (var constructor in constructors.Where(item =>
+                     item.DeclaredAccessibility != Accessibility.Private))
+            diagnostics.Add(Diagnostic.Create(ConstructorMustBePrivate,
+                constructor.Locations.FirstOrDefault(), type.Name));
+
+        if (HasMember(type, "Instance"))
+            diagnostics.Add(Diagnostic.Create(ExistingInstance, type.Locations.FirstOrDefault(), type.Name));
+
+        foreach (var diagnostic in diagnostics)
+            context.ReportDiagnostic(diagnostic);
+
+        if (type.IsSealed)
+            context.ReportDiagnostic(Diagnostic.Create(RedundantSealed,
+                type.Locations.FirstOrDefault(), type.Name));
+
+        if (diagnostics.Count > 0)
+            return;
+
+        var typeName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var hasLogger = compilation.GetTypeByMetadataName(Logger) is not null;
+        var hasBaseLog = HasMember(type, "Log");
+
+        var builder = new StringBuilder();
+        builder.AppendLine("// <auto-generated/>");
+        builder.AppendLine("#nullable enable");
+
+        if (type.ContainingNamespace is { IsGlobalNamespace: false } ns)
+        {
+            builder.AppendLine($"namespace {ns.ToDisplayString()}");
+            builder.AppendLine("{");
+        }
+
+        var accessibility = type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
+        var indent = type.ContainingNamespace is { IsGlobalNamespace: false } ? "    " : "";
+
+        builder.AppendLine($"{indent}{accessibility} sealed partial class {type.Name} : global::{Marker}");
+        builder.AppendLine($"{indent}{{");
+        builder.AppendLine($"{indent}    private static readonly {typeName} InstanceValue = Create();");
+        builder.AppendLine($"{indent}    public static {typeName} Instance => InstanceValue;");
+        builder.AppendLine($"{indent}    public static bool IsInitialized => InstanceValue is not null;");
+
+        if (hasLogger && !hasBaseLog)
+        {
+            builder.AppendLine();
+            builder.AppendLine(
+                $"{indent}    private readonly global::{Logger} Log = global::{ProgramLogger}.ForContext<{typeName}>();");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine($"{indent}    private static {typeName} Create()");
+        builder.AppendLine($"{indent}    {{");
+        builder.AppendLine($"{indent}        var instance = new {typeName}();");
+        builder.AppendLine($"{indent}        global::{Registry}.Register(instance);");
+        builder.AppendLine($"{indent}        return instance;");
+        builder.AppendLine($"{indent}    }}");
+
+        if (constructors.Length == 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine($"{indent}    private {type.Name}()");
+            builder.AppendLine($"{indent}    {{");
+            builder.AppendLine($"{indent}    }}");
+        }
+
+        builder.AppendLine($"{indent}}}");
+
+        if (type.ContainingNamespace is { IsGlobalNamespace: false })
+            builder.AppendLine("}");
+
+        context.AddSource($"{type.ToDisplayString().Replace('.', '_')}.Singleton.g.cs",
+            SourceText.From(builder.ToString(), Encoding.UTF8));
+    }
+
+    private static bool IsPartial(INamedTypeSymbol type) =>
+        type.DeclaringSyntaxReferences
+            .Select(reference => reference.GetSyntax())
+            .OfType<TypeDeclarationSyntax>()
+            .Any(syntax => syntax.Modifiers.Any(SyntaxKind.PartialKeyword));
+
+    private static bool HasMember(INamedTypeSymbol type, string name)
+    {
+        for (var current = type; current is not null; current = current.BaseType)
+            if (current.GetMembers(name).Length > 0)
                 return true;
 
-            current = current.BaseType;
-        }
-
         return false;
-    }
-
-    private static TargetClassInfo GenerateClassCode(INamedTypeSymbol symbol)
-    {
-        var fullDisplay = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
-        var safeHintName = fullDisplay
-            .Replace('<', '_')
-            .Replace('>', '_')
-            .Replace(' ', '_')
-            .Replace(',', '_');
-
-        var hintName = $"{safeHintName}.SingletonGenerated.g.cs";
-
-        var sb = new StringBuilder();
-        sb.AppendLine("// <auto-generated/>");
-        sb.AppendLine("#nullable enable");
-        sb.AppendLine();
-
-        // Assembly-level SuppressMessage attributes
-        var fullMetadataOrDocCommentName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            .Replace("global::", "");
-        var targetDocId = symbol.GetDocumentationCommentId() ?? $"T:{fullMetadataOrDocCommentName}";
-        // Ensure format starts with ~T:
-        var targetSpec = targetDocId.StartsWith("T:") ? $"~{targetDocId}" : $"~T:{fullMetadataOrDocCommentName}";
-
-        sb.AppendLine(
-            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"Performance\", \"CA1822\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine(
-            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Global\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine(
-            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBeMadeStatic.Local\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine(
-            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBePrivate.Global\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine(
-            $"[assembly: global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"ReSharper\", \"MemberCanBePrivate.Local\", Scope = \"type\", Target = \"{targetSpec}\")]");
-        sb.AppendLine();
-
-        // Class configuration
-        var (enabled, prefix, suffix) = GetClassProxyConfig(symbol);
-
-        var ns = symbol.ContainingNamespace;
-        var hasNamespace = ns is { IsGlobalNamespace: false };
-        if (hasNamespace)
-        {
-            sb.AppendLine($"namespace {ns!.ToDisplayString()}");
-            sb.AppendLine("{");
-        }
-
-        var containingTypes = new List<INamedTypeSymbol>();
-        var outer = symbol.ContainingType;
-        while (outer != null)
-        {
-            containingTypes.Insert(0, outer);
-            outer = outer.ContainingType;
-        }
-
-        var indent = hasNamespace ? "    " : "";
-        foreach (var outerType in containingTypes)
-        {
-            sb.AppendLine($"{indent}sealed partial class {GetTypeDeclaration(outerType)}");
-            sb.AppendLine($"{indent}{{");
-            indent += "    ";
-        }
-
-        // Partial class definition with static proxies
-        sb.AppendLine($"{indent}sealed partial class {GetTypeDeclaration(symbol)}");
-        sb.AppendLine($"{indent}{{");
-
-        var diagnostics = new List<Diagnostic>();
-        if (enabled)
-            GenerateStaticMembers(sb, indent + "    ", symbol, prefix, suffix, diagnostics);
-
-        sb.AppendLine($"{indent}}}");
-
-        for (var i = 0; i < containingTypes.Count; i++)
-        {
-            indent = indent.Substring(0, indent.Length - 4);
-            sb.AppendLine($"{indent}}}");
-        }
-
-        if (hasNamespace)
-            sb.AppendLine("}");
-
-        return new(hintName, sb.ToString(), diagnostics);
-    }
-
-    private static (bool Enabled, string Prefix, string Suffix) GetClassProxyConfig(INamedTypeSymbol symbol)
-    {
-        var enabled = true;
-        var prefix = "";
-        var suffix = "";
-
-        foreach (var attr in symbol.GetAttributes())
-            if (attr.AttributeClass?.Name is "SingletonStaticProxyAttribute" or "SingletonStaticProxy")
-                foreach (var namedArg in attr.NamedArguments)
-                    switch (namedArg)
-                    {
-                        case { Key: "Enabled", Value.Value: bool b }:
-                            enabled = b;
-                            break;
-                        case { Key: "Prefix", Value.Value: string p }:
-                            prefix = p;
-                            break;
-                        case { Key: "Suffix", Value.Value: string s }:
-                            suffix = s;
-                            break;
-                    }
-
-        return (enabled, prefix, suffix);
-    }
-
-    private static void GenerateStaticMembers(StringBuilder sb, string indent, INamedTypeSymbol symbol, string prefix,
-        string suffix, List<Diagnostic> diagnostics)
-    {
-        var members = symbol.GetMembers();
-
-        foreach (var member in members)
-        {
-            if (member.IsStatic)
-                continue;
-
-            var isPublic = member.DeclaredAccessibility == Accessibility.Public;
-            var isExplicitlyIncluded = HasAttribute(member, "StaticIncludeAttribute", "StaticInclude") ||
-                                       HasAttribute(member, "StaticTrimLastAttribute", "StaticTrimLast") ||
-                                       HasAttribute(member, "StaticTrimEndAttribute", "StaticTrimEnd") ||
-                                       HasAttribute(member, "StaticDropLastAttribute", "StaticDropLast");
-
-            if (!isPublic && !isExplicitlyIncluded)
-                continue;
-
-            // Check if ignored
-            if (HasAttribute(member, "StaticIgnoreAttribute", "StaticIgnore"))
-                continue;
-
-            // Determine if the member is a valid candidate for proxy generation
-            switch (member)
-            {
-                case IPropertySymbol { IsIndexer: true }:
-                    continue;
-                case IPropertySymbol:
-                case IFieldSymbol:
-                case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary &&
-                                               method.ContainingType.SpecialType != SpecialType.System_Object:
-                case IEventSymbol:
-                    break;
-                default:
-                    continue;
-            }
-
-            var customName = GetExplicitCustomName(member);
-            string staticName;
-
-            if (customName != null)
-                staticName = customName;
-            else
-            {
-                if (member.Name.Length <= 1)
-                {
-                    var location = member.Locations.FirstOrDefault() ?? Location.None;
-                    diagnostics.Add(Diagnostic.Create(MemberNameTooShortRule, location, member.Name, symbol.Name,
-                        member.Name.Length));
-                    continue;
-                }
-
-                var baseName = member.Name.Substring(0, member.Name.Length - 1);
-                staticName = $"{prefix}{baseName}{suffix}";
-            }
-
-            switch (member)
-            {
-                case IPropertySymbol prop:
-                {
-                    var hasGet = prop.GetMethod != null;
-                    var hasSet = prop.SetMethod != null;
-                    var canGet = hasGet && (isExplicitlyIncluded ||
-                                            prop.GetMethod!.DeclaredAccessibility == Accessibility.Public);
-                    var canSet = hasSet && (isExplicitlyIncluded ||
-                                            prop.SetMethod!.DeclaredAccessibility == Accessibility.Public);
-
-                    if (!canGet && !canSet)
-                        continue;
-
-                    var typeStr = prop.Type.ToDisplayString(TypeDisplayFormat);
-                    sb.AppendLine();
-                    sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{prop.Name}\"/></summary>");
-                    foreach (var attr in prop.GetAttributes())
-                        if (ShouldIncludeMemberAttribute(attr))
-                        {
-                            var formatted = FormatAttribute(attr);
-                            if (formatted != null)
-                                sb.AppendLine($"{indent}{formatted}");
-                        }
-
-                    sb.AppendLine($"{indent}public static {typeStr} {staticName}");
-                    sb.AppendLine($"{indent}{{");
-                    if (canGet)
-                    {
-                        sb.AppendLine(
-                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                        sb.AppendLine($"{indent}    get => Instance.{prop.Name};");
-                    }
-
-                    if (canSet)
-                    {
-                        sb.AppendLine(
-                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                        sb.AppendLine($"{indent}    set => Instance.{prop.Name} = value;");
-                    }
-
-                    sb.AppendLine($"{indent}}}");
-                    break;
-                }
-                case IFieldSymbol field:
-                {
-                    var typeStr = field.Type.ToDisplayString(TypeDisplayFormat);
-                    sb.AppendLine();
-                    sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{field.Name}\"/></summary>");
-                    foreach (var attr in field.GetAttributes())
-                        if (ShouldIncludeMemberAttribute(attr))
-                        {
-                            var formatted = FormatAttribute(attr);
-                            if (formatted != null)
-                                sb.AppendLine($"{indent}{formatted}");
-                        }
-
-                    if (field.IsReadOnly)
-                        sb.AppendLine($"{indent}public static {typeStr} {staticName} => Instance.{field.Name};");
-                    else
-                    {
-                        sb.AppendLine($"{indent}public static {typeStr} {staticName}");
-                        sb.AppendLine($"{indent}{{");
-                        sb.AppendLine(
-                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                        sb.AppendLine($"{indent}    get => Instance.{field.Name};");
-                        sb.AppendLine(
-                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                        sb.AppendLine($"{indent}    set => Instance.{field.Name} = value;");
-                        sb.AppendLine($"{indent}}}");
-                    }
-
-                    break;
-                }
-                case IMethodSymbol method:
-                {
-                    var returnTypeStr = method.ReturnType.ToDisplayString(TypeDisplayFormat);
-                    var typeParamsStr = method.TypeParameters.Length > 0
-                        ? $"<{string.Join(", ", method.TypeParameters.Select(p => p.Name))}>"
-                        : "";
-
-                    var typeParamConstraints = new List<string>();
-                    foreach (var tp in method.TypeParameters)
-                    {
-                        var constraints = new List<string>();
-                        if (tp.HasReferenceTypeConstraint) constraints.Add("class");
-                        if (tp.HasValueTypeConstraint) constraints.Add("struct");
-                        if (tp.HasNotNullConstraint) constraints.Add("notnull");
-                        if (tp.HasUnmanagedTypeConstraint) constraints.Add("unmanaged");
-                        constraints.AddRange(tp.ConstraintTypes.Select(ct => ct.ToDisplayString(TypeDisplayFormat)));
-                        if (tp.HasConstructorConstraint) constraints.Add("new()");
-
-                        if (constraints.Count > 0)
-                            typeParamConstraints.Add($"where {tp.Name} : {string.Join(", ", constraints)}");
-                    }
-
-                    var constraintStr = typeParamConstraints.Count > 0
-                        ? " " + string.Join(" ", typeParamConstraints)
-                        : "";
-
-                    var paramList = new List<string>();
-                    var callArgs = new List<string>();
-
-                    foreach (var p in method.Parameters)
-                    {
-                        var refPrefix = "";
-                        var callRefPrefix = "";
-                        switch (p.RefKind)
-                        {
-                            case RefKind.Ref:
-                                refPrefix = "ref ";
-                                callRefPrefix = "ref ";
-                                break;
-                            case RefKind.Out:
-                                refPrefix = "out ";
-                                callRefPrefix = "out ";
-                                break;
-                            case RefKind.In:
-                                refPrefix = "in ";
-                                callRefPrefix = "in ";
-                                break;
-                            case RefKind.RefReadOnlyParameter:
-                                refPrefix = "ref readonly ";
-                                callRefPrefix = "in ";
-                                break;
-                        }
-
-                        var isParams = p.IsParams ? "params " : "";
-                        var pType = p.Type.ToDisplayString(TypeDisplayFormat);
-                        var pName = EscapeIdentifier(p.Name);
-                        var defaultVal = p.HasExplicitDefaultValue
-                            ? $" = {FormatDefaultValue(p.ExplicitDefaultValue)}"
-                            : "";
-
-                        var paramAttrs = new List<string>();
-                        foreach (var attr in p.GetAttributes())
-                            if (ShouldIncludeParameterAttribute(attr))
-                            {
-                                var formatted = FormatAttribute(attr);
-                                if (formatted != null)
-                                    paramAttrs.Add(formatted);
-                            }
-
-                        var paramAttrStr = paramAttrs.Count > 0 ? $"{string.Join(" ", paramAttrs)} " : "";
-                        paramList.Add($"{paramAttrStr}{isParams}{refPrefix}{pType} {pName}{defaultVal}");
-                        callArgs.Add($"{callRefPrefix}{pName}");
-                    }
-
-                    var paramsStr = string.Join(", ", paramList);
-                    var callArgsStr = string.Join(", ", callArgs);
-
-                    var methodTypeArgsStr = method.TypeParameters.Length > 0
-                        ? $"<{string.Join(", ", method.TypeParameters.Select(p => p.Name))}>"
-                        : "";
-
-                    sb.AppendLine();
-                    sb.AppendLine($"{indent}/// <summary>Static proxy for <see cref=\"{method.Name}\"/></summary>");
-                    foreach (var attr in method.GetAttributes())
-                        if (ShouldIncludeMemberAttribute(attr))
-                        {
-                            var formatted = FormatAttribute(attr);
-                            if (formatted != null)
-                                sb.AppendLine($"{indent}{formatted}");
-                        }
-
-                    foreach (var attr in method.GetReturnTypeAttributes())
-                        if (ShouldIncludeParameterAttribute(attr))
-                        {
-                            var formatted = FormatAttribute(attr);
-                            if (formatted != null)
-                            {
-                                var returnAttr = formatted.Insert(1, "return: ");
-                                sb.AppendLine($"{indent}{returnAttr}");
-                            }
-                        }
-
-                    sb.AppendLine(
-                        $"{indent}[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                    sb.AppendLine(
-                        method.ReturnsVoid
-                            ? $"{indent}public static void {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});"
-                            : $"{indent}public static {returnTypeStr} {staticName}{typeParamsStr}({paramsStr}){constraintStr} => Instance.{method.Name}{methodTypeArgsStr}({callArgsStr});");
-                    break;
-                }
-                case IEventSymbol evt:
-                {
-                    var hasAdd = evt.AddMethod != null;
-                    var hasRemove = evt.RemoveMethod != null;
-                    var canAdd = hasAdd && (isExplicitlyIncluded ||
-                                            evt.AddMethod!.DeclaredAccessibility == Accessibility.Public);
-                    var canRemove = hasRemove && (isExplicitlyIncluded ||
-                                                  evt.RemoveMethod!.DeclaredAccessibility == Accessibility.Public);
-
-                    if (!canAdd && !canRemove)
-                        continue;
-
-                    var typeStr = evt.Type.ToDisplayString(TypeDisplayFormat);
-                    sb.AppendLine();
-                    sb.AppendLine($"{indent}/// <summary>Static proxy for event <see cref=\"{evt.Name}\"/></summary>");
-                    foreach (var attr in evt.GetAttributes())
-                        if (ShouldIncludeMemberAttribute(attr))
-                        {
-                            var formatted = FormatAttribute(attr);
-                            if (formatted != null)
-                                sb.AppendLine($"{indent}{formatted}");
-                        }
-
-                    sb.AppendLine($"{indent}public static event {typeStr} {staticName}");
-                    sb.AppendLine($"{indent}{{");
-                    if (canAdd)
-                    {
-                        sb.AppendLine(
-                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                        sb.AppendLine($"{indent}    add => Instance.{evt.Name} += value;");
-                    }
-
-                    if (canRemove)
-                    {
-                        sb.AppendLine(
-                            $"{indent}    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]");
-                        sb.AppendLine($"{indent}    remove => Instance.{evt.Name} -= value;");
-                    }
-
-                    sb.AppendLine($"{indent}}}");
-                    break;
-                }
-            }
-        }
-    }
-
-    private static bool ShouldIncludeParameterAttribute(AttributeData attr)
-    {
-        var className = attr.AttributeClass?.Name;
-        var fullNamespace = attr.AttributeClass?.ContainingNamespace?.ToDisplayString();
-
-        if (className == null)
-            return false;
-
-        if (fullNamespace == "System.Runtime.CompilerServices")
-            if (className is "NullableAttribute" or "NullableContextAttribute" or "ParamArrayAttribute"
-                or "IsReadOnlyAttribute" or "ScopedRefAttribute" or "RefSafetyRulesAttribute"
-                or "TupleElementNamesAttribute" or "NativeIntegerAttribute" or "DynamicAttribute"
-                or "ExtensionAttribute" or "AsyncStateMachineAttribute" or "IteratorStateMachineAttribute"
-                or "CompilerGeneratedAttribute")
-                return false;
-
-        return true;
-    }
-
-    private static bool ShouldIncludeMemberAttribute(AttributeData attr)
-    {
-        var className = attr.AttributeClass?.Name;
-        var fullNamespace = attr.AttributeClass?.ContainingNamespace?.ToDisplayString();
-
-        if (className == null)
-            return false;
-
-        if (className is "SingletonStaticProxyAttribute" or "SingletonStaticProxy"
-            or "StaticIncludeAttribute" or "StaticInclude"
-            or "StaticIgnoreAttribute" or "StaticIgnore"
-            or "StaticTrimLastAttribute" or "StaticTrimLast"
-            or "StaticTrimEndAttribute" or "StaticTrimEnd"
-            or "StaticDropLastAttribute" or "StaticDropLast"
-            or "MethodImplAttribute")
-            return false;
-
-        if (fullNamespace == "System.Runtime.CompilerServices")
-            if (className is "NullableAttribute" or "NullableContextAttribute"
-                or "AsyncStateMachineAttribute" or "IteratorStateMachineAttribute"
-                or "CompilerGeneratedAttribute" or "ExtensionAttribute")
-                return false;
-
-        return true;
-    }
-
-    private static string? FormatAttribute(AttributeData attr)
-    {
-        if (attr.AttributeClass == null)
-            return null;
-
-        var attrTypeStr = attr.AttributeClass.ToDisplayString(TypeDisplayFormat);
-        var args = new List<string>();
-
-        foreach (var ctorArg in attr.ConstructorArguments)
-            args.Add(FormatTypedConstant(ctorArg));
-
-        foreach (var namedArg in attr.NamedArguments)
-            args.Add($"{namedArg.Key} = {FormatTypedConstant(namedArg.Value)}");
-
-        return args.Count > 0 ? $"[{attrTypeStr}({string.Join(", ", args)})]" : $"[{attrTypeStr}]";
-    }
-
-    private static string FormatTypedConstant(TypedConstant tc)
-    {
-        if (tc.IsNull)
-            return "null";
-
-        switch (tc.Kind)
-        {
-            case TypedConstantKind.Primitive:
-                return tc.Value switch
-                {
-                    null => "null",
-                    bool b => b ? "true" : "false",
-                    string s => $"\"{EscapeString(s)}\"",
-                    char c => $"'{EscapeChar(c)}'",
-                    float f => $"{f}f",
-                    double d => $"{d}d",
-                    decimal m => $"{m}m",
-                    long l => $"{l}L",
-                    ulong ul => $"{ul}UL",
-                    uint u => $"{u}U",
-                    _ => tc.Value.ToString()
-                };
-            case TypedConstantKind.Enum:
-            {
-                var typeStr = tc.Type?.ToDisplayString(TypeDisplayFormat);
-                if (typeStr != null)
-                {
-                    if (tc.Type is INamedTypeSymbol namedType)
-                    {
-                        var field = namedType.GetMembers().OfType<IFieldSymbol>()
-                            .FirstOrDefault(f => f.HasConstantValue && Equals(f.ConstantValue, tc.Value));
-                        if (field != null)
-                            return $"{typeStr}.{field.Name}";
-                    }
-
-                    return $"({typeStr})({tc.Value})";
-                }
-
-                return tc.Value?.ToString() ?? "0";
-            }
-            case TypedConstantKind.Type:
-                return tc.Value is ITypeSymbol typeSym
-                    ? $"typeof({typeSym.ToDisplayString(TypeDisplayFormat)})"
-                    : "typeof(object)";
-            case TypedConstantKind.Array:
-            {
-                var elementValues = tc.Values.Select(FormatTypedConstant);
-                var arrayType = tc.Type?.ToDisplayString(TypeDisplayFormat) ?? "object[]";
-                return $"new {arrayType} {{ {string.Join(", ", elementValues)} }}";
-            }
-            default:
-                return tc.Value?.ToString() ?? "null";
-        }
-    }
-
-    private static string EscapeString(string s) =>
-        s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
-
-    private static string EscapeChar(char c) =>
-        c switch
-        {
-            '\\' => "\\\\",
-            '\'' => "\\'",
-            '\r' => "\\r",
-            '\n' => "\\n",
-            '\t' => "\\t",
-            '\0' => "\\0",
-            _ => c.ToString()
-        };
-
-    private static string EscapeIdentifier(string name) =>
-        SyntaxFacts.IsKeywordKind(SyntaxFacts.GetKeywordKind(name)) ? "@" + name : name;
-
-    private static string FormatDefaultValue(object? value)
-    {
-        return value switch
-        {
-            null => "default",
-            bool b => b ? "true" : "false",
-            string s => $"\"{s.Replace("\"", "\\\"")}\"",
-            char c => $"'{c}'",
-            float f => $"{f}f",
-            double d => $"{d}d",
-            decimal m => $"{m}m",
-            _ => value.ToString()
-        };
-    }
-
-    private static bool HasAttribute(ISymbol symbol, string attrName1, string attrName2)
-    {
-        return Enumerable.Any(symbol.GetAttributes(),
-            attr => attr.AttributeClass?.Name == attrName1 || attr.AttributeClass?.Name == attrName2);
-    }
-
-    private static string? GetExplicitCustomName(ISymbol symbol)
-    {
-        foreach (var attr in symbol.GetAttributes())
-        {
-            var attrName = attr.AttributeClass?.Name;
-            if (attrName is "StaticIncludeAttribute" or "StaticInclude")
-            {
-                if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string s1 &&
-                    !string.IsNullOrEmpty(s1))
-                    return s1;
-
-                foreach (var namedArg in attr.NamedArguments)
-                    if (namedArg is { Key: "Name", Value.Value: string s2 } && !string.IsNullOrEmpty(s2))
-                        return s2;
-            }
-        }
-
-        return null;
-    }
-
-    private static string GetTypeDeclaration(INamedTypeSymbol symbol)
-    {
-        if (symbol.TypeParameters.Length == 0)
-            return symbol.Name;
-
-        var typeParams = string.Join(", ", symbol.TypeParameters.Select(static p => p.Name));
-        return $"{symbol.Name}<{typeParams}>";
-    }
-
-    private readonly struct TargetClassInfo(string hintName, string sourceText, IReadOnlyList<Diagnostic> diagnostics)
-        : IEquatable<TargetClassInfo>
-    {
-        public string HintName { get; } = hintName;
-        public string SourceText { get; } = sourceText;
-        public IReadOnlyList<Diagnostic> Diagnostics { get; } = diagnostics;
-
-        public bool Equals(TargetClassInfo other)
-        {
-            if (HintName != other.HintName || SourceText != other.SourceText)
-                return false;
-
-            if (Diagnostics.Count != other.Diagnostics.Count)
-                return false;
-
-            return !Diagnostics.Where((t, i) => !t.Equals(other.Diagnostics[i])).Any();
-        }
-
-        public override bool Equals(object? obj) => obj is TargetClassInfo other && Equals(other);
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = HintName.GetHashCode() * 397 ^ SourceText.GetHashCode();
-                return Diagnostics.Aggregate(hash, (current, d) => current * 31 ^ d.GetHashCode());
-            }
-        }
     }
 }

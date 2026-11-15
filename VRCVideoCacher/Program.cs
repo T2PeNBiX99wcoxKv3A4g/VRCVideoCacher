@@ -46,7 +46,7 @@ internal sealed class Program
     {
         LaunchArgs.SetupArguments(args);
         // Must run before Steam API init — this process may be a privileged subprocess invoked by ElevatorManager
-        HostsManager.TryRun();
+        HostsManager.Instance.TryRun();
 
         if (LaunchArgs.Uninstall)
         {
@@ -79,7 +79,7 @@ internal sealed class Program
         }
 #endif
 
-        if (Updater.RunUpdateHandler())
+        if (Updater.Instance.RunUpdateHandler())
         {
             Environment.Exit(0);
             return;
@@ -163,7 +163,7 @@ internal sealed class Program
     {
         Try.Run(() => Console.Title = $"VRCVideoCacher v{Version}");
 
-        OpenVRService.Start();
+        OpenVRService.Instance.Start();
 
         // Surface a fixed-port (9696) conflict up front — with the offending process — before WebServer
         // throws an opaque bind error. Reassignable ports (bgutil) handle themselves when they start.
@@ -172,12 +172,12 @@ internal sealed class Program
         // so the updater would consider mainline "newer" and overwrite the test build. Never self-update
         // a feature-branch build.
 #if !STEAMRELEASE && !SABRRELEASE
-        await Updater.CheckForUpdates();
+        await Updater.Instance.CheckForUpdates();
 #endif
-        Updater.Cleanup();
+        Updater.Instance.Cleanup();
         if (Environment.CommandLine.Contains("--Reset"))
         {
-            FileTools.RestoreAllYtdl();
+            FileTools.Instance.RestoreAllYtdl();
             Environment.Exit(0);
         }
 
@@ -192,20 +192,20 @@ internal sealed class Program
         Console.CancelKeyPress += (_, _) => Environment.Exit(0);
         AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAppQuit();
 
-        await VvcConfigService.GetConfig();
-        if (ConfigManager.Config.YtdlpAutoUpdate && !LaunchArgs.UseGlobalPath)
+        await VvcConfigService.Instance.GetConfig();
+        if (ConfigManager.Instance.Config.YtdlpAutoUpdate && !LaunchArgs.UseGlobalPath)
         {
             await Task.WhenAll(
-                YtdlManager.TryDownloadYtdlp(),
-                YtdlManager.TryDownloadDeno()
+                YtdlManager.Instance.TryDownloadYtdlp(),
+                YtdlManager.Instance.TryDownloadDeno()
             );
-            YtdlManager.StartYtdlUpdaterThread();
-            _ = YtdlManager.TryDownloadFfmpeg();
+            YtdlManager.Instance.StartYtdlUpdaterThread();
+            _ = YtdlManager.Instance.TryDownloadFfmpeg();
         }
 
         // Readiness checks may have arrived already; only now may they start the provider.
         BgUtilPotProvider.EnableStartup();
-        if (ConfigManager.Config.SabrRestreamEnabled)
+        if (ConfigManager.Instance.Config.SabrRestreamEnabled)
             // SABR hands AVPro Opus-in-MP4, which an out-of-date Windows decodes as silent audio and
             // VRChat then shows as a video that never plays. Nothing in any log says so — hence the
             // explicit check. Runs off the startup path; it costs a decode of a ~1s clip.
@@ -213,12 +213,12 @@ internal sealed class Program
                 _ = OpusMp4Check.EnsureAsync();
 
         if (OperatingSystem.IsWindows())
-            AutoStartShortcut.TryUpdateShortcutPath();
-        WebServer.StartOrRestart();
-        FileTools.BackupAllYtdl();
-        await BulkPreCache.DownloadFileList();
+            AutoStartShortcut.Instance.TryUpdateShortcutPath();
+        WebServer.Instance.StartOrRestart();
+        FileTools.Instance.BackupAllYtdl();
+        await BulkPreCache.Instance.DownloadFileList();
 
-        if (ConfigManager.Config.YtdlpUseCookies && !IsCookiesEnabledAndValid())
+        if (ConfigManager.Instance.Config.YtdlpUseCookies && !IsCookiesEnabledAndValid())
             Logger.Warning(
                 "No cookies found, please use the browser extension to send cookies or disable \"ytdlUseCookies\" in config.");
 
@@ -226,7 +226,7 @@ internal sealed class Program
 
         // run after init to avoid text spam blocking user input
         if (OperatingSystem.IsWindows())
-            _ = WinGet.TryInstallPackages();
+            _ = WinGet.Instance.TryInstallPackages();
 
         await Task.Delay(-1);
     }
@@ -239,22 +239,22 @@ internal sealed class Program
 
     public static void DeleteCookieFile()
     {
-        if (!File.Exists(YtdlManager.CookiesPath)) return;
-        File.Delete(YtdlManager.CookiesPath);
+        if (!File.Exists(YtdlManager.Instance.CookiesPath)) return;
+        File.Delete(YtdlManager.Instance.CookiesPath);
         Logger.Information("Deleted cookie file.");
     }
 
-    public static bool DoesCookieFileExist() => File.Exists(YtdlManager.CookiesPath);
+    public static bool DoesCookieFileExist() => File.Exists(YtdlManager.Instance.CookiesPath);
 
     public static bool IsCookiesEnabledAndValid()
     {
-        if (!ConfigManager.Config.YtdlpUseCookies)
+        if (!ConfigManager.Instance.Config.YtdlpUseCookies)
             return false;
 
-        if (!File.Exists(YtdlManager.CookiesPath))
+        if (!File.Exists(YtdlManager.Instance.CookiesPath))
             return false;
 
-        var cookies = File.ReadAllText(YtdlManager.CookiesPath);
+        var cookies = File.ReadAllText(YtdlManager.Instance.CookiesPath);
         return IsCookiesValid(cookies);
     }
 
@@ -274,7 +274,7 @@ internal sealed class Program
         return await Try.Run<bool?>(async () =>
         {
             var cookieContainer = new CookieContainer();
-            var lines = await File.ReadAllLinesAsync(YtdlManager.CookiesPath);
+            var lines = await File.ReadAllLinesAsync(YtdlManager.Instance.CookiesPath);
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
@@ -356,8 +356,8 @@ internal sealed class Program
 
     private static void OnAppQuit()
     {
-        Try.Run(ChildProcessTracker.TerminateAll);
-        FileTools.RestoreAllYtdl();
+        Try.Run(ChildProcessTracker.Instance.TerminateAll);
+        FileTools.Instance.RestoreAllYtdl();
         Logger.Information("Exiting...");
     }
 

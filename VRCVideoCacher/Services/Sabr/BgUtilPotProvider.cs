@@ -44,7 +44,7 @@ internal static class BgUtilPotProvider
 
     // Port conflicts change only the runtime URL, not the configured preference.
 
-    [PublicAPI] public static string BaseUrl { get; private set; } = ConfigManager.Config.SabrPotBaseUrl.TrimEnd('/');
+    [PublicAPI] public static string BaseUrl { get; private set; } = ConfigManager.Instance.Config.SabrPotBaseUrl.TrimEnd('/');
 
     /// <summary>
     /// Non-blocking readiness snapshot; use <see cref="WaitReadyAsync"/> to wait for startup.
@@ -98,7 +98,7 @@ internal static class BgUtilPotProvider
         }
 
         // 2. Kill leftover Deno processes originating from our bundled/utils path
-        var denoPath = YtdlManager.DenoPath;
+        var denoPath = YtdlManager.Instance.DenoPath;
         var processNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "deno"
@@ -147,7 +147,7 @@ internal static class BgUtilPotProvider
     [PublicAPI]
     public static void Ensure()
     {
-        if (!ConfigManager.Config.SabrRestreamEnabled || !_backendReady)
+        if (!ConfigManager.Instance.Config.SabrRestreamEnabled || !_backendReady)
             return;
 
         lock (InitLock)
@@ -170,7 +170,7 @@ internal static class BgUtilPotProvider
     /// </summary>
     public static async Task<bool> WaitReadyAsync(TimeSpan timeout, CancellationToken ct = default)
     {
-        if (!ConfigManager.Config.SabrRestreamEnabled)
+        if (!ConfigManager.Instance.Config.SabrRestreamEnabled)
             return false;
 
         Ensure();
@@ -223,7 +223,7 @@ internal static class BgUtilPotProvider
         }
         else
             Log.Information("Using an externally-managed bgutil PO token provider at {Url}",
-                ConfigManager.Config.SabrPotBaseUrl);
+                ConfigManager.Instance.Config.SabrPotBaseUrl);
 
         await SuperviseAsync();
     }
@@ -263,9 +263,9 @@ internal static class BgUtilPotProvider
 
     private static async Task SuperviseAsync()
     {
-        while (!ChildProcessTracker.Terminating)
+        while (!ChildProcessTracker.Instance.Terminating)
         {
-            if (ChildProcessTracker.Terminating) break;
+            if (ChildProcessTracker.Instance.Terminating) break;
 
             await Try.Run(async () =>
             {
@@ -291,9 +291,9 @@ internal static class BgUtilPotProvider
 
     private static async Task EnsureInstalledAsync()
     {
-        if (!File.Exists(YtdlManager.DenoPath))
+        if (!File.Exists(YtdlManager.Instance.DenoPath))
             throw new SabrException(
-                $"Deno runtime not found at {YtdlManager.DenoPath}; cannot run the PO token provider");
+                $"Deno runtime not found at {YtdlManager.Instance.DenoPath}; cannot run the PO token provider");
 
         if (RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
             !OperatingSystem.IsWindows() && !OperatingSystem.IsLinux())
@@ -306,7 +306,7 @@ internal static class BgUtilPotProvider
         var canvasPath = Path.Join("node_modules", "canvas", "build", "Release", "canvas.node");
         var installed = File.Exists(MainJsPath) && File.Exists(Path.Join(ServerPath, canvasPath));
 
-        if (installed && Versions.CurrentVersion.BgUtil == Program.BgUtilsVersion)
+        if (installed && Versions.Instance.CurrentVersion.BgUtil == Program.BgUtilsVersion)
         {
             Log.Debug("bgutil provider {Tag} already installed", Program.BgUtilsVersion);
             return;
@@ -322,7 +322,7 @@ internal static class BgUtilPotProvider
 
         var stagingPath = Path.Join(RootPath, $"install-{Guid.NewGuid():N}");
         Directory.CreateDirectory(stagingPath);
-        using (UsingUntil.Run(() => SafeDelete(stagingPath)))
+        try
         {
             if (OperatingSystem.IsWindows())
                 await ZipFile.ExtractToDirectoryAsync(resource, stagingPath);
@@ -339,15 +339,19 @@ internal static class BgUtilPotProvider
 
             Directory.Move(extractedPath, ServerPath);
         }
+        finally
+        {
+            SafeDelete(stagingPath);
+        }
 
-        Versions.CurrentVersion.BgUtil = Program.BgUtilsVersion;
-        Versions.Save();
+        Versions.Instance.CurrentVersion.BgUtil = Program.BgUtilsVersion;
+        Versions.Instance.Save();
         Log.Information("bgutil PO token provider {Tag} installed.", Program.BgUtilsVersion);
     }
 
     private static async Task StartServerAsync()
     {
-        if (ChildProcessTracker.Terminating) return;
+        if (ChildProcessTracker.Instance.Terminating) return;
         await StopServerAsync();
 
         // Check if port is still in use before spawning
@@ -359,7 +363,7 @@ internal static class BgUtilPotProvider
         {
             StartInfo =
             {
-                FileName = YtdlManager.DenoPath,
+                FileName = YtdlManager.Instance.DenoPath,
                 Arguments =
                     $"run --no-config --no-lock --node-modules-dir=manual --cached-only --allow-env --allow-net --allow-ffi=. --allow-read=. build/main.js -p {Port}",
                 WorkingDirectory = ServerPath,
@@ -382,7 +386,7 @@ internal static class BgUtilPotProvider
         };
 
         process.Start();
-        if (ChildProcessTracker.Track(process) == ChildProcessTracker.TrackResult.Terminating) return;
+        if (ChildProcessTracker.Instance.Track(process) == ChildProcessTracker.TrackResult.Terminating) return;
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         _server = process;
@@ -392,11 +396,11 @@ internal static class BgUtilPotProvider
     [PublicAPI]
     public static async Task StopServerAsync()
     {
-        if (ChildProcessTracker.Terminating) return;
+        if (ChildProcessTracker.Instance.Terminating) return;
         var process = Interlocked.Exchange(ref _server, null);
         if (process is null)
             return;
-        ChildProcessTracker.Untrack(process);
+        ChildProcessTracker.Instance.Untrack(process);
         await Try.Run(async () =>
         {
             if (HasProcessExited(process)) return;
@@ -418,7 +422,7 @@ internal static class BgUtilPotProvider
     [PublicAPI]
     public static void StopServer()
     {
-        if (ChildProcessTracker.Terminating) return;
+        if (ChildProcessTracker.Instance.Terminating) return;
         StopServerAsync().GetAwaiter().GetResult();
     }
 
