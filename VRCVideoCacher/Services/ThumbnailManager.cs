@@ -1,3 +1,4 @@
+using Serilog;
 using VRCVideoCacher.Extensions;
 using VRCVideoCacher.Utils;
 
@@ -5,6 +6,7 @@ namespace VRCVideoCacher.Services;
 
 public static class ThumbnailManager
 {
+    private static readonly ILogger Log = Program.Logger.ForContext(typeof(ThumbnailManager));
     public static readonly string CacheDir = Path.Join(Program.DataPath, "MetadataCache");
     public static readonly string ThumbnailCacheDir = Path.Join(CacheDir, "thumbnails");
 
@@ -36,18 +38,35 @@ public static class ThumbnailManager
         return File.Exists(localPath) ? localPath : null;
     }
 
-    public static async Task<string?> TrySaveThumbnail(string videoId, string url)
+    public static async Task<string?> TrySaveThumbnail(string videoId, string url, CancellationToken ct = default)
     {
-        return await Try.Run(async () =>
-        {
-            var thumbnailPath = GetThumbnailPath(videoId);
-            if (File.Exists(thumbnailPath))
-                return null;
+        var thumbnailPath = GetThumbnailPath(videoId);
+        if (File.Exists(thumbnailPath))
+            return null;
 
-            var data = await HttpClient.GetStreamAsync(url);
-            await using var fileStream = new FileStream(thumbnailPath, FileMode.Create, FileAccess.Write);
-            await data.CopyToAsync(fileStream);
+        // A half-written JPEG would otherwise be treated as a valid cache entry forever.
+        var tempPath = $"{thumbnailPath}.part";
+
+        try
+        {
+            using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+            response.EnsureSuccessStatusCode();
+            await using var data = await response.Content.ReadAsStreamAsync(ct);
+            await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                await data.CopyToAsync(fileStream, ct);
+
+            File.Move(tempPath, thumbnailPath, true);
             return thumbnailPath;
-        }).GetOrElse(_ => Task.FromResult<string?>(null));
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Failed to download thumbnail for {VideoId}", videoId);
+            return null;
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+                Try.Run(() => File.Delete(tempPath));
+        }
     }
 }

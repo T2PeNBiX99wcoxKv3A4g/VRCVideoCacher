@@ -151,7 +151,60 @@ public partial class CacheBrowserViewModel : ViewModelBase
 
     private void OnCacheChanged(string fileName, CacheChangeType changeType)
     {
-        Dispatcher.UIThread.InvokeAsync(RefreshCache);
+        Dispatcher.UIThread.Post(() => HandleCacheChange(fileName, changeType));
+    }
+
+    private void HandleCacheChange(string fileName, CacheChangeType changeType)
+    {
+        switch (changeType)
+        {
+            case CacheChangeType.Added:
+            {
+                var cache = CacheManager.Instance.GetCachedAsset(fileName);
+                if (cache == null || CachedVideos.Any(v => v.FileName == fileName))
+                    return;
+
+                var item = CreateItem(fileName, cache);
+                InsertItem(item);
+                ApplyFilter();
+                _ = LoadMetadataAsync([item]);
+                break;
+            }
+            case CacheChangeType.Removed:
+            {
+                var item = CachedVideos.FirstOrDefault(v => v.FileName == fileName);
+                if (item != null && CachedVideos.Remove(item))
+                    ApplyFilter();
+                break;
+            }
+            case CacheChangeType.Cleared:
+                CachedVideos.Clear();
+                FilteredVideos.Clear();
+                StatusText = string.Format(Localizer.Get("VideosCountFormat"), 0, 0);
+                break;
+        }
+    }
+
+    private CacheItemViewModel CreateItem(string fileName, VideoCache cache)
+    {
+        var item = new CacheItemViewModel
+        {
+            FileName = fileName,
+            VideoId = Path.GetFileNameWithoutExtension(fileName),
+            Size = cache.Size,
+            LastModified = cache.LastModified,
+            Extension = Path.GetExtension(fileName)
+        };
+        item.OnDeleted += OnItemDeleted;
+        return item;
+    }
+
+    private void InsertItem(CacheItemViewModel item)
+    {
+        var index = 0;
+        while (index < CachedVideos.Count && CachedVideos[index].LastModified > item.LastModified)
+            index++;
+        CachedVideos.Insert(index, item);
     }
 
     partial void OnSearchFilterChanged(string value)
@@ -183,51 +236,42 @@ public partial class CacheBrowserViewModel : ViewModelBase
         CachedVideos.Clear();
         FilteredVideos.Clear();
 
-        var cachedAssets = CacheManager.Instance.GetCachedAssets();
         var itemsToLoad = new List<CacheItemViewModel>();
 
-        foreach (var (fileName, cache) in cachedAssets.OrderByDescending(x => x.Value.LastModified))
+        foreach (var (fileName, cache) in CacheManager.Instance.GetCachedAssets()
+                     .OrderByDescending(x => x.Value.LastModified))
         {
             // Filter out non-video files like index.html
             if (fileName.Equals("index.html", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var videoId = Path.GetFileNameWithoutExtension(fileName);
-            var extension = Path.GetExtension(fileName);
-
-            var item = new CacheItemViewModel
-            {
-                FileName = fileName,
-                VideoId = videoId,
-                Size = cache.Size,
-                LastModified = cache.LastModified,
-                Extension = extension
-            };
-
-            // Subscribe to delete event
-            item.OnDeleted += OnItemDeleted;
-
+            var item = CreateItem(fileName, cache);
             CachedVideos.Add(item);
             itemsToLoad.Add(item);
         }
 
         ApplyFilter();
 
-        // Load metadata (titles + thumbnails) asynchronously in the background
-        _ = Task.Run(async () =>
-        {
-            var updatedTitle = false;
-            foreach (var item in itemsToLoad)
-            {
-                var prevTitle = item.Title;
-                await item.LoadMetadataAsync();
-                if (item.Title != prevTitle)
-                    updatedTitle = true;
-            }
+        if (itemsToLoad.Count > 0)
+            _ = LoadMetadataAsync(itemsToLoad);
+    }
 
-            if (updatedTitle && !string.IsNullOrWhiteSpace(SearchFilter))
-                _ = Dispatcher.UIThread.InvokeAsync(ApplyFilter);
-        });
+    /// <summary>Loads titles and thumbnails with a small bounded fan-out instead of serially.</summary>
+    private async Task LoadMetadataAsync(IReadOnlyCollection<CacheItemViewModel> items)
+    {
+        var updatedTitle = 0;
+
+        await Parallel.ForEachAsync(items, new ParallelOptions { MaxDegreeOfParallelism = 4 },
+            async (item, _) =>
+            {
+                var previousTitle = item.Title;
+                await item.LoadMetadataAsync();
+                if (item.Title != previousTitle)
+                    Interlocked.Exchange(ref updatedTitle, 1);
+            });
+
+        if (updatedTitle != 0 && !string.IsNullOrWhiteSpace(SearchFilter))
+            await Dispatcher.UIThread.InvokeAsync(ApplyFilter);
     }
 
     private void OnItemDeleted(CacheItemViewModel item)

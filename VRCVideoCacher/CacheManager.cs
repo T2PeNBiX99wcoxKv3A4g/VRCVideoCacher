@@ -18,6 +18,8 @@ public enum CacheChangeType
 public partial class CacheManager
 {
     private readonly ConcurrentDictionary<string, VideoCache> _cachedAssets = new();
+    private readonly SemaphoreSlim _flushGate = new(1, 1);
+    private bool _building;
     [PublicAPI] public readonly string CachePath;
 
     private CacheManager()
@@ -42,10 +44,19 @@ public partial class CacheManager
         _cachedAssets.Clear();
         Directory.CreateDirectory(CachePath);
         var files = Directory.GetFiles(CachePath);
-        foreach (var path in files)
+
+        _building = true;
+        try
         {
-            var file = Path.GetFileName(path);
-            AddToCache(file);
+            foreach (var path in files)
+            {
+                var file = Path.GetFileName(path);
+                AddToCache(file);
+            }
+        }
+        finally
+        {
+            _building = false;
         }
     }
 
@@ -55,34 +66,44 @@ public partial class CacheManager
         if (ConfigManager.Instance.Config.CacheMaxSizeInGb <= 0f)
             return;
 
-        var maxCacheSize = (long)(ConfigManager.Instance.Config.CacheMaxSizeInGb * 1024f * 1024f * 1024f);
-        var cacheSize = GetCacheSize();
-        if (cacheSize < maxCacheSize)
-            return;
-
-        var recentPlayHistory = await DatabaseManager.GetPlayHistoryAsync();
-        var oldestFiles = _cachedAssets.OrderBy(x => x.Value.LastModified).ToList();
-        while (cacheSize >= maxCacheSize && oldestFiles.Count > 0)
+        // Every AddToCache and config save can request a flush. Serialise them so a burst cannot
+        // run several database reads and eviction passes at the same time.
+        await _flushGate.WaitAsync();
+        try
         {
-            var oldestFile = oldestFiles.First();
-            var filePath = Path.Join(CachePath, oldestFile.Value.FileName);
-            if (File.Exists(filePath))
+            var maxCacheSize = (long)(ConfigManager.Instance.Config.CacheMaxSizeInGb * 1024f * 1024f * 1024f);
+            var cacheSize = GetCacheSize();
+            if (cacheSize < maxCacheSize)
+                return;
+
+            var recentPlayHistory = await DatabaseManager.GetPlayHistoryAsync();
+            var oldestFiles = _cachedAssets.OrderBy(x => x.Value.LastModified).ToList();
+            while (cacheSize >= maxCacheSize && oldestFiles.Count > 0)
             {
-                File.Delete(filePath);
-                cacheSize -= oldestFile.Value.Size;
-
-                // delete thumbnail if not in recent history
-                var videoId = Path.GetFileNameWithoutExtension(oldestFile.Value.FileName);
-                if (recentPlayHistory.All(h => h.Id != videoId))
+                var oldestFile = oldestFiles.First();
+                var filePath = Path.Join(CachePath, oldestFile.Value.FileName);
+                if (File.Exists(filePath))
                 {
-                    var thumbnailPath = ThumbnailManager.GetThumbnailPath(videoId);
-                    if (File.Exists(thumbnailPath))
-                        File.Delete(thumbnailPath);
-                }
-            }
+                    File.Delete(filePath);
+                    cacheSize -= oldestFile.Value.Size;
 
-            _cachedAssets.TryRemove(oldestFile.Key, out _);
-            oldestFiles.RemoveAt(0);
+                    // delete thumbnail if not in recent history
+                    var videoId = Path.GetFileNameWithoutExtension(oldestFile.Value.FileName);
+                    if (recentPlayHistory.All(h => h.Id != videoId))
+                    {
+                        var thumbnailPath = ThumbnailManager.GetThumbnailPath(videoId);
+                        if (File.Exists(thumbnailPath))
+                            File.Delete(thumbnailPath);
+                    }
+                }
+
+                _cachedAssets.TryRemove(oldestFile.Key, out _);
+                oldestFiles.RemoveAt(0);
+            }
+        }
+        finally
+        {
+            _flushGate.Release();
         }
     }
 
@@ -106,7 +127,8 @@ public partial class CacheManager
         existingCache.LastModified = fileInfo.LastWriteTimeUtc;
 
         OnCacheChanged?.Invoke(fileName, CacheChangeType.Added);
-        _ = TryFlushCache();
+        if (!_building)
+            _ = TryFlushCache();
     }
 
     private long GetCacheSize()
@@ -118,6 +140,10 @@ public partial class CacheManager
     [PublicAPI]
     public IReadOnlyDictionary<string, VideoCache> GetCachedAssets()
         => _cachedAssets.ToDictionary(k => k.Key, v => v.Value);
+
+    [PublicAPI]
+    public VideoCache? GetCachedAsset(string fileName)
+        => _cachedAssets.TryGetValue(fileName, out var asset) ? asset : null;
 
     [PublicAPI]
     public long GetTotalCacheSize() => GetCacheSize();
