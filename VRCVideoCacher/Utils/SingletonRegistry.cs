@@ -14,7 +14,7 @@ namespace VRCVideoCacher.Utils;
 [PublicAPI]
 public static class SingletonRegistry
 {
-    private static readonly List<object> Instances = [];
+    private static readonly List<ISingleton> Instances = [];
     private static readonly HashSet<Type> Types = [];
     private static readonly Lock Gate = new();
 
@@ -29,7 +29,7 @@ public static class SingletonRegistry
     }
 
     /// <summary>A snapshot of every created singleton, in creation order.</summary>
-    public static IReadOnlyList<object> All
+    public static IReadOnlyList<ISingleton> All
     {
         get
         {
@@ -40,7 +40,7 @@ public static class SingletonRegistry
 
     /// <summary>Adds an instance, or throws when its type is already registered.</summary>
     /// <exception cref="InvalidOperationException">Another instance of this type exists.</exception>
-    public static void Register(object instance)
+    public static void Register(ISingleton instance)
     {
         var type = instance.GetType();
 

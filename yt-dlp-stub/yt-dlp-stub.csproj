@@ -37,14 +37,15 @@
 
         Both folders are globbed, so a newly added reusable helper is picked up automatically. The only
         maintenance is the Remove list below: files that cannot stand on their own because they reach for
-        app globals (Program, ConfigManager, WebServer, VRCVideoCacher.API) or for the generated
-        [Singleton] plumbing.
+        app globals (Program, ConfigManager, WebServer, VRCVideoCacher.API) or for the Singleton<T> base
+        class that itself lives in Singleton.cs.
     -->
     <ItemGroup>
         <Compile Include="..\VRCVideoCacher\Utils\*.cs" Link="Shared\Utils\%(Filename)%(Extension)"/>
         <Compile Include="..\VRCVideoCacher\Extensions\*.cs" Link="Shared\Extensions\%(Filename)%(Extension)"/>
 
         <!-- Tied to app globals: Program / ConfigManager / WebServer / VRCVideoCacher.API. -->
+        <Compile Remove="..\VRCVideoCacher\Utils\Singleton.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\ElevatorManager.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\GpuCheck.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\LoggerUtils.cs"/>
