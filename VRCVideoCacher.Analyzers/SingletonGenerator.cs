@@ -18,7 +18,6 @@ namespace VRCVideoCacher.Analyzers;
 public sealed class SingletonGenerator : IIncrementalGenerator
 {
     private const string Attribute = "VRCVideoCacher.Utils.SingletonAttribute";
-    private const string Marker = "VRCVideoCacher.Utils.ISingleton";
     private const string Registry = "VRCVideoCacher.Utils.SingletonRegistry";
     private const string Logger = "Serilog.ILogger";
     private const string ProgramLogger = "VRCVideoCacher.Program.Logger";
@@ -141,7 +140,7 @@ public sealed class SingletonGenerator : IIncrementalGenerator
         var accessibility = type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
         var indent = type.ContainingNamespace is { IsGlobalNamespace: false } ? "    " : "";
 
-        builder.AppendLine($"{indent}{accessibility} sealed partial class {type.Name} : global::{Marker}");
+        builder.AppendLine($"{indent}{accessibility} sealed partial class {type.Name}");
         builder.AppendLine($"{indent}{{");
         builder.AppendLine($"{indent}    private static readonly {typeName} InstanceValue = Create();");
         builder.AppendLine($"{indent}    public static {typeName} Instance => InstanceValue;");
