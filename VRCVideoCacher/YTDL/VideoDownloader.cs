@@ -29,6 +29,7 @@ public partial class VideoDownloader
 
     private readonly LinkedList<VideoInfo> _downloadQueue = new();
     private readonly Lock _queueLock = new();
+    private readonly SemaphoreSlim _queueSignal = new(0);
     private readonly ConcurrentDictionary<string, List<TaskCompletionSource<bool>>> _waiters = new();
 
     // Current download tracking
@@ -51,8 +52,8 @@ public partial class VideoDownloader
     {
         while (!ChildProcessTracker.Instance.Terminating)
         {
+            await _queueSignal.WaitAsync();
             if (ChildProcessTracker.Instance.Terminating) break;
-            await Task.Delay(100);
 
             VideoInfo? queueItem;
             lock (_queueLock)
@@ -142,6 +143,7 @@ public partial class VideoDownloader
                 _downloadQueue.AddLast(videoInfo);
 
             OnQueueChanged?.Invoke();
+            _queueSignal.Release();
         }
     }
 
@@ -345,7 +347,7 @@ public partial class VideoDownloader
         // yt-dlp rewrites the cookie jar on exit; overlapping this download with a URL resolution
         // corrupts the session and gets us bot-checked. See YtdlCookieJar.
         string error;
-        using (await YtdlCookieJar.AcquireAsync())
+        using (await YtdlCookieJar.AcquireIfNeededAsync())
         {
             process.Start();
             using (var processTracker = ChildProcessTracker.Instance.Tracking(process))

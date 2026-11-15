@@ -29,6 +29,16 @@ public static class YtdlCookieJar
         return new Releaser();
     }
 
+    /// <summary>
+    ///     Same as <see cref="AcquireAsync" />, but a no-op when no cookies are passed to yt-dlp.
+    ///     There is no shared jar to corrupt in that case, so serialising every invocation would only
+    ///     slow down users who intentionally run without cookies.
+    /// </summary>
+    public static Task<IDisposable> AcquireIfNeededAsync(CancellationToken ct = default) =>
+        Program.IsCookiesEnabledAndValid()
+            ? AcquireAsync(ct)
+            : Task.FromResult<IDisposable>(NoOpReleaser.Instance);
+
     private sealed class Releaser : IDisposable
     {
         private int _released;
@@ -37,6 +47,15 @@ public static class YtdlCookieJar
         {
             if (Interlocked.Exchange(ref _released, 1) == 0)
                 Gate.Release();
+        }
+    }
+
+    private sealed class NoOpReleaser : IDisposable
+    {
+        public static readonly NoOpReleaser Instance = new();
+
+        public void Dispose()
+        {
         }
     }
 }

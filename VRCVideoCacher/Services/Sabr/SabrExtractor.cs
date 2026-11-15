@@ -445,7 +445,7 @@ internal static class SabrExtractor
 
         // yt-dlp rewrites the cookie jar on exit; two of them at once corrupt the session and get us
         // bot-checked. This shares the gate with the app's other yt-dlp calls. See YtdlCookieJar.
-        using var cookieJar = await YtdlCookieJar.AcquireAsync(ct);
+        using var cookieJar = await YtdlCookieJar.AcquireIfNeededAsync(ct);
 
         log.Debug("[sabr-extract] {File} {Args}", Path.GetFileName(ytdlpPath), args);
         process.Start();
