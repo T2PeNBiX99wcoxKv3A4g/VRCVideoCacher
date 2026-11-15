@@ -144,7 +144,7 @@ public partial class YtdlManager
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         if (!string.IsNullOrWhiteSpace(ConfigManager.Instance.Config.GitHubToken))
             request.Headers.Authorization = new("Bearer", ConfigManager.Instance.Config.GitHubToken.Trim());
-        return await HttpUtil.DownloadClient.SendAsync(request);
+        return await HttpUtil.HttpClient.SendAsync(request);
     }
 
     [PublicAPI]

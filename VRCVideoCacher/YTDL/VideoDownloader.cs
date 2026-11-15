@@ -460,12 +460,12 @@ public partial class VideoDownloader
 
         Log.Information("Downloading Video: {Url}", videoInfo.VideoUrl);
         var url = videoInfo.VideoUrl;
-        var response = await HttpUtil.DownloadClient.GetAsync(url);
+        var response = await HttpUtil.DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         if (response.StatusCode == HttpStatusCode.Redirect)
         {
             Log.Information("Redirected to: {Url}", response.Headers.Location);
             url = response.Headers.Location?.ToString();
-            response = await HttpUtil.DownloadClient.GetAsync(url);
+            response = await HttpUtil.DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         }
 
         if (!response.IsSuccessStatusCode)
