@@ -35,6 +35,22 @@
         </Reference>
     </ItemGroup>
 
+    <!-- The SDK projection ships an XML documentation file next to the DLL. Only the DLL is needed
+         at runtime, so keep the 13 MB documentation file out of build and publish output. -->
+    <Target Name="RemoveWindowsSdkDocumentation" AfterTargets="ResolveAssemblyReferences">
+        <ItemGroup>
+            <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                                      Condition="'%(Filename)%(Extension)' == 'Microsoft.Windows.SDK.NET.xml'" />
+        </ItemGroup>
+    </Target>
+
+    <Target Name="RemoveWindowsSdkDocumentationFromPublish" AfterTargets="ComputeFilesToPublish">
+        <ItemGroup>
+            <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                                   Condition="'%(Filename)%(Extension)' == 'Microsoft.Windows.SDK.NET.xml'" />
+        </ItemGroup>
+    </Target>
+
     <!-- The Debug page is a development-only tool and is not compiled into release builds. -->
     <ItemGroup Condition="'$(Configuration)' != 'Debug'">
         <AvaloniaXaml Remove="Views\DebugView.axaml" />
@@ -133,11 +149,10 @@
         <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2"/>
         <PackageReference Include="AsyncImageLoader.Avalonia" Version="4.0.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
-        <!-- EF Core 10.0.8 pulls SQLitePCLRaw 2.1.11, whose bundled SQLite has a high-severity integer
-             overflow (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q, affects <= 2.1.11). Pin the bundle forward to
-             2.1.12, which lifts the whole family (core/lib/provider) onto a patched SQLite. Staying on
-             2.1.x deliberately: 3.x is a major version EF Core 10 is not tested against.
-             Remove this once EF Core references 2.1.12+ itself. -->
+        <!-- EF Core 10.0.14 pulls SQLitePCLRaw 2.1.11, whose bundled SQLite has a high-severity integer
+             overflow (CVE-2025-6965 / GHSA-2m69-gcr7-jv3q, affects <= 2.1.11). Pin the whole family
+             forward to 3.0.5 so core/lib/provider all use a patched SQLite; EF Core 10 has been tested
+             against this version here. Remove this once EF Core references a patched bundle itself. -->
         <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5"/>
         <PackageReference Include="EmbedIO" Version="3.5.2"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
