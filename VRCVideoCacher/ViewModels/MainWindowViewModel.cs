@@ -52,6 +52,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public LogViewerViewModel LogViewer { get; }
     public HistoryViewModel History { get; }
     public AboutViewModel About { get; }
+#if DEBUG
+    public DebugViewModel Debug { get; }
+#endif
 
     public MainWindowViewModel()
     {
@@ -62,6 +65,9 @@ public partial class MainWindowViewModel : ViewModelBase
         LogViewer = new();
         History = new();
         About = new();
+#if DEBUG
+        Debug = new();
+#endif
         CurrentView = Dashboard;
 
         // Subscribe to cache changes for status bar
@@ -146,4 +152,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     public void NavigateToAbout() => CurrentView = About;
+
+#if DEBUG
+    [RelayCommand]
+    private void NavigateToDebug() => CurrentView = Debug;
+#endif
 }

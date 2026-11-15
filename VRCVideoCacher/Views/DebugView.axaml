@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:VRCVideoCacher.ViewModels"
+             x:Class="VRCVideoCacher.Views.DebugView"
+             x:DataType="vm:DebugViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="16" Margin="0,0,0,16">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Debug" FontSize="24" FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Development-only diagnostics. This page is not included in release builds."
+                           FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" />
+            </StackPanel>
+
+            <Border Classes="card">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="Notifications" FontWeight="Bold" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="Send a test error through the logger (popup and toast, if enabled), or call the toast service directly."
+                               TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Classes="danger" Command="{Binding SendTestErrorCommand}"
+                                Content="Send test error" />
+                        <Button Classes="secondary" Command="{Binding SendTestWarningCommand}"
+                                Content="Send test warning" />
+                        <Button Classes="primary" Command="{Binding ShowTestToastCommand}"
+                                Content="Show test toast" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

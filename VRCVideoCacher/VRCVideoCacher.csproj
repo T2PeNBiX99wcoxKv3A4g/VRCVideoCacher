@@ -35,6 +35,13 @@
         </Reference>
     </ItemGroup>
 
+    <!-- The Debug page is a development-only tool and is not compiled into release builds. -->
+    <ItemGroup Condition="'$(Configuration)' != 'Debug'">
+        <AvaloniaXaml Remove="Views\DebugView.axaml" />
+        <Compile Remove="Views\DebugView.axaml.cs" />
+        <Compile Remove="ViewModels\DebugViewModel.cs" />
+    </ItemGroup>
+
     <!-- Release publish settings for smaller build size -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <PublishSingleFile>true</PublishSingleFile>

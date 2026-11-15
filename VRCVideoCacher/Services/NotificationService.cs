@@ -3,6 +3,7 @@ using System.Runtime.Versioning;
 using System.Security;
 using System.Security.Cryptography;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using Serilog;
@@ -115,7 +116,12 @@ public static class NotificationService
     [SupportedOSPlatform("windows10.0.10240")]
     private static void ShowWindowsToastNotification(string title, string message)
     {
-        Task.Run(() =>
+        // WinRT toasts are COM objects; running them on the Avalonia UI thread (STA) keeps repeat
+        // notifications reliable. A unique tag/group also stops Windows from coalescing a later toast
+        // into the previous one when the text is identical.
+        var tag = Guid.NewGuid().ToString("N")[..16];
+
+        Dispatcher.UIThread.Post(() =>
         {
             Try.Run(() =>
             {
@@ -136,9 +142,13 @@ public static class NotificationService
 
                 var document = new XmlDocument();
                 document.LoadXml(xml);
-                var toast = new ToastNotification(document);
+                var toast = new ToastNotification(document)
+                {
+                    Tag = tag,
+                    Group = "VRCVideoCacher"
+                };
                 ToastNotificationManager.CreateToastNotifier(AppId).Show(toast);
-            }).OnFailure(ex => Log.Debug(ex, "Failed to show Windows toast notification"));
+            }).OnFailure(ex => Log.Warning(ex, "Failed to show Windows toast notification"));
         });
     }
 #endif

@@ -60,7 +60,7 @@
 
                     <!-- Navigation Items List -->
                     <ScrollViewer Grid.Row="1">
-                        <StackPanel Spacing="4">
+                        <StackPanel x:Name="NavItemsPanel" Spacing="4">
                             <!-- Category: MAIN -->
                             <TextBlock Text="{l:Localize NavOverview}"
                                        FontSize="10"
@@ -200,7 +200,7 @@
 
             <!-- Content Area View Host with Smooth CrossFade Transition -->
             <Border Grid.Column="1" Background="{StaticResource AppBackgroundBrush}" Padding="18, 14, 18, 14">
-                <TransitioningContentControl Content="{Binding CurrentView}">
+                <TransitioningContentControl x:Name="ContentHost" Content="{Binding CurrentView}">
                     <TransitioningContentControl.PageTransition>
                         <CrossFade Duration="0:0:0.2" />
                     </TransitioningContentControl.PageTransition>
