@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net11.0</TargetFramework>
         <Version>2026.11.1</Version>
         <SentryNoSourceLink>true</SentryNoSourceLink>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -17,7 +17,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <!-- Windows SDK projection for direct WinRT toast notifications. The app targets plain net10.0
+    <!-- Windows SDK projection for direct WinRT toast notifications. The app targets plain net11.0
          so the same assembly still builds on Linux; the projection is referenced for any Windows RID. -->
     <PropertyGroup Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win')) Or ('$(RuntimeIdentifier)' == '' And $([System.String]::Copy('$(NETCoreSdkPortableRuntimeIdentifier)').StartsWith('win')))">
         <DefineConstants>$(DefineConstants);WINDOWS_DESKTOP</DefineConstants>

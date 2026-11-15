@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net11.0</TargetFramework>
         <RootNamespace>yt_dlp</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -55,7 +55,7 @@
         <Compile Remove="..\VRCVideoCacher\Utils\SingletonAttribute.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\SingletonRegistry.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\Uninstall.cs"/>
-        <!-- Depend on the app-coupled files above (Singleton<T> / Program / ConfigManager). -->
+        <!-- Depend on the app-coupled files above (Program / ConfigManager). -->
         <Compile Remove="..\VRCVideoCacher\Utils\AutoStartShortcut.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\BulkPreCache.cs"/>
         <Compile Remove="..\VRCVideoCacher\Utils\ChildProcessTracker.cs"/>
