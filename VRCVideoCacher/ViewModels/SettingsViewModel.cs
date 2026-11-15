@@ -30,6 +30,7 @@ public partial class RedirectUrlEntry(string url, string redirectUrl) : Observab
     [ObservableProperty] public partial string RedirectUrl { get; set; } = redirectUrl;
 }
 
+[ConfigBindings(typeof(ConfigModel))]
 public partial class SettingsViewModel : ViewModelBase
 {
     private bool _isLoadingConfig;
@@ -60,6 +61,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial bool YtdlAllowAV1 { get; set; }
 
     // ComboBox index: 0 = Auto, 1 = Allow, 2 = Block
+    [ConfigBindingIgnore]
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowVp9AmdHint))]
     public partial int YtdlVp9Mode { get; set; }
@@ -72,6 +74,7 @@ public partial class SettingsViewModel : ViewModelBase
     public int[] ResolutionOptions { get; } = [144, 240, 360, 480, 720, 1080, 1440, 2160];
 
     // YouTube SABR Options
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial bool PreferSabrStreaming { get; set; }
 
     [ObservableProperty] public partial bool SabrFilterDrcAudio { get; set; }
@@ -103,11 +106,13 @@ public partial class SettingsViewModel : ViewModelBase
     // Patching
     [ObservableProperty] public partial bool PatchResonite { get; set; }
 
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial bool PatchVRC { get; set; }
 
     [ObservableProperty] public partial bool RedirectVRDancing { get; set; }
 
     // Updates
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial bool AutoUpdate { get; set; }
 
     [ObservableProperty] public partial bool CloseToTray { get; set; }
@@ -124,8 +129,10 @@ public partial class SettingsViewModel : ViewModelBase
     // Status
     private CancellationTokenSource? _statusMessageCts;
 
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
 
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial string StatusMessageColor { get; set; } = string.Empty;
 
     private void SetStatusMessage(string message, string color, double autoHideSeconds = 3.5)
@@ -172,6 +179,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial float VrFloatingOverlayDistance { get; set; }
     [ObservableProperty] public partial float VrFloatingOverlayScale { get; set; }
 
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial bool HasChanges { get; set; }
 
     [ObservableProperty] public partial bool ErrorPopups { get; set; }
@@ -180,6 +188,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     // Pure view state: reveals the advanced setting sections. Not a config value, so it is neither
     // loaded/saved nor tracked as an unsaved change.
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial bool ShowAdvanced { get; set; }
 
     // Language selection
@@ -188,6 +197,7 @@ public partial class SettingsViewModel : ViewModelBase
         .. Localizer.Languages.Select(code => new LanguageOption(code, GetLanguageDisplayName(code)))
     ];
 
+    [ConfigBindingIgnore]
     [ObservableProperty] public partial LanguageOption? SelectedLanguageOption { get; set; }
 
     partial void OnSelectedLanguageOptionChanged(LanguageOption? value)
@@ -215,48 +225,19 @@ public partial class SettingsViewModel : ViewModelBase
         _isLoadingConfig = true;
         var config = ConfigManager.Instance.Config;
 
-        WebServerUrl = config.YtdlpWebServerUrl;
-        YtdlUseCookies = config.YtdlpUseCookies;
-        YtdlAutoUpdate = config.YtdlpAutoUpdate;
-        YtdlAdditionalArgs = config.YtdlpAdditionalArgs;
-        YtdlDubLanguage = config.YtdlpDubLanguage;
-        GitHubToken = config.GitHubToken;
-        YtdlAllowAV1 = config.YtdlpAllowAV1;
+        ApplyConfigBindings(config);
+
+        // Mappings the generator cannot derive: a combined ComboBox index, renamed fields, and the
+        // collections that need view-model wrappers.
         YtdlVp9Mode = config.YtdlpAllowVP9 switch { null => 0, true => 1, false => 2 };
-        YouTubeMaxResolution = config.YouTubeMaxResolution;
         PreferSabrStreaming = config.SabrPreferStreaming;
-        SabrFilterDrcAudio = config.SabrFilterDrcAudio;
-        SabrFilterSuperResolution = config.SabrFilterSuperResolution;
-        SabrFilterVoiceBoostedAudio = config.SabrFilterVoiceBoostedAudio;
-        SabrAdditionalArgs = config.SabrAdditionalArgs;
-        CachedAssetPath = config.CachedAssetPath;
-        CacheYouTube = config.CacheYouTube;
-        CacheYouTubeMaxLength = config.CacheYouTubeMaxLength;
-        CacheMaxSizeInGb = config.CacheMaxSizeInGb;
-        CachePyPyDance = config.CachePyPyDance;
-        CacheVRDancing = config.CacheVrDancing;
-        CacheNicoVideo = config.CacheNicoVideo;
-        CacheGeneric = config.CacheGeneric;
-        CacheOnly = config.CacheOnly;
-        PatchResonite = config.PatchResonite;
         PatchVRC = config.PatchVrChat;
         AutoUpdate = config.AutoUpdateVrcVideoCacher;
-        CloseToTray = config.CloseToTray;
-        StartMinimized = config.StartMinimized;
-        StartWithSteamVr = config.StartWithSteamVr;
-        VrOverlayEnabled = config.VrOverlayEnabled;
-        VrDashboardOverlayEnabled = config.VrDashboardOverlayEnabled;
-        VrFloatingOverlayEnabled = config.VrFloatingOverlayEnabled;
-        VrFloatingOverlayOnlyWhenDownloading = config.VrFloatingOverlayOnlyWhenDownloading;
-        VrFloatingOverlayDistance = config.VrFloatingOverlayDistance;
-        VrFloatingOverlayScale = config.VrFloatingOverlayScale;
-        ErrorPopups = config.ErrorPopups;
-        ErrorNotifications = config.ErrorNotifications;
-        RedirectVRDancing = config.RedirectVRDancing;
+
         BlockedUrls.Clear();
         foreach (var url in config.BlockedUrls)
             BlockedUrls.Add(new(url));
-        BlockRedirect = config.BlockRedirect;
+
         RedirectUrls.Clear();
         foreach (var (redirectUrl, redirectTo) in config.RedirectUrls)
             RedirectUrls.Add(new(redirectUrl, redirectTo));
@@ -297,44 +278,13 @@ public partial class SettingsViewModel : ViewModelBase
             SetHasChanges();
     }
 
+    // The generator writes the change handlers for every auto-bound property; these are the ones it
+    // keeps out of the generated bindings.
     // ReSharper disable UnusedParameterInPartialMethod
-    partial void OnWebServerUrlChanged(string value) => SetHasChanges();
-    partial void OnYtdlUseCookiesChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnYtdlAdditionalArgsChanged(string value) => SetHasChanges();
-    partial void OnYtdlDubLanguageChanged(string value) => SetHasChanges();
-    partial void OnGitHubTokenChanged(string value) => SetHasChanges();
-    partial void OnYtdlAllowAV1Changed(bool value) => SetHasChanges();
     partial void OnYtdlVp9ModeChanged(int value) => SetHasChanges();
-    partial void OnYouTubeMaxResolutionChanged(int value) => SetHasChanges();
     partial void OnPreferSabrStreamingChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterDrcAudioChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterSuperResolutionChanged(bool value) => SetHasChanges();
-    partial void OnSabrFilterVoiceBoostedAudioChanged(bool value) => SetHasChanges();
-    partial void OnSabrAdditionalArgsChanged(string value) => SetHasChanges();
-    partial void OnCachedAssetPathChanged(string value) => SetHasChanges();
-    partial void OnCacheYouTubeChanged(bool value) => SetHasChanges();
-    partial void OnCacheYouTubeMaxLengthChanged(int value) => SetHasChanges();
-    partial void OnCacheMaxSizeInGbChanged(float value) => SetHasChanges();
-    partial void OnCachePyPyDanceChanged(bool value) => SetHasChanges();
-    partial void OnCacheVRDancingChanged(bool value) => SetHasChanges();
-    partial void OnCacheNicoVideoChanged(bool value) => SetHasChanges();
-    partial void OnCacheOnlyChanged(bool value) => SetHasChanges();
-    partial void OnPatchResoniteChanged(bool value) => SetHasChanges();
     partial void OnPatchVRCChanged(bool value) => SetHasChanges();
     partial void OnAutoUpdateChanged(bool value) => SetHasChanges();
-    partial void OnCloseToTrayChanged(bool value) => SetHasChanges();
-    partial void OnStartMinimizedChanged(bool value) => SetHasChanges();
-    partial void OnStartWithSteamVrChanged(bool value) => SetHasChanges();
-    partial void OnVrOverlayEnabledChanged(bool value) => SetHasChanges();
-    partial void OnVrDashboardOverlayEnabledChanged(bool value) => SetHasChanges();
-    partial void OnVrFloatingOverlayEnabledChanged(bool value) => SetHasChanges();
-    partial void OnVrFloatingOverlayOnlyWhenDownloadingChanged(bool value) => SetHasChanges();
-    partial void OnVrFloatingOverlayDistanceChanged(float value) => SetHasChanges();
-    partial void OnVrFloatingOverlayScaleChanged(float value) => SetHasChanges();
-    partial void OnBlockRedirectChanged(string value) => SetHasChanges();
-    partial void OnErrorPopupsChanged(bool value) => SetHasChanges();
-    partial void OnErrorNotificationsChanged(bool value) => SetHasChanges();
     // ReSharper restore UnusedParameterInPartialMethod
 
     [RelayCommand]
@@ -342,55 +292,28 @@ public partial class SettingsViewModel : ViewModelBase
     {
         var config = ConfigManager.Instance.Config;
 
+        // Restarting the server has to see the old value, so this check runs before the bindings are
+        // written back.
         if (config.YtdlpWebServerUrl != WebServerUrl)
         {
             config.YtdlpWebServerUrl = WebServerUrl;
             WebServer.Instance.StartOrRestart();
         }
 
-        config.YtdlpUseCookies = YtdlUseCookies;
-        config.YtdlpAutoUpdate = YtdlAutoUpdate;
-        config.YtdlpAdditionalArgs = YtdlAdditionalArgs;
-        config.YtdlpDubLanguage = YtdlDubLanguage;
-        config.GitHubToken = GitHubToken;
-        config.YtdlpAllowAV1 = YtdlAllowAV1;
+        CaptureConfigBindings(config);
+
+        // Keep in step with LoadFromConfig.
         config.YtdlpAllowVP9 = YtdlVp9Mode switch { 1 => true, 2 => false, _ => null };
-        config.YouTubeMaxResolution = YouTubeMaxResolution;
         config.SabrPreferStreaming = PreferSabrStreaming;
-        config.SabrFilterDrcAudio = SabrFilterDrcAudio;
-        config.SabrFilterSuperResolution = SabrFilterSuperResolution;
-        config.SabrFilterVoiceBoostedAudio = SabrFilterVoiceBoostedAudio;
-        config.SabrAdditionalArgs = SabrAdditionalArgs;
-        config.CachedAssetPath = CachedAssetPath;
-        config.CacheYouTube = CacheYouTube;
-        config.CacheYouTubeMaxLength = CacheYouTubeMaxLength;
-        config.CacheMaxSizeInGb = CacheMaxSizeInGb;
-        config.CachePyPyDance = CachePyPyDance;
-        config.CacheVrDancing = CacheVRDancing;
-        config.CacheNicoVideo = CacheNicoVideo;
-        config.CacheGeneric = CacheGeneric;
-        config.CacheOnly = CacheOnly;
-        config.PatchResonite = PatchResonite;
         config.PatchVrChat = PatchVRC;
         config.AutoUpdateVrcVideoCacher = AutoUpdate;
-        config.CloseToTray = CloseToTray;
-        config.StartMinimized = StartMinimized;
-        config.StartWithSteamVr = StartWithSteamVr;
-        config.VrOverlayEnabled = VrOverlayEnabled;
-        config.VrDashboardOverlayEnabled = VrDashboardOverlayEnabled;
-        config.VrFloatingOverlayEnabled = VrFloatingOverlayEnabled;
-        config.VrFloatingOverlayOnlyWhenDownloading = VrFloatingOverlayOnlyWhenDownloading;
-        config.VrFloatingOverlayDistance = VrFloatingOverlayDistance;
-        config.VrFloatingOverlayScale = VrFloatingOverlayScale;
-        config.ErrorPopups = ErrorPopups;
-        config.ErrorNotifications = ErrorNotifications;
+
         config.BlockedUrls =
         [
             .. BlockedUrls.Select(item => item.Url)
         ];
-        config.BlockRedirect = BlockRedirect;
         config.RedirectUrls = RedirectUrls.ToDictionary(x => x.Url, x => x.RedirectUrl);
-        config.RedirectVRDancing = RedirectVRDancing;
+
         ConfigManager.Instance.TrySaveConfig();
         HasChanges = false;
         SetStatusMessage(Localizer.Get("SettingsSaved"), "#81C784");
