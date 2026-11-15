@@ -18,6 +18,8 @@ public class Database(DbContextOptions<Database> options) : DbContext(options)
         if (optionsBuilder.IsConfigured) return;
         Directory.CreateDirectory(CacheDir);
         optionsBuilder.UseSqlite($"Data Source={DbPath}");
+#if DEBUG
         optionsBuilder.EnableSensitiveDataLogging();
+#endif
     }
 }

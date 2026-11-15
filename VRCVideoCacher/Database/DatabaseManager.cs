@@ -20,10 +20,12 @@ public static class DatabaseManager
     {
         Directory.CreateDirectory(Database.CacheDir);
 
-        var options = new DbContextOptionsBuilder<Database>()
-            .UseSqlite($"Data Source={Database.DbPath}")
-            .EnableSensitiveDataLogging()
-            .Options;
+        var builder = new DbContextOptionsBuilder<Database>()
+            .UseSqlite($"Data Source={Database.DbPath}");
+#if DEBUG
+        builder.EnableSensitiveDataLogging();
+#endif
+        var options = builder.Options;
 
         ContextFactory = new(options);
 
