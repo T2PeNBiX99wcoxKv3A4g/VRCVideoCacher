@@ -17,16 +17,6 @@ public partial class VideoDownloader
     private const string TempDownloadMp4Name = "_tempVideo.mp4";
     private const string TempDownloadMkvName = "_tempVideo.mkv";
 
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        }
-    };
-
     private readonly LinkedList<VideoInfo> _downloadQueue = new();
     private readonly Lock _queueLock = new();
     private readonly SemaphoreSlim _queueSignal = new(0);
@@ -470,12 +460,12 @@ public partial class VideoDownloader
 
         Log.Information("Downloading Video: {Url}", videoInfo.VideoUrl);
         var url = videoInfo.VideoUrl;
-        var response = await HttpClient.GetAsync(url);
+        var response = await HttpUtil.DownloadClient.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.Redirect)
         {
             Log.Information("Redirected to: {Url}", response.Headers.Location);
             url = response.Headers.Location?.ToString();
-            response = await HttpClient.GetAsync(url);
+            response = await HttpUtil.DownloadClient.GetAsync(url);
         }
 
         if (!response.IsSuccessStatusCode)

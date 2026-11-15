@@ -6,8 +6,6 @@ namespace VRCVideoCacher.YTDL;
 [Singleton]
 public partial class VideoTools
 {
-    private readonly HttpClient _httpClient = new();
-
     [PublicAPI]
     public async Task<bool> Prefetch(string videoUrl, int maxRetryCount = 7)
     {
@@ -26,7 +24,7 @@ public partial class VideoTools
         // Prefetch the video URL
         // - Use GET for M3U8 to extract the direct stream URL
         using var prefetchRequest = new HttpRequestMessage(isM3U8 ? HttpMethod.Get : HttpMethod.Head, videoUrl);
-        using var prefetchResponse = await _httpClient.SendAsync(prefetchRequest);
+        using var prefetchResponse = await HttpUtil.HttpClient.SendAsync(prefetchRequest);
         Log.Information("Video prefetch request returned status code {Status}.", (int)prefetchResponse.StatusCode);
 
         var targetUrl = videoUrl;
@@ -84,7 +82,7 @@ public partial class VideoTools
     private async Task<int> GetHeadStatusCodeAsync(string url)
     {
         using var request = new HttpRequestMessage(HttpMethod.Head, url);
-        using var response = await _httpClient.SendAsync(request);
+        using var response = await HttpUtil.HttpClient.SendAsync(request);
         return (int)response.StatusCode;
     }
 }

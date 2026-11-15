@@ -9,16 +9,6 @@ namespace VRCVideoCacher.Services;
 [Singleton]
 public partial class VvcConfigService
 {
-    private readonly HttpClient _httpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", $"VRCVideoCacher v{Program.Version}"
-            }
-        }
-    };
-
     [PublicAPI] public VvcConfig CurrentConfig { get; private set; } = new();
     public static event Action? OnApiConfigChanged;
 
@@ -27,7 +17,7 @@ public partial class VvcConfigService
     {
         await Try.Run(async () =>
         {
-            var req = await _httpClient.GetAsync("https://vvc.ellyvr.dev/api/v1/config");
+            var req = await HttpUtil.HttpClient.GetAsync("https://vvc.ellyvr.dev/api/v1/config");
             if (req.IsSuccessStatusCode)
             {
                 var deserialized = JsonConvert.DeserializeObject<VvcConfig>(await req.Content.ReadAsStringAsync());

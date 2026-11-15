@@ -6,16 +6,6 @@ namespace VRCVideoCacher.Utils;
 [Singleton]
 public partial class BulkPreCache
 {
-    private readonly HttpClient _httpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        }
-    };
-
     // FileName and Url are required
     // LastModified and Size are optional
     // e.g. JSON response
@@ -39,7 +29,7 @@ public partial class BulkPreCache
     {
         foreach (var url in ConfigManager.Instance.Config.PreCacheUrls)
         {
-            using var response = await _httpClient.GetAsync(url);
+            using var response = await HttpUtil.DownloadClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
                 Log.Information("Failed to download {Url}: {ResponseStatusCode}", url, response.StatusCode);
@@ -100,7 +90,7 @@ public partial class BulkPreCache
 
     private async Task DownloadFile(DownloadInfo fileInfo)
     {
-        using var response = await _httpClient.GetAsync(fileInfo.Url);
+        using var response = await HttpUtil.DownloadClient.GetAsync(fileInfo.Url);
         if (!response.IsSuccessStatusCode)
         {
             Log.Information("Failed to download {Url}: {ResponseStatusCode}", fileInfo.Url, response.StatusCode);

@@ -20,17 +20,6 @@ internal static class BgUtilPotProvider
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(BgUtilPotProvider));
 
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        },
-        Timeout = TimeSpan.FromMinutes(5)
-    };
-
     private static readonly string RootPath = Path.Join(Program.UtilsPath, "bgutil");
     private static readonly string ServerPath = Path.Join(RootPath, "server");
     private static readonly string MainJsPath = Path.Join(ServerPath, "build", "main.js");
@@ -436,7 +425,7 @@ internal static class BgUtilPotProvider
         return await Try.Run(async () =>
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            using var response = await HttpClient.GetAsync(PingUrl, cts.Token);
+            using var response = await HttpUtil.HttpClient.GetAsync(PingUrl, cts.Token);
             return response.IsSuccessStatusCode;
         }).GetOrElse(_ => Task.FromResult(false));
     }
@@ -451,7 +440,7 @@ internal static class BgUtilPotProvider
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(10));
-            using var response = await HttpClient.PostAsync($"{BaseUrl}/invalidate_caches", null, cts.Token);
+            using var response = await HttpUtil.HttpClient.PostAsync($"{BaseUrl}/invalidate_caches", null, cts.Token);
             if (response.IsSuccessStatusCode)
                 Log.Information("Invalidated bgutil PO token cache");
             else

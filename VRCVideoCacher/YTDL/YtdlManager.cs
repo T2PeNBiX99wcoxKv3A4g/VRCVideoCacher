@@ -15,16 +15,6 @@ namespace VRCVideoCacher.YTDL;
 [Singleton]
 public partial class YtdlManager
 {
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        }
-    };
-
     [PublicAPI] public readonly string CookiesPath = Path.Join(Program.DataPath, "youtube_cookies.txt");
 
     [PublicAPI] public readonly string YtdlPath =
@@ -154,7 +144,7 @@ public partial class YtdlManager
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         if (!string.IsNullOrWhiteSpace(ConfigManager.Instance.Config.GitHubToken))
             request.Headers.Authorization = new("Bearer", ConfigManager.Instance.Config.GitHubToken.Trim());
-        return await HttpClient.SendAsync(request);
+        return await HttpUtil.DownloadClient.SendAsync(request);
     }
 
     [PublicAPI]
@@ -288,38 +278,21 @@ public partial class YtdlManager
 
         async Task DownloadFromGithubAsync()
         {
-            using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            using var response =
+                await HttpUtil.DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             await using var responseStream = new ProgressStream(
                 await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
                 report, DownloadStallTimeout);
-            var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            try
-            {
-                while (await reader.MoveToNextEntryAsync())
-                {
-                    if (reader.Entry.Key == null || reader.Entry.IsDirectory)
-                        continue;
-
-                    Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
-                    var path = Path.Join(Program.UtilsPath, reader.Entry.Key);
-                    await using var outputStream =
-                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-                    await using var entryStream = await reader.OpenEntryStreamAsync();
-                    await entryStream.CopyToAsync(outputStream);
-                    FileTools.Instance.MarkFileExecutable(path);
-                    Versions.Instance.CurrentVersion.Deno = json.tag_name;
-                    Versions.Instance.Save();
-                    Log.Information("Deno downloaded and extracted.");
-                    return;
-                }
-
+            var extracted = await ExtractArchiveAsync(responseStream,
+                key => Path.Join(Program.UtilsPath, key),
+                FileTools.Instance.MarkFileExecutable);
+            if (extracted == 0)
                 throw new("Deno archive contained no files.");
-            }
-            finally
-            {
-                await reader.TryDisposeAsync();
-            }
+
+            Versions.Instance.CurrentVersion.Deno = json.tag_name;
+            Versions.Instance.Save();
+            Log.Information("Deno downloaded and extracted.");
         }
 
         try
@@ -336,7 +309,7 @@ public partial class YtdlManager
     private async Task TryDownloadDenoFallback(string assetName, StatusActivity activity)
     {
         Log.Warning("Falling back to Deno version check via text file.");
-        using var response = await HttpClient.GetAsync(DenoFallBackVersionURL);
+        using var response = await HttpUtil.DownloadClient.GetAsync(DenoFallBackVersionURL);
         if (!response.IsSuccessStatusCode)
         {
             Log.Warning("Failed to get latest Deno version: {ResponseStatusCode}", response.StatusCode);
@@ -348,38 +321,21 @@ public partial class YtdlManager
 
         async Task DownloadAsync()
         {
-            using var downloadResponse = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            using var downloadResponse =
+                await HttpUtil.DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             downloadResponse.EnsureSuccessStatusCode();
             await using var responseStream = new ProgressStream(
                 await downloadResponse.Content.ReadAsStreamAsync(), downloadResponse.Content.Headers.ContentLength,
                 activity.Report, DownloadStallTimeout);
-            var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            try
-            {
-                while (await reader.MoveToNextEntryAsync())
-                {
-                    if (reader.Entry.Key == null || reader.Entry.IsDirectory)
-                        continue;
-
-                    Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
-                    var path = Path.Join(Program.UtilsPath, reader.Entry.Key);
-                    await using var outputStream =
-                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-                    await using var entryStream = await reader.OpenEntryStreamAsync();
-                    await entryStream.CopyToAsync(outputStream);
-                    FileTools.Instance.MarkFileExecutable(path);
-                    Versions.Instance.CurrentVersion.Deno = latestVersion;
-                    Versions.Instance.Save();
-                    Log.Information("Deno downloaded and extracted.");
-                    return;
-                }
-
+            var extracted = await ExtractArchiveAsync(responseStream,
+                key => Path.Join(Program.UtilsPath, key),
+                FileTools.Instance.MarkFileExecutable);
+            if (extracted == 0)
                 throw new("Deno fallback archive contained no files.");
-            }
-            finally
-            {
-                await reader.TryDisposeAsync();
-            }
+
+            Versions.Instance.CurrentVersion.Deno = latestVersion;
+            Versions.Instance.Save();
+            Log.Information("Deno downloaded and extracted.");
         }
 
         try
@@ -476,40 +432,17 @@ public partial class YtdlManager
 
         async Task DownloadAsync()
         {
-            using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            using var response =
+                await HttpUtil.DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             await using var responseStream = new ProgressStream(
                 await response.Content.ReadAsStreamAsync(), response.Content.Headers.ContentLength,
                 report, DownloadStallTimeout);
-            var reader = await ReaderFactory.OpenAsyncReader(responseStream);
-            var success = false;
-            try
-            {
-                while (await reader.MoveToNextEntryAsync())
-                {
-                    if (reader.Entry.Key == null || reader.Entry.IsDirectory)
-                        continue;
+            var success = await ExtractArchiveAsync(responseStream,
+                key => key.Contains("/bin/") ? Path.Join(Program.UtilsPath, Path.GetFileName(key)) : null,
+                FileTools.Instance.MarkFileExecutable);
 
-                    if (!reader.Entry.Key.Contains("/bin/"))
-                        continue;
-
-                    var fileName = Path.GetFileName(reader.Entry.Key);
-                    Log.Debug("Extracting file {Name} ({Size} bytes)", fileName, reader.Entry.Size);
-                    var path = Path.Join(Program.UtilsPath, fileName);
-                    await using var outputStream =
-                        new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-                    await using var entryStream = await reader.OpenEntryStreamAsync();
-                    await entryStream.CopyToAsync(outputStream);
-                    FileTools.Instance.MarkFileExecutable(path);
-                    success = true;
-                }
-            }
-            finally
-            {
-                await reader.TryDisposeAsync();
-            }
-
-            if (!success)
+            if (success == 0)
                 throw new("Failed to extract ffmpeg files.");
         }
 
@@ -526,6 +459,40 @@ public partial class YtdlManager
         Versions.Instance.CurrentVersion.Ffmpeg = latestVersion;
         Versions.Instance.Save();
         Log.Information("FFmpeg downloaded and extracted.");
+    }
+
+    /// <summary>Extracts archive entries into the utils folder, skipping anything the selector rejects.</summary>
+    private async Task<int> ExtractArchiveAsync(Stream stream, Func<string, string?> targetPath,
+        Action<string>? onExtracted = null)
+    {
+        var reader = await ReaderFactory.OpenAsyncReader(stream);
+        try
+        {
+            var count = 0;
+            while (await reader.MoveToNextEntryAsync())
+            {
+                if (reader.Entry.Key == null || reader.Entry.IsDirectory)
+                    continue;
+
+                var path = targetPath(reader.Entry.Key);
+                if (path == null)
+                    continue;
+
+                Log.Debug("Extracting file {Name} ({Size} bytes)", reader.Entry.Key, reader.Entry.Size);
+                await using var outputStream =
+                    new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                await using var entryStream = await reader.OpenEntryStreamAsync();
+                await entryStream.CopyToAsync(outputStream);
+                onExtracted?.Invoke(path);
+                count++;
+            }
+
+            return count;
+        }
+        finally
+        {
+            await reader.TryDisposeAsync();
+        }
     }
 
     private async Task DownloadYtdl(GitHubRelease json)
@@ -569,7 +536,7 @@ public partial class YtdlManager
 
             async Task DownloadAsync()
             {
-                using var response = await HttpClient.GetAsync(assetVersion.browser_download_url,
+                using var response = await HttpUtil.DownloadClient.GetAsync(assetVersion.browser_download_url,
                     HttpCompletionOption.ResponseHeadersRead);
                 response.EnsureSuccessStatusCode();
                 await using var stream = new ProgressStream(

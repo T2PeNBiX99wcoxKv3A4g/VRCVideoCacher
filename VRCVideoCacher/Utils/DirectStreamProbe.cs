@@ -20,15 +20,6 @@ internal static class DirectStreamProbe
     private const int MaxCachedUrls = 64;
     private const int PlaylistPrefixBytes = 512;
 
-    private static readonly HttpClient HttpClient = new(new HttpClientHandler
-    {
-        AutomaticDecompression = DecompressionMethods.All
-    })
-    {
-        Timeout = ProbeTimeout,
-        DefaultRequestHeaders = { { "User-Agent", "VRCVideoCacher" } }
-    };
-
     // A world that retries the same URL should not make us probe it every time. Both outcomes are
     // cached briefly; a negative entry only delays recovery by the TTL if the stream comes back.
     private static readonly ConcurrentDictionary<string, (bool Playable, DateTime Expires)> Cache = new();
@@ -67,7 +58,8 @@ internal static class DirectStreamProbe
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(ProbeTimeout);
 
-        using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+        using var response = await HttpUtil.ProbeClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead,
+            cts.Token);
         if (response.StatusCode is not (HttpStatusCode.OK or HttpStatusCode.PartialContent))
             return false;
 

@@ -10,17 +10,6 @@ namespace VRCVideoCacher.Services;
 
 public static class YouTubeMetadataService
 {
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        },
-        Timeout = TimeSpan.FromSeconds(10)
-    };
-
     [PublicAPI]
     public static async Task<VideoInfoCache?> GetVideoTitleAsync(string videoId)
     {
@@ -30,7 +19,7 @@ public static class YouTubeMetadataService
         return await Try.Run(async () =>
         {
             var url = $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={videoId}&format=json";
-            var response = await HttpClient.GetStringAsync(url);
+            var response = await HttpUtil.HttpClient.GetStringAsync(url);
 
             using var doc = JsonDocument.Parse(response);
             if (!doc.RootElement.TryGetProperty("title", out var titleElement))

@@ -10,17 +10,6 @@ public static class ThumbnailManager
     public static readonly string CacheDir = Path.Join(Program.DataPath, "MetadataCache");
     public static readonly string ThumbnailCacheDir = Path.Join(CacheDir, "thumbnails");
 
-    private static readonly HttpClient HttpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            {
-                "User-Agent", "VRCVideoCacher"
-            }
-        },
-        Timeout = TimeSpan.FromSeconds(10)
-    };
-
     static ThumbnailManager()
     {
         Directory.CreateDirectory(CacheDir);
@@ -49,7 +38,7 @@ public static class ThumbnailManager
 
         try
         {
-            using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+            using var response = await HttpUtil.HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
             response.EnsureSuccessStatusCode();
             await using var data = await response.Content.ReadAsStreamAsync(ct);
             await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
