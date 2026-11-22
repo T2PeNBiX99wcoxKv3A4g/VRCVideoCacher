@@ -37,7 +37,7 @@ public partial class FileTools
         var resoPath = !string.IsNullOrEmpty(ConfigManager.Instance.Config.ResonitePath)
             ? ConfigManager.Instance.Config.ResonitePath
             : GetAppLibraryPath(ResoniteAppId, ConfigManager.Instance.Config.PatchResonite)
-                ?.Select(path => Path.Join(path, "steamapps", "common", "Resonite")).Where(Path.Exists).First();
+                ?.Select(path => Path.Join(path, "steamapps", "common", "Resonite")).Where(Path.Exists).FirstOrDefault();
         if (!string.IsNullOrEmpty(resoPath))
         {
             _ytdlPathReso = Path.Join(resoPath, "RuntimeData", OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe");
