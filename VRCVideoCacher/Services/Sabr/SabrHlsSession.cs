@@ -40,6 +40,12 @@ internal sealed class SabrHlsSession : ISabrSession
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan FragmentWaitTimeout = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// How long to wait before restarting a fetch that died, so a player retrying a failed segment
+    /// cannot turn into a loop of YouTube requests.
+    /// </summary>
+    private static readonly TimeSpan FillRetryCooldown = TimeSpan.FromSeconds(15);
+
     private readonly string _videoId;
     private readonly string _dir;
     private readonly SegmentIndex _videoIndex;
@@ -69,6 +75,11 @@ internal sealed class SabrHlsSession : ISabrSession
     // finishes, so a freshly-created session reads as "streaming". A seek starts a new fill (true again).
     private volatile bool _isFetching = true;
     private int _fillGeneration;
+
+    // Ticks of the last failed fill. A dead fetch produces nothing, so requests have to know not to wait
+    // on it — and not to restart it more often than the cooldown.
+    private long _lastFillFailureTicks;
+    private int _fillFailures;
 
     public string VideoId => _videoId;
     public TimeSpan IdleFor => DateTime.UtcNow - _lastAccess;
@@ -202,7 +213,17 @@ internal sealed class SabrHlsSession : ISabrSession
                 }).OnFailure(ex =>
                 {
                     if (ex is OperationCanceledException) return Unit.TaskValue;
-                    _log.Error(ex, "SABR {VideoId}: fill from {Start:0.0}s failed", _videoId, fromMs / 1000.0);
+
+                    Volatile.Write(ref _lastFillFailureTicks, DateTime.UtcNow.Ticks);
+
+                    // Only the first failure of a session carries a stack: it is the one worth reporting,
+                    // while a provider that keeps rejecting us would otherwise fill the log with retries.
+                    if (Interlocked.Increment(ref _fillFailures) == 1)
+                        _log.Error(ex, "SABR {VideoId}: fill from {Start:0.0}s failed", _videoId, fromMs / 1000.0);
+                    else
+                        _log.Warning("SABR {VideoId}: fill from {Start:0.0}s failed again: {Reason}",
+                            _videoId, fromMs / 1000.0, ex.Message);
+
                     return Unit.TaskValue;
                 }).OnFinally(() =>
                 {
@@ -297,13 +318,23 @@ internal sealed class SabrHlsSession : ISabrSession
             var building = _building.GetOrAdd(segment, s => new(
                 () => BuildSegmentCoreAsync(s, allowSeek), LazyThreadSafetyMode.ExecutionAndPublication));
 
-            await Try.Run(async () => await building.Value).OnFinally(() =>
-            {
-                // Never cache a build that produced nothing (skipped prebuild, or a failure).
-                if (!File.Exists(path))
-                    _building.TryRemove(segment, out _);
-                return Unit.TaskValue;
-            });
+            // A build that produced nothing used to fail silently, which left a 404 with no explanation
+            // anywhere in the log. A speculative prebuild is expected to miss, so only real requests
+            // report it.
+            await Try.Run(async () => await building.Value)
+                .OnFailure(ex =>
+                {
+                    if (allowSeek)
+                        _log.Debug(ex, "SABR {VideoId}: segment {Segment} could not be built", _videoId, segment);
+                    return Unit.TaskValue;
+                })
+                .OnFinally(() =>
+                {
+                    // Never cache a build that produced nothing (skipped prebuild, or a failure).
+                    if (!File.Exists(path))
+                        _building.TryRemove(segment, out _);
+                    return Unit.TaskValue;
+                });
 
             if (File.Exists(path) || !allowSeek)
                 return;
@@ -359,12 +390,20 @@ internal sealed class SabrHlsSession : ISabrSession
         if (!allowSeek)
             return false;
 
-        // Behind the current fill, or too far ahead of it to arrive soon: that is a seek, so move the
-        // fetch rather than making the player wait for the sequential fill to reach it.
-        if (segment < _videoFillStart || segment > _fillHead + SeekThresholdSegments)
+        // A fill that is not running cannot deliver anything: it died, or it finished without covering
+        // this segment. Restart it at the requested position instead of waiting out the timeout for
+        // media that will never arrive (every request used to hang for ~a minute and then 404), but not
+        // more often than the cooldown, so a retrying player cannot hammer YouTube.
+        var needsFill = !_isFetching ||
+                        segment < _videoFillStart ||
+                        segment > _fillHead + SeekThresholdSegments;
+        var lastFailure = new DateTime(Interlocked.Read(ref _lastFillFailureTicks), DateTimeKind.Utc);
+
+        if (needsFill && DateTime.UtcNow - lastFailure >= FillRetryCooldown)
         {
-            _log.Information("SABR {VideoId}: seek to segment {Segment} ({Start:0.0}s), fill at {Head}",
-                _videoId, segment, startMs / 1000.0, _fillHead);
+            _log.Information("SABR {VideoId}: {Action} at segment {Segment} ({Start:0.0}s), fill was at {Head}",
+                _videoId, _isFetching ? "seek" : "restarting the stopped fetch", segment, startMs / 1000.0,
+                _fillHead);
             await StartFillAsync(startMs);
         }
 
@@ -373,10 +412,16 @@ internal sealed class SabrHlsSession : ISabrSession
         {
             if (Have())
                 return true;
+
+            // The fetch stopped again, so waiting cannot help: fail this request now and let the next
+            // one decide whether a retry is due.
+            if (!_isFetching)
+                break;
+
             await Task.Delay(100);
         }
 
-        throw new SabrException($"Timed out fetching the fragments for segment {segment}");
+        throw new SabrException($"Could not fetch the fragments for segment {segment}");
     }
 
     /// <summary>True once every fragment of both tracks is on disk. Seeks leave gaps, so this is not implied

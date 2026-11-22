@@ -81,13 +81,22 @@ public partial class WebServer : ILog
 
     private Task OnHttpException(IHttpContext context, IHttpException httpException)
     {
-        Log.Information("OnHttpException Error Occured: {ErrorMessage}", httpException.Message!);
+        // A missing cache entry or a failed stream segment is an ordinary 4xx for the player, and the
+        // access log already records the request. Only a server-side fault needs a warning.
+        if (httpException.StatusCode >= 500)
+            Log.Warning(httpException as Exception, "HTTP {StatusCode} for {Method} {Path}",
+                httpException.StatusCode, context.Request.HttpMethod, context.RequestedPath);
+        else
+            Log.Debug("HTTP {StatusCode} for {Method} {Path}", httpException.StatusCode,
+                context.Request.HttpMethod, context.RequestedPath);
+
         return Task.CompletedTask;
     }
 
     private Task OnUnhandledException(IHttpContext context, Exception exception)
     {
-        Log.Information(exception, "OnUnhandledException Error Occured");
+        Log.Error(exception, "Unhandled exception for {Method} {Path}", context.Request.HttpMethod,
+            context.RequestedPath);
         return Task.CompletedTask;
     }
 }

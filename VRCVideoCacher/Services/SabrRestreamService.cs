@@ -277,7 +277,9 @@ public static class SabrRestreamService
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "SABR HLS request failed: {Path}", requestedPath);
+            // The player retries a segment it could not get, and the fetch failure itself is reported by
+            // the session; repeating the stack for every retry only hides the useful lines.
+            Log.Debug(ex, "SABR HLS request failed: {Path}", requestedPath);
         }
     }
 
